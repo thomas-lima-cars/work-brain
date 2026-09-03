@@ -16,10 +16,13 @@ Bancos, financeiras e plataformas: **IGA/Itaú, C6, Win Leilões, Dealers Club, 
 Detalhe de cada um em [`produtos.md`](produtos.md).
 
 ## Modelo de negócio
-_(a preencher)_
+NULL
 
 ## Estrutura / times
-_(a preencher)_
+NULL
+
+## Outras empresas do Grupo Auto2You
+NULL
 
 ## Observações
-_(a preencher)_
+NULL
