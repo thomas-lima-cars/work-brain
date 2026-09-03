@@ -4,17 +4,17 @@
 > **Última atualização:** 2026-09-03 (onboarding)
 
 ## 🔹 Frentes quentes agora
-- _(nenhuma frente aberta ainda — criar com `/criar-novo-subject`)_
+- _(a classificar — ver cobranças)_
 
 ## 🧊 Frentes fora do radar
-- _
+- _(a classificar — ver cobranças)_
 
 ## 🔥 Decisões em aberto
 - _
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] Preencher `context/meu-papel.md`, `context/produtos.md` e `context/stakeholders.md` (onboarding)
-- [ ] Criar as primeiras frentes em `subjects/` via `/criar-novo-subject`
+- [ ] Classificar as 6 frentes (`cars2you`, `bradesco`, `c6`, `itau`, `lm`, `outros`) entre quentes e fora do radar
+- [ ] Preencher `01-contexto.md` de cada frente conforme o trabalho passar por ela
 
 ## ⏳ Esperando outros
 - _

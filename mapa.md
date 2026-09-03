@@ -15,10 +15,14 @@
 
 ```
 subjects/
-└── _template/          (modelo pra criar nova frente)
+├── _template/          (modelo pra criar nova frente)
+├── cars2you/
+├── bradesco/
+├── c6/
+├── itau/
+├── lm/
+└── outros/             (coringa: o que não se encaixa nas outras)
 ```
-
-_(Frentes criadas via `/criar-novo-subject` entram aqui.)_
 
 **Estrutura padrão de cada frente:**
 - `01-contexto.md` — O que é, regras de negócio, integrações

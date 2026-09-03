@@ -1,15 +1,17 @@
 # Produtos / clientes que eu toco
 
-> Uma linha por cliente ou produto: o que é a operação/integração e em que fase está.
-> Quando uma linha virar trabalho contínuo, abra a frente com `/criar-novo-subject`.
+> Uma linha por frente. Cada uma tem pasta em `subjects/<slug>/`.
+> Detalhe do que é e da fase atual mora no `01-contexto.md` de cada frente.
 
-| Cliente / produto | O que é | Fase atual | Frente em `subjects/` |
+| Frente | Slug em `subjects/` | O que é | Fase atual |
 |---|---|---|---|
-| **IGA / Itaú** | _(a preencher)_ | _(a preencher)_ | — |
-| **C6** | _(a preencher)_ | _(a preencher)_ | — |
-| **Win Leilões** | _(a preencher)_ | _(a preencher)_ | — |
-| **Dealers Club** | _(a preencher)_ | _(a preencher)_ | — |
-| **Tuunelis** | _(a preencher)_ | _(a preencher)_ | — |
+| **Cars2You** | `cars2you` | _(a preencher)_ | _(a preencher)_ |
+| **Bradesco** | `bradesco` | _(a preencher)_ | _(a preencher)_ |
+| **C6** | `c6` | _(a preencher)_ | _(a preencher)_ |
+| **Itaú** | `itau` | _(a preencher)_ | _(a preencher)_ |
+| **LM** | `lm` | _(a preencher — sigla não especificada no onboarding)_ | _(a preencher)_ |
+| **Outros** | `outros` | Coringa: o que não se encaixa nas frentes acima | — |
 
-## Detalhamento
-_(a preencher — uma seção por cliente conforme o assunto ficar denso)_
+## Fora do radar
+Citados no briefing original mas **não** são frentes do Thomas: IGA, Win Leilões,
+Dealers Club, Tuunelis, VEIC.
