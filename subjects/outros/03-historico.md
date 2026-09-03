@@ -4,3 +4,4 @@
 
 ## 2026-09-03
 - Frente criada no onboarding do work-brain.
+- Frente coringa, sem movimento.

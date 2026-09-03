@@ -4,3 +4,4 @@
 
 ## 2026-09-03
 - Frente criada no onboarding do work-brain.
+- Classificada como **parada** (fora do radar).

@@ -4,16 +4,19 @@
 > **Última atualização:** 2026-09-03 (onboarding)
 
 ## 🔹 Frentes quentes agora
-- _(a classificar — ver cobranças)_
+- **cars2you** — _(estado a preencher na próxima sessão)_
+- **bradesco** — _(estado a preencher na próxima sessão)_
 
 ## 🧊 Frentes fora do radar
-- _(a classificar — ver cobranças)_
+- **c6** — parada
+- **itau** — parada
+- **lm** — parada
+- **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
 - _
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] Classificar as 6 frentes (`cars2you`, `bradesco`, `c6`, `itau`, `lm`, `outros`) entre quentes e fora do radar
 - [ ] Preencher `01-contexto.md` de cada frente conforme o trabalho passar por ela
 
 ## ⏳ Esperando outros
