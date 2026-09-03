@@ -15,13 +15,12 @@
 ## 📌 Cobranças minhas (preciso agir)
 - [ ] Preencher `context/meu-papel.md`, `context/produtos.md` e `context/stakeholders.md` (onboarding)
 - [ ] Criar as primeiras frentes em `subjects/` via `/criar-novo-subject`
-- [ ] Criar o repositório privado `work-brain` no GitHub e conectar o `origin`
 
 ## ⏳ Esperando outros
 - _
 
 ## ⚠️ Alertas críticos
-- **Repo ainda sem `origin`** — nada está indo pro GitHub. O `/salve` vai falhar no push até isso ser resolvido.
+- _
 
 ## 📅 Compromissos próximos
 - _
