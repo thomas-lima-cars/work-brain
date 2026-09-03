@@ -1,0 +1,17 @@
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Temporários / rascunhos locais
+*.tmp
+*.bak
+*~
+
+# Segredos — NUNCA commitar
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+secrets.md
