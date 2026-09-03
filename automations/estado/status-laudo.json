@@ -1,0 +1,215 @@
+{
+ "placas": {
+  "BXD7C83": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "FKG2J43": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "FQW7B23": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "FYS9H16": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "GHY7B92": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "GJA7D24": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "QXR6E23": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "QXR6E27": {
+   "status": "C/ APONTAMENTO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "QXR6E28": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "RNU0J67": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "RNU0J68": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "RVG5A40": {
+   "status": "C/ APONTAMENTO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "RVH1H12": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SEI4C75": {
+   "status": "C/ APONTAMENTO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SEI6G52": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SES6D25": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SFA8A24": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SFJ7D83": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SHE7F25": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "STC1H71": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "STK7G62": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SVL8G54": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SVQ6I28": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "SWK7C98": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TKQ1F83": {
+   "status": "C/ APONTAMENTO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TLP2F70": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TLR3A07": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TLY1C22": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TMD3E34": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TMD4A03": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TMJ8G97": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TTK2J77": {
+   "status": "REPROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TCB2D70": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TDE5J77": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  },
+  "TCB2D69": {
+   "status": "APROVADO",
+   "fornecedor": "alesca",
+   "origem": "laudo",
+   "lido_em": "2026-08-21"
+  }
+ },
+ "atualizado": "2026-08-21"
+}

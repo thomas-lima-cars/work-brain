@@ -52,6 +52,9 @@ Quando a conversa entrar numa frente específica (ex: "vamos mexer em X"), aí s
 ### 🔹 Frentes quentes agora
 [reflete o conteúdo do estado-atual.md]
 
+### ⚙️ Rodando em produção (sem demanda ativa)
+[reflete — automação que trabalha sozinha, não é frente quente]
+
 ### 🧊 Frentes fora do radar
 [reflete — uma linha por frente]
 

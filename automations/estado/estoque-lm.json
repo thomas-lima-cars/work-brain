@@ -1,0 +1,4703 @@
+{
+ "placas": {
+  "BDB1D56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 38621,
+   "remessas": 3
+  },
+  "FQT9C41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 51610,
+   "remessas": 3
+  },
+  "GAF2B62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 180872,
+   "remessas": 3
+  },
+  "GDR7F94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45317,
+   "remessas": 3
+  },
+  "GIL9E74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 51253,
+   "remessas": 3
+  },
+  "QXR6E35": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 80134,
+   "remessas": 3
+  },
+  "RMD3D18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 77905,
+   "remessas": 1
+  },
+  "RNJ8C00": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 68478,
+   "remessas": 3
+  },
+  "RNN5H33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 79991,
+   "remessas": 1
+  },
+  "RPT5A39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 157698,
+   "remessas": 3
+  },
+  "SDY1E27": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 90972,
+   "remessas": 3
+  },
+  "SEI6F64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 39928,
+   "remessas": 3
+  },
+  "SET3I11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 140992,
+   "remessas": 3
+  },
+  "SEZ1D41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 69327,
+   "remessas": 3
+  },
+  "SFC7I67": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 37938,
+   "remessas": 3
+  },
+  "TAP5F47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 73279,
+   "remessas": 3
+  },
+  "TAS6A49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 75174,
+   "remessas": 3
+  },
+  "TAS6B33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 70502,
+   "remessas": 3
+  },
+  "BCK4916": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54410,
+   "remessas": 3
+  },
+  "BDB1D40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64525,
+   "remessas": 3
+  },
+  "BDB1D48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 49799,
+   "remessas": 3
+  },
+  "BDB1D49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64697,
+   "remessas": 3
+  },
+  "BDB1D52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 60187,
+   "remessas": 3
+  },
+  "BDB1D54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61230,
+   "remessas": 3
+  },
+  "BDB1D61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64697,
+   "remessas": 3
+  },
+  "BDB1D64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61230,
+   "remessas": 3
+  },
+  "BDB1D68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62481,
+   "remessas": 3
+  },
+  "BDB1D72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58458,
+   "remessas": 3
+  },
+  "BDB1D75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63677,
+   "remessas": 3
+  },
+  "BDJ7A58": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55568,
+   "remessas": 3
+  },
+  "BDJ7A98": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61438,
+   "remessas": 3
+  },
+  "BDJ7B04": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59353,
+   "remessas": 3
+  },
+  "BDJ8G29": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 50139,
+   "remessas": 3
+  },
+  "BDJ8G47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58936,
+   "remessas": 3
+  },
+  "BDJ8G57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55998,
+   "remessas": 3
+  },
+  "BDJ8G61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61451,
+   "remessas": 3
+  },
+  "BDJ8G67": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61886,
+   "remessas": 3
+  },
+  "BEN4D85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 219799,
+   "remessas": 3
+  },
+  "BXD7C83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 23108,
+   "remessas": 3
+  },
+  "BYQ0B61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22435,
+   "remessas": 3
+  },
+  "BZL8I52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25251,
+   "remessas": 3
+  },
+  "CUP2J45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 44996,
+   "remessas": 3
+  },
+  "CUQ9F97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 328962,
+   "remessas": 3
+  },
+  "CUR7F59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 307059,
+   "remessas": 3
+  },
+  "CUR8J48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 211089,
+   "remessas": 3
+  },
+  "CZA9C45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 297808,
+   "remessas": 3
+  },
+  "CZO6I86": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 202016,
+   "remessas": 3
+  },
+  "DEE0G51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 275799,
+   "remessas": 3
+  },
+  "DFV4E01": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32246,
+   "remessas": 3
+  },
+  "DJE1B65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34364,
+   "remessas": 3
+  },
+  "DJN8G43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 97993,
+   "remessas": 3
+  },
+  "DPA5513": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 455018,
+   "remessas": 3
+  },
+  "DYM5E83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 189555,
+   "remessas": 3
+  },
+  "EDC5I62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 299684,
+   "remessas": 3
+  },
+  "ELI9815": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 209013,
+   "remessas": 3
+  },
+  "EUS1F71": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 108754,
+   "remessas": 3
+  },
+  "EVF3I73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 30349,
+   "remessas": 3
+  },
+  "EXF1034": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 17638,
+   "remessas": 3
+  },
+  "FBJ6I65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 32757,
+   "remessas": 1
+  },
+  "FCQ7A72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 67020,
+   "remessas": 3
+  },
+  "FCZ6G44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 130203,
+   "remessas": 3
+  },
+  "FDZ5G43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 327825,
+   "remessas": 3
+  },
+  "FGA6B01": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 101772,
+   "remessas": 3
+  },
+  "FJQ4A71": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 50657,
+   "remessas": 3
+  },
+  "FJR8D42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57410,
+   "remessas": 3
+  },
+  "FKG2J43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 297511,
+   "remessas": 3
+  },
+  "FKM4J53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22778,
+   "remessas": 3
+  },
+  "FNE5C64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 101829,
+   "remessas": 3
+  },
+  "FNP1H64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59138,
+   "remessas": 3
+  },
+  "FOC6F33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 40947,
+   "remessas": 3
+  },
+  "FQW7B23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22860,
+   "remessas": 3
+  },
+  "FRI2C24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 190797,
+   "remessas": 1
+  },
+  "FRK7I54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 281735,
+   "remessas": 3
+  },
+  "FTH7H96": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53897,
+   "remessas": 3
+  },
+  "FUC1G05": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31420,
+   "remessas": 3
+  },
+  "FVQ5F82": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 39720,
+   "remessas": 1
+  },
+  "FVY2J51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 40256,
+   "remessas": 3
+  },
+  "FWA5A03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42436,
+   "remessas": 3
+  },
+  "FWF5C11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 257577,
+   "remessas": 3
+  },
+  "FWM9B62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 148036,
+   "remessas": 3
+  },
+  "FYJ8G63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53270,
+   "remessas": 3
+  },
+  "FYS9H16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 23468,
+   "remessas": 3
+  },
+  "FYY9H48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 353003,
+   "remessas": 3
+  },
+  "FZD6C73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54568,
+   "remessas": 3
+  },
+  "FZH4A92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 101291,
+   "remessas": 3
+  },
+  "GAQ0I14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 29831,
+   "remessas": 3
+  },
+  "GBJ0G24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53693,
+   "remessas": 3
+  },
+  "GCC3H74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 42686,
+   "remessas": 2
+  },
+  "GCE5B47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53845,
+   "remessas": 3
+  },
+  "GCK5D74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53571,
+   "remessas": 3
+  },
+  "GCT7A53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 101999,
+   "remessas": 3
+  },
+  "GDI8F14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 427195,
+   "remessas": 3
+  },
+  "GDW2B82": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 23363,
+   "remessas": 3
+  },
+  "GEB1C06": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 212837,
+   "remessas": 3
+  },
+  "GEE1F84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 209636,
+   "remessas": 3
+  },
+  "GEE6J81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54464,
+   "remessas": 3
+  },
+  "GFG6J31": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59069,
+   "remessas": 3
+  },
+  "GFS0C76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 40413,
+   "remessas": 3
+  },
+  "GHG9E63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53355,
+   "remessas": 3
+  },
+  "GHQ8J93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 19944,
+   "remessas": 3
+  },
+  "GHY7B92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22115,
+   "remessas": 3
+  },
+  "GIA0J43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 24377,
+   "remessas": 3
+  },
+  "GID6B92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 438026,
+   "remessas": 3
+  },
+  "GIM2B16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 187670,
+   "remessas": 3
+  },
+  "GIT8I45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 47672,
+   "remessas": 2
+  },
+  "GJA7D24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22340,
+   "remessas": 3
+  },
+  "GJE2F54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52238,
+   "remessas": 3
+  },
+  "GJI8A41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42905,
+   "remessas": 3
+  },
+  "GJN3E21": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32701,
+   "remessas": 3
+  },
+  "GJY3H41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 100906,
+   "remessas": 3
+  },
+  "IYT7F71": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83760,
+   "remessas": 3
+  },
+  "P160609": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 165784,
+   "remessas": 3
+  },
+  "PLG9745": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85289,
+   "remessas": 3
+  },
+  "PLI0319": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 215136,
+   "remessas": 3
+  },
+  "PLI7027": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 205650,
+   "remessas": 2
+  },
+  "PLI9480": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 214550,
+   "remessas": 3
+  },
+  "PLO6E62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 208631,
+   "remessas": 3
+  },
+  "PLO7D74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 209970,
+   "remessas": 3
+  },
+  "PLO9B96": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 207497,
+   "remessas": 3
+  },
+  "PLQ8J00": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 293551,
+   "remessas": 3
+  },
+  "PLS0C24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 277494,
+   "remessas": 3
+  },
+  "PLU2D70": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 246778,
+   "remessas": 3
+  },
+  "PLU6G89": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 226074,
+   "remessas": 3
+  },
+  "PLV7J14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 246095,
+   "remessas": 3
+  },
+  "PLX0A37": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 245191,
+   "remessas": 3
+  },
+  "PLX2C96": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 249474,
+   "remessas": 3
+  },
+  "PLX3C45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 246869,
+   "remessas": 3
+  },
+  "PLX8E95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 248695,
+   "remessas": 3
+  },
+  "PLX8G84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 233454,
+   "remessas": 3
+  },
+  "PLX9C15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 243147,
+   "remessas": 3
+  },
+  "PYK8G81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 65619,
+   "remessas": 3
+  },
+  "PYK9653": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 74812,
+   "remessas": 3
+  },
+  "PZP5B90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 50820,
+   "remessas": 3
+  },
+  "QXK6575": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31337,
+   "remessas": 3
+  },
+  "QXK6681": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25683,
+   "remessas": 3
+  },
+  "QXK6766": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25315,
+   "remessas": 3
+  },
+  "QXK6799": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25627,
+   "remessas": 3
+  },
+  "QXK6859": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 23730,
+   "remessas": 3
+  },
+  "QXK6945": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 26012,
+   "remessas": 3
+  },
+  "QXR6E20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85914,
+   "remessas": 3
+  },
+  "QXR6E21": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 86050,
+   "remessas": 3
+  },
+  "QXR6E23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57028,
+   "remessas": 3
+  },
+  "QXR6E25": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 84185,
+   "remessas": 3
+  },
+  "QXR6E27": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85128,
+   "remessas": 3
+  },
+  "QXR6E28": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 77487,
+   "remessas": 3
+  },
+  "QXR6E29": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 77879,
+   "remessas": 2
+  },
+  "QXR6E32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 71228,
+   "remessas": 3
+  },
+  "QXR6E41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 71816,
+   "remessas": 3
+  },
+  "QXS0G09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 81540,
+   "remessas": 3
+  },
+  "QXS0G10": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 82128,
+   "remessas": 2
+  },
+  "QXS0G13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83994,
+   "remessas": 3
+  },
+  "QXS6C60": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 77263,
+   "remessas": 3
+  },
+  "QXS6C61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 82447,
+   "remessas": 3
+  },
+  "QXS6C73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 80223,
+   "remessas": 3
+  },
+  "QXS6C75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 75181,
+   "remessas": 3
+  },
+  "QXS6C85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 70426,
+   "remessas": 3
+  },
+  "QXS6C87": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 86935,
+   "remessas": 3
+  },
+  "QXS6C88": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83186,
+   "remessas": 3
+  },
+  "QXS6C91": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83270,
+   "remessas": 3
+  },
+  "QXS6C93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83610,
+   "remessas": 3
+  },
+  "RCW7H79": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 247641,
+   "remessas": 3
+  },
+  "RCX7D59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 255789,
+   "remessas": 3
+  },
+  "RCZ3F73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 261001,
+   "remessas": 3
+  },
+  "RDC3C93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 260678,
+   "remessas": 3
+  },
+  "RDC4D17": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 259343,
+   "remessas": 3
+  },
+  "RDC4E02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 256264,
+   "remessas": 3
+  },
+  "RDC7A65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 256840,
+   "remessas": 3
+  },
+  "RDH6F12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 260880,
+   "remessas": 3
+  },
+  "RDI9G61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 337809,
+   "remessas": 3
+  },
+  "RHK6H75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 203756,
+   "remessas": 3
+  },
+  "RMV2D09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34264,
+   "remessas": 3
+  },
+  "RNF3G09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 67129,
+   "remessas": 3
+  },
+  "RNF4J64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 78381,
+   "remessas": 1
+  },
+  "RNG6I23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 88607,
+   "remessas": 3
+  },
+  "RNI4C52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 101033,
+   "remessas": 3
+  },
+  "RNJ8E01": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 84441,
+   "remessas": 3
+  },
+  "RNM0A55": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 104542,
+   "remessas": 3
+  },
+  "RNN5H29": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 77305,
+   "remessas": 2
+  },
+  "RNN5H35": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 79299,
+   "remessas": 3
+  },
+  "RNO3H17": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85425,
+   "remessas": 3
+  },
+  "RNO3H57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83441,
+   "remessas": 3
+  },
+  "RNO3H61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83787,
+   "remessas": 3
+  },
+  "RNU0J67": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 81603,
+   "remessas": 3
+  },
+  "RNU0J68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 81117,
+   "remessas": 3
+  },
+  "RNZ4B40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31047,
+   "remessas": 3
+  },
+  "RPF4G87": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 203288,
+   "remessas": 3
+  },
+  "RPI2J95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 211696,
+   "remessas": 3
+  },
+  "RPT5B14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 149500,
+   "remessas": 3
+  },
+  "RTA6D86": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 82623,
+   "remessas": 3
+  },
+  "RTE3J64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 33725,
+   "remessas": 3
+  },
+  "RTI0D96": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 76074,
+   "remessas": 3
+  },
+  "RTU3A15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 58125,
+   "remessas": 1
+  },
+  "RUA9H02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 163331,
+   "remessas": 3
+  },
+  "RUP2H53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55279,
+   "remessas": 3
+  },
+  "RUP2H56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55600,
+   "remessas": 3
+  },
+  "RUQ9E81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55128,
+   "remessas": 3
+  },
+  "RUQ9E97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55267,
+   "remessas": 3
+  },
+  "RUY8B57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 27633,
+   "remessas": 1
+  },
+  "RVA3E80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 198109,
+   "remessas": 3
+  },
+  "RVC3H98": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 90166,
+   "remessas": 3
+  },
+  "RVC3I02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 79117,
+   "remessas": 3
+  },
+  "RVD1F23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 86213,
+   "remessas": 3
+  },
+  "RVG5A18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 90200,
+   "remessas": 3
+  },
+  "RVG5A39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83281,
+   "remessas": 3
+  },
+  "RVG5A40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 75283,
+   "remessas": 3
+  },
+  "RVH0I63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 107663,
+   "remessas": 3
+  },
+  "RVH0I68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 111590,
+   "remessas": 3
+  },
+  "RVH0I77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 102235,
+   "remessas": 3
+  },
+  "RVH0I88": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 111711,
+   "remessas": 3
+  },
+  "RVH0I92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 105771,
+   "remessas": 3
+  },
+  "RVH0I97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 106918,
+   "remessas": 3
+  },
+  "RVH1H09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 113412,
+   "remessas": 3
+  },
+  "RVH1H10": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 114424,
+   "remessas": 3
+  },
+  "RVH1H11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 96945,
+   "remessas": 3
+  },
+  "RVH1H12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 98488,
+   "remessas": 3
+  },
+  "RVH1H14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 90420,
+   "remessas": 3
+  },
+  "RVH1H16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 110946,
+   "remessas": 3
+  },
+  "RVI1A72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 123352,
+   "remessas": 3
+  },
+  "RVL4I95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32810,
+   "remessas": 3
+  },
+  "RVQ8D72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 130754,
+   "remessas": 3
+  },
+  "SDV6C79": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 89567,
+   "remessas": 3
+  },
+  "SDV6C94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 126933,
+   "remessas": 3
+  },
+  "SDV6C97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 130965,
+   "remessas": 3
+  },
+  "SDY1E09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 125429,
+   "remessas": 3
+  },
+  "SDY1E15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 126456,
+   "remessas": 3
+  },
+  "SDY1E26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 103213,
+   "remessas": 3
+  },
+  "SDY1E32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 127271,
+   "remessas": 3
+  },
+  "SDY8I30": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 105349,
+   "remessas": 2
+  },
+  "SDY8I37": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 109155,
+   "remessas": 3
+  },
+  "SDY8I42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 105997,
+   "remessas": 3
+  },
+  "SEI3C18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22565,
+   "remessas": 3
+  },
+  "SEI3E17": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32144,
+   "remessas": 3
+  },
+  "SEI4B45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25700,
+   "remessas": 3
+  },
+  "SEI4C75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 28578,
+   "remessas": 3
+  },
+  "SEI4I73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32619,
+   "remessas": 3
+  },
+  "SEI5D68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 27504,
+   "remessas": 3
+  },
+  "SEI5H84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 28936,
+   "remessas": 3
+  },
+  "SEI5J08": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 30025,
+   "remessas": 3
+  },
+  "SEI5J62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 20834,
+   "remessas": 3
+  },
+  "SEI6G52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 21767,
+   "remessas": 3
+  },
+  "SEK1C29": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 196337,
+   "remessas": 3
+  },
+  "SEM6C67": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 285195,
+   "remessas": 3
+  },
+  "SEQ2D44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 125846,
+   "remessas": 3
+  },
+  "SEQ3J88": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 311539,
+   "remessas": 3
+  },
+  "SEQ7G63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 222508,
+   "remessas": 3
+  },
+  "SEQ7G64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 298461,
+   "remessas": 3
+  },
+  "SEQ7G68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 316582,
+   "remessas": 3
+  },
+  "SEQ7G69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 296851,
+   "remessas": 3
+  },
+  "SEQ7G83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 291219,
+   "remessas": 3
+  },
+  "SES6D25": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 128628,
+   "remessas": 3
+  },
+  "SEU0H78": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 320263,
+   "remessas": 3
+  },
+  "SEV5E02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 107623,
+   "remessas": 3
+  },
+  "SEZ4H01": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 21777,
+   "remessas": 3
+  },
+  "SEZ4H89": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 223269,
+   "remessas": 3
+  },
+  "SEZ4H90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 219962,
+   "remessas": 3
+  },
+  "SEZ4H92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 223300,
+   "remessas": 3
+  },
+  "SEZ4H94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 222733,
+   "remessas": 3
+  },
+  "SEZ4I45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 26123,
+   "remessas": 3
+  },
+  "SEZ5A68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32075,
+   "remessas": 3
+  },
+  "SFA8A24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 27715,
+   "remessas": 3
+  },
+  "SFE5F90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 364276,
+   "remessas": 3
+  },
+  "SFE5H15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 360590,
+   "remessas": 3
+  },
+  "SFH0E13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 105832,
+   "remessas": 3
+  },
+  "SFJ7D28": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46767,
+   "remessas": 3
+  },
+  "SFJ7D83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31653,
+   "remessas": 3
+  },
+  "SFL2E87": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 216631,
+   "remessas": 3
+  },
+  "SFL4B91": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 114055,
+   "remessas": 3
+  },
+  "SFM4A59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 60864,
+   "remessas": 2
+  },
+  "SHB5C29": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54650,
+   "remessas": 3
+  },
+  "SHB5E39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 28734,
+   "remessas": 2
+  },
+  "SHE0A63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 30789,
+   "remessas": 2
+  },
+  "SHE7E51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 98992,
+   "remessas": 3
+  },
+  "SHE7F25": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 21057,
+   "remessas": 3
+  },
+  "SIB8D68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48804,
+   "remessas": 3
+  },
+  "SIP8H39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 99355,
+   "remessas": 3
+  },
+  "SJK0J11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 130298,
+   "remessas": 3
+  },
+  "SJL5I16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 285993,
+   "remessas": 3
+  },
+  "SJN7G60": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 386621,
+   "remessas": 3
+  },
+  "SJO1A30": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 220068,
+   "remessas": 3
+  },
+  "SJO1E88": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 332114,
+   "remessas": 3
+  },
+  "SJO2D63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 203734,
+   "remessas": 3
+  },
+  "SJO4F57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 223504,
+   "remessas": 3
+  },
+  "SJO5H76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 205068,
+   "remessas": 3
+  },
+  "SJO6B97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 223838,
+   "remessas": 3
+  },
+  "SJO7F15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 203284,
+   "remessas": 3
+  },
+  "SJO7F43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 218301,
+   "remessas": 3
+  },
+  "SJO7J18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 223519,
+   "remessas": 3
+  },
+  "SJO8H39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 220523,
+   "remessas": 3
+  },
+  "SJO9J40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 222972,
+   "remessas": 3
+  },
+  "SJY6I38": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 220170,
+   "remessas": 3
+  },
+  "SKH7H54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 368907,
+   "remessas": 3
+  },
+  "SKI5E57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 207915,
+   "remessas": 3
+  },
+  "SKQ7F84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44857,
+   "remessas": 1
+  },
+  "SSW4B36": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34288,
+   "remessas": 3
+  },
+  "STA0C11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 45795,
+   "remessas": 2
+  },
+  "STC1H71": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 225146,
+   "remessas": 3
+  },
+  "STC2C30": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47543,
+   "remessas": 3
+  },
+  "STD2F32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 437427,
+   "remessas": 3
+  },
+  "STD6B03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32963,
+   "remessas": 3
+  },
+  "STG7B93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45289,
+   "remessas": 3
+  },
+  "STI3G69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57749,
+   "remessas": 3
+  },
+  "STJ8E09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 206148,
+   "remessas": 3
+  },
+  "STK7G62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58625,
+   "remessas": 3
+  },
+  "STR3A46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58590,
+   "remessas": 3
+  },
+  "STT3J75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 90239,
+   "remessas": 3
+  },
+  "STT8E43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 56984,
+   "remessas": 3
+  },
+  "STU1J16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47755,
+   "remessas": 3
+  },
+  "STX8F17": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 199220,
+   "remessas": 3
+  },
+  "STY4A67": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55523,
+   "remessas": 2
+  },
+  "STZ0C65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63015,
+   "remessas": 3
+  },
+  "SUB8B26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 225962,
+   "remessas": 3
+  },
+  "SUC8B49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 308291,
+   "remessas": 3
+  },
+  "SUE6A76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 316453,
+   "remessas": 2
+  },
+  "SUH5B70": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57316,
+   "remessas": 3
+  },
+  "SUS3G09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 49540,
+   "remessas": 3
+  },
+  "SUX0H43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52093,
+   "remessas": 3
+  },
+  "SVF4H00": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55523,
+   "remessas": 3
+  },
+  "SVF7H83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45289,
+   "remessas": 3
+  },
+  "SVG6E86": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 73461,
+   "remessas": 1
+  },
+  "SVG9F55": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42013,
+   "remessas": 3
+  },
+  "SVK9G44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 23918,
+   "remessas": 3
+  },
+  "SVL8G54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62466,
+   "remessas": 3
+  },
+  "SVQ6I28": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61029,
+   "remessas": 3
+  },
+  "SVR6B40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55930,
+   "remessas": 3
+  },
+  "SVV2B46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 56730,
+   "remessas": 3
+  },
+  "SVW5J76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62358,
+   "remessas": 3
+  },
+  "SWC2A56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52825,
+   "remessas": 3
+  },
+  "SWE7A39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 205506,
+   "remessas": 3
+  },
+  "SWI6H00": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43891,
+   "remessas": 2
+  },
+  "SWK7C98": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57265,
+   "remessas": 3
+  },
+  "SWL2C41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45221,
+   "remessas": 3
+  },
+  "SWS3F39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46372,
+   "remessas": 3
+  },
+  "SWS5B89": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 56791,
+   "remessas": 3
+  },
+  "SWT9E14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62498,
+   "remessas": 3
+  },
+  "SWZ4H11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 198902,
+   "remessas": 3
+  },
+  "SWZ8F54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 27250,
+   "remessas": 3
+  },
+  "TAO6C91": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59601,
+   "remessas": 3
+  },
+  "TAP5F46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 73735,
+   "remessas": 3
+  },
+  "TAP5F77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 60942,
+   "remessas": 3
+  },
+  "TAP5F86": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63803,
+   "remessas": 3
+  },
+  "TAP5G11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61084,
+   "remessas": 3
+  },
+  "TAP5H12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 66743,
+   "remessas": 3
+  },
+  "TAP5H62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 74049,
+   "remessas": 3
+  },
+  "TAP5H90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 73421,
+   "remessas": 3
+  },
+  "TAP5H94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 73421,
+   "remessas": 3
+  },
+  "TAP5I78": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 60059,
+   "remessas": 3
+  },
+  "TAR1C39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48790,
+   "remessas": 3
+  },
+  "TAS5J84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 70307,
+   "remessas": 3
+  },
+  "TAS6A10": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59467,
+   "remessas": 3
+  },
+  "TAS6A23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 73062,
+   "remessas": 3
+  },
+  "TAS6B22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 72398,
+   "remessas": 3
+  },
+  "TAS6B85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59164,
+   "remessas": 3
+  },
+  "TAU6E05": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58152,
+   "remessas": 3
+  },
+  "TAU6G12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59217,
+   "remessas": 3
+  },
+  "TAU6H39": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 41146,
+   "remessas": 3
+  },
+  "TAU8G81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42723,
+   "remessas": 1
+  },
+  "TAV5H48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 51483,
+   "remessas": 3
+  },
+  "TAV5I48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52267,
+   "remessas": 3
+  },
+  "TAW0H32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53253,
+   "remessas": 3
+  },
+  "TAW7I50": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 176319,
+   "remessas": 3
+  },
+  "TBN1F90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 29806,
+   "remessas": 3
+  },
+  "TBS6A12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 29946,
+   "remessas": 3
+  },
+  "TBV2H80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 49771,
+   "remessas": 3
+  },
+  "TCA1A77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62192,
+   "remessas": 3
+  },
+  "TCA1B68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63703,
+   "remessas": 3
+  },
+  "TCA2G23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62598,
+   "remessas": 3
+  },
+  "TCA2G60": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63720,
+   "remessas": 3
+  },
+  "TCA3C74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 60543,
+   "remessas": 3
+  },
+  "TCA5F50": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64197,
+   "remessas": 3
+  },
+  "TCA5G20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63471,
+   "remessas": 3
+  },
+  "TCI4E17": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 51651,
+   "remessas": 1
+  },
+  "TCL8F42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47336,
+   "remessas": 3
+  },
+  "TCL8F43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 37347,
+   "remessas": 3
+  },
+  "TCL8F47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48209,
+   "remessas": 3
+  },
+  "TCL8F60": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 48089,
+   "remessas": 1
+  },
+  "TDB9G77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 62735,
+   "remessas": 2
+  },
+  "TDB9G97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 50261,
+   "remessas": 3
+  },
+  "TDB9H34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54400,
+   "remessas": 3
+  },
+  "TDF6J21": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64948,
+   "remessas": 3
+  },
+  "TDR0D80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 63210,
+   "remessas": 1
+  },
+  "TDY8G80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 46574,
+   "remessas": 1
+  },
+  "TKQ1F83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62482,
+   "remessas": 3
+  },
+  "TLP2F70": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63202,
+   "remessas": 3
+  },
+  "TLQ9I80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61507,
+   "remessas": 3
+  },
+  "TLR3A07": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63270,
+   "remessas": 3
+  },
+  "TLU3D52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 30090,
+   "remessas": 3
+  },
+  "TLU6E69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 60707,
+   "remessas": 3
+  },
+  "TLV8A20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64182,
+   "remessas": 3
+  },
+  "TLY1C22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62895,
+   "remessas": 3
+  },
+  "TLY5E35": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64091,
+   "remessas": 3
+  },
+  "TLY6C02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64713,
+   "remessas": 3
+  },
+  "TLZ5F49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64628,
+   "remessas": 3
+  },
+  "TMA2B15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64628,
+   "remessas": 3
+  },
+  "TMA9D51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64628,
+   "remessas": 3
+  },
+  "TMC5H56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31497,
+   "remessas": 3
+  },
+  "TMD3E34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63287,
+   "remessas": 3
+  },
+  "TMD4A03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 26785,
+   "remessas": 3
+  },
+  "TMG4A36": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 26411,
+   "remessas": 3
+  },
+  "TMG5G70": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 56687,
+   "remessas": 1
+  },
+  "TMI0B84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 26536,
+   "remessas": 3
+  },
+  "TMI7C88": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62748,
+   "remessas": 3
+  },
+  "TMJ6H97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62262,
+   "remessas": 3
+  },
+  "TMJ8G97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61842,
+   "remessas": 3
+  },
+  "TTK2J77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 34184,
+   "remessas": 1
+  },
+  "FRX2D63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 308169,
+   "remessas": 3
+  },
+  "FVD0F32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22993,
+   "remessas": 3
+  },
+  "GCE0A42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 134681,
+   "remessas": 3
+  },
+  "QWZ5839": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 79422,
+   "remessas": 3
+  },
+  "QXR6E22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 81644,
+   "remessas": 3
+  },
+  "QXR6E26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 74790,
+   "remessas": 3
+  },
+  "QXR6E36": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 82024,
+   "remessas": 3
+  },
+  "QXR6E38": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 75974,
+   "remessas": 3
+  },
+  "QXR6E40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 78533,
+   "remessas": 3
+  },
+  "QXR6E46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 68127,
+   "remessas": 3
+  },
+  "RCZ7E02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 271962,
+   "remessas": 3
+  },
+  "RCZ8F72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 264634,
+   "remessas": 3
+  },
+  "RCZ9G99": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 265261,
+   "remessas": 3
+  },
+  "RNM3G56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 84076,
+   "remessas": 3
+  },
+  "RUG7C25": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 43161,
+   "remessas": 3
+  },
+  "RVC0E34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83046,
+   "remessas": 3
+  },
+  "RVC3I15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 79075,
+   "remessas": 3
+  },
+  "RVQ8D65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 98324,
+   "remessas": 3
+  },
+  "SEQ7G59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 311154,
+   "remessas": 3
+  },
+  "SET5E69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 263379,
+   "remessas": 3
+  },
+  "SEW8G98": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 40650,
+   "remessas": 2
+  },
+  "SEY8I92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22403,
+   "remessas": 3
+  },
+  "SEZ1D85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 77665,
+   "remessas": 3
+  },
+  "SKC1B17": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 349104,
+   "remessas": 3
+  },
+  "TAS6A38": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 71818,
+   "remessas": 3
+  },
+  "TAS6A98": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 72405,
+   "remessas": 3
+  },
+  "TCB1B44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 67813,
+   "remessas": 3
+  },
+  "FXB5C74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45389,
+   "remessas": 3
+  },
+  "GFP3A21": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48265,
+   "remessas": 3
+  },
+  "GFS8H51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48265,
+   "remessas": 3
+  },
+  "GJX0J23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46440,
+   "remessas": 3
+  },
+  "SEW9A40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 44809,
+   "remessas": 3
+  },
+  "TAQ3I76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 136518,
+   "remessas": 3
+  },
+  "TCB2D70": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 70704,
+   "remessas": 3
+  },
+  "TDE5J77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 72933,
+   "remessas": 3
+  },
+  "QWW6D73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 80567,
+   "remessas": 3
+  },
+  "QWY8I68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85954,
+   "remessas": 3
+  },
+  "SEZ3A95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35720,
+   "remessas": 3
+  },
+  "SEZ3B01": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42732,
+   "remessas": 3
+  },
+  "TAR8G69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 100641,
+   "remessas": 3
+  },
+  "TBC3I80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 95815,
+   "remessas": 3
+  },
+  "TBV4A37": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 94630,
+   "remessas": 3
+  },
+  "UAX2H13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 32820,
+   "remessas": 3
+  },
+  "FCA1F34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 37063,
+   "remessas": 2
+  },
+  "GJF6C42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45237,
+   "remessas": 1
+  },
+  "EXN9D94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 38121,
+   "remessas": 2
+  },
+  "FHF3H13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 78268,
+   "remessas": 1
+  },
+  "GFH2I93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 79627,
+   "remessas": 1
+  },
+  "GJL1D03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 80062,
+   "remessas": 2
+  },
+  "GKE2J31": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 34660,
+   "remessas": 1
+  },
+  "RUM0B83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34949,
+   "remessas": 3
+  },
+  "SEI3I09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35235,
+   "remessas": 3
+  },
+  "SEI4E26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35922,
+   "remessas": 3
+  },
+  "SEI4I56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 36390,
+   "remessas": 3
+  },
+  "SIB4B69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43923,
+   "remessas": 1
+  },
+  "SVX7E06": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 74804,
+   "remessas": 3
+  },
+  "TBF4F77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 80508,
+   "remessas": 3
+  },
+  "TBF4F90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 81229,
+   "remessas": 3
+  },
+  "STZ5G63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 78503,
+   "remessas": 2
+  },
+  "SVX0C32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 33840,
+   "remessas": 3
+  },
+  "SIB6B02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44319,
+   "remessas": 1
+  },
+  "SIB4C69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45537,
+   "remessas": 1
+  },
+  "SIB4G71": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45203,
+   "remessas": 1
+  },
+  "SIJ2C92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45302,
+   "remessas": 1
+  },
+  "SIK2A45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45743,
+   "remessas": 1
+  },
+  "SIL8I45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45016,
+   "remessas": 1
+  },
+  "SIM5E40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 45374,
+   "remessas": 2
+  },
+  "EFV9C44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 37310,
+   "remessas": 1
+  },
+  "GCS8F04": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 42652,
+   "remessas": 2
+  },
+  "SIB4B53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43293,
+   "remessas": 1
+  },
+  "CUQ5E49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48686,
+   "remessas": 3
+  },
+  "CUY7E59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48499,
+   "remessas": 3
+  },
+  "CZA9F85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 81061,
+   "remessas": 3
+  },
+  "FJB3G12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57593,
+   "remessas": 3
+  },
+  "GBH8B52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42449,
+   "remessas": 3
+  },
+  "GEB5C93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45829,
+   "remessas": 1
+  },
+  "GEB7A24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45979,
+   "remessas": 3
+  },
+  "GEK6H54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45496,
+   "remessas": 3
+  },
+  "GFD0C83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45387,
+   "remessas": 3
+  },
+  "GGU0D14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 48954,
+   "remessas": 2
+  },
+  "GGY8J34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46043,
+   "remessas": 3
+  },
+  "GGY9H34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45953,
+   "remessas": 3
+  },
+  "GGZ0J84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47795,
+   "remessas": 3
+  },
+  "GHC1B04": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48278,
+   "remessas": 3
+  },
+  "GHQ9A24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47446,
+   "remessas": 3
+  },
+  "GHT7A94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47372,
+   "remessas": 3
+  },
+  "GIJ8H42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 296382,
+   "remessas": 3
+  },
+  "GIR6J73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46033,
+   "remessas": 3
+  },
+  "GKA3I43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46071,
+   "remessas": 3
+  },
+  "QXK6599": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31273,
+   "remessas": 3
+  },
+  "RNN5H34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 86059,
+   "remessas": 3
+  },
+  "RPS1J22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61474,
+   "remessas": 3
+  },
+  "RVB5D83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 102229,
+   "remessas": 3
+  },
+  "SEB1A20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 94568,
+   "remessas": 3
+  },
+  "SEZ0B69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58993,
+   "remessas": 3
+  },
+  "STL2D80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 206727,
+   "remessas": 1
+  },
+  "SUD4I69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25836,
+   "remessas": 3
+  },
+  "SUH3C53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 49815,
+   "remessas": 2
+  },
+  "SUR2A02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 50880,
+   "remessas": 3
+  },
+  "SWI0H46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25836,
+   "remessas": 3
+  },
+  "SWP7G26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 25836,
+   "remessas": 3
+  },
+  "TAL9F43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 158766,
+   "remessas": 3
+  },
+  "TAR8G77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85766,
+   "remessas": 3
+  },
+  "TAT1J84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 82778,
+   "remessas": 3
+  },
+  "TAV9G03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31019,
+   "remessas": 3
+  },
+  "TBF4F95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83592,
+   "remessas": 3
+  },
+  "TBU9F71": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 44495,
+   "remessas": 3
+  },
+  "TCA3C81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 59767,
+   "remessas": 3
+  },
+  "TDB9G62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58140,
+   "remessas": 3
+  },
+  "TDB9G65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61610,
+   "remessas": 3
+  },
+  "TEN3A26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35541,
+   "remessas": 3
+  },
+  "TLZ9I76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 37865,
+   "remessas": 3
+  },
+  "TMG1C65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 96981,
+   "remessas": 3
+  },
+  "UBM4J38": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 30092,
+   "remessas": 3
+  },
+  "CUO7E19": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 57357,
+   "remessas": 3
+  },
+  "CUQ9F28": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 49535,
+   "remessas": 3
+  },
+  "CUR7E59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46735,
+   "remessas": 3
+  },
+  "CUY8G48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 56485,
+   "remessas": 3
+  },
+  "CUY9E49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58411,
+   "remessas": 3
+  },
+  "FJG5C41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43241,
+   "remessas": 1
+  },
+  "GBJ7D81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43626,
+   "remessas": 1
+  },
+  "GFP1I82": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 47113,
+   "remessas": 2
+  },
+  "GIQ4J61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31527,
+   "remessas": 3
+  },
+  "RVC0E75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 99885,
+   "remessas": 3
+  },
+  "RVC0E76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 98860,
+   "remessas": 3
+  },
+  "RVC0E77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 102935,
+   "remessas": 3
+  },
+  "RVC3H94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 95926,
+   "remessas": 3
+  },
+  "RVC3I04": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 90597,
+   "remessas": 3
+  },
+  "SEI3D31": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31910,
+   "remessas": 3
+  },
+  "SEY9A57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 29586,
+   "remessas": 3
+  },
+  "SFC2H83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 51567,
+   "remessas": 1
+  },
+  "SHI7H11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 99109,
+   "remessas": 3
+  },
+  "SHO0A18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 106440,
+   "remessas": 3
+  },
+  "SHO0A19": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 116448,
+   "remessas": 3
+  },
+  "SJJ0A11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 386174,
+   "remessas": 3
+  },
+  "SJJ0A55": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 385219,
+   "remessas": 3
+  },
+  "SJJ1A55": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 384263,
+   "remessas": 3
+  },
+  "SJJ3A77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 380186,
+   "remessas": 3
+  },
+  "SJJ4A33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 376619,
+   "remessas": 3
+  },
+  "SJJ5A11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 374262,
+   "remessas": 3
+  },
+  "SKS8D97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61005,
+   "remessas": 3
+  },
+  "STZ3F13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45397,
+   "remessas": 3
+  },
+  "STZ9F62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54773,
+   "remessas": 3
+  },
+  "SUB3G89": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53322,
+   "remessas": 3
+  },
+  "SUL5H43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 74996,
+   "remessas": 2
+  },
+  "SUO8C15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54323,
+   "remessas": 3
+  },
+  "SUQ2C14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 27996,
+   "remessas": 3
+  },
+  "SVB5A98": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45658,
+   "remessas": 3
+  },
+  "SVD9F46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 64595,
+   "remessas": 3
+  },
+  "SVH2B06": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52506,
+   "remessas": 3
+  },
+  "SWP8D53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 43784,
+   "remessas": 3
+  },
+  "SYM2C68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 59381,
+   "remessas": 2
+  },
+  "TAQ6E15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 94243,
+   "remessas": 3
+  },
+  "TAR3G46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 78659,
+   "remessas": 3
+  },
+  "TAR7J28": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 84805,
+   "remessas": 1
+  },
+  "TAR7J33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83847,
+   "remessas": 3
+  },
+  "TAR8E78": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 83821,
+   "remessas": 3
+  },
+  "TAT4C53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 63683,
+   "remessas": 3
+  },
+  "TAW0F24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 57719,
+   "remessas": 1
+  },
+  "TBC3B20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 80587,
+   "remessas": 3
+  },
+  "TCI4E18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 56568,
+   "remessas": 3
+  },
+  "FUX4J22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 120527,
+   "remessas": 3
+  },
+  "RTI6I43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 43663,
+   "remessas": 3
+  },
+  "SEW9B56": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43648,
+   "remessas": 1
+  },
+  "SEZ4I43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 23741,
+   "remessas": 3
+  },
+  "SUY0J16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34418,
+   "remessas": 3
+  },
+  "SWT8C24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61828,
+   "remessas": 3
+  },
+  "TAR1C90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 52986,
+   "remessas": 1
+  },
+  "TJZ8B61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 97516,
+   "remessas": 3
+  },
+  "TMJ1E72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 49609,
+   "remessas": 3
+  },
+  "TXK0A93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47860,
+   "remessas": 3
+  },
+  "EMO6D62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46418,
+   "remessas": 3
+  },
+  "EZM7D62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48332,
+   "remessas": 3
+  },
+  "FCO9F14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48185,
+   "remessas": 3
+  },
+  "FXX9J34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 41931,
+   "remessas": 1
+  },
+  "GJP7E24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43746,
+   "remessas": 1
+  },
+  "RNN5H30": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85859,
+   "remessas": 3
+  },
+  "RVC0E78": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 102068,
+   "remessas": 3
+  },
+  "SEQ2D35": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 116748,
+   "remessas": 3
+  },
+  "SHO0A21": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 99061,
+   "remessas": 3
+  },
+  "SWL9D78": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 81634,
+   "remessas": 2
+  },
+  "TLP2C46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53909,
+   "remessas": 3
+  },
+  "SEZ4G69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 36116,
+   "remessas": 3
+  },
+  "STC8A19": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52823,
+   "remessas": 3
+  },
+  "STO7H64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 47257,
+   "remessas": 1
+  },
+  "SWL2F69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 49733,
+   "remessas": 2
+  },
+  "DDG3G92": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42369,
+   "remessas": 1
+  },
+  "FDZ4I34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 71099,
+   "remessas": 3
+  },
+  "FIW5B24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 45583,
+   "remessas": 2
+  },
+  "FJB8B53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44793,
+   "remessas": 1
+  },
+  "FMJ6H44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 78745,
+   "remessas": 2
+  },
+  "FOE7B94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47586,
+   "remessas": 3
+  },
+  "FTD0G12": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44878,
+   "remessas": 1
+  },
+  "FWD9C84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45740,
+   "remessas": 3
+  },
+  "GAO6H46": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 31805,
+   "remessas": 1
+  },
+  "GDF1F76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 28156,
+   "remessas": 1
+  },
+  "GEV4G84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 77363,
+   "remessas": 1
+  },
+  "GGA9J45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 72643,
+   "remessas": 3
+  },
+  "GHR8E72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 79085,
+   "remessas": 1
+  },
+  "GJA4A74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45617,
+   "remessas": 3
+  },
+  "GJN6A63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 55342,
+   "remessas": 3
+  },
+  "GJP5G21": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53783,
+   "remessas": 3
+  },
+  "GJW8E03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 45303,
+   "remessas": 3
+  },
+  "QXS6C69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 89608,
+   "remessas": 3
+  },
+  "RUM0B74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 29768,
+   "remessas": 3
+  },
+  "RUM0B77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 30914,
+   "remessas": 3
+  },
+  "RUM0B80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 43449,
+   "remessas": 3
+  },
+  "RUM0B85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34762,
+   "remessas": 3
+  },
+  "SEI3I63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35136,
+   "remessas": 3
+  },
+  "SEI4B37": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42625,
+   "remessas": 3
+  },
+  "SEI4E31": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34963,
+   "remessas": 3
+  },
+  "SEI4I22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35612,
+   "remessas": 3
+  },
+  "SES3G90": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 48750,
+   "remessas": 1
+  },
+  "SEZ4G34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 43797,
+   "remessas": 3
+  },
+  "SEZ4I63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 35234,
+   "remessas": 3
+  },
+  "SEZ5A32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 36453,
+   "remessas": 3
+  },
+  "SFA7I99": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 48263,
+   "remessas": 1
+  },
+  "SFA7J61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45752,
+   "remessas": 1
+  },
+  "SFA8A57": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 44316,
+   "remessas": 3
+  },
+  "SFC2I52": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 46829,
+   "remessas": 1
+  },
+  "SFE4E59": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 71061,
+   "remessas": 3
+  },
+  "SFE4E86": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 74416,
+   "remessas": 3
+  },
+  "SFJ6G58": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 51992,
+   "remessas": 3
+  },
+  "SFJ7D62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52500,
+   "remessas": 3
+  },
+  "SFM4B80": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 54649,
+   "remessas": 1
+  },
+  "SIB3I07": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44598,
+   "remessas": 1
+  },
+  "SIB4B77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43642,
+   "remessas": 2
+  },
+  "SIB4C00": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43983,
+   "remessas": 2
+  },
+  "SIB4H13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 42237,
+   "remessas": 2
+  },
+  "SIK2A30": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 41790,
+   "remessas": 1
+  },
+  "SIK7A91": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44238,
+   "remessas": 1
+  },
+  "SIK8C40": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43536,
+   "remessas": 1
+  },
+  "SIL8I64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43494,
+   "remessas": 2
+  },
+  "SJH4J18": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 62039,
+   "remessas": 3
+  },
+  "STC2E27": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 70941,
+   "remessas": 3
+  },
+  "STD5H24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 73777,
+   "remessas": 2
+  },
+  "STJ6H54": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 46149,
+   "remessas": 1
+  },
+  "STQ6H24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 50657,
+   "remessas": 3
+  },
+  "STT3J97": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 47633,
+   "remessas": 1
+  },
+  "SUE5J34": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31472,
+   "remessas": 3
+  },
+  "SVF4F69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 44611,
+   "remessas": 3
+  },
+  "SVG0F36": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 51365,
+   "remessas": 1
+  },
+  "SVI1D43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54668,
+   "remessas": 3
+  },
+  "SVL0F70": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 48141,
+   "remessas": 1
+  },
+  "SWK9J49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 58534,
+   "remessas": 2
+  },
+  "SWL6C84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43198,
+   "remessas": 1
+  },
+  "SWM1C44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 75070,
+   "remessas": 3
+  },
+  "TAI3J07": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 55923,
+   "remessas": 2
+  },
+  "TAI6G49": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45348,
+   "remessas": 1
+  },
+  "TAI6G51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44991,
+   "remessas": 1
+  },
+  "TAO4I20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 54480,
+   "remessas": 3
+  },
+  "TBF4F76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 76619,
+   "remessas": 3
+  },
+  "TBK6H53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 58161,
+   "remessas": 3
+  },
+  "TCA7J51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 46455,
+   "remessas": 1
+  },
+  "TCA9A29": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 70981,
+   "remessas": 3
+  },
+  "TCB1C35": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47100,
+   "remessas": 3
+  },
+  "TCB1E47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 48269,
+   "remessas": 3
+  },
+  "TCB3B68": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 49522,
+   "remessas": 3
+  },
+  "TCB3D32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 47469,
+   "remessas": 3
+  },
+  "TDW2E65": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 51558,
+   "remessas": 3
+  },
+  "TME9F96": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 31888,
+   "remessas": 3
+  },
+  "SUJ0E24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52080,
+   "remessas": 3
+  },
+  "TAU6F62": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 61445,
+   "remessas": 3
+  },
+  "SIB3J85": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43398,
+   "remessas": 1
+  },
+  "SIB4C22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44099,
+   "remessas": 1
+  },
+  "SIB4F83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42694,
+   "remessas": 1
+  },
+  "SIK4G83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42738,
+   "remessas": 1
+  },
+  "SIM9D32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43845,
+   "remessas": 2
+  },
+  "SIB3J33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45893,
+   "remessas": 1
+  },
+  "SIB4C76": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43885,
+   "remessas": 2
+  },
+  "SIB4D11": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44474,
+   "remessas": 1
+  },
+  "SIB4D51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43969,
+   "remessas": 2
+  },
+  "SIB4E25": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42407,
+   "remessas": 1
+  },
+  "SIB4F86": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43426,
+   "remessas": 2
+  },
+  "SIB4H16": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44995,
+   "remessas": 1
+  },
+  "SIB4H47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45288,
+   "remessas": 1
+  },
+  "SIJ2C15": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 41184,
+   "remessas": 1
+  },
+  "SIJ2C55": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44203,
+   "remessas": 1
+  },
+  "SIJ2C82": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 44735,
+   "remessas": 2
+  },
+  "SIK3J93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 46177,
+   "remessas": 1
+  },
+  "SIL8I41": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 45274,
+   "remessas": 2
+  },
+  "SIM9D31": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45399,
+   "remessas": 1
+  },
+  "SIL8I63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44330,
+   "remessas": 1
+  },
+  "FPU0G72": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53661,
+   "remessas": 3
+  },
+  "BZB6I74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 38039,
+   "remessas": 2
+  },
+  "FVF9H95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 44170,
+   "remessas": 2
+  },
+  "FXO2G82": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46392,
+   "remessas": 3
+  },
+  "RUZ3J45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 51843,
+   "remessas": 1
+  },
+  "SEI4G26": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34029,
+   "remessas": 3
+  },
+  "SEI5I42": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 41511,
+   "remessas": 3
+  },
+  "SES6D22": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42154,
+   "remessas": 3
+  },
+  "SEW3I44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 42288,
+   "remessas": 3
+  },
+  "SEW4F36": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 36300,
+   "remessas": 3
+  },
+  "SFA7I45": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 48251,
+   "remessas": 2
+  },
+  "SFJ6G81": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 52084,
+   "remessas": 3
+  },
+  "SFJ7C32": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 53081,
+   "remessas": 3
+  },
+  "SIB3J88": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43300,
+   "remessas": 2
+  },
+  "SIB4C64": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42638,
+   "remessas": 1
+  },
+  "SIK2A24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44871,
+   "remessas": 1
+  },
+  "SIK2A28": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44041,
+   "remessas": 1
+  },
+  "SWL8H53": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 36956,
+   "remessas": 3
+  },
+  "SYQ6E44": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 51995,
+   "remessas": 2
+  },
+  "TAR8G73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 84449,
+   "remessas": 3
+  },
+  "SIB3J61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 42952,
+   "remessas": 1
+  },
+  "SIB3J87": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44789,
+   "remessas": 1
+  },
+  "SIB4G25": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 40063,
+   "remessas": 1
+  },
+  "SIB4H48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45173,
+   "remessas": 1
+  },
+  "GID2G03": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 46221,
+   "remessas": 3
+  },
+  "GKI5E14": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 284754,
+   "remessas": 3
+  },
+  "SEY8J58": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 27053,
+   "remessas": 3
+  },
+  "SFE0C48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 85580,
+   "remessas": 3
+  },
+  "SST7J95": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 22406,
+   "remessas": 3
+  },
+  "TAQ6E23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 106586,
+   "remessas": 3
+  },
+  "TBU9F74": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 37383,
+   "remessas": 3
+  },
+  "TCB2D69": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 71142,
+   "remessas": 3
+  },
+  "GJO2E84": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 36529,
+   "remessas": 3
+  },
+  "RVC3I19": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 93133,
+   "remessas": 3
+  },
+  "SJJ1A77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 373689,
+   "remessas": 3
+  },
+  "SKG6E20": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 138332,
+   "remessas": 3
+  },
+  "STH3C37": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 66279,
+   "remessas": 2
+  },
+  "SYQ3C51": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 68945,
+   "remessas": 3
+  },
+  "DWR0E93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 35288,
+   "remessas": 2
+  },
+  "ESN5A63": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 40348,
+   "remessas": 1
+  },
+  "FSI2F13": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 82497,
+   "remessas": 1
+  },
+  "FWD0E61": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 44572,
+   "remessas": 3
+  },
+  "GBZ0I43": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 81420,
+   "remessas": 1
+  },
+  "GIY0J23": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 81799,
+   "remessas": 1
+  },
+  "RHQ1B67": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 73698,
+   "remessas": 1
+  },
+  "RUM0B73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34635,
+   "remessas": 3
+  },
+  "RUM0B75": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34055,
+   "remessas": 3
+  },
+  "SEI5I93": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 34688,
+   "remessas": 3
+  },
+  "SEI5J02": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 33356,
+   "remessas": 3
+  },
+  "SIJ8F24": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 43966,
+   "remessas": 2
+  },
+  "SVO4D48": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 72324,
+   "remessas": 3
+  },
+  "TAI6G47": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 46080,
+   "remessas": 1
+  },
+  "TCB1E94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 45743,
+   "remessas": 2
+  },
+  "SIK3J77": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43678,
+   "remessas": 1
+  },
+  "SIK4G87": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 44590,
+   "remessas": 1
+  },
+  "SIK4G94": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 45376,
+   "remessas": 1
+  },
+  "SIM5E33": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 43702,
+   "remessas": 1
+  },
+  "FUB6J73": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-24",
+   "vmv": 33596,
+   "remessas": 2
+  },
+  "GGX9F83": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 38502,
+   "remessas": 3
+  },
+  "SFM4D09": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-21",
+   "vmv": 54004,
+   "remessas": 1
+  },
+  "TAR8F01": {
+   "primeira": "2026-08-21",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 3
+  },
+  "QXK6740": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "RNZ4B41": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "IZI0I72": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SUY4A34": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SEI1H01": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SUI9H04": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SEY8I77": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "FQG6I42": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "RTK4F24": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "EWZ6I93": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "FZU8H41": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "DRP5E61": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "EZB4J72": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "GJY0I84": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "FRH3I04": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "FQG7C92": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "TCN5D00": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SFC8E01": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "TCW6J47": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "FQB8H23": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "TAR1D32": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "PYR3460": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SWS2D43": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SVP6B30": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "QPA1796": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "TMA7F87": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "TMG1E38": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "GDP1D16": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "GJT6J93": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "GGB3F51": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "CUQ1E17": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SFI9J25": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "RPT6G13": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SEQ7G60": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  },
+  "SFE2J19": {
+   "primeira": "2026-08-25",
+   "ultima": "2026-08-25",
+   "vmv": 0,
+   "remessas": 1
+  }
+ },
+ "atualizado": "2026-08-25"
+}

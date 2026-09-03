@@ -39,6 +39,8 @@ Fecha a sessão de trabalho persistindo memória de longo prazo. Faz commit + pu
    - **Aplica os deltas da sessão** que acabou de rolar:
      - Frente que esquentou? Move pra "Frentes quentes" ou atualiza o parágrafo dela.
      - Frente que esfriou (concluída, parada)? Move pra "Frentes fora do radar".
+     - Frente cuja automação roda sozinha mas não consome atenção do Thomas? Vai pra
+       "⚙️ Rodando em produção" — não confundir com parada nem com quente.
      - Decisão em aberto que fechou? Remove. Decisão nova? Adiciona.
      - Cobrança cumprida? Remove. Nova cobrança? Adiciona.
      - Item de "Esperando outros" resolvido? Remove. Novo? Adiciona.

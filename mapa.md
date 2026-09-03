@@ -9,6 +9,7 @@
 | `subjects/` | **Frentes de trabalho ativas** | Trabalhar numa frente — atualizar histórico, ver decisões |
 | `memory/` | Estado vivo: sessions, decisions, inputs (meetings, jira, whatsapp, outlook, dailies) | Retomar contexto recente, detectar contradição |
 | `inbox/` | Captura rápida — processar e mover depois | Algo que ainda não tem lugar |
+| `automations/` | Automações reais: flows n8n documentados, scripts, estado (JSON), crons | Mexer/debugar uma automação, entender o que roda sozinho |
 | `.claude/skills/` | Skills (slash commands) | Invocadas via `/<nome>` |
 
 ## Frentes ativas
