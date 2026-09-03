@@ -19,34 +19,24 @@ Cockpit **pessoal** do dia. Foco: **o que VOCÊ vai executar hoje**.
 - `subjects/<frente>/03-historico.md` últimos 7 dias — frentes "quentes"
 - `subjects/<frente>/04-cards.md` se existir — referência cruzada
 
-### 2. Consulta Jira (live via MCP, SE configurado)
-Para cada frente ativa, busca cards não concluídos com foco no Thomas (assignee ou aguardando decisão dele).
-JQL de exemplo (ajustar projetos e status ao fluxo real):
-```
-project IN (<SEUS_PROJETOS>) AND statusCategory != Done
-AND (assignee = currentUser() OR status IN (<status que aguardam você>))
-ORDER BY updated DESC
-```
+### 2. Calcula aging (a partir do brain)
+Sinaliza o que está dormindo tempo demais:
+- Pendência que reaparece em 2+ sessões seguidas em `memory/sessions/` sem fechar
+- Frente sem nenhuma entrada nova em `03-historico.md` há > 7 dias
+- Item em "Esperando outros" no `estado-atual.md` há > 5 dias
 
-> **Configuração pendente:** substituir `<SEUS_PROJETOS>` pelas chaves reais e `<status que aguardam você>` pelos status do fluxo. Enquanto não estiver preenchido, esta seção roda em modo degradado (ver "Falhas comuns").
+Ajuste os limites conforme o padrão do seu fluxo ficar claro.
 
-### 3. Calcula aging
-Para cada card, sinaliza os que estão parados tempo demais num status. Limites padrão:
-- "Em Desenvolvimento" > 7 dias
-- "Aguardando decisão" > 5 dias
-
-Ajuste os limites ao fluxo real conforme o padrão ficar claro.
-
-### 4. Identifica cobranças
-Cruza pendências do brain × estado do Jira × dia da semana:
+### 3. Identifica cobranças
+Cruza pendências do brain × dia da semana:
 - Itens que dependem de terceiros há > X dias = candidatos a cobrança
 - Reuniões agendadas pra hoje
 - Compromissos assumidos em sessões anteriores chegando perto do prazo
 
-### 5. Aplica pré-filtro silencioso
+### 4. Aplica pré-filtro silencioso
 Descarta automaticamente (sem perguntar): status updates rotineiros, confirmações de reunião já feitas, cobranças já feitas na última sessão, itens fechados nas últimas 24h.
 
-### 6. Compõe o cockpit
+### 5. Compõe o cockpit
 Resultado: **top 4-5 do dia** + pool secundário organizado por frente.
 
 ## Output esperado
@@ -65,7 +55,7 @@ Resultado: **top 4-5 do dia** + pool secundário organizado por frente.
 - _
 
 ## 🚧 Aging — coisas dormindo
-- **[card]** ([N] dias em [status]) — [resumo]
+- **[item]** ([N] dias parado) — [resumo]
 
 ## 🔴 Cobranças pra hoje
 - **[Pessoa]** sobre **[assunto]** — última menção há [N] dias
@@ -88,11 +78,10 @@ Resultado: **top 4-5 do dia** + pool secundário organizado por frente.
 
 ## Falhas comuns
 
-- **Jira indisponível/não configurado:** usa último snapshot em `memory/inputs/jira/` se existir, senão gera rotina só com o estado do brain.
+- **Sem ferramenta de cards:** o Thomas não usa Jira. A rotina roda inteiramente com o estado do brain (`memory/sessions/`, `estado-atual.md`, `03-historico.md` das frentes). Não tente consultar Jira.
 - **Sem pendências:** OK — rotina enxuta. Significa tudo em dia (ou brain não alimentado).
 - **Carga muito alta (10+ no top):** flagueia sobrecarga, sugere repriorizar/delegar.
 
 ## Limites de token
 
-- Queries Jira com `maxResults: 50`, sem puxar Concluído.
 - Não re-lê arquivos já lidos no `/cerebro` da mesma sessão.

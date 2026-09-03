@@ -17,8 +17,8 @@ NULL
 - **Dependem de mim:** NULL
 
 ## Ferramentas
-- **Jira** — gestão de cards. Chaves de projeto: _(a preencher — usado pela `/rotina`)_
-- Status que significam "aguardando o Thomas": _(a preencher — usado pela `/rotina`)_
+- **Jira** — NÃO uso (decidido em 2026-09-03). A `/rotina` roda só com o estado do brain.
+- Outras ferramentas: NULL
 
 ## Expectativas sobre mim
 NULL
