@@ -56,3 +56,15 @@
 - Descoberto que o `Montar HTML` de 87 KB **não passa pela API do MCP**. Levou à
   arquitetura B (adaptadores + injetor), que deixa o gerador intocado pra sempre.
 - Três timeouts no caminho, todos em queries que ficaram caras ao perder o filtro de WL.
+- **03h15 — arquitetura B validada no n8n** (execução **48480**, 13min21s). Os 9 nós rodam:
+  adaptadores entregam `kpi`/`situacao` sintetizados da coorte, o `Montar HTML` consome sem
+  saber que algo mudou, e o injetor acrescenta os filtros. **Filtro de safra funcionando.**
+- ❌ **`coorte_wl` estourou o deadline** (execução 48476, 67s) — 4º timeout da noite.
+  Agrupar por whitelabel sobre a tabela derivada `BEXT` é caro: derivada não tem índice, então
+  o join com `user_whitelabels` materializa os 29 mil usuários. A coorte simples escapa porque
+  agrupa direto por `ym`, sem join novo.
+  **Revertido pro lote 1d.** O seletor de WL fica presente e desabilitado.
+- 💡 **Hipótese pra próxima sessão:** paginar `coorte_wl` **por whitelabel** em vez de por
+  `OFFSET` (o OFFSET recalcula tudo e descarta). Complicação conhecida: o WL 7 sozinho tem 78
+  meses, estourando o teto de 50 linhas de uma fatia por WL — precisa de sub-paginação.
+  **NÃO chutar**: dois dos quatro timeouts de hoje vieram de hipótese tratada como conclusão.

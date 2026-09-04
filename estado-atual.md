@@ -1,12 +1,13 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-04 (madrugada) — port do relatório C6 pra multi-whitelabel
+> **Última atualização:** 2026-09-04 03h20 — arquitetura B no ar, filtro de safra funcionando
 
 ## 🔹 Frentes quentes agora
-- **c6** — 🔥 **ENTREGA HOJE.** Camada de dados **portada e validada**: o relatório sai de
-  2.921 (só C6) pra **29.010 clientes** da plataforma. Filtro de **safra Ano/Mês funciona**.
-  Filtro de **whitelabel ainda não** — falta 1 query (coorte por WL, 11 páginas, já provada).
+- **c6** — 🔥 **ENTREGA HOJE.** No n8n e validado (execução **48480**): relatório em
+  **29.010 clientes** (era 2.921), **filtro de safra Ano/Mês funcionando**, arquitetura B
+  rodando com 9 nós. ❌ **Seletor de whitelabel presente mas desabilitado** — a query
+  `coorte_wl` estourou o deadline (48476) e foi revertida.
   Sandbox `0pUtqToo0zNNibQT` · código e provas em `automations/n8n-sdk/`
 - **cars2you** — automações n8n mapeadas em `automations/`. Pendente: Pulso de Eventos
   (`20LeyMLjrAKeKVeS`) — encurtar mensagem + bolinha colorida, alinhar com Doni
@@ -37,8 +38,11 @@
   o que contraria o próprio princípio "falha silenciosa é proibida".
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] **HOJE 04/09** — nível 1 do lote 2: coorte por whitelabel (1 query) destrava o seletor de WL
-- [ ] **HOJE 04/09** — subir a arquitetura B: renomear 2 nós, criar 3, refazer conexões
+- [ ] 🔥 **Consertar a `coorte_wl`** — única coisa entre o estado atual e o seletor de WL.
+      Hipótese: paginar por whitelabel em vez de OFFSET. **Medir antes de subir.**
+- [ ] Decidir a distribuição: o HTML foi a **1,27 MB**; anexo diário desse tamanho é arriscado.
+      Alternativa que já existe na casa: SharePoint + link, como os flows do IGA fazem.
+- [ ] Cosmético: `Injetar Filtros` está em [1120,0], sobreposto ao nó de e-mail no canvas
 - [ ] Pedir ao Gui/Everton o diretório **completo** da skill (faltam BC-01..BC-18 e o template)
 - [ ] 🚨 **Achar a fonte de "aluguel"** — metade da pergunta da ata e não existe em artefato nenhum
 - [ ] Confirmar com o Everton o `versionId` limpo da cópia antes de qualquer pull
