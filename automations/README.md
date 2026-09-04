@@ -11,6 +11,7 @@ Automações **reais** que já rodam ou já foram construídas. Importado de
 | `n8n-flows/` | Documentação dos flows n8n (IGA/Itaú, C6, Lista LM, Pulso Eventos) — IDs de nó, decisões, pegadinhas |
 | `n8n-code/` | Código que vive dentro de nós Code do n8n |
 | `n8n-sdk/` | Workflows como código (`@n8n/workflow-sdk`) — base pra copiar/versionar via MCP |
+| `prototipo-safra/` | 🔥 **Protótipo do relatório C6** (safra/coorte + multi-whitelabel). Trabalho do Everton, verificado. Entrega 04/09 |
 | `scripts/` | Scripts Node autônomos (gerar lista LM, colher status de laudo, planilha) |
 | `estado/` | Estado persistido entre execuções (JSON) — dedup e idempotência |
 | `assets/` | Imagens usadas nos HTMLs gerados |

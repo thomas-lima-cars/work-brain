@@ -20,3 +20,39 @@
 - Higiene pendente: 3 workflows `TEMP` do C6 ainda **ativos** a arquivar.
 - Fonte: `memory/inputs/meetings/2026-09-02-squad-de-relatorios.md` e
   `automations/n8n-ambiente-cars2you.md`.
+
+## 2026-09-03 (noite)
+- **Importado o protótipo do Everton** → `automations/prototipo-safra/`. O trabalho da entrega
+  de 04/09 **já está começado**, não começa do zero.
+- **Verifiquei que é reproduzível:** rodei o `build_proto.py` num diretório limpo e o MD5 do HTML
+  gerado bate com o de referência. Sem banco, sem n8n, sem internet.
+- **Dados validados por dois caminhos independentes:** o volume do WL43
+  (`R$ 146.746.209,69`) nos JSONs do protótipo é idêntico ao campo `volume` do nó `Montar HTML`
+  da execução 48290 do workflow original.
+- **Pronto:** bloco "Safra de Cadastro" (coorte por mês de cadastro, KPIs+Situação+Funil reativos),
+  seletor de 58 whitelabels com cross-filter bidirecional, Recência WL-reativa.
+- **Falta:** UF, Top 10 (×4), Destaques, Evolução (9 gráficos).
+- ⚠️ **Correção à leitura de ontem:** as 11 execuções com erro da cópia `ZIwusfx9IK1Owpg1`
+  **não eram cópia quebrada** — são o padrão *swap-run-restore*, em que o erro no `Anexar HTML`
+  é esperado. O n8n é a única ponte pro banco (Cloud fora da VPC).
+- 🔥 **Decisão em aberto:** continuar client-side (4 seções) ou portar pro n8n
+  (parametrizar `whitelabel_id`). O próprio autor recomenda reavaliar; minha leitura é que
+  portar sai mais barato.
+- ❓ **`aluguel` não existe em nenhum artefato** — nem workflow, nem skill do Gui, nem protótipo.
+  É metade da pergunta da ata e segue sem fonte.
+
+## 2026-09-04 (madrugada)
+- **Camada de dados portada pra multi-whitelabel.** A base do relatório sai de
+  `whitelabel_id = 43` fixo (2.921 clientes) pra plataforma inteira: **29.010**,
+  sem duplicar quem está em vários whitelabels.
+- Sandbox próprio **`0pUtqToo0zNNibQT`** (projeto pessoal do Thomas, inativo, nó de
+  e-mail desabilitado). Produção e a cópia do Everton não foram tocadas.
+- **Validado contra produção** (execução 48437): R$ 2.505.966.430,56, 2.108 compradores,
+  78 safras. Quatro invariantes internas fecham.
+- **Filtro de safra (Ano/Mês) funciona** — recalcula 18 valores ao vivo. Testado local.
+- ⚠️ **Filtro de whitelabel ainda não funciona**: o dado por WL não existe. Falta 1 query
+  (coorte por whitelabel, 516 linhas, 11 páginas) — já provada pelo protótipo.
+- Decisão do Thomas: **manter os 58 whitelabels** no seletor, inclusive os vazios.
+- Descoberto que o `Montar HTML` de 87 KB **não passa pela API do MCP**. Levou à
+  arquitetura B (adaptadores + injetor), que deixa o gerador intocado pra sempre.
+- Três timeouts no caminho, todos em queries que ficaram caras ao perder o filtro de WL.

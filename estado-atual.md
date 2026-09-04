@@ -1,12 +1,13 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-03 (tarde) — import do contexto n8n, ata da squad e reclassificação das frentes
+> **Última atualização:** 2026-09-04 (madrugada) — port do relatório C6 pra multi-whitelabel
 
 ## 🔹 Frentes quentes agora
-- **c6** — 🔥 **prazo sexta 04/09:** evoluir o relatório C6 para 100% da base com visão de
-  safra/coorte e botão de dashboard. Thomas + Everton. Base técnica: workflow `ehsqQo6hiPDRf58I`.
-  Contexto: `memory/inputs/meetings/2026-09-02-squad-de-relatorios.md`
+- **c6** — 🔥 **ENTREGA HOJE.** Camada de dados **portada e validada**: o relatório sai de
+  2.921 (só C6) pra **29.010 clientes** da plataforma. Filtro de **safra Ano/Mês funciona**.
+  Filtro de **whitelabel ainda não** — falta 1 query (coorte por WL, 11 páginas, já provada).
+  Sandbox `0pUtqToo0zNNibQT` · código e provas em `automations/n8n-sdk/`
 - **cars2you** — automações n8n mapeadas em `automations/`. Pendente: Pulso de Eventos
   (`20LeyMLjrAKeKVeS`) — encurtar mensagem + bolinha colorida, alinhar com Doni
 - **bradesco** — _(estado a preencher na próxima sessão)_
@@ -22,6 +23,9 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- **Nível 2 do lote 2 vale a pena?** Fazer o whitelabel filtrar **todas** as seções e abas custa
+  18 queries por WL + `rx_buyer_wl`, uma `renderX()` por seção e Chart.js recriado a cada troca.
+  É frente própria, com prazo próprio — decidir junto com o Everton, que fez o caminho client-side.
 - **Onde hospedar os relatórios** — hoje na cloud/máquina do Caio. Sem definição.
 - **Skip / Adapta** — plano Starter ~R$1.000/mês (negociando ~R$200/mês, 10 licenças).
   Caio, Gui e Daniel avaliam. Thomas não é decisor.
@@ -33,7 +37,11 @@
   o que contraria o próprio princípio "falha silenciosa é proibida".
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] **ATÉ SEXTA 04/09** — relatório C6 em 100% da base com visão de safra (com Everton)
+- [ ] **HOJE 04/09** — nível 1 do lote 2: coorte por whitelabel (1 query) destrava o seletor de WL
+- [ ] **HOJE 04/09** — subir a arquitetura B: renomear 2 nós, criar 3, refazer conexões
+- [ ] Pedir ao Gui/Everton o diretório **completo** da skill (faltam BC-01..BC-18 e o template)
+- [ ] 🚨 **Achar a fonte de "aluguel"** — metade da pergunta da ata e não existe em artefato nenhum
+- [ ] Confirmar com o Everton o `versionId` limpo da cópia antes de qualquer pull
 - [ ] Pulso de Eventos: encurtar mensagem + bolinha colorida — alinhar com Doni
 - [ ] Higiene n8n: arquivar os 3 workflows TEMP do C6 + o "Testes"
 - [ ] Validar `automations/crons.md` contra o n8n ao vivo (preenchi de memória dos docs, não da API)
@@ -48,10 +56,16 @@
 - **Doni** — alinhamento do formato do Pulso de Eventos
 
 ## ⚠️ Alertas críticos
-- 🚨 **Prazo sexta 04/09 (amanhã) é avaliação de skill.** Se o relatório C6 não sair,
-  a diretoria busca gente externa. Fonte: ata 2026-09-02.
+- 🚨 **A ENTREGA É HOJE e é avaliação de skill.** Se o relatório C6 não sair, a diretoria
+  busca gente externa. Fonte: ata 2026-09-02.
+- **`Montar HTML` (87 KB) não pode ser editado pela API do MCP** — o literal passa de 50 mil
+  tokens. Qualquer mudança nele vai pela UI ou pela arquitetura B. Não esbarrar nisso de novo.
+- 🚨 **"Aluguel" não existe em nenhum artefato.** A ata pede "quantos já alugaram"; workflow,
+  skill do Gui e protótipo só têm login/oferta/compra. Entrega fica pela metade se não resolver.
+- **Não rodar/ativar a cópia `ZIwusfx9IK1Owpg1`** — 6 destinatários reais + cron 08h. Hoje o nó de
+  e-mail está `disabled: true`; **manter assim**. Erro no `Anexar HTML` durante sonda é esperado.
 - Cópia `GgjVZlU04wvJzLbK` (Auditoria de Estoque) está com `MODO='producao'` e gatilho 08h.
   **Ativar sem trocar pra `'teste'` dispara e-mail pra lista completa em paralelo ao original.**
 
 ## 📅 Compromissos próximos
-- **2026-09-04 (sexta)** — entrega do relatório C6 (safra + 100% da base)
+- **HOJE, 2026-09-04 (sexta)** — entrega do relatório C6 (safra + 100% da base)
