@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Análise de Base de Clientes — Cars2You</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>/*__CSS__*/</style>
+<style>
+/* ─── ÚNICO acréscimo ao CSS de produção: a barra de filtro e os selos ───
+   Todo o resto — .sec, .sec-title, .ct, .cs, .legend, .chart-card, .rec-grid,
+   .kpi-grid, .funnel, .insight-grid, .tabs — vem verbatim do relatório
+   anterior. O layout não foi reinventado; só ganhou uma barra. */
+.sf-bar{position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  background:var(--brand);color:#fff;padding:11px 16px;border-radius:10px;margin:0 0 20px}
+.sf-bar label{font:600 10px 'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#cbd5e1}
+.sf-bar select{font:500 13px 'Inter',sans-serif;padding:7px 10px;border-radius:7px;
+  border:1px solid #5a5a5a;background:#3a3a3a;color:#fff;max-width:320px}
+.sf-bar select#fWl{min-width:270px}
+.sf-bar button{font:600 12px 'Inter',sans-serif;padding:7px 14px;border-radius:7px;
+  border:1px solid #5a5a5a;background:transparent;color:#e2e8f0;cursor:pointer}
+.sf-bar button:hover{background:#3a3a3a}
+.sf-escopo{margin-left:auto;font:600 13px 'Inter',sans-serif;color:#fff;text-align:right}
+.selo{display:inline-block;font:600 10px 'Inter',sans-serif;letter-spacing:.04em;
+  padding:3px 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);
+  border:1px solid var(--warn-line);margin-left:10px;vertical-align:middle;cursor:help}
+.avisos{display:none;background:var(--bad-soft);border:1px solid var(--bad-line);color:var(--bad);
+  padding:12px 16px;border-radius:9px;margin:0 0 18px;font:500 13px 'Inter',sans-serif}
+.avisos ul{margin:6px 0 0 18px;padding:0}
+/* altura do canvas: Chart.js com maintainAspectRatio:false precisa de um pai
+   com altura definida, senao desenha 0px */
+.chart-wrap{position:relative;height:280px;margin-top:10px}
+.rec-grid table{width:100%}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══ CABEÇALHO — estrutura verbatim do relatório anterior ═══
+       .header-bar NÃO é container: é a régua âmbar de 4px que vem DEPOIS.
+       O branco do título vem de `.header-title h1`; sem esse wrapper o h1
+       herda a cor escura e some no fundo escuro. Foi o que aconteceu.
+       O logo do C6 saiu de propósito: o relatório agora cobre a plataforma
+       inteira, e carimbar a marca de um whitelabel no recorte "Todos" seria
+       dizer o que não é. -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-title">
+        <h1>Análise de Base de Clientes</h1>
+        <p>Cars2You · <span id="escopoTopo"></span></p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="pill" id="convPill"></span>
+      <span class="pill">Gerado em <span id="geradoEm"></span></span>
+      <span class="pill">Confidencial</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+
+  <div class="avisos" id="avisos"></div>
+
+  <!-- ═══ BARRA DE FILTRO (o acréscimo do lote 2) ═══ -->
+  <div class="sf-bar">
+    <label for="fWl">Whitelabel</label>
+    <select id="fWl"></select>
+    <label for="fAno">Safra — ano</label>
+    <select id="fAno"></select>
+    <label for="fMes">Mês</label>
+    <select id="fMes"></select>
+    <button id="fReset" type="button">Limpar</button>
+    <span class="sf-escopo" id="escopo"></span>
+  </div>
+
+  <!-- ═══ ABAS PRINCIPAIS — as mesmas três do relatório anterior ═══ -->
+  <div class="tabs">
+    <button class="tab active" data-aba="geral" type="button">Visão Geral da Base</button>
+    <!-- As duas abas de Raio-X estao ocultas a pedido (04/09). O painel e o
+         codigo continuam aqui: e so trocar MOSTRAR_RAIOX pra true no app. -->
+    <button class="tab" data-aba="rx" type="button" hidden>Raio-X de Compradores</button>
+    <button class="tab" data-aba="rxi" type="button" hidden>Raio-X Individual</button>
+  </div>
+
+  <!-- ══════════════════ ABA 1: VISÃO GERAL ══════════════════ -->
+  <div data-painel="geral">
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Visão Geral da Base</div><div class="sec-line"></div></div>
+      <div class="kpi-grid" id="kpis"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Cadastros por Situação</div><div class="sec-line"></div></div>
+      <div class="kpi-grid" id="situacao"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Recência — Há Quanto Tempo Sem Agir</div><span id="recSelo"></span><div class="sec-line"></div></div>
+      <div class="rec-grid" id="recencia"></div>
+    </div>
+
+    <!-- ═══ EVOLUÇÃO MENSAL — os 10 gráficos, na ordem do relatório anterior ═══ -->
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Evolução Mensal</div><span id="evolSelo"></span><div class="sec-line"></div></div>
+      <div class="sec-note" id="evolNota"></div>
+
+      <div class="chart-card">
+        <div class="ct">Usuários únicos por etapa</div>
+        <div class="cs" id="cs_uniq"></div>
+        <div class="legend">
+          <span><span class="ldot" style="background:var(--brand)"></span>Logaram</span>
+          <span><span class="ldot" style="background:var(--brand2)"></span>Ofertaram</span>
+          <span><span class="ldot" style="background:var(--amber)"></span>Compraram</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ch_uniq"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Acessos &mdash; novos vs. recorrentes</div>
+        <div class="legend">
+          <span><span class="ldot" style="background:var(--amber)"></span>Novos</span>
+          <span><span class="ldot" style="background:var(--brand)"></span>Recorrentes</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ch_nr_login"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Ofertas &mdash; novos vs. recorrentes</div>
+        <div class="legend">
+          <span><span class="ldot" style="background:var(--amber)"></span>Novos</span>
+          <span><span class="ldot" style="background:var(--brand)"></span>Recorrentes</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ch_nr_oferta"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Compras &mdash; novos vs. recorrentes</div>
+        <div class="legend">
+          <span><span class="ldot" style="background:var(--amber)"></span>Novos</span>
+          <span><span class="ldot" style="background:var(--brand)"></span>Recorrentes</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ch_nr_compra"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Volume financeiro mensal</div>
+        <div class="cs">Em milhões de reais</div>
+        <div class="chart-wrap"><canvas id="ch_vol"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Novos cadastros na base</div>
+        <div class="cs" id="cs_cad"></div>
+        <div class="chart-wrap"><canvas id="ch_cad"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Cadastros por dia — últimos 30 dias</div>
+        <div class="legend">
+          <span><span class="ldot" style="background:#cbd5e1"></span>Cadastros/dia</span>
+          <span><span class="ldot" style="background:var(--amber)"></span>Tendência</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ch_cad_dia"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Média de ofertas recebidas por anúncio publicado</div>
+        <div class="cs">Métrica do lado da oferta<span class="selo" id="mediaSelo1"></span></div>
+        <div class="chart-wrap"><canvas id="ch_oferta_anuncio"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Êxito de Venda por Mês</div>
+        <div class="cs">Veículos vendidos sobre publicados<span class="selo" id="mediaSelo2"></span></div>
+        <div class="chart-wrap"><canvas id="ch_exito_venda"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Média de Publicações por Veículo</div>
+        <div class="cs">Anúncios criados por veículo distinto<span class="selo" id="mediaSelo3"></span></div>
+        <div class="chart-wrap"><canvas id="ch_media_publicacoes"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ═══ UF — três tabelas lado a lado + gráfico, como no anterior ═══ -->
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Distribuição Geográfica (UF)</div><span id="ufSelo"></span><div class="sec-line"></div></div>
+      <div class="rec-grid" id="ufTabelas"></div>
+      <div class="chart-card">
+        <div class="ct">Compradores por Estado (UF)</div>
+        <div class="legend">
+          <span><span class="ldot" style="background:var(--brand)"></span>Compras</span>
+          <span><span class="ldot" style="background:var(--amber)"></span>Volume (R$ Mi)</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ch_uf_compra"></canvas></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Top 10 Clientes — Compras no Período Total</div><span id="topSelo"></span><div class="sec-line"></div></div>
+      <div id="topHist"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title" id="tituloTopAno">Top 10 Clientes — Compras</div><div class="sec-line"></div></div>
+      <div id="topAno"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title" id="tituloTopAcesso">Top 10 Acesso e Top 10 Oferta</div><div class="sec-line"></div></div>
+      <div class="rec-grid">
+        <div id="topAcesso"></div>
+        <div id="topOfertas"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Destaques do Período</div><div class="sec-line"></div></div>
+      <div class="insight-grid" id="destaques"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ABA 2: RAIO-X DE COMPRADORES ══════════════════ -->
+  <div data-painel="rx" style="display:none">
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Raio-X de Compradores</div><span class="pill" id="rxCount"></span><span id="rxSelo"></span><div class="sec-line"></div></div>
+      <div class="cs">Um comprador por linha. Ordene clicando no cabeçalho.</div>
+      <div id="rxMatriz"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ABA 3: RAIO-X INDIVIDUAL ══════════════════ -->
+  <div data-painel="rxi" style="display:none">
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Raio-X Individual</div><span id="rxiSelo"></span><div class="sec-line"></div></div>
+      <div class="buyer-select">
+        <label class="rx-combo-label" for="rxiSel">Comprador</label>
+        <select id="rxiSel"></select>
+      </div>
+      <div class="buyer-detail" id="rxiDetalhe">
+        <div class="profile-kpis" id="rxiKpis"></div>
+        <div class="chart-card">
+          <div class="ct">Compras e volume por mês</div>
+          <div class="legend">
+            <span><span class="ldot" style="background:var(--brand)"></span>Compras</span>
+            <span><span class="ldot" style="background:var(--amber)"></span>Volume (R$ Mi)</span>
+          </div>
+          <div class="chart-wrap"><canvas id="ch_rxi"></canvas></div>
+        </div>
+        <div class="rec-grid" id="rxiDist"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Cars2You · relatório gerado automaticamente pelo n8n.
+    O recorte por whitelabel vale para a página inteira; a safra é o mês de cadastro
+    e recorta o que deriva da coorte.
+  </div>
+</div>
+
+<script>window.__DADOS__ = /*__DADOS__*/;</script>
+<script>/*__APP__*/</script>
+</body>
+</html>

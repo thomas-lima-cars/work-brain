@@ -15,3 +15,8 @@ desktop.ini
 *.key
 credentials.json
 secrets.md
+
+# Saida do harness de teste do relatorio: dado SINTETICO, incluindo nomes de
+# loja e CNPJs ficticios. Nao versionar — alguem acha depois e toma por real.
+# Regenera com: node automations/n8n-sdk/testa_gerador_local.js
+automations/n8n-sdk/saida-teste-local.html

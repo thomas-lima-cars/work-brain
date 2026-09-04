@@ -79,3 +79,28 @@
   risco; agora existe precedente medido em vez de tentativa a 14 min cada.
 - **Escopo atual do filtro:** 18 valores (8 KPIs + 6 Situação + 4 Funil), por WL **e** por safra.
   Faltam 9 seções — Evolução (9 gráficos), UF, 4 Top 10, Destaques, Recência, 2 abas de Raio-X.
+
+## 2026-09-04 (dia inteiro)
+- **Lote 2 construído e provado localmente**: filtro de whitelabel alcançando a página
+  inteira. 15 queries `_wl` novas; as 27 globais seguem **byte-a-byte** intactas.
+- **Gerador NOVO, escrito do zero** (decisão do Thomas; eu recomendei reaproveitar o de
+  produção e registrei a ressalva). Reativo por desenho, 4 partes em `gerador/`, nó
+  principal em **27 KB** contra 87 KB. Layout e os 12 gráficos extraídos do relatório
+  anterior — não reinventados. **21 de 24 medidas reagem ao filtro**, testado em navegador.
+- **Recorte nos 6 whitelabels** (43, 48, 62, 65, 7, 4), aplicado no SQL e não no cliente:
+  "Todos" tem de ser a UNIÃO, e somar os recortes contaria duas vezes quem está em dois.
+- Ajustes pedidos: abas de Raio-X ocultas (flag, nada apagado), Funil removido, "Base de
+  clientes" → "Clientes na base", 6 rótulos de Situação trocados pelas etapas do cadastro,
+  rótulos de dados nos 12 gráficos, filtro de ano/mês alcançando os gráficos.
+- 💡 **Padrão medido (execuções 48644 e 48645, idênticas):** juntar a base-por-whitelabel
+  direto contra `advertisement_negotiations` estoura o deadline em QUALQUER variação —
+  com shard, sem shard, com ou sem a derivada de UF. **Pré-agregar por chave pequena e só
+  então encostar em `user_whitelabels` passa.** É o mesmo padrão `PC` da coorte.
+- ❌ **Execução 48693 cancelada após 1h05.** Duas causas, ambas de desenho meu:
+  74% das 1.231 chamadas eram do Raio-X, que estava oculto na tela mas não fora da fila;
+  e o `onError: continuar` fez cada timeout queimar 15s em vez de derrubar o run e apontar
+  o culpado. Nada foi salvo — `runData` vazio.
+- 🐛 **Bug achado no relatório de PRODUÇÃO:** as 12 barras de recência saem com
+  `width:30,4%` — vírgula decimal é CSS inválido. As barras estão zeradas hoje.
+- Pedido novo, adiado a pedido: **tabela de ativação por safra** (% que logou/ofertou/
+  comprou dentro de 30-60-90-180 dias do cadastro). Queries e sonda prontas.
