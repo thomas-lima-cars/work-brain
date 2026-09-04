@@ -1,13 +1,15 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-04 03h20 — arquitetura B no ar, filtro de safra funcionando
+> **Última atualização:** 2026-09-04 05h00 — seletor de whitelabel funcionando no n8n
 
 ## 🔹 Frentes quentes agora
-- **c6** — 🔥 **ENTREGA HOJE.** No n8n e validado (execução **48480**): relatório em
-  **29.010 clientes** (era 2.921), **filtro de safra Ano/Mês funcionando**, arquitetura B
-  rodando com 9 nós. ❌ **Seletor de whitelabel presente mas desabilitado** — a query
-  `coorte_wl` estourou o deadline (48476) e foi revertida.
+- **c6** — 🔥 **ENTREGA HOJE.** No n8n e validado (execução **48492**): relatório em
+  **29.010 clientes** (era 2.921), com **filtro de whitelabel (58 opções) E de safra Ano/Mês
+  funcionando** em 18 valores — 8 KPIs, 6 cards de Situação, 4 etapas do Funil.
+  O recorte do WL43 reproduz produção (2.922/240): o relatório antigo é uma fatia do novo.
+  ⚠️ **9 seções ainda não filtram** — Evolução (9 gráficos), UF, 4 Top 10, Destaques,
+  Recência e as 2 abas de Raio-X seguem no total da plataforma.
   Sandbox `0pUtqToo0zNNibQT` · código e provas em `automations/n8n-sdk/`
 - **cars2you** — automações n8n mapeadas em `automations/`. Pendente: Pulso de Eventos
   (`20LeyMLjrAKeKVeS`) — encurtar mensagem + bolinha colorida, alinhar com Doni
@@ -24,9 +26,8 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
-- **Nível 2 do lote 2 vale a pena?** Fazer o whitelabel filtrar **todas** as seções e abas custa
-  18 queries por WL + `rx_buyer_wl`, uma `renderX()` por seção e Chart.js recriado a cada troca.
-  É frente própria, com prazo próprio — decidir junto com o Everton, que fez o caminho client-side.
+- **Quem faz o nível 2?** É frente própria: 18 queries + 9 seções reativas. O Everton fez o
+  caminho client-side e conhece essas seções por dentro — vale dividir em vez de duplicar.
 - **Onde hospedar os relatórios** — hoje na cloud/máquina do Caio. Sem definição.
 - **Skip / Adapta** — plano Starter ~R$1.000/mês (negociando ~R$200/mês, 10 licenças).
   Caio, Gui e Daniel avaliam. Thomas não é decisor.
@@ -38,8 +39,10 @@
   o que contraria o próprio princípio "falha silenciosa é proibida".
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] 🔥 **Consertar a `coorte_wl`** — única coisa entre o estado atual e o seletor de WL.
-      Hipótese: paginar por whitelabel em vez de OFFSET. **Medir antes de subir.**
+- [ ] **Nível 2 — estender o filtro às 9 seções restantes.** 18 queries + ~9 funções de render.
+      Ordem de menor risco: Recência (tem molde) → UF → Top 10 (precisa `ROW_NUMBER() OVER
+      (PARTITION BY wl)`) → Novos/recorrentes → Evolução (9 gráficos, a pior) → Raio-X.
+      **Aplicar o padrão do lote 1f**: recorte por ano DENTRO da subquery. Já validado.
 - [ ] Decidir a distribuição: o HTML foi a **1,27 MB**; anexo diário desse tamanho é arriscado.
       Alternativa que já existe na casa: SharePoint + link, como os flows do IGA fazem.
 - [ ] Cosmético: `Injetar Filtros` está em [1120,0], sobreposto ao nó de e-mail no canvas

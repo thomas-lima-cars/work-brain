@@ -68,3 +68,14 @@
   `OFFSET` (o OFFSET recalcula tudo e descarta). Complicação conhecida: o WL 7 sozinho tem 78
   meses, estourando o teto de 50 linhas de uma fatia por WL — precisa de sub-paginação.
   **NÃO chutar**: dois dos quatro timeouts de hoje vieram de hipótese tratada como conclusão.
+- **05h00 — ✅ SELETOR DE WHITELABEL FUNCIONANDO** (execução **48492**, 13min32s).
+  Dropdown com os 58 whitelabels, 516 linhas por WL. Recorte do WL43 reproduz produção:
+  **2.922 clientes / 240 compradores**. O relatório antigo virou uma fatia do novo.
+- **Correção (lote 1f):** `coorte_wl` fatiada por **ano de cadastro** em vez de `LIMIT/OFFSET`.
+  O recorte entra como `u.created_at >= 'YYYY-01-01'` **dentro do `BEXT`**, coluna indexada —
+  cada consulta monta 1/7 da base. Escolhido por medição (`mede_shards.py`): fatiar por faixa
+  de `whitelabel_id` daria 59% das linhas numa fatia só, e filtraria depois do `BEXT` montado.
+- 💡 **Padrão validado pro nível 2.** As 18 queries restantes têm a mesma forma e o mesmo
+  risco; agora existe precedente medido em vez de tentativa a 14 min cada.
+- **Escopo atual do filtro:** 18 valores (8 KPIs + 6 Situação + 4 Funil), por WL **e** por safra.
+  Faltam 9 seções — Evolução (9 gráficos), UF, 4 Top 10, Destaques, Recência, 2 abas de Raio-X.
