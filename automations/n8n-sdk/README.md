@@ -135,6 +135,47 @@ falha e não devolve nada** — subir o lote completo daria "falhou" sem dizer q
 saem com `width:30,4%` — vírgula decimal é declaração CSS inválida, o navegador
 descarta. **As barras estão zeradas em produção.** Aqui a largura sai com ponto.
 
+## Sincronizar nó grande: a barra invertida é onde se erra
+
+O código de um nó Code viaja até o n8n como **string JSON escapada**,
+transcrita à mão. Escapar uma vez a mais não quebra na hora — quebra no run.
+
+**Execução 49963 morreu assim.** O guarda anti-função-de-janela era
+`/OVER\s*\(/i`; ao transcrever virou `/OVER\\s*\\(/i`, e o nó explodiu com
+`Invalid regular expression: Unterminated group`. Nove minutos perdidos por
+uma barra.
+
+Três hábitos que saíram disso:
+
+1. **Prefira `indexOf` a regex** em código que vai ser transcrito. O
+   `montar-fase2.js` hoje não tem **uma única barra invertida** — nem nos
+   comentários, de propósito.
+2. **Meça antes de mandar.** `json.dumps(fonte)` e conte `\\`: se der zero,
+   essa classe de erro deixa de ser possível naquele arquivo.
+   ```
+   python -c "import io,json;s=io.open('no.js',encoding='utf-8').read();
+   e=json.dumps(s);print(len(e), e.count(chr(92)*2))"
+   ```
+3. **Confira o resultado, não só a sintaxe.** Um caractere trocado no meio de
+   uma fórmula passa pelo parser e só envenena os números. O
+   `rel-veiculos/_confere_run.js` recalcula todos os pares publicados a partir
+   do próprio JSON e grita se divergirem.
+
+⚠️ Heredoc do bash come barra invertida neste ambiente. Patch em código
+escapado vai em **arquivo** escrito com a ferramenta de escrita, nunca em
+`python - <<'EOF'`.
+
+## Duas fases: o que atravessa entre elas
+
+Cada nó Code **reconstrói o seu próprio `META`**. Campo que a fase 1 publica e
+a fase 2 esquece de repassar chega `undefined` no fim da linha — sem erro, sem
+aviso. Foi assim que o selo de "evento encerrado" nasceu morto na execução
+49959: o `agora_br` não atravessava, a comparação virava falsa para todo mundo
+e ninguém reclamou.
+
+A prova em `rel-veiculos/prova-local.js` tranca essa ponte: afirma que os seis
+campos que o nó final lê chegam iguais aos que a fase 1 publicou.
+
 ## 🚨 O limite que moldou a arquitetura
 
 O `update_workflow` do MCP só aceita o `jsCode` **inline**. O `Montar HTML` tem 87 KB —

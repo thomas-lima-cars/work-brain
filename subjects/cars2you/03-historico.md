@@ -40,3 +40,25 @@
   infla 1,17× porque `event_whitelabels` é 1:N.
 - Aberto: 4 lojas com cara de conta interna (Porto Seguro, Itaú Unibanco, dois "Teste
   Cars2you") aparecem no ranking de compra com perfil real. Esperando o Thomas confirmar.
+
+## 2026-09-10 (madrugada)
+
+- **A base do `rel-veiculos` mudou de regra**, a pedido do Thomas: uma linha por
+  **veículo**, com o status da **última negociação** dele — não uma linha por negociação.
+  Os feirões LM são diários e reciclam estoque, então contar por negociação duplicava
+  carro. A ordem importa: acha a última negociação primeiro, olha o status **depois**.
+- **Correspondência mínima de 50%.** Par abaixo disso deixa de existir no relatório.
+  Tira 77% dos pares e derruba o arquivo de 4,5 MB para 1,4 MB.
+- **Duas armadilhas do banco documentadas** em `context/banco-de-dados/dominios.md`:
+  o relógio responde em **UTC** enquanto as datas dos eventos estão em **hora de
+  Brasília** (às 21h daqui o banco já virou o dia), e evento encerrado fica com
+  `events.status = 0` — exigir `status = 1` exclui por construção o que já fechou.
+- **Rodado para os nove eventos que encerraram em 09/09:** 735 veículos que sobraram,
+  praticamente todos em "Sem Ofertas". É o estoque para reoferta, com o ranking de
+  lojas de perfil parecido para cada um.
+- **A tela foi refeita**: layout claro em cartões, filtros de whitelabel, UF e evento
+  valendo na página inteira (KPIs inclusive), e um **glossário** em tela própria com 17
+  verbetes. O que o filtro não alcança está escrito na tela — o perfil da loja vem do
+  histórico de 6 meses dela inteira, então o score não muda com o filtro.
+- Pendente: `EVENTOS_IDS` segue preenchido no nó (volta para a janela de 48h esvaziando
+  a lista), e as 4 contas com cara de interna continuam no ranking sem confirmação.

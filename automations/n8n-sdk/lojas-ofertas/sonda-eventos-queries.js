@@ -118,6 +118,27 @@ push('q_fecha_hoje',
   " AND DATE(e.finish_date_event) = CURDATE()" +
   " ORDER BY e.finish_date_event", 2);
 
+/* 6b. eventos que encerraram num DIA ESPECIFICO, sem filtrar status.
+   Motivo: o relatorio de aderencia recorta com `e.status = 1`, e nenhum
+   evento do dia 9 apareceu na base mesmo com a janela abrindo a meia-noite
+   daquele dia. Ou os eventos nao existem, ou o status muda quando fecham.
+   Esta consulta responde: traz status e situation crus, e conta quantas
+   negociacoes ainda estao em aberto (an.status = 1) em cada um. */
+const DIA_ALVO = '2026-09-09';
+push('q_dia_alvo',
+  "SELECT e.id AS evento_id, e.name AS evento, e.status AS status," +
+  " e.situation AS situation, e.deleted_at AS apagado," +
+  " DATE_FORMAT(e.finish_date_event, '%Y-%m-%d %H:%i') AS fim_evento," +
+  " COUNT(DISTINCT CASE WHEN an.status = 1 AND an.deleted_at IS NULL" +
+  " THEN a.vehicle_id END) AS veiculos_em_aberto," +
+  " COUNT(DISTINCT an.id) AS negociacoes" +
+  " FROM events e" +
+  " LEFT JOIN advertisement_negotiations an ON an.event_id = e.id" +
+  " LEFT JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " WHERE DATE(e.finish_date_event) = '" + DIA_ALVO + "'" +
+  " GROUP BY e.id, e.name, e.status, e.situation, e.deleted_at, e.finish_date_event" +
+  " ORDER BY e.finish_date_event", 2);
+
 /* 7. e o que encerra nas próximas 48h, pra ver o que está na iminência */
 push('q_fecha_48h',
   "SELECT e.id AS evento_id, e.name AS evento, e.status AS status," +

@@ -25,6 +25,13 @@ const LADO = META_IN.lado;
 const DATA_INI = META_IN.data_ini;
 const SELECAO = META_IN.selecao;
 const DISPONIVEL = META_IN.disponivel;
+/* o relogio da fase 1, em hora de Brasilia. Precisa atravessar ate o
+   Montar HTML pra ele saber qual evento ja encerrou -- este no reconstroi
+   o META do zero, entao o que nao for repassado aqui chega undefined. */
+const ULTIMA_NEG = META_IN.ultima_neg;
+const AGORA_BR = META_IN.agora_br;
+const JANELA_INI = META_IN.janela_ini;
+const JANELA_FIM = META_IN.janela_fim;
 
 /* ── lê os totais da fase 1 ─────────────────────────────────────────── */
 const pedidos1 = $('Montar Fase 1').all().map((i) => i.json);
@@ -50,6 +57,10 @@ const vt = leitura('q_veic_total')[0] || {};
 const lt = leitura('q_lojas_total')[0] || {};
 const valor = leitura('q_valor')[0] || {};
 const eventoWl = leitura('q_evento_wl');
+/* a q_por_status roda na FASE 1, e o Montar HTML so enxerga os resultados
+   da fase 2 -- entao ela precisa pegar carona no META, como eventos e
+   evento_wl ja fazem. Sem isso o painel chega vazio e ninguem reclama. */
+const porStatus = leitura('q_por_status');
 
 const VEICULOS = vt.veiculos === undefined ? null : Number(vt.veiculos);
 const LOJAS = lt.lojas === undefined ? null : Number(lt.lojas);
@@ -102,12 +113,14 @@ push('q_veiculos',
   " v.model_id AS model_id, mo.name AS modelo," +
   " v.category_id AS category_id, cat.name AS categoria," +
   " br.name AS marca, v.model_year AS model_year, NULLIF(v.km, 0) AS km," +
+  " an.status AS neg_status," +
   " a.shop_id AS loja_id, s.name AS loja_vendedora," +
   " COALESCE(" + UF_CASE + ", 'Não identificada') AS uf" +
-  " FROM advertisement_negotiations an" +
-  " INNER JOIN events e ON e.id = an.event_id AND" + SELECAO +
+  " FROM " + ULTIMA_NEG +
+  " INNER JOIN advertisement_negotiations an ON an.id = u.neg_id" +
+  " INNER JOIN events e ON e.id = an.event_id" +
   " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
-  " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
+  " INNER JOIN vehicles v ON v.id = u.vehicle_id AND v.deleted_at IS NULL" +
   " LEFT JOIN models mo ON mo.id = v.model_id" +
   " LEFT JOIN categories cat ON cat.id = v.category_id" +
   " LEFT JOIN brands br ON br.id = v.brand_id" +
@@ -116,7 +129,7 @@ push('q_veiculos',
   " WHERE" + DISPONIVEL +
   " GROUP BY neg_id, evento_id, evento, fim_evento, anuncio_id, vehicle_id," +
   " valor, valor_inicial, fipe, model_id, modelo, category_id, categoria," +
-  " marca, model_year, km, loja_id, loja_vendedora, uf" +
+  " marca, model_year, km, neg_status, loja_id, loja_vendedora, uf" +
   " ORDER BY an.id", PAG_VEIC);
 
 /* ── B) perfil de compra das lojas (mesmas queries do LZL3mxfbMIz4avyx) ── */
@@ -178,7 +191,16 @@ moda('q_modelo', 'model_id', 'models');
 moda('q_categoria', 'category_id', 'categories');
 
 /* ── guardas ────────────────────────────────────────────────────────── */
-const comJanela = Q.filter((q) => /OVER\s*\(/i.test(q.sql));
+/* Sem regex de proposito. Este arquivo viaja ate o n8n como string JSON
+   escapada, transcrita a mao, e barra invertida e onde este projeto erra:
+   escapar uma vez a mais gera "Invalid regular expression" e derruba o run
+   inteiro (aconteceu na execucao 49963). indexOf nao tem esse risco -- e
+   por isso nem este comentario usa barra invertida. */
+function temJanela(sql) {
+  const u = String(sql).toUpperCase();
+  return u.indexOf('OVER (') >= 0 || u.indexOf('OVER(') >= 0;
+}
+const comJanela = Q.filter((q) => temJanela(q.sql));
 if (comJanela.length) {
   throw new Error('funcao de janela detectada (o MCP rejeita): ' + comJanela[0].queryName);
 }
@@ -186,8 +208,14 @@ if (PAGE > 50) throw new Error('PAGE > 50: o MCP corta a resposta em 50 linhas')
 
 const META = {
   selecao: SELECAO,
+  ultima_neg: ULTIMA_NEG,
+  status_ok: META_IN.status_ok,
+  agora_br: AGORA_BR,
+  janela_ini: JANELA_INI,
+  janela_fim: JANELA_FIM,
   eventos: eventos,
   evento_wl: eventoWl,
+  por_status: porStatus,
   meses_historico: META_IN.meses_historico,
   data_ini: DATA_INI,
   page: PAGE,

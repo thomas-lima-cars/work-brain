@@ -58,7 +58,13 @@ erros.forEach(function (e) { console.log('  FALHA ' + e); });
 /* checagens rapidas do que este script existe pra garantir */
 const testes = [
   ['tem o select de evento', html.indexOf('id="f_ev"') > 0],
-  ['o filtro de evento reage', html.indexOf('onchange=pintaV') > 0],
+  /* o handler do evento virou `pinta` (nao `pintaV`) quando o filtro passou a
+     valer tambem no extrato. Checo pelo ponto de ligacao, nao pelo nome da
+     funcao, pra esta checagem nao envelhecer de novo. */
+  ['o filtro de evento reage', /\$\("#f_ev"\)\.onchange=/.test(html)],
+  ['o filtro de whitelabel existe', html.indexOf('id="f_wl"') > 0],
+  ['o filtro de whitelabel reage', /\$\("#f_wl"\)\.onchange=/.test(html)],
+  ['limpar zera o whitelabel', html.indexOf('$("#f_wl").value=""') > 0],
   ['limpar zera o evento tambem', /f_ev\\"\).value=\\""/.test(html) || html.indexOf('$("#f_ev").value=""') > 0],
   ['as duas tabelas existem', html.indexOf('id="t_v"') > 0 && html.indexOf('id="t_l"') > 0],
   ['HTML integro', html.indexOf('<!doctype html>') === 0 && html.indexOf('</html>') > 0],

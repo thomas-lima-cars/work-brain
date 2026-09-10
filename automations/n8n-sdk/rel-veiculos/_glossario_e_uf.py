@@ -1,384 +1,49 @@
-/* ══════════════════════════════════════════════════════════════════════
-   NÓ "Montar HTML" — aderência loja x veículo, com filtro cruzado
+# -*- coding: utf-8 -*-
+"""Glossario em pagina propria, filtro de UF, e a tabela de veiculos em dois niveis.
 
-   ─── ELEGIBILIDADE (a regra que define o universo) ────────────────────
-   Um par (veículo, loja) só existe se as DUAS condições valerem:
+Pedidos do Thomas em 2026-09-10:
 
-     1. MESMA UF     — a UF do veículo é a da loja vendedora; a da loja
-                       compradora vem do endereço dela.
-     2. MESMO WHITELABEL — a loja compradora precisa pertencer a um dos
-                       whitelabels que o EVENTO do veículo alveja. Um
-                       evento pode alvejar vários (`event_whitelabels`),
-                       então a comparação é loja.whitelabel_id ∈ conjunto
-                       do evento, não uma igualdade simples.
+  1. Botao de informacao no cabecalho levando a OUTRA PAGINA com "o que entra
+     na base", elegibilidade e a inteligencia de calculo, organizado como
+     glossario. Sai tudo isso da tela inicial.
 
-   Fora disso não há aderência — nem baixa, nem zero: o par não existe.
-   Por isso o ranking de cada veículo é curto: ele só disputa dentro da
-   própria praça e do próprio canal.
+     Nota de desenho: "outra pagina" virou uma segunda TELA dentro do mesmo
+     arquivo, com endereco proprio (#glossario). O relatorio circula como
+     anexo; um segundo arquivo solto se perderia do primeiro no primeiro
+     encaminhamento. O botao alterna, o hash torna linkavel, e o botao
+     voltar do navegador funciona.
 
-   ─── A FÓRMULA ────────────────────────────────────────────────────────
-   Cinco componentes. Cada um tem uma ADERÊNCIA (0..1) e um PESO (0..1).
+  2. Filtro de UF valendo para a pagina inteira. Como o par so existe entre
+     mesma UF, filtrar UF recorta os dois lados de uma vez.
 
-     preço, idade, km:  aderência = 1 / (1 + |valor − média| / desvio)
-                        peso      = 1 / (1 + desvio / média)     ← CV
+     Os tres dropdowns agora se recontam entre si (filtro facetado): cada um
+     mostra a contagem que sobraria considerando os OUTROS dois. Sem isso o
+     dropdown promete 79 e a tabela entrega 12.
 
-       Loja de faixa apertada é previsível, então acertar o número dela
-       vale muito. Loja que compra de tudo tem CV alto e o peso cai
-       sozinho, porque o indicador não informa.
+  3. Saem preco medio, modelo top e categoria da tabela de lojas.
 
-     modelo, categoria: aderência = 1 se bate com o item mais ofertado
-                        peso      = o % de ofertas da loja naquele item
+  4. "Ofertas 6m" passa a contar VEICULOS que tiveram oferta, nao ofertas.
+     Nao precisa de SQL novo: `qt_veiculos` ja e isso -- vem do q_perfil,
+     que agrupa por (loja, veiculo) antes de contar. O que estava na coluna
+     era `qt_ofertas`, que conta cada lance.
 
-   score = Σ(peso × aderência) / Σ(peso), de 0 a 100.
+  5. A tabela de veiculos passa a ter dois niveis por carro: UF e evento em
+     cima, o resto embaixo. Duas <tr> irmas com o mesmo data-i, entao clicar
+     em qualquer uma das duas seleciona o veiculo.
 
-   `CONFIANCA_MIN` é adição minha, não estava no pedido: multiplica o
-   score por min(1, veículos / 5) para loja de histórico minúsculo não
-   liderar por sorte. Ponha 1 para desligar.
+    python _glossario_e_uf.py
+"""
+import io
+import os
 
-   Volume de ofertas NÃO entra no score — está na tela como leitura.
-   ══════════════════════════════════════════════════════════════════════ */
+AQUI = os.path.dirname(os.path.abspath(__file__))
+P = os.path.join(AQUI, "montar-html.js")
+s = io.open(P, encoding="utf-8").read()
 
-const CONFIANCA_MIN = 5;
+INI = s.index("/* ==== RENDER:INICIO ====")
+FIM = s.index("/* ==== RENDER:FIM ==== */")
 
-/* CORRESPONDENCIA MINIMA (pedido do Thomas em 2026-09-10).
-   Par com score abaixo disto nao existe: nao entra no HTML, nao conta nos
-   KPIs, nao aparece em nenhuma das duas direcoes.
-
-   O corte e sobre o SCORE, nao sobre a aderencia bruta -- score = aderencia
-   x confianca, e e o numero que ordena as tabelas. Cortar pela aderencia
-   deixaria passar loja com um carro so de historico e aderencia 100, que e
-   justamente o caso que a confianca existe pra segurar.
-
-   Efeito colateral bem-vindo: derruba o tamanho do arquivo. Os 94 mil pares
-   do run 49975 viravam 6,8 MB embarcados. */
-const CORRESP_MIN = 50;
-
-const pedidos = $('Montar Fase 2').all().map((i) => i.json);
-const outs = $('MCP Fase 2').all();
-const META = pedidos.length ? pedidos[0].meta : {};
-
-function erroTexto(e) {
-  if (!e) return null;
-  if (typeof e === 'string') return e.slice(0, 300);
-  if (Array.isArray(e)) return e.map(erroTexto).join(' | ').slice(0, 300);
-  if (e.message) return String(e.message).slice(0, 300);
-  if (e.error) return erroTexto(e.error);
-  try { return JSON.stringify(e).slice(0, 300); } catch (x) { return String(e).slice(0, 300); }
-}
-
-/* ── ingestão ───────────────────────────────────────────────────────── */
-const dados = {};
-const diag = {};
-for (let i = 0; i < pedidos.length; i++) {
-  const nome = pedidos[i].queryName;
-  if (!dados[nome]) dados[nome] = [];
-  if (!diag[nome]) diag[nome] = { queryName: nome, chamadas: 0, linhas: 0, vazias: 0, truncadas: 0, erro: null };
-  diag[nome].chamadas++;
-  const o = outs[i] ? outs[i].json : null;
-  const sc = o ? (o.structuredContent || o) : null;
-  const err = o ? (o.error || (sc && sc.error)) : null;
-  if (err && !diag[nome].erro) diag[nome].erro = erroTexto(err);
-  if (sc && sc.truncated) diag[nome].truncadas++;
-  const cols = (sc && sc.columns) || [];
-  const rows = (sc && sc.rows) || [];
-  if (!rows.length) { diag[nome].vazias++; continue; }
-  diag[nome].linhas += rows.length;
-  for (let r = 0; r < rows.length; r++) {
-    const obj = {};
-    for (let c = 0; c < cols.length; c++) obj[cols[c]] = rows[r][c];
-    dados[nome].push(obj);
-  }
-}
-const diagnostico = Object.keys(diag).map((k) => {
-  const d = diag[k];
-  d.veredito = d.erro ? 'ERRO'
-    : (d.truncadas ? 'RESPOSTA CORTADA - pagina maior que o teto do MCP'
-      : (d.linhas === 0 ? 'ZERO LINHAS' : 'ok'));
-  return d;
-});
-
-const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
-function indexa(arr, chave) {
-  const m = {};
-  for (let i = 0; i < arr.length; i++) m[String(arr[i][chave])] = arr[i];
-  return m;
-}
-function primeiraPorLoja(arr) {
-  const m = {};
-  for (let i = 0; i < arr.length; i++) {
-    const k = String(arr[i].shop_id);
-    if (!m[k]) m[k] = arr[i];
-  }
-  return m;
-}
-
-/* ── mapa evento -> whitelabels que ele alveja ──────────────────────── */
-const eventoWl = {};
-const wlNome = {};
-(META.evento_wl || []).forEach((r) => {
-  const e = String(r.evento_id);
-  if (!eventoWl[e]) eventoWl[e] = {};
-  eventoWl[e][String(r.whitelabel_id)] = 1;
-  if (r.whitelabel) wlNome[String(r.whitelabel_id)] = r.whitelabel;
-});
-
-/* ── perfil das lojas ───────────────────────────────────────────────── */
-const iOf = indexa(dados.q_ofertas || [], 'shop_id');
-const iPe = indexa(dados.q_perfil || [], 'shop_id');
-const iMo = primeiraPorLoja(dados.q_modelo || []);
-const iCa = primeiraPorLoja(dados.q_categoria || []);
-
-function pesoNum(media, desvio) {
-  if (!media || media <= 0) return 0;
-  if (desvio === null || desvio === undefined || desvio < 0) return 0;
-  return 1 / (1 + (desvio / media));
-}
-
-const lojasTodas = (dados.q_lojas || []).map((s) => {
-  const k = String(s.shop_id);
-  const of = iOf[k] || {};
-  const pe = iPe[k] || {};
-  const mo = iMo[k] || {};
-  const ca = iCa[k] || {};
-  const qtOfertas = num(of.qt_ofertas);
-  const pct = (n) => (qtOfertas && n ? Number(n) / qtOfertas : 0);
-  const precoMedio = num(pe.preco_medio);
-  const precoDesvio = num(pe.preco_desvio);
-  const idadeMedia = num(pe.idade_media);
-  const idadeDesvio = num(pe.idade_desvio);
-  const kmMedio = num(pe.km_medio);
-  const kmDesvio = num(pe.km_desvio);
-  const qtVeiculos = num(pe.qt_veiculos);
-  return {
-    loja_id: num(s.shop_id), loja: s.loja,
-    whitelabel_id: num(s.whitelabel_id),
-    whitelabel: s.whitelabel || ('whitelabel #' + s.whitelabel_id),
-    uf: s.uf || 'Nao identificada',
-    qt_ofertas: qtOfertas, qt_veiculos: qtVeiculos,
-    preco_medio: precoMedio, preco_desvio: precoDesvio,
-    idade_media: idadeMedia, idade_desvio: idadeDesvio,
-    km_medio: kmMedio, km_desvio: kmDesvio,
-    modelo_id: num(mo.item_id), modelo: mo.nome || null, pct_modelo: pct(mo.n),
-    categoria_id: num(ca.item_id), categoria: ca.nome || null, pct_categoria: pct(ca.n),
-    p_preco: pesoNum(precoMedio, precoDesvio),
-    p_idade: pesoNum(idadeMedia, idadeDesvio),
-    p_km: pesoNum(kmMedio, kmDesvio),
-    confianca: Math.min(1, (qtVeiculos || 0) / CONFIANCA_MIN),
-    amostra_baixa: (qtVeiculos || 0) < CONFIANCA_MIN
-  };
-}).filter((l) => l.qt_veiculos);
-
-/* ── veículos ───────────────────────────────────────────────────────── */
-/* Dominio informado pelo Thomas em 2026-09-09 -- ver
-   context/banco-de-dados/dominios.md. So os cinco de STATUS_OK chegam
-   aqui; os outros ficam no dicionario porque um dia a lista pode mudar e
-   e melhor a tela dizer o nome do que mostrar um numero solto. */
-const STATUS_NOME = {
-  1: 'Ativo', 2: 'Aguardando Pagamento', 3: 'Aguardando Confirmacao de Pagamento',
-  7: 'Vendido', 8: 'Suspenso', 9: 'Em Analise Comprador', 10: 'Cancelado',
-  11: 'Sem Ofertas', 13: 'Em Analise Vendedor', 14: 'Vendedor Rejeitou',
-  15: 'Comprador Rejeitou', 18: 'Venda Cancelada'
-};
-
-/* a chave e o VEICULO, nao a negociacao: o mesmo carro reaparece em
-   eventos diferentes e o SQL ja colapsa por MAX(an.id). Refazer aqui e
-   barato e transforma uma regressao silenciosa em falha visivel. */
-const vistos = {};
-let dupVeic = 0;
-const ANO = new Date().getFullYear();
-const veiculos = [];
-(dados.q_veiculos || []).forEach((r) => {
-  const k = String(r.vehicle_id);
-  if (vistos[k]) { dupVeic++; return; }
-  vistos[k] = 1;
-  const my = num(r.model_year);
-  const evid = num(r.evento_id);
-  const wls = Object.keys(eventoWl[String(evid)] || {}).map(Number);
-  veiculos.push({
-    neg_id: num(r.neg_id), vehicle_id: num(r.vehicle_id),
-    evento_id: evid, evento: r.evento, fim_evento: r.fim_evento,
-    valor: num(r.valor), fipe: num(r.fipe),
-    model_id: num(r.model_id), modelo: r.modelo,
-    category_id: num(r.category_id), categoria: r.categoria,
-    marca: r.marca, model_year: my, idade: my ? ANO - my : null, km: num(r.km),
-    loja_id: num(r.loja_id), loja_vendedora: r.loja_vendedora, uf: r.uf,
-    wls: wls,
-    wl_nomes: wls.map((w) => wlNome[String(w)] || ('#' + w)).join(', '),
-    /* string x string: os dois lados sao 'YYYY-MM-DD HH:MM' em hora de
-       Brasilia, entao a ordem lexicografica e a ordem cronologica */
-    encerrado: !!(META.agora_br && r.fim_evento && r.fim_evento < META.agora_br),
-    neg_status: num(r.neg_status),
-    status_nome: STATUS_NOME[num(r.neg_status)] || ('status ' + r.neg_status),
-    /* sobra = passou pelo evento e nao foi vendido nem esta em negociacao.
-       Status 1 e o unico que significa "ainda em disputa". */
-    sobra: num(r.neg_status) !== null && num(r.neg_status) !== 1
-  });
-});
-
-/* ── aderência, só entre pares elegíveis ────────────────────────────── */
-function adNum(valor, media, desvio) {
-  if (valor === null || media === null || !media) return null;
-  if (desvio && desvio > 0) return 1 / (1 + (Math.abs(valor - media) / desvio));
-  return 1 / (1 + (Math.abs(valor - media) / media));
-}
-function pontua(v, l) {
-  const comps = [];
-  const aP = adNum(v.valor, l.preco_medio, l.preco_desvio);
-  if (aP !== null && l.p_preco > 0) comps.push({ k: 'preco', a: aP, p: l.p_preco });
-  const aI = adNum(v.idade, l.idade_media, l.idade_desvio);
-  if (aI !== null && l.p_idade > 0) comps.push({ k: 'idade', a: aI, p: l.p_idade });
-  const aK = adNum(v.km, l.km_medio, l.km_desvio);
-  if (aK !== null && l.p_km > 0) comps.push({ k: 'km', a: aK, p: l.p_km });
-  if (l.pct_modelo > 0 && v.model_id !== null) {
-    comps.push({ k: 'modelo', a: (v.model_id === l.modelo_id ? 1 : 0), p: l.pct_modelo });
-  }
-  if (l.pct_categoria > 0 && v.category_id !== null) {
-    comps.push({ k: 'categoria', a: (v.category_id === l.categoria_id ? 1 : 0), p: l.pct_categoria });
-  }
-  if (!comps.length) return null;
-  let somaP = 0, somaPA = 0;
-  for (let i = 0; i < comps.length; i++) { somaP += comps[i].p; somaPA += comps[i].p * comps[i].a; }
-  if (somaP <= 0) return null;
-  const det = {};
-  for (let i = 0; i < comps.length; i++) det[comps[i].k] = Math.round(comps[i].a * 100);
-  return { score: (somaPA / somaP) * l.confianca * 100, det: det };
-}
-
-/* índice de lojas por UF, pra não varrer as 1.300 em cada veículo */
-const porUf = {};
-lojasTodas.forEach((l, i) => {
-  if (!porUf[l.uf]) porUf[l.uf] = [];
-  porUf[l.uf].push(i);
-});
-
-let descartados = 0;       /* pares que existiam mas nao chegaram a CORRESP_MIN */
-const pares = [];          /* flat: [vi, li, score*10, det...] */
-const detPares = [];       /* decomposição, mesmo índice do par */
-const usadas = {};
-veiculos.forEach((v, vi) => {
-  const cands = porUf[v.uf] || [];
-  const wlSet = {};
-  v.wls.forEach((w) => { wlSet[String(w)] = 1; });
-  let n = 0;
-  for (let i = 0; i < cands.length; i++) {
-    const l = lojasTodas[cands[i]];
-    if (!wlSet[String(l.whitelabel_id)]) continue;   /* whitelabel do evento */
-    const r = pontua(v, l);
-    if (!r || !(r.score >= CORRESP_MIN)) { if (r) descartados++; continue; }
-    pares.push(vi, cands[i], Math.round(r.score * 10));
-    detPares.push(r.det);
-    usadas[cands[i]] = 1;
-    n++;
-  }
-  v.candidatos = n;
-});
-
-/* só publica as lojas que participam de pelo menos um par */
-const mapaLoja = {};
-const lojas = [];
-Object.keys(usadas).map(Number).sort((a, b) => a - b).forEach((idx) => {
-  mapaLoja[idx] = lojas.length;
-  const l = lojasTodas[idx];
-  lojas.push({
-    loja_id: l.loja_id, loja: l.loja, uf: l.uf,
-    whitelabel: l.whitelabel, whitelabel_id: l.whitelabel_id,
-    qt_ofertas: l.qt_ofertas, qt_veiculos: l.qt_veiculos,
-    preco_medio: l.preco_medio, preco_desvio: l.preco_desvio,
-    idade_media: l.idade_media, idade_desvio: l.idade_desvio,
-    km_medio: l.km_medio, km_desvio: l.km_desvio,
-    p_preco: Math.round(l.p_preco * 1000) / 1000,
-    p_idade: Math.round(l.p_idade * 1000) / 1000,
-    p_km: Math.round(l.p_km * 1000) / 1000,
-    confianca: Math.round(l.confianca * 100) / 100,
-    modelo: l.modelo, categoria: l.categoria,
-    pct_modelo: Math.round(l.pct_modelo * 1000) / 10,
-    pct_categoria: Math.round(l.pct_categoria * 1000) / 10,
-    amostra_baixa: l.amostra_baixa
-  });
-});
-/* reindexa os pares para o array publicado */
-for (let i = 1; i < pares.length; i += 3) pares[i] = mapaLoja[pares[i]];
-
-/* melhor score de cada lado, pra ordenação inicial */
-const melhorV = new Array(veiculos.length).fill(0);
-const melhorL = new Array(lojas.length).fill(0);
-const nParesL = new Array(lojas.length).fill(0);
-for (let i = 0; i < pares.length; i += 3) {
-  const vi = pares[i], li = pares[i + 1], s = pares[i + 2] / 10;
-  if (s > melhorV[vi]) melhorV[vi] = s;
-  if (s > melhorL[li]) melhorL[li] = s;
-  nParesL[li]++;
-}
-veiculos.forEach((v, i) => { v.melhor = v.candidatos ? melhorV[i] : null; });
-lojas.forEach((l, i) => { l.melhor = melhorL[i]; l.pares = nParesL[i]; });
-
-/* ── completude ─────────────────────────────────────────────────────── */
-const falhas = [];
-if (META.esperado_veiculos && veiculos.length !== META.esperado_veiculos) {
-  falhas.push('coletei ' + veiculos.length + ' veiculos mas a fase 1 contou ' +
-    META.esperado_veiculos + ': faltam ' + (META.esperado_veiculos - veiculos.length));
-}
-if (META.esperado_lojas && lojasTodas.length !== META.esperado_lojas) {
-  falhas.push('perfil montado para ' + lojasTodas.length + ' lojas mas a fase 1 contou ' + META.esperado_lojas);
-}
-const semValor = veiculos.filter((v) => !v.valor).length;
-if (semValor) falhas.push(semValor + ' veiculo(s) sem value_actual: ficam sem o componente de preco');
-if (dupVeic) {
-  falhas.push(dupVeic + ' veiculo(s) vieram mais de uma vez do banco e foram descartados: ' +
-    'a query deveria trazer so a ultima negociacao de cada um');
-}
-const semWl = veiculos.filter((v) => !v.wls.length).length;
-if (semWl) falhas.push(semWl + ' veiculo(s) em evento sem whitelabel declarado: ficam sem nenhuma loja elegivel');
-const semPar = veiculos.filter((v) => !v.candidatos).length;
-if (semPar) {
-  falhas.push(semPar + ' veiculo(s) sem nenhuma loja: ou nao ha loja na mesma UF e whitelabel, ' +
-    'ou nenhuma passou da correspondencia minima de ' + CORRESP_MIN + '%');
-}
-
-const DADOS = {
-  gerado_em: new Date().toISOString(),
-  meta: {
-    meses_historico: META.meses_historico, data_ini: META.data_ini,
-    agora_br: META.agora_br, janela_ini: META.janela_ini, janela_fim: META.janela_fim,
-    esperado_veiculos: META.esperado_veiculos, esperado_lojas: META.esperado_lojas,
-    cobertura_valor: META.cobertura_valor
-  },
-  parametros: {
-    confianca_min: CONFIANCA_MIN,
-    corresp_min: CORRESP_MIN,
-    pares_descartados: descartados,
-    status_ok: META.status_ok || [],
-    status_nome: STATUS_NOME
-  },
-  por_status: (META.por_status || []).map((r) => ({
-    status: num(r.status), nome: STATUS_NOME[num(r.status)] || ('status ' + r.status),
-    veiculos: num(r.veiculos), no_relatorio: (META.status_ok || []).indexOf(num(r.status)) >= 0
-  })),
-  resumo: {
-    veiculos: veiculos.length,
-    lojas_elegiveis: lojas.length,
-    lojas_no_universo: lojasTodas.length,
-    pares: pares.length / 3,
-    eventos: (META.eventos || []).length,
-    encerrados: veiculos.filter((v) => v.encerrado).length,
-    sobra: veiculos.filter((v) => v.sobra).length,
-    sem_par: semPar,
-    media_candidatos: veiculos.length
-      ? Math.round(veiculos.reduce((s, v) => s + v.candidatos, 0) / veiculos.length) : 0
-  },
-  falhas: falhas,
-  diagnostico: diagnostico,
-  eventos: META.eventos || [],
-  veiculos: veiculos,
-  lojas: lojas,
-  pares: pares,
-  det: detPares
-};
-
-const problemas = diagnostico.filter((d) => d.veredito !== 'ok').length + falhas.length;
-const DADOS_JSON = JSON.stringify(DADOS).split('</').join('<\\/');
-
-/* ==== RENDER:INICIO ==== (daqui pra baixo tudo depende so de DADOS,
+NOVO = r"""/* ==== RENDER:INICIO ==== (daqui pra baixo tudo depende so de DADOS,
    entao monta_html_de_dados.js reusa este trecho pra regerar o HTML sem
    rodar o workflow de novo. Mexeu so na tela? roda o script local.) */
 const CSS = [
@@ -519,27 +184,22 @@ const APP = [
   /* Filtro facetado: cada dropdown se reconta considerando os OUTROS dois.
      Sem isso o dropdown promete 79 e a tabela entrega 12. A selecao e
      preservada quando continua existindo. */
-  /* `tot` e CONTADO, nao somado. Somar as opcoes inflava o whitelabel:
-     um evento alveja varios canais e o mesmo carro conta em cada um, entao
-     a soma dava 821 para 735 veiculos. Evento e UF particionam e nao tinham
-     o problema -- por isso ele so aparecia num dos tres dropdowns. */
-  'function opcoes(alvo,itens,rotulo,conta,tot,cur){',
-  'var manteve=false;',
+  'function opcoes(alvo,itens,rotulo,conta,cur){',
+  'var manteve=false;var tot=0;',
   'const opts=itens.map(function(it,i){',
-  'const n=conta(it);if(!n)return "";',
+  'const n=conta(it);tot+=n;if(!n)return "";',
   'if(String(i)===cur)manteve=true;',
   'return "<option value=\'"+i+"\'>"+rotulo(it)+" ("+n+")</option>";}).join("");',
   '$(alvo).innerHTML="<option value=\'\'>"+(alvo==="#f_wl"?"todos os whitelabels":alvo==="#f_uf"?"todas as UFs":"todos os eventos")+" ("+tot+")</option>"+opts;',
   '$(alvo).value=manteve?cur:"";}',
   'function pintaFiltros(){',
   'const w=wlSel(),ev=evSel(),uf=ufSel();',
-  'const qt=function(e2,w2,u2){return D.veiculos.filter(function(v){return passaV(v,e2,w2,u2);}).length;};',
   'opcoes("#f_wl",wls,function(x){return esc(wlNome[x]);},',
-  'function(x){return qt(ev,x,uf);},qt(ev,null,uf),$("#f_wl").value);',
+  'function(x){return D.veiculos.filter(function(v){return passaV(v,ev,x,uf);}).length;},$("#f_wl").value);',
   'opcoes("#f_uf",ufs,function(x){return esc(x);},',
-  'function(x){return qt(ev,w,x);},qt(ev,w,null),$("#f_uf").value);',
+  'function(x){return D.veiculos.filter(function(v){return passaV(v,ev,w,x);}).length;},$("#f_uf").value);',
   'opcoes("#f_ev",evs,function(x){return esc(x)+(evFechado[x]?" [encerrado]":"");},',
-  'function(x){return qt(x,w,uf);},qt(null,w,uf),$("#f_ev").value);}',
+  'function(x){return D.veiculos.filter(function(v){return passaV(v,x,w,uf);}).length;},$("#f_ev").value);}',
   'var selV=null,selL=null;',
   /* ---- KPIs: recalculados a cada troca de filtro ---- */
   'function ic(p){return "<svg class=\'ic\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'>"+p+"</svg>";}',
@@ -796,16 +456,8 @@ const html = [
   '</body></html>'
 ].join('\n');
 
-/* ==== RENDER:FIM ==== */
+"""
 
-return [{
-  json: {
-    resumo: DADOS.resumo,
-    falhas: falhas,
-    diagnostico: diagnostico,
-    problemas: problemas,
-    html_bytes: html.length,
-    html: html,
-    DADOS: DADOS
-  }
-}];
+s = s[:INI] + NOVO + s[FIM:]
+io.open(P, "w", encoding="utf-8").write(s)
+print("render trocado: glossario, filtro de UF, tabelas ajustadas")

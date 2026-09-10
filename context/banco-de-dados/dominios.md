@@ -8,28 +8,94 @@
 
 ## `advertisement_negotiations.status`
 
-O `schema.md` mostra `TINYINT(1)` e para por aí — a ressalva 4 do [`README`](README.md)
-registrava esse buraco. Medido na sonda `a6fNNTUYYayehNIn`, execução **49813**, sobre as
-negociações dos eventos ativos naquele dia:
+**Domínio completo, informado pelo Thomas em 2026-09-09.** Antes disto só se
+sabia, por medição, que `1` era o disponível e que `2/3/7` apareciam em
+negociação fechada — o resto era buraco.
 
-| status | negociações | leitura |
-|---:|---:|---|
-| **1** | 252 | **em aberto** — é o "disponível" |
-| 2, 3, 7 | 9 | vendido (bate com o `IN (2, 3, 7)` que a sonda do lote 2 já usava) |
-| 10, 14 | 5 | **desconhecido** — pouca massa, não deu pra concluir |
+| status | significado | leitura para relatório |
+|---:|---|---|
+| **1** | Ativo | **disponível** — é o que o relatório de aderência usa |
+| 2 | Aguardando Pagamento | vendido, em liquidação |
+| 3 | Aguardando Confirmação de Pagamento | vendido, em liquidação |
+| **7** | Vendido | vendido |
+| 8 | Suspenso | fora do ar |
+| 9 | Em Análise Comprador | negociação viva |
+| 10 | Cancelado | morto |
+| **11** | **Sem Ofertas** | **sobrou do evento: ninguém deu lance** |
+| 13 | Em Análise Vendedor | negociação viva — há oferta na mesa |
+| 14 | Vendedor Rejeitou | sobrou: o vendedor recusou a oferta |
+| 15 | Comprador Rejeitou | sobrou: o comprador desistiu |
+| 18 | Venda Cancelada | sobrou: a venda caiu depois de fechada |
 
-O filtro de disponibilidade é, então:
+**A distinção que importa** ao montar base de "veículo ainda disponível":
 
-```sql
-an.deleted_at IS NULL AND an.status = 1
+- `1` é o único estado *dentro* de evento aberto.
+- `11`, `14`, `15` e `18` são **sobra**: o veículo passou pelo evento e não
+  foi vendido. É o candidato natural a reoferta.
+- `9` e `13` **não** são sobra — existe oferta em análise. Tratar como
+  disponível seria ranquear loja para carro que já tem negócio na mesa.
+- `2`, `3` e `7` são venda; `10` e `18` diferem: `10` cancela a negociação,
+  `18` cancela uma venda que já tinha fechado.
+
+⚠️ Medição de 2026-09-09 nos eventos ativos daquele momento: `1` = 908
+negociações, e o resto somava 17. Os estados de sobra só aparecem em volume
+**depois** que o evento fecha.
+
+## Eventos encerrados: `events.status` vira 0
+
+Medido na sonda 49961. Os nove eventos que encerraram em 2026-09-09 (Bradesco,
+cinco feirões LM, C6 Auto, Outlet Netcarros e Venda Direta IGA) estão **todos**
+com `events.status = 0`, nenhum deletado, somando 846 negociações — e **zero**
+delas em `status = 1`.
+
+Duas consequências para quem monta recorte de evento:
+
+1. `e.status = 1` significa **evento aberto**. Filtrar por ele exclui, por
+   construção, tudo que já encerrou. É o mesmo `0` do "Preparação Repasse".
+2. Ampliar a janela de datas **não basta** para trazer evento encerrado de
+   volta: mesmo sem o filtro de status do evento, `an.status = 1` devolve
+   zero. Para ver a sobra é preciso aceitar `11`, `14`, `15` e `18`.
+
+No evento C6 Auto de 09/09, as 29 negociações ficaram em `11` (22 veículos,
+sem ofertas) e `13` (7, em análise do vendedor).
+
+## ⚠️ O relógio do banco está em UTC; as datas dos eventos, em Brasília
+
+**Medido na sonda `a6fNNTUYYayehNIn`, execução 49954.** A consulta
+`SELECT NOW(), CURDATE()` devolveu:
+
+```
+agora = 2026-09-10 01:51:56     hoje = 2026-09-10
 ```
 
-**Por que importa:** sem olhar `status`, os eventos ativos daquele dia mostravam 261
-veículos. Disponíveis de verdade eram **248**. Quem contar negociação sem filtrar status
-infla o número em ~5%.
+...quando em São Paulo eram **22:51 do dia 9**. Mas `events.finish_date_event`
+guarda hora **local**, sem fuso: o evento "Venda Direta IGA" fecha
+`2026-09-10 16:00`, e o IGA fecha às 16h de Brasília. Os nomes dos eventos
+("— 10/09/26") também batem com a data da coluna, não com a UTC.
 
-⚠️ A amostra é de um dia. Os valores 10 e 14 continuam sem leitura, e nada garante que
-2/3/7 sejam os únicos estados de "vendido" — são os únicos que **apareceram**.
+**Consequência:** comparar `finish_date_event` com `NOW()` compara maçã com
+laranja, e o recorte fica 3 horas adiantado. Das 21h à meia-noite de Brasília,
+`CURDATE()` já aponta para o dia seguinte — então "eventos de hoje" perde o
+dia inteiro, em silêncio.
+
+Foi exatamente assim que um pedido de "incluir os eventos que encerraram
+hoje" voltou vazio: a janela abria na meia-noite errada.
+
+**O jeito que funciona:** calcular o piso e o teto fora do SQL, em hora de
+Brasília, e mandá-los como literal:
+
+```sql
+AND e.finish_date_event >= '2026-09-09 00:00:00'
+AND e.finish_date_event <= '2026-09-11 22:54:00'
+```
+
+Ver `automations/n8n-sdk/rel-veiculos/montar-fase1.js`, que faz a aritmética
+sobre o epoch e lê com `getUTC*` — assim o fuso do processo (também UTC) não
+interfere.
+
+⚠️ Não sei se **todas** as colunas de data do banco seguem essa convenção. O
+que está medido é `events.finish_date_event` e `events.start_date_display`.
+Para outras tabelas, medir antes de comparar com `NOW()`.
 
 ## O catálogo `models` tem nomes duplicados em duas faixas de id
 
@@ -69,5 +135,5 @@ serve para ler distribuição, nunca para somar.
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`
-- `events.status` — sabe-se que `0` existe e não é "ativo" (o evento "Preparação Repasse"
-  estava com `status = 0` e mesmo assim passou por um filtro que só olhava datas)
+- `events.situation` — aparece como 1, 3 e 4 nos eventos observados; o 4 sai
+  em evento encerrado e no "Preparação Repasse", mas não foi confirmado
