@@ -93,6 +93,7 @@ Pronto pra trabalhar. O que vamos fazer?
 | Stakeholder específico | `subjects/<frente>/02-stakeholders.md` |
 | Decisão histórica referenciada | `memory/decisions/<arquivo>` |
 | Ata específica referenciada | `memory/inputs/meetings/<arquivo>` |
+| SQL, tabela, coluna, join, query nova | `context/banco-de-dados/README.md` e, só da tabela em questão, o bloco no `schema.md` (150 KB — nunca ler inteiro) |
 
 ## Modo onboarding (primeira sessão)
 

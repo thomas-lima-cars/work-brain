@@ -26,6 +26,39 @@ Scripts (`gera_*.py`, `prova_*.js`, `testa_*.js`, `valida_*.py`) geram e **prova
 lote. Não são rascunho: são a evidência de que nenhuma query foi reescrita de cabeça.
 
 
+
+## Limites do MCP `run_query` (medidos, não supostos)
+
+Descobertos na execução **49799** do workflow `LZL3mxfbMIz4avyx`, em 2026-09-09.
+Valem para **qualquer** query que passe pelo `MCP Exec` — inclusive as do relatório C6.
+
+| Limite | Comportamento | Como conviver |
+|---|---|---|
+| **Sem função de janela** | `ROW_NUMBER() OVER (PARTITION BY ...)` volta `query validation failed: failed to parse SQL statement: syntax error at position N`, com N caindo em cima do `PARTITION BY`. Não é timeout: é o validador do MCP recusando a sintaxe. | Último-do-grupo por `MAX(id)`; topo-do-grupo por `INNER JOIN` no `MAX(n)`. |
+| **Resposta cortada em 50 linhas** | Toda resposta traz no máximo 50 linhas e marca `structuredContent.truncated: true`. Um `LIMIT 1000` devolve 50 e o `OFFSET` continua respeitado — então paginar de 1.000 em 1.000 **pula 950 linhas por página, em silêncio**. | `PAGE = 50`, sempre. Ler o `truncated` da resposta em vez de inferir por página vazia. |
+| **Deadline de 60s** | `options.timeout: 60000` no nó. | Fatiar por período quando estourar. |
+
+⚠️ O `RX_PAGE = 50` que já estava na sonda do lote 2 era exatamente isso — mas não estava
+escrito em lugar nenhum *por quê*. Agora está.
+
+**Construções que a 49799 provou que passam:** `GROUP BY`, `INNER`/`LEFT JOIN`, subselect
+no `FROM`, `EXISTS`, `CASE`, `COALESCE`, `MAX`, `COUNT`, `AVG`, `STDDEV_SAMP`, `ROUND`,
+`NULLIF`, `YEAR`, `CURDATE`, `UPPER`, `TRIM`, `LIKE`, `DISTINCT`.
+
+**Padrão de completude:** ter sempre uma query de **gabarito** (`SELECT COUNT(...)`) e
+comparar com o que a coleta trouxe. Sem gabarito, coleta truncada passa por completa —
+foi o que aconteceu na 49799.
+
+
+## Lojas ofertantes por UF e whitelabel (2026-09-09)
+
+Workflow novo, independente do relatório de base: **`LZL3mxfbMIz4avyx`** (pessoal,
+inativo, sem e-mail, sem cron). Perfil das lojas que deram lance nos últimos 6 meses.
+
+Código, provas e decisões em [`lojas-ofertas/`](lojas-ofertas/README.md).
+Reaproveita duas coisas desta pasta: a **arquitetura B** e o **`UF_CASE`** verbatim da
+sonda `7TCmS8JFacDTmySQ`.
+
 ## Lote 2 — whitelabel na página inteira (2026-09-04)
 
 O lote 1f fez o **seletor** de whitelabel funcionar em 18 valores. O lote 2 leva o

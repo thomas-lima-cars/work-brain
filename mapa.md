@@ -6,6 +6,7 @@
 |---|---|---|
 | `estado-atual.md` (raiz) | **Painel vivo do dia** — frentes quentes, decisões em aberto, cobranças, alertas, compromissos. Mantido pelo `/salve`. | **Sempre no boot** — é o que o `/cerebro` lê pra montar o panorama |
 | `context/` | Quem sou: empresa, papel, produtos, stakeholders | **Sempre** — leitura inicial |
+| `context/banco-de-dados/` | Esquema do banco da plataforma: 144 tabelas, colunas, FKs, índices | **Antes de escrever qualquer SQL** — não ler no boot |
 | `subjects/` | **Frentes de trabalho ativas** | Trabalhar numa frente — atualizar histórico, ver decisões |
 | `memory/` | Estado vivo: sessions, decisions, inputs (meetings, jira, whatsapp, outlook, dailies) | Retomar contexto recente, detectar contradição |
 | `inbox/` | Captura rápida — processar e mover depois | Algo que ainda não tem lugar |

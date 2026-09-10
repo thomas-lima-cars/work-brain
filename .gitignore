@@ -20,3 +20,11 @@ secrets.md
 # loja e CNPJs ficticios. Nao versionar — alguem acha depois e toma por real.
 # Regenera com: node automations/n8n-sdk/testa_gerador_local.js
 automations/n8n-sdk/saida-teste-local.html
+
+# Coletas e HTML gerados pelos relatorios n8n: 27 MB que mudam a cada run e
+# carregam nome real de loja com o perfil de compra junto — 156 das 613 lojas
+# do run 49846 tem nome de pessoa fisica. Repo e privado, mas historico de git
+# nao se apaga; na duvida, fica de fora (regra do mapa.md).
+# Reproduz rodando o workflow e extraindo com _extrai_execucao.py.
+automations/n8n-sdk/*/dados-*.json
+automations/n8n-sdk/*/saida-*.html
