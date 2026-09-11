@@ -132,6 +132,52 @@ carros de uma loja só, exposto em quatro canais.
 **Regra:** para total de veículos, conte sem fatiar por whitelabel. A fatia por whitelabel
 serve para ler distribuição, nunca para somar.
 
+## A UF do veículo é a do PÁTIO, não a do endereço da loja
+
+**Medido na sonda `a6fNNTUYYayehNIn`, execução 50068** (2026-09-10), sobre 1.879
+negociações de eventos que encerram a partir de 09/09.
+
+O carro não está no escritório da loja: está num **pátio**, que é o que
+`shop_stocks` guarda — "estoques de uma loja, que podem ser locais físicos
+diferentes", com `state` e `city` próprios. Há dois caminhos até ele,
+`advertisements.shop_stock_id` e `vehicles.shop_stock_id`, e **os dois estão
+preenchidos em 100% dos casos** (1.879 de 1.879, com UF preenchida em todos).
+
+| Medida | Valor |
+|---|---|
+| negociações na janela | 1.879 |
+| pátio pelo anúncio / pelo veículo | 1.879 / 1.879 |
+| pátio com UF | 1.879 |
+| **UF do pátio ≠ UF do endereço da loja** | **1.278 (68%)** |
+
+🚨 **68% divergem.** Como a elegibilidade exige mesma UF, trocar a fonte não é
+cosmético: **refaz quem pode casar com quem**. Relatório que use a UF da loja
+vendedora está respondendo sobre outra praça.
+
+As 25 UFs do pátio já vêm como sigla limpa de duas letras, sem vazios — SP 970
+(em 40 pátios), MG 147, BA 146, RJ 110, PR 98, MT 62, GO 55, RS 49, CE 37, e
+cauda. Normalizar (`UF_CASE`) é desnecessário ali; a validação contra a lista
+das 27 vale como guarda contra sujeira futura, não como caminho.
+
+## As 5 colunas ocultas de `advertisement_negotiations`
+
+O diagrama do banco documenta 32 colunas; a tabela tem **37**. Como o
+`information_schema` é bloqueado pelo MCP (ver `automations/n8n-sdk/README.md`),
+saíram por `SELECT *` numa linha, na execução 50069. As cinco que faltavam:
+
+`close_seller_analysis_even_if_vmv_reached`, `receive_proposal_above_from_realtime`,
+`show_client_name`, `reason`, `seller_at`.
+
+🔴 **Não existe status de documentação aqui.** As 37 colunas são todas de preço,
+oferta, prazo e disputa. Somado ao fato de que toda coluna `document` do esquema
+documentado é CPF/CNPJ, o caso está fechado por esse lado.
+
+`advertisements` tem **12** colunas e **nenhuma de URL** — o link do anúncio tem
+que ser composto (padrão em `automations/n8n-flows/lista-lm-propostas.md`).
+`whitelabels` tem **43**, incluindo `url`, `configurated_url`, `url_webapp` e
+`authorized_domains`: o domínio de cada canal existe, se um dia o link precisar
+levar o lojista ao canal dele em vez do marketplace.
+
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`

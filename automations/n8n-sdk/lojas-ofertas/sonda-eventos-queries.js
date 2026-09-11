@@ -224,7 +224,138 @@ push('q_valor',
   " WHERE an.deleted_at IS NULL AND e.name LIKE '%C6 Auto%'" +
   " AND e.finish_date_event >= DATE_SUB(NOW(), INTERVAL 30 DAY)", 1);
 
-const comJanela = Q.filter((q) => /OVER\s*\(/i.test(q.sql));
+/* ═══ SONDA 2026-09-10: patio, link do anuncio e documentacao ═══════ */
+
+/* 12-14. RIP information_schema: a sonda 50068 provou que o MCP bloqueia
+   ("access to system schema is not allowed"). O contorno e `SELECT *` numa
+   linha -- o cabecalho da resposta ENTREGA os nomes das colunas.
+
+   A lista de tabelas e curta de proposito. `SELECT *` devolve valor, e em
+   `vehicles`/`vehicle_extra_fields` isso e placa, chassi, renavam e
+   documento do ultimo proprietario indo pra um dump em disco. Status de
+   documentacao por negociacao moraria em advertisement_negotiations; o
+   dominio do whitelabel, em whitelabels. Nenhuma das tres abaixo tem PII
+   de pessoa fisica. */
+push('q_cols_neg',
+  "SELECT * FROM advertisement_negotiations WHERE deleted_at IS NULL" +
+  " ORDER BY id DESC", 1);
+
+push('q_cols_wl', "SELECT * FROM whitelabels ORDER BY id", 1);
+
+push('q_cols_anuncio',
+  "SELECT * FROM advertisements WHERE deleted_at IS NULL ORDER BY id DESC", 1);
+
+/* ── o PATIO ────────────────────────────────────────────────────────── */
+const JAN_NOVA =
+  " e.deleted_at IS NULL AND e.finish_date_event >= '2026-09-09 00:00:00'";
+
+/* 15. cobertura: qual dos dois caminhos ate o patio esta preenchido, e
+   quanto a UF do patio difere da UF do endereco da loja (que e a que o
+   relatorio usa hoje). Se divergir pouco, a mudanca e cosmetica; se
+   divergir muito, a elegibilidade inteira muda de lugar. */
+push('q_patio',
+  "SELECT COUNT(*) AS negociacoes," +
+  " SUM(CASE WHEN a.shop_stock_id IS NOT NULL THEN 1 ELSE 0 END) AS patio_no_anuncio," +
+  " SUM(CASE WHEN v.shop_stock_id IS NOT NULL THEN 1 ELSE 0 END) AS patio_no_veiculo," +
+  " SUM(CASE WHEN ss.id IS NOT NULL THEN 1 ELSE 0 END) AS patio_encontrado," +
+  " SUM(CASE WHEN TRIM(COALESCE(ss.state, '')) <> '' THEN 1 ELSE 0 END) AS patio_com_uf," +
+  " SUM(CASE WHEN TRIM(COALESCE(sa.state, '')) <> '' THEN 1 ELSE 0 END) AS loja_com_uf," +
+  " SUM(CASE WHEN TRIM(COALESCE(ss.state, '')) <> '' AND TRIM(COALESCE(sa.state, '')) <> ''" +
+  " AND UPPER(TRIM(ss.state)) <> UPPER(TRIM(sa.state)) THEN 1 ELSE 0 END) AS divergem" +
+  " FROM advertisement_negotiations an" +
+  " INNER JOIN events e ON e.id = an.event_id AND" + JAN_NOVA +
+  " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
+  " LEFT JOIN shop_stocks ss ON ss.id = COALESCE(a.shop_stock_id, v.shop_stock_id)" +
+  " AND ss.deleted_at IS NULL" +
+  " LEFT JOIN shop_addresses sa ON sa.shop_id = a.shop_id AND sa.deleted_at IS NULL" +
+  " WHERE an.deleted_at IS NULL", 1);
+
+/* 16. como a UF do patio vem escrita -- o UF_CASE do relatorio normaliza
+   'S.P', 'Rio de Janeiro' e afins, e preciso saber se a lista muda */
+push('q_uf_patio',
+  "SELECT UPPER(TRIM(COALESCE(ss.state, '(vazio)'))) AS uf_patio," +
+  " COUNT(*) AS negociacoes, COUNT(DISTINCT ss.id) AS patios" +
+  " FROM advertisement_negotiations an" +
+  " INNER JOIN events e ON e.id = an.event_id AND" + JAN_NOVA +
+  " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
+  " LEFT JOIN shop_stocks ss ON ss.id = COALESCE(a.shop_stock_id, v.shop_stock_id)" +
+  " AND ss.deleted_at IS NULL" +
+  " WHERE an.deleted_at IS NULL" +
+  " GROUP BY uf_patio ORDER BY negociacoes DESC", 2);
+
+/* ── a JANELA NOVA ──────────────────────────────────────────────────── */
+/* 17. quanto o recorte novo traz. Sem teto entram eventos que terminam em
+   dezembro e em 2027; isso dimensiona a paginacao ANTES de eu montar. */
+push('q_janela_nova',
+  "SELECT COUNT(DISTINCT e.id) AS eventos," +
+  " COUNT(DISTINCT a.vehicle_id) AS veiculos," +
+  " COUNT(*) AS negociacoes" +
+  " FROM advertisement_negotiations an" +
+  " INNER JOIN events e ON e.id = an.event_id AND" + JAN_NOVA +
+  " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
+  " WHERE an.deleted_at IS NULL AND an.status IN (1, 11, 14, 15, 18)", 1);
+
+/* 18. os eventos do recorte novo, com quantos veiculos cada um. Mostra se
+   um evento de fim distante esta arrastando a base. */
+push('q_eventos_novos',
+  "SELECT e.id AS evento_id, e.name AS evento, e.status AS ev_status," +
+  " DATE_FORMAT(e.finish_date_event, '%Y-%m-%d %H:%i') AS fim_evento," +
+  " COUNT(DISTINCT a.vehicle_id) AS veiculos" +
+  " FROM events e" +
+  " INNER JOIN advertisement_negotiations an ON an.event_id = e.id" +
+  " AND an.deleted_at IS NULL AND an.status IN (1, 11, 14, 15, 18)" +
+  " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " WHERE" + JAN_NOVA +
+  " GROUP BY evento_id, evento, ev_status, fim_evento" +
+  " ORDER BY e.finish_date_event", 4);
+
+/* ── o LINK ─────────────────────────────────────────────────────────── */
+/* 19. o uuid existe e esta preenchido? E amostra pra eu ver o formato. */
+push('q_uuid',
+  "SELECT COUNT(*) AS anuncios," +
+  " SUM(CASE WHEN a.uuid IS NULL OR a.uuid = '' THEN 1 ELSE 0 END) AS sem_uuid," +
+  " MIN(a.uuid) AS exemplo_uuid, MIN(a.id) AS exemplo_id" +
+  " FROM advertisement_negotiations an" +
+  " INNER JOIN events e ON e.id = an.event_id AND" + JAN_NOVA +
+  " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " WHERE an.deleted_at IS NULL", 1);
+
+/* Sem regex: este arquivo viaja pro n8n como string JSON escapada, e
+   escapar barra invertida uma vez a mais gera "Invalid regular expression"
+   e derruba o run (aconteceu na execucao 49963, no outro no). indexOf nao
+   tem barra nenhuma. */
+function temJanela(sql) {
+  const u = String(sql).toUpperCase();
+  return u.indexOf('OVER (') >= 0 || u.indexOf('OVER(') >= 0;
+}
+/* 20. o link precisa de QUATRO pedacos, nao de um. O padrao esta decidido
+   desde 25/08 e conferido contra os exemplos do Gui (ver
+   n8n-flows/lista-lm-propostas.md): 
+   cars2you.com.br/anuncio/veiculo/{marca}/{modelo}/{versao}/{uuid}
+   Sem um dos tres nomes o link nao pode ser entregue -- melhor sem botao
+   que botao que cai em lugar nenhum. Isso mede quantos ficariam sem. */
+push('q_link_partes',
+  "SELECT COUNT(DISTINCT a.vehicle_id) AS veiculos," +
+  " SUM(CASE WHEN TRIM(COALESCE(b.name, '')) = '' THEN 1 ELSE 0 END) AS sem_marca," +
+  " SUM(CASE WHEN TRIM(COALESCE(m.name, '')) = '' THEN 1 ELSE 0 END) AS sem_modelo," +
+  " SUM(CASE WHEN TRIM(COALESCE(ve.name, '')) = '' THEN 1 ELSE 0 END) AS sem_versao," +
+  " SUM(CASE WHEN TRIM(COALESCE(a.uuid, '')) = '' THEN 1 ELSE 0 END) AS sem_uuid," +
+  " SUM(CASE WHEN TRIM(COALESCE(b.name,'')) <> '' AND TRIM(COALESCE(m.name,'')) <> ''" +
+  " AND TRIM(COALESCE(ve.name,'')) <> '' AND TRIM(COALESCE(a.uuid,'')) <> ''" +
+  " THEN 1 ELSE 0 END) AS link_completo" +
+  " FROM advertisement_negotiations an" +
+  " INNER JOIN events e ON e.id = an.event_id AND" + JAN_NOVA +
+  " INNER JOIN advertisements a ON a.id = an.advertisement_id AND a.deleted_at IS NULL" +
+  " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
+  " LEFT JOIN brands b ON b.id = v.brand_id" +
+  " LEFT JOIN models m ON m.id = v.model_id" +
+  " LEFT JOIN versions ve ON ve.id = v.version_id" +
+  " WHERE an.deleted_at IS NULL", 1);
+
+const comJanela = Q.filter((q) => temJanela(q.sql));
 if (comJanela.length) throw new Error('funcao de janela: o MCP rejeita');
 if (PAGE > 50) throw new Error('PAGE > 50: o MCP corta em 50 linhas');
 

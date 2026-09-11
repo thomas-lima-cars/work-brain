@@ -51,7 +51,11 @@ console.log('\n[1] Fase 1 — dimensionamento');
 const f1 = rodaNo('montar-fase1.js', ctxDe({}));
 const p1 = f1.map((i) => i.json);
 const nomes1 = Array.from(new Set(p1.map((p) => p.queryName)));
-ok(nomes1.length === 6, '6 queries: ' + nomes1.join(', '));
+ok(nomes1.length === 9, '9 queries: ' + nomes1.join(', '));
+ok(nomes1.indexOf('q_wl_nomes') >= 0,
+   'q_wl_nomes presente — e o que impede id de canal errado de encolher a base calado');
+ok(nomes1.indexOf('q_evwl_total') >= 0,
+   'q_evwl_total presente — e o que impede q_evento_wl de truncar calada');
 ok(nomes1.indexOf('q_evento_wl') >= 0, 'q_evento_wl presente — e a regra de elegibilidade');
 ok(p1[0].meta.page === 50, 'PAGE = 50 (teto do MCP)');
 /* O recorte deixou de usar o relogio do banco. Isto aqui e o guarda-corpo
@@ -70,15 +74,27 @@ if (ids1.length) {
   ok(sel1.indexOf('finish_date_event') < 0,
      'modo lista: as datas nao entram no recorte');
 } else {
-  ok(sel1.indexOf(p1[0].meta.janela_ini) > 0 && sel1.indexOf(p1[0].meta.janela_fim) > 0,
-     'modo janela: o recorte usa os literais em hora de Brasilia');
+  ok(sel1.indexOf(p1[0].meta.janela_ini) > 0,
+     'modo janela: o piso entra como literal, nao como relogio do banco');
   ok(p1[0].meta.janela_ini.slice(11) === '00:00:00',
-     'modo janela: piso = meia-noite, evento encerrado hoje continua na base');
-  const hIni = Date.parse(p1[0].meta.janela_ini.replace(' ', 'T') + 'Z');
-  const hFim = Date.parse(p1[0].meta.janela_fim.replace(' ', 'T') + 'Z');
-  const horasJanela = (hFim - hIni) / 3600000;
-  ok(horasJanela > 48 && horasJanela <= 72,
-     'modo janela: cobre o dia corrente + 48h (' + horasJanela.toFixed(1) + 'h)');
+     'modo janela: piso = meia-noite, evento encerrado no dia continua na base');
+  /* SEM TETO tem que significar SEM CLAUSULA. Se `finish_date_event <=`
+     sobrasse no SQL com teto vazio, o recorte viraria
+     "<= ''" e a base zeraria; e com teto qualquer, evento nao finalizado de
+     fim distante ficaria de fora em silencio -- o bug que a mudanca de
+     2026-09-10 veio consertar. */
+  if (!p1[0].meta.janela_fim) {
+    ok(sel1.indexOf('finish_date_event <=') < 0,
+       'sem teto: a clausula de teto nao entra no SQL');
+    ok(sel1.indexOf('finish_date_event >=') > 0,
+       'sem teto: o piso continua valendo');
+  } else {
+    ok(sel1.indexOf(p1[0].meta.janela_fim) > 0,
+       'com teto: o literal do teto entra no recorte');
+    const hIni = Date.parse(p1[0].meta.janela_ini.replace(' ', 'T') + 'Z');
+    const hFim = Date.parse(p1[0].meta.janela_fim.replace(' ', 'T') + 'Z');
+    ok(hFim > hIni, 'com teto: o teto vem depois do piso');
+  }
 }
 /* A ordem e o que importa aqui, e e facil inverter sem perceber. A
    subconsulta acha a ULTIMA negociacao de cada veiculo SEM olhar status;
@@ -107,13 +123,53 @@ ok(p1.every((p) => balanceado(p.sql)), 'parenteses balanceados');
 const qwl = p1.find((p) => p.queryName === 'q_evento_wl');
 ok(/FROM event_whitelabels ew/.test(qwl.sql), 'q_evento_wl le event_whitelabels');
 
+/* ── o recorte de canais (2026-09-11) ──────────────────────────────────── */
+/* Ele vale em QUATRO lugares e faltar um nao da erro: da base errada. */
+const WLS = p1[0].meta.whitelabels || [];
+if (WLS.length) {
+  const lista = WLS.join(',');
+  ok(sel1.indexOf('ew2.whitelabel_id IN (' + lista + ')') > 0,
+     'SELECAO so aceita evento que alveja um dos ' + WLS.length + ' canais');
+  ok(qwl.sql.indexOf('ew.whitelabel_id IN (' + lista + ')') > 0,
+     'q_evento_wl so devolve os canais do recorte');
+  const qEvwlTot = p1.find((p) => p.queryName === 'q_evwl_total').sql;
+  ok(qEvwlTot.indexOf('ew.whitelabel_id IN (' + lista + ')') > 0,
+     'q_evwl_total conta a MESMA coisa que q_evento_wl — senao a conferencia de ' +
+     'completude acusa falso positivo');
+  const qLojTot = p1.find((p) => p.queryName === 'q_lojas_total').sql;
+  ok(qLojTot.indexOf('s.whitelabel_id IN (' + lista + ')') > 0,
+     'q_lojas_total restringe as lojas ao canal');
+  ok(qLojTot.indexOf('INNER JOIN shops s') > 0,
+     'e por isso entrou o join em shops no gabarito das lojas');
+  const qWlN = p1.find((p) => p.queryName === 'q_wl_nomes');
+  ok(!!qWlN && qWlN.sql.indexOf('w.id IN (' + lista + ')') > 0,
+     'q_wl_nomes pergunta ao banco o nome de cada id do recorte');
+  /* os nomes esperados viajam pro Montar HTML: id errado nao da erro de SQL,
+     so devolve base menor, e isso e o pior tipo de defeito */
+  const esp = p1[0].meta.wl_esperado || {};
+  ok(Object.keys(esp).length === WLS.length,
+     'cada id do recorte declara o nome que espera (' + Object.keys(esp).length + ')');
+  WLS.forEach((w) => ok(!!esp[String(w)],
+    'o canal ' + w + ' declara nome esperado: ' + (esp[String(w)] || 'FALTANDO')));
+}
+
 /* ═══ 2. Fase 2 ═════════════════════════════════════════════════════ */
 console.log('\n[2] Fase 2 — coleta dimensionada');
 const EVENTOS = [[23885, 'Feirao VWFS', 1, '2026-09-08 16:00', '2026-09-10 14:00'],
-                 [23903, 'Venda Direta IGA', 1, '2026-09-09 10:00', '2026-09-10 16:00']];
-/* 23885 alveja so o whitelabel 7; 23903 alveja 4 e 7 */
-const EVWL = [[23885, 7, 'Marketplace'], [23903, 4, 'Trucks2you'], [23903, 7, 'Marketplace']];
-function fase2Com(veic, lojas) {
+                 [23903, 'Venda Direta IGA', 1, '2026-09-09 10:00', '2026-09-10 16:00'],
+                 /* canal de pessoa fisica: existe evento, nao existe loja */
+                 [23904, 'Clube de Associados', 1, '2026-09-09 10:00', '2026-09-11 16:00']];
+/* 23885 alveja so o whitelabel 7; 23903 alveja 4 e 7.
+   23904 alveja o 62, que NENHUMA loja do universo tem -- e o caso dos 108
+   veiculos do run 50106 (Bemol, Apeop, Clube FMP, Omni, Especial LM). */
+const EVWL = [[23885, 7, 'Marketplace'], [23903, 4, 'Trucks2you'], [23903, 7, 'Marketplace'],
+              [23904, 62, 'Clube Associados']];
+/* `pares` mente de proposito quando paresFalsos e passado: e assim que se
+   prova que a conferencia de q_evento_wl morde. Sem o branch explicito
+   abaixo, o catch-all devolvia colunas erradas, `pares` vinha undefined e o
+   guard ficava INERTE no teste -- passando sem nunca ter sido exercitado. */
+function fase2Com(veic, lojas, paresFalsos, nomesBanco, modaMentira) {
+  nomesBanco = nomesBanco || {};
   return rodaNo('montar-fase2.js', ctxDe({
     'Montar Fase 1': f1,
     'MCP Fase 1': p1.map((p) => {
@@ -122,6 +178,29 @@ function fase2Com(veic, lojas) {
       if (p.queryName === 'q_lojas_total') return resp(['lojas', 'ofertas'], [[lojas, 103923]], p.pagina);
       if (p.queryName === 'q_valor') return resp(['negociacoes', 'sem_valor', 'valor_zero', 'minimo', 'media', 'maximo', 'media_inicial', 'media_fipe'], [[veic, 0, 0, 15000, 92000, 480000, null, 95000]], p.pagina);
       if (p.queryName === 'q_por_status') return resp(['status', 'veiculos'], [[1, 4], [11, 1], [7, 3]], p.pagina);
+      /* o banco devolve exatamente os nomes esperados: caminho feliz. O
+         caso de id trocado tem prova propria, mais abaixo. */
+      if (p.queryName === 'q_moda_lojas') {
+        /* cobertura real do fixture; `modaMentira` infla pra provar o guard.
+           try/catch porque fase2Com e chamada ANTES de MODELO/CATEG serem
+           declarados (zona morta temporal do const) na primeira passagem --
+           ali a cobertura ainda nao importa. */
+        let nM = 0, nC = 0;
+        try {
+          nM = new Set(MODELO.map((r) => r[0])).size;
+          nC = new Set(CATEG.map((r) => r[0])).size;
+        } catch (e) { /* ainda nao declarados */ }
+        return resp(['lojas_modelo', 'lojas_categoria'],
+          [[nM + (modaMentira || 0), nC]], p.pagina);
+      }
+      if (p.queryName === 'q_wl_nomes') {
+        const esp = p1[0].meta.wl_esperado || {};
+        return resp(['whitelabel_id', 'whitelabel'],
+          Object.keys(esp).map((id) => [Number(id), nomesBanco[id] || esp[id]]), p.pagina);
+      }
+      if (p.queryName === 'q_evwl_total') {
+        return resp(['pares'], [[paresFalsos === undefined ? EVWL.length : paresFalsos]], p.pagina);
+      }
       return resp(['evento_id', 'whitelabel_id', 'whitelabel'], EVWL, p.pagina);
     })
   }));
@@ -130,8 +209,90 @@ const f2 = fase2Com(168, 1300);
 const p2 = f2.map((i) => i.json);
 const M = p2[0].meta;
 ok(M.pag_veic === 4 && M.pag_lojas === 26, '168 veic -> 4 paginas; 1.300 lojas -> 26');
-ok(p2.length === 4 + 5 * 26, 'fase 2 = 134 chamadas — tem ' + p2.length);
-ok(M.evento_wl.length === 3, 'o mapa evento->whitelabel chegou no meta (3 linhas)');
+/* 4 paginas de veiculo + 3 consultas de loja x 26 + 2 modas x 28.
+   As modas levam 2 paginas a mais porque empate no topo rende mais de uma
+   linha por loja -- ver PAG_MODA na fase 2. */
+ok(p2.length === 4 + 3 * 26 + 2 * 28, 'fase 2 = ' + (4 + 3 * 26 + 2 * 28) + ' chamadas — tem ' + p2.length);
+ok(M.evento_wl.length === 4, 'o mapa evento->whitelabel chegou no meta (4 linhas)');
+/* a fase 2 reconstroi o META do zero: campo esquecido chega undefined em
+   silencio. O cabecalho decide a frase do recorte por eventos_ids, entao
+   perder este campo faria o relatorio anunciar janela no modo lista. */
+ok(M.eventos_ids !== undefined, 'a fase 2 repassa eventos_ids (o cabecalho depende dele)');
+/* o filtro de loja da fase 2 tem que ser IDENTICO ao do gabarito da fase 1:
+   um dimensiona a paginacao do outro. Divergir gera pagina vazia (que custa
+   um agregado inteiro) ou coleta incompleta. */
+const qLojas2 = p2.find((p) => p.queryName === 'q_lojas').sql;
+const filtroLoja = M.whitelabels && M.whitelabels.length
+  ? ' AND s.whitelabel_id IN (' + M.whitelabels.join(',') + ')' : '';
+if (filtroLoja) {
+  ok(qLojas2.indexOf(filtroLoja.trim()) > 0,
+     'q_lojas usa o mesmo filtro de canal que dimensionou a paginacao dela');
+  /* TODAS as consultas de loja sao dimensionadas pela MESMA contagem
+     (q_lojas_total), entao todas precisam do mesmo filtro. No run 50268 eu
+     filtrei so q_lojas: as outras quatro varreram o universo inteiro com
+     paginacao do universo filtrado e bateram no teto -- 1.300 = 26 x 50
+     linhas em cada uma, tres lojas sem perfil. A conferencia de completude
+     pegou; esta prova impede de voltar. */
+  ['q_ofertas', 'q_perfil', 'q_modelo', 'q_categoria'].forEach(function (nome) {
+    const q = p2.find((x) => x.queryName === nome);
+    ok(!!q && q.sql.indexOf(filtroLoja.trim()) > 0,
+       nome + ' filtra pelo mesmo canal que a contagem que a dimensiona');
+  });
+  ok(M.wl_nomes_banco !== undefined,
+     'a fase 2 repassa o que o banco respondeu sobre os nomes dos canais');
+  /* [neg] id trocado NAO da erro de SQL: `IN (4,7,43,99,...)` roda liso e
+     devolve base menor, com um canal faltando. E o pior tipo de defeito --
+     o relatorio fica plausivel. So a conferencia nome x id pega. */
+  const f2Mentira = fase2Com(168, 1300, undefined, { '7': 'Outro Canal Qualquer' });
+  const wlM = f2Mentira[0].json.meta.wl_nomes_banco;
+  ok(wlM.some((r) => r.whitelabel === 'Outro Canal Qualquer'),
+     '[neg] consegui fazer o banco devolver nome diferente para o canal 7');
+}
+
+/* ── leitura() tem que ACUMULAR paginas ────────────────────────────────── */
+/* O bug da execucao 50105: o `return` estava DENTRO do laco, entao consulta
+   paginada era lida so ate a pagina 0. Com 3 pares de whitelabel o teste
+   nunca passava de uma pagina, e por isso a suite inteira passou por cima
+   do defeito. Este fixture atravessa DUAS paginas de proposito -- e sem a
+   correcao ele para em 50 e a conferencia contra q_evwl_total estoura. */
+const EVWL_2PG = [];
+for (let i = 0; i < 62; i++) EVWL_2PG.push([23885, 7 + (i % 3), 'wl' + (i % 3)]);
+/* try/catch porque com o bug de paginacao a propria fase 2 LANCA (a
+   conferencia contra q_evwl_total estoura antes), e excecao no meio da
+   suite mata as provas seguintes. Aqui vira falha declarada e a suite
+   segue -- foi assim que descobri que a suite inteira parava calada. */
+let f2Pag = null;
+let erroPag = null;
+try {
+  f2Pag = rodaNo('montar-fase2.js', ctxDe({
+  'Montar Fase 1': f1,
+  'MCP Fase 1': p1.map((p) => {
+    if (p.queryName === 'q_eventos') return resp(['evento_id', 'evento', 'ev_status', 'ini_display', 'fim_evento'], EVENTOS, p.pagina);
+    if (p.queryName === 'q_veic_total') return resp(['veiculos', 'negociacoes', 'eventos'], [[168, 168, 2]], p.pagina);
+    if (p.queryName === 'q_lojas_total') return resp(['lojas', 'ofertas'], [[1300, 103923]], p.pagina);
+    if (p.queryName === 'q_valor') return resp(['negociacoes', 'sem_valor', 'valor_zero', 'minimo', 'media', 'maximo', 'media_inicial', 'media_fipe'], [[168, 0, 0, 15000, 92000, 480000, null, 95000]], p.pagina);
+    if (p.queryName === 'q_por_status') return resp(['status', 'veiculos'], [[1, 4]], p.pagina);
+    if (p.queryName === 'q_evwl_total') return resp(['pares'], [[EVWL_2PG.length]], p.pagina);
+    return resp(['evento_id', 'whitelabel_id', 'whitelabel'], EVWL_2PG, p.pagina);
+  })
+  }));
+} catch (e) {
+  erroPag = String(e.message || e);
+}
+const evwlLido = f2Pag ? f2Pag[0].json.meta.evento_wl.length : -1;
+ok(evwlLido === EVWL_2PG.length,
+   'leitura() acumula as paginas: leu ' + evwlLido + ' de ' + EVWL_2PG.length +
+   ' pares (com o bug para em ' + PAGE + ')' + (erroPag ? ' — LANCOU: ' + erroPag : ''));
+/* [neg] truncar q_evento_wl nao da erro de SQL: o veiculo perde whitelabel e
+   vira "sem loja elegivel", igualzinho a um carro sem loja compativel de
+   verdade. Este e o unico jeito de essa falha ser audivel. */
+let mordeu = false;
+try {
+  fase2Com(168, 1300, EVWL.length + 7);
+} catch (e) {
+  mordeu = /q_evento_wl veio incompleta/.test(String(e.message));
+}
+ok(mordeu, '[neg] a fase 2 mata o run se q_evento_wl vier incompleta');
 /* A fase 2 RECONSTROI o META do zero, entao campo que a fase 1 publica e
    ela esquece de repassar chega `undefined` no Montar HTML -- em silencio.
    Foi assim que o selo de "encerrado" nasceu morto no run 49959: o
@@ -175,44 +336,53 @@ const PERFIL = [
 ];
 const MODELO = [[11, 501, 'Onix', 50], [12, 501, 'Onix', 50], [13, 501, 'Onix', 50], [14, 501, 'Onix', 50], [15, 501, 'Onix', 50]];
 const CATEG = [[11, 1, 'Automovel', 80], [12, 1, 'Automovel', 80], [13, 1, 'Automovel', 80], [14, 1, 'Automovel', 80], [15, 1, 'Automovel', 80]];
-const COLV = ['neg_id', 'evento_id', 'evento', 'fim_evento', 'anuncio_id', 'vehicle_id', 'valor', 'valor_inicial', 'fipe', 'model_id', 'modelo', 'category_id', 'categoria', 'marca', 'model_year', 'km', 'loja_id', 'loja_vendedora', 'uf', 'neg_status'];
+const COLV = ['neg_id', 'evento_id', 'evento', 'fim_evento', 'anuncio_id', 'vehicle_id', 'valor', 'valor_inicial', 'fipe', 'model_id', 'modelo', 'category_id', 'categoria', 'marca', 'versao', 'anuncio_uuid', 'model_year', 'km', 'loja_id', 'loja_vendedora', 'uf', 'neg_status'];
 const VEIC = [
+  /* v_orfao: SP, perfil identico ao v0 (onde HA lojas boas), mas no evento
+     23904, cujo canal nao tem loja alguma. Fica sem par exclusivamente por
+     causa do canal -- e e isso que a prova precisa isolar. */
+  [7, 23904, 'Clube de Associados', '2026-09-11 16:00', 906, 5006, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa9999bbbb8888cccc7777dddd6666', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
   /* v0: evento 23885 (wl 7), SP  -> elegiveis: 11 e 12                     */
-  [1, 23885, 'Feirao VWFS', '2026-09-10 14:00', 900, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
+  [1, 23885, 'Feirao VWFS', '2026-09-10 14:00', 900, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa1111bbbb2222cccc3333dddd4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
   /* v1: evento 23903 (wl 4 e 7), SP -> elegiveis: 11, 12 e 14              */
-  [2, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 901, 5002, 120000, null, 125000, 502, 'HB20', 1, 'Automovel', 'Hyundai', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
+  [2, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 901, 5002, 120000, null, 125000, 502, 'HB20', 1, 'Automovel', 'Hyundai', 'Comfort Plus 1.0', 'bbbb1111cccc2222dddd3333eeee4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
   /* v2: evento 23885 (wl 7), MG -> elegivel so a 13                        */
-  [3, 23885, 'Feirao VWFS', '2026-09-10 14:00', 902, 5003, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', ANO - 5, 100000, 700, 'Vendedora', 'MG', 1],
+  [3, 23885, 'Feirao VWFS', '2026-09-10 14:00', 902, 5003, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'cccc1111dddd2222eeee3333ffff4444', ANO - 5, 100000, 700, 'Vendedora', 'MG', 1],
   /* v3: evento 23885 (wl 7), RJ -> nenhuma loja no RJ, zero pares          */
-  [4, 23885, 'Feirao VWFS', '2026-09-10 14:00', 903, 5004, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', ANO - 5, 100000, 700, 'Vendedora', 'RJ', 1],
+  [4, 23885, 'Feirao VWFS', '2026-09-10 14:00', 903, 5004, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', null, 'dddd1111eeee2222ffff3333aaaa4444', ANO - 5, 100000, 700, 'Vendedora', 'RJ', 1],
   /* v4: SOBRA — mesmo perfil do v0, mas status 11 (Sem Ofertas). Tem que
      entrar na base, pontuar igual ao v0 e sair MARCADO como sobra.       */
-  [5, 23885, 'Feirao VWFS', '2026-09-10 14:00', 904, 5005, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', ANO - 5, 100000, 700, 'Vendedora', 'SP', 11],
+  [5, 23885, 'Feirao VWFS', '2026-09-10 14:00', 904, 5005, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'eeee1111ffff2222aaaa3333bbbb4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 11],
   /* v5: DUPLICATA — mesmo vehicle_id do v0 numa negociacao diferente. O
      SQL ja colapsa por veiculo; se um dia parar, isto pega: tem que ser
      descartado E declarado nas falhas, nunca somado duas vezes.          */
-  [6, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 905, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1]
+  [6, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 905, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'ffff1111aaaa2222bbbb3333cccc4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1]
 ];
-const f2b = fase2Com(5, 5);
-const respostas = f2b.map((i) => i.json).map((p) => {
+/* 6 veiculos unicos: v0..v4 mais o do canal orfao. A sexta LINHA de VEIC e
+   a duplicata do v0 de proposito, e tem que ser descartada e declarada --
+   por isso o gabarito e 6, nao 7. */
+const f2b = fase2Com(6, 5);
+/* nomeado pra ser reusado pela prova negativa de cobertura das modas */
+function respostaDe(p) {
   if (p.queryName === 'q_veiculos') return resp(COLV, VEIC, p.pagina);
   if (p.queryName === 'q_lojas') return resp(['shop_id', 'loja', 'whitelabel_id', 'whitelabel', 'uf'], LOJAS, p.pagina);
   if (p.queryName === 'q_ofertas') return resp(['shop_id', 'qt_ofertas'], OFERTAS, p.pagina);
   if (p.queryName === 'q_perfil') return resp(['shop_id', 'qt_veiculos', 'preco_medio', 'preco_desvio', 'idade_media', 'idade_desvio', 'km_medio', 'km_desvio'], PERFIL, p.pagina);
   if (p.queryName === 'q_modelo') return resp(['shop_id', 'item_id', 'nome', 'n'], MODELO, p.pagina);
   return resp(['shop_id', 'item_id', 'nome', 'n'], CATEG, p.pagina);
-});
+}
+const respostas = f2b.map((i) => i.json).map(respostaDe);
 const S = rodaNo('montar-html.js', ctxDe({ 'Montar Fase 2': f2b, 'MCP Fase 2': respostas }))[0].json;
 const D = S.DADOS;
 
-ok(D.veiculos.length === 5, '5 veiculos unicos (a duplicata do v0 foi descartada)');
+ok(D.veiculos.length === 6, '6 veiculos unicos (a duplicata do v0 foi descartada)');
 ok(S.falhas.some((f) => /1 veiculo\(s\) vieram mais de uma vez/.test(f)),
    'a duplicata por veiculo vira falha declarada, nao soma silenciosa');
 const sobra = D.veiculos.filter((v) => v.sobra);
 ok(sobra.length === 1 && D.resumo.sobra === 1, 'exatamente 1 veiculo marcado como sobra');
 ok(sobra.length === 1 && sobra[0].neg_status === 11 && sobra[0].status_nome === 'Sem Ofertas',
    'a sobra carrega o status e o nome dele: ' + (sobra[0] ? sobra[0].status_nome : '?'));
-ok(D.veiculos.filter((v) => v.neg_status === 1).length === 4, 'os outros 4 estao em status 1 (Ativo)');
+ok(D.veiculos.filter((v) => v.neg_status === 1).length === 5, 'os outros 5 estao em status 1 (Ativo)');
 const vSobra = sobra[0], v0 = D.veiculos.find((v) => v.neg_id === 1);
 ok(vSobra && v0 && vSobra.candidatos === v0.candidatos,
    'sobra concorre em pe de igualdade: mesmos candidatos que o veiculo ativo identico');
@@ -309,7 +479,19 @@ ok(!/[a-z-]+:\s*[\d]+,[\d]+(%|px|em)/.test(h), 'nenhum valor CSS com virgula dec
 ok(h.indexOf('2d5party') < 0, 'sem o lixo de CSS que eu tinha digitado');
 ok(h.indexOf('mesma UF') > 0 && h.indexOf('whitelabels que o evento alveja') > 0,
   'a pagina explica a regra de elegibilidade');
-ok(h.indexOf('adicao minha') > 0, 'a pagina declara a confianca como adicao minha');
+ok(h.indexOf('adição minha') > 0, 'a pagina declara a confianca como adicao minha');
+
+/* [neg] truncamento numa consulta de MODA nao da erro: as lojas cortadas
+   so perdem o componente de modelo/categoria, e o score delas sai menor
+   sem uma linha de aviso. A conferencia e por LOJA DISTINTA porque o
+   numero de LINHAS depende de empates e nao da pra prever. */
+const f2Moda = fase2Com(6, 5, undefined, undefined, 3);
+const dModa = rodaNo('montar-html.js', ctxDe({
+  'Montar Fase 2': f2Moda,
+  'MCP Fase 2': f2Moda.map((i) => i.json).map(respostaDe)
+}))[0].json.DADOS;
+ok(dModa.falhas.some((f) => f.indexOf('a moda de modelo cobriu') >= 0),
+   '[neg] cobertura menor que a contagem vira falha declarada');
 ok(h.indexOf('id="t_v"') > 0 && h.indexOf('id="t_l"') > 0, 'as duas tabelas existem');
 ok(h.indexOf('id="limpar"') > 0, 'botao de limpar selecao');
 const m = h.match(/<script>const D=([\s\S]*?);<\/script>/);
@@ -337,7 +519,7 @@ ok(h.indexOf('function extrato()') > 0, 'a funcao do extrato existe');
 ok(h.indexOf('LIMIAR=70') > 0, 'o limiar de 70% esta no codigo');
 ok(h.indexOf('extrato();}') > 0, 'o extrato e repintado junto com as tabelas');
 ok(h.indexOf('Extrato da loja') > 0, 'o titulo do extrato aparece');
-ok(h.indexOf('Veiculos com aderencia acima de') > 0, 'a lista acima do limiar existe');
+ok(h.indexOf('Veículos com aderência acima de') > 0, 'a lista acima do limiar existe');
 /* o peso tem que bater com 1/(1+desvio/media) */
 const espPreco = 1 / (1 + (lj.preco_desvio / lj.preco_medio));
 ok(perto(lj.p_preco, Math.round(espPreco * 1000) / 1000, 0.002),
@@ -366,6 +548,155 @@ const semValue = h.replace("<option value='\"+i+\"'>\"+rotulo(it)+", '<option>"+
 ok(semValue !== h, '[neg] consegui reintroduzir o option sem value');
 ok(require('./_smoke_dom.js').smoke(semValue).length > 0,
   '[neg] o smoke pega o filtro de evento que nao filtra');
+/* bug 3: o link montado com pedaco faltando. E o erro que a lista LM ja
+   cometeu uma vez -- filtrar por "tem link" em vez de "esta no ar" -- e aqui
+   a versao equivalente e deixar 'undefined' virar trecho da URL. */
+const linkPodre = h.replace('r.v.link?', 'true?');
+ok(linkPodre !== h, '[neg] consegui forcar link em veiculo sem pedaco');
+ok(require('./_smoke_dom.js').smoke(linkPodre).length > 0,
+  '[neg] o smoke pega link com undefined/null no meio');
+/* bug 4: o <a> sem stopPropagation -> clicar no link tambem mexe na selecao */
+/* ancora sem barra invertida de proposito: casar o `onclick=\'...\'` inteiro
+   exigiria escapar a barra tres vezes, e barra a mais e exatamente o erro
+   que derrubou a execucao 49963. */
+const semStop = h.replace('event.stopPropagation()', 'void 0');
+ok(semStop !== h, '[neg] consegui tirar o stopPropagation do link');
+ok(require('./_smoke_dom.js').smoke(semStop).length > 0,
+  '[neg] o smoke pega o link que mexe na selecao da linha');
+
+/* ── [9] a UF do veiculo sai do PATIO ─────────────────────────────────── */
+console.log('\n[9] UF pelo patio e link do anuncio');
+const sqlV = p2.find((p) => p.queryName === 'q_veiculos').sql;
+/* 68% dos veiculos tem UF de patio diferente da UF da loja (sonda 50068), e
+   UF e metade da regra de elegibilidade -- se esta query voltar a ler
+   shop_addresses, o par (veiculo, loja) muda sem ninguem notar. */
+ok(sqlV.indexOf('shop_stocks ss') > 0, 'q_veiculos entra em shop_stocks');
+ok(sqlV.indexOf('COALESCE(a.shop_stock_id, v.shop_stock_id)') > 0,
+   'o patio vem pelos dois caminhos, preferindo o do anuncio');
+ok(sqlV.indexOf('UPPER(TRIM(ss.state))') > 0, 'a UF do veiculo sai de ss.state');
+ok(sqlV.indexOf('shop_addresses') < 0,
+   'q_veiculos NAO le mais shop_addresses (join que ninguem le custa caro)');
+/* a UF da LOJA continua sendo a dela -- o carro esta no patio, a loja
+   compradora esta onde ela e. Trocar as duas seria o erro simetrico. */
+const sqlL = p2.find((p) => p.queryName === 'q_lojas').sql;
+ok(sqlL.indexOf('sa.state') > 0, 'q_lojas mantem a UF do endereco da loja');
+
+/* ── o link ───────────────────────────────────────────────────────────── */
+ok(sqlV.indexOf('a.uuid AS anuncio_uuid') > 0, 'q_veiculos traz o uuid');
+ok(sqlV.indexOf('ve.name AS versao') > 0, 'q_veiculos traz a versao');
+ok(sqlV.indexOf('versions ve') > 0, 'q_veiculos entra em versions');
+/* GROUP BY incompleto em MySQL nao da erro: escolhe um valor qualquer. Sem
+   esta prova, versao e uuid poderiam vir de outra linha do grupo. */
+ok(/GROUP BY[\s\S]*versao/.test(sqlV) && /GROUP BY[\s\S]*anuncio_uuid/.test(sqlV),
+   'GROUP BY lista versao e anuncio_uuid');
+
+/* o padrao, conferido contra os exemplos do Gui (reuniao de 25/08) */
+const vLink = D.veiculos.find((v) => v.vehicle_id === 5001 && v.link);
+ok(!!vLink, 'ha veiculo com link montado');
+ok(vLink.link.indexOf('https://cars2you.com.br/anuncio/veiculo/') === 0,
+   'o link comeca com o padrao decidido em 25/08');
+/* so os TRECHOS, nao a URL toda: comparar a url inteira com toLowerCase()
+   passaria de graca, porque 'https' ja e minusculo. A marca sintetica e
+   'Chevrolet' com C maiusculo, entao esta prova morde de verdade. */
+const trechos = vLink.link.split('/anuncio/veiculo/')[1];
+ok(trechos === trechos.toLowerCase(), 'os trechos vao em minusculo');
+ok(vLink.link.indexOf('%20') > 0, 'espaco vira %20, NAO hifen');
+ok(vLink.link.split('/').pop().indexOf('-') < 0, 'o uuid vai sem hifens');
+ok(vLink.link.split('/anuncio/veiculo/')[1].split('/').length === 4,
+   'quatro trechos: marca, modelo, versao e uuid');
+
+/* a regra dura, ponta a ponta: o v3 nao tem versao */
+const semVersao = D.veiculos.filter((v) => !v.versao);
+ok(semVersao.length === 1, 'o dado sintetico tem 1 veiculo sem versao');
+ok(semVersao[0].link === null,
+   'sem um pedaco, NAO sai link (melhor sem botao que botao pra lugar nenhum)');
+ok(h.indexOf('undefined/') < 0 && h.indexOf('/null/') < 0,
+   'nenhum link com undefined ou null no meio chegou ao HTML');
+
+/* e o link aparece de fato na tela, com o stopPropagation que impede o
+   clique de mexer na selecao da linha por baixo */
+/* No HTML estatico existem os DOIS pontos de montagem do <a> (a linha de
+   contexto e o cabecalho do detalhe), nao as linhas renderizadas -- a tabela
+   e construida no navegador. Contar links aqui enganaria; quem conta o
+   render de verdade e o _smoke_dom, que roda o JS contra um DOM de mentira. */
+const nSites = (h.match(/class='lk'/g) || []).length;
+ok(nSites === 2, 'os dois pontos de montagem do link estao no template (' + nSites + ')');
+
+/* ── as TRES causas de "sem correspondencia" ───────────────────────────── */
+console.log('\n[10] sem correspondencia: tres causas, tres decisoes');
+const R = D.resumo;
+/* Declarar as tres como uma frase so fez o run 50106 parecer ter 23% de
+   buraco, quando 9,6% era impossivel por construcao e so 8,8% respondia ao
+   limiar. Baixar o corte nao mexe nas outras duas populacoes. */
+ok(R.sem_canal + R.sem_loja_na_uf + R.cortados_pelo_min === R.sem_par,
+   'as tres causas somam exatamente o total sem par (' + R.sem_canal + '+' +
+   R.sem_loja_na_uf + '+' + R.cortados_pelo_min + '=' + R.sem_par + ')');
+
+const orfao = D.veiculos.find((v) => v.vehicle_id === 5006);
+ok(!!orfao, 'o veiculo do canal orfao chegou ao relatorio');
+ok(orfao.canal_sem_loja === true, 'ele esta marcado como canal sem loja');
+ok(orfao.elegiveis === 0, 'e nenhuma loja passou na regra de elegibilidade');
+ok(orfao.uf === 'SP', 'ele esta em SP DE PROPOSITO — onde ha lojas boas, ' +
+   'entao a causa so pode ser o canal');
+ok(R.sem_canal === 1, 'exatamente 1 veiculo em canal sem loja');
+
+/* as categorias tem que ser mutuamente exclusivas, senao a soma acima
+   fecharia por acaso */
+const duplaCategoria = D.veiculos.filter((v) => v.canal_sem_loja && v.elegiveis > 0).length;
+ok(duplaCategoria === 0, 'nenhum veiculo cai em duas categorias ao mesmo tempo');
+
+/* e o texto tem que dizer QUAL causa, nao "ou uma ou outra" */
+const txt = D.falhas.join(' | ');
+ok(txt.indexOf('canal NAO TEM loja alguma') >= 0,
+   'a falha nomeia o canal sem loja em vez de generalizar');
+ok(txt.indexOf('e so ' + 'estes, que mudariam se o corte baixasse') >= 0 ||
+   txt.indexOf('mudariam se o corte baixasse') >= 0 ||
+   R.cortados_pelo_min === 0,
+   'a falha do corte diz que so ela responde ao limiar');
+
+/* ── a fonte nao pode reacumular barra invertida ───────────────────────── */
+/* Nao e estilo: este arquivo e transcrito a mao pro n8n como string JSON, e
+   em 2026-09-10 as 248 sequencias `\'` foram dobradas em DUAS tentativas
+   seguidas -- 568 barras no no, JS do cliente sem compilar, mesma classe de
+   erro que derrubou a execucao 49963. Com crase e caractere literal sobraram
+   4 barras, que dao pra conferir na mao. Se este numero subir, a armadilha
+   voltou -- e ela nao avisa: ela derruba o run inteiro. */
+const fonteHtml = fs.readFileSync(path.join(AQUI, 'montar-html.js'), 'utf8');
+/* As checagens valem sobre o CODIGO, nao sobre a documentacao do codigo: o
+   comentario que explica a regra precisa citar as sequencias proibidas, e
+   uma prova que se ofende com a propria explicacao vira ruido que se aprende
+   a ignorar. Comentario de bloco sai antes de medir. */
+const semComent = fonteHtml.replace(/\/\*[\s\S]*?\*\//g, '');
+/* a remocao nao pode ter comido codigo -- se comeu, o resto das provas
+   passaria medindo um arquivo que nao existe */
+['function linkAnuncio', 'const APP = [', 'const CSS = [', 'return [{']
+  .forEach((marca) => ok(semComent.indexOf(marca) > 0,
+    'a limpeza de comentarios preservou ' + marca));
+
+const nBarras = (semComent.match(/\\/g) || []).length;
+ok(nBarras <= 4, 'o codigo tem no maximo 4 barras invertidas (tem ' + nBarras + ')');
+/* a assinatura da corrupcao e ESTA: duas barras antes da aspa. Foi o que
+   apareceu nas duas transcricoes de 2026-09-10 (568 barras, cliente sem
+   compilar). Uma barra so seria o escape legitimo; duas nunca sao. */
+ok(semComent.indexOf('\\\\\'') < 0,
+   'nenhuma aspa com escape DOBRADO — a assinatura que derrubou as duas transcricoes');
+ok(semComent.indexOf("\\'") < 0,
+   'nenhum escape de aspa simples: elemento de array usa crase');
+ok(semComent.indexOf('${') < 0,
+   'nenhuma interpolacao: com crase, ${ deixaria de ser texto literal');
+
+/* ── o cabecalho descreve a janela QUE EXISTE ──────────────────────────── */
+/* sem teto, a frase antiga imprimia "entre <piso> e <b>?</b>" -- detalhe que
+   faz o leitor desconfiar do relatorio inteiro, com razao */
+ok(h.indexOf('e <b>?</b>') < 0, 'o cabecalho nao anuncia teto inexistente');
+ok(h.indexOf('mais os que ainda não encerraram') > 0,
+   'o cabecalho diz que os nao encerrados entram');
+ok(h.indexOf('a partir de <b>' + (D.meta.janela_ini || '')) > 0,
+   'o cabecalho publica o piso real do recorte');
+ok(h.indexOf('event.stopPropagation()') > 0,
+   'o clique no link nao mexe na selecao da linha');
+ok(h.indexOf("rel=\'noopener\'") > 0 || h.indexOf('noopener') > 0,
+   'o link abre em outra aba com noopener');
 
 fs.writeFileSync(path.join(AQUI, 'saida-teste-local.html'), h);
 console.log('\nHTML de teste: saida-teste-local.html (' + h.length + ' bytes)');

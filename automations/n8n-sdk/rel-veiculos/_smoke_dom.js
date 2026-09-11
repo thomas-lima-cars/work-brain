@@ -124,10 +124,10 @@ function smoke(html) {
      o enxerga, entao a conferencia e sobre o texto mesmo. */
   [['id="pg_gloss"', 'a pagina do glossario'],
    ['O que entra na base', 'a secao "o que entra na base"'],
-   ['Quem pode casar com quem', 'a secao de elegibilidade'],
-   ['Como o numero e feito', 'a secao de calculo'],
-   ['Fator de confianca', 'o verbete do fator de confianca'],
-   ['Correspondencia minima', 'o verbete da correspondencia minima']].forEach(function (p) {
+   ['Regras de elegibilidade', 'a secao de elegibilidade'],
+   ['Como o número é feito', 'a secao de calculo'],
+   ['Fator de confiança', 'o verbete do fator de confianca'],
+   ['Correspondência mínima', 'o verbete da correspondencia minima']].forEach(function (p) {
     if (html.indexOf(p[0]) < 0) erros.push(p[1] + ' nao esta no HTML');
   });
   /* e a tabela de status tem que sair do dicionario publicado, nao de uma
@@ -156,6 +156,29 @@ function smoke(html) {
       ' de dado — os dois niveis tem que andar em par');
   }
   if (hv.indexOf('colspan=') < 0) erros.push('a linha de contexto do veiculo nao usa colspan');
+
+  /* 4c. o link do anuncio, contado DEPOIS do render -- no HTML estatico so
+     existe o template, entao contar lá enganaria. Regra dura herdada da
+     lista LM: veiculo sem marca, modelo, versao ou uuid nao ganha botao,
+     e nenhum link pode sair com 'undefined'/'null' no meio. */
+  const nLk = (hv.match(/class='lk'/g) || []).length;
+  if (nLk === 0) {
+    erros.push('nenhum link de anuncio renderizado na tabela de veiculos');
+  }
+  if (nLk > nDado) {
+    erros.push('mais links (' + nLk + ') que veiculos na tela (' + nDado + ')');
+  }
+  if (/\/(undefined|null)(\/|')/.test(hv)) {
+    erros.push('link de anuncio renderizado com undefined ou null no meio');
+  }
+  /* href vazio e o caso pior: o botao aparece, e clicavel, e nao vai a lugar
+     nenhum. Sem esta checagem o sabotador da prova negativa passava. */
+  if (/<a[^>]*class='lk'[^>]*href=''/.test(hv) || /href=''[^>]*class='lk'/.test(hv)) {
+    erros.push('link de anuncio com href vazio — botao clicavel pra lugar nenhum');
+  }
+  if (hv.indexOf('class=\'lk\'') >= 0 && hv.indexOf('event.stopPropagation()') < 0) {
+    erros.push('o link nao trava a propagacao: clicar nele mexeria na selecao');
+  }
 
   /* 5. INTERACAO — cada dropdown filtra de verdade?
      Foi aqui que o bug do <option> sem value escapou. */

@@ -62,3 +62,53 @@
   histórico de 6 meses dela inteira, então o score não muda com o filtro.
 - Pendente: `EVENTOS_IDS` segue preenchido no nó (volta para a janela de 48h esvaziando
   a lista), e as 4 contas com cara de interna continuam no ranking sem confirmação.
+
+## 2026-09-10 (tarde/noite)
+
+- **A UF do veículo mudou de fonte: passou a ser a do PÁTIO** (`shop_stocks`), não a do
+  endereço da loja vendedora. Medido antes de valer (sonda 50068): cobertura de 100%
+  pelos dois caminhos e **68% dos veículos em UF diferente** da UF cadastral de quem
+  vende. Como UF é metade da regra de elegibilidade, isso não reordena o ranking — refaz
+  quem pode casar com quem. Os veículos passaram de 2 para **25 UFs distintas**.
+- **Link do anúncio na base**, no padrão já decidido em 25/08 e conferido contra os
+  exemplos do Gui: `cars2you.com.br/anuncio/veiculo/{marca}/{modelo}/{versão}/{uuid}`.
+  Regra dura herdada da lista LM: faltando um pedaço, não entrega link.
+- **Janela aberta**: piso fixo em 09/09 e teto nenhum, cobrindo "finalizados a partir do
+  dia 09 mais os não finalizados". `EVENTOS_IDS` esvaziado.
+- **Status da documentação não existe.** O `information_schema` é bloqueado pelo MCP
+  (limite novo, medido) — contornado com `SELECT *` numa linha, que revela as colunas
+  pelo cabeçalho. `advertisement_negotiations` tem 37 colunas, todas de preço, oferta,
+  prazo e disputa. Fechado pelo lado da negociação; se existe, está em outro lugar.
+- **As barras invertidas foram eliminadas na raiz.** As 248 sequências de escape de aspa
+  do `montar-html.js` foram dobradas em **duas** transcrições seguidas — o JS do cliente
+  nem compilava. A correção não foi "ter mais cuidado": foi trocar o material (crase nos
+  elementos de array, `·`/`—`/`↗` como caractere). De 320 barras para 4. E nasceu o
+  `_confere_transcricao.py`, que compara o nó com o arquivo local byte a byte.
+- **Bug pré-existente exposto:** a `leitura()` da fase 2 tinha `return` dentro do laço e
+  lia só a página 0. Com nove eventos os 71 pares de whitelabel cabiam em 50 linhas;
+  com 47 eventos sumiam 21 pares, em silêncio.
+- Run **50106**: 50 eventos, 1.123 veículos, 728 lojas, 33.718 correspondências.
+
+## 2026-09-11
+
+- **Base restrita a seis whitelabels**, por pedido e com ids confirmados pelo Thomas:
+  4 (Trucks2you), 7 (Marketplace), 43 (C6 Auto), 48 (Colaboradores C6), 62 (Lance Fácil
+  BTB), 65 (BTB Associados). O filtro vale em quatro lugares; faltar um não dá erro, dá
+  base errada. Como id trocado roda liso e só devolve base menor, a fase 1 pergunta ao
+  banco o nome de cada id e o relatório confere contra o esperado.
+- **Identidade visual**: cabeçalho em #1523A0 com a logo, o tom nos detalhes, título
+  centralizado. A logo entra como PNG de duas cores de 570 bytes (o .jpg original viraria
+  8.300 caracteres de base64 transcritos à mão) — o fundo dela é #1523A0 medido pixel a
+  pixel, então encaixa sem emenda.
+- **Acentuação e maiúsculas** em todo o texto visível, KPI de correspondências removido,
+  "Quem pode casar com quem" virou **Regras de elegibilidade**.
+- **"Sem correspondência" deixou de ser um balde só.** São três causas com decisões
+  opostas: canal sem loja compradora (impossível por construção), sem loja na UF, e
+  cortado pelo mínimo de 50% — só o último responde ao limiar. No run 50106 eram ~108 /
+  ~52 / ~99; com o recorte de canal, o primeiro grupo zerou.
+- **Dois truncamentos silenciosos achados e corrigidos**, ambos consequência do recorte
+  de canal: as quatro consultas de perfil varriam o universo inteiro com paginação do
+  universo filtrado (1.300 = 26 × 50, três lojas sem perfil), e as duas de moda passaram
+  a ter folga com conferência de cobertura por loja distinta.
+- Pendências que seguem: distribuição do HTML (foi a ~4 MB), as 4 contas com cara de
+  interna, e o corte de 50% — 133 veículos mudariam se ele baixasse.

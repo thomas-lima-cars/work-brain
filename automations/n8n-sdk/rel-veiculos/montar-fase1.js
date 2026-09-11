@@ -7,14 +7,22 @@
    Duas formas, e só uma vale por vez:
 
      EVENTOS_IDS = [23860, 23861]   -> analisa exatamente esses
-     EVENTOS_IDS = []               -> usa a regra das próximas N horas
+     EVENTOS_IDS = []               -> vale a janela de datas abaixo
 
-   O padrão é a regra de 48h porque foi o recorte pedido em 2026-09-09.
-   Para uma edição específica, é só preencher a lista.
+   O padrão hoje é a janela ABERTA pedida em 2026-09-10: piso fixo em
+   09/09/2026 e teto nenhum, o que cobre "tudo que finalizou a partir do dia
+   09 mais o que não finalizou" numa condição só — encerrado recente tem fim
+   no passado próximo, não encerrado tem fim no futuro, e os dois satisfazem
+   `finish_date_event >= piso`.
 
-   A janela vai da MEIA-NOITE DE HOJE EM BRASÍLIA até HORAS_ADIANTE à
-   frente, então evento que já encerrou hoje continua na base
-   (INCLUI_ENCERRADOS_HOJE). Pondo false, conta do instante atual pra frente.
+   Medido antes de valer (sonda 50068): 47 eventos, 1.060 veículos, 1.740
+   negociações — contra 735 veículos do run 49984. Sem teto entra uma cauda
+   longa de eventos distantes, incluindo um que termina em 2027; entram de
+   propósito, e o filtro de evento na página é a saída para isolar.
+
+   Os outros dois modos continuam de pé e provados:
+     PISO_FIXO = ''      -> piso volta a ser a meia-noite de hoje (Brasília)
+     HORAS_ADIANTE > 0   -> volta a existir teto, agora + N horas
 
    ⚠️ FUSO: o banco responde NOW() em UTC, mas grava as datas dos eventos em
    hora de Brasília — medido na sonda 49954. Por isso o recorte é calculado
@@ -31,13 +39,57 @@
    sem função de janela, resposta cortada em 50 linhas, deadline de 60s.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* Os nove eventos que encerraram em 2026-09-09, medidos na sonda 49961.
-   Recorte pedido pelo Thomas. Com a lista preenchida as datas nao valem:
-   SELECAO vira `e.id IN (...)`, entao nao importa que dia e hoje.
-   Para voltar ao recorte movel das proximas horas, esvazie a lista. */
-const EVENTOS_IDS = [23882, 23890, 23891, 23892, 23860, 23884, 23887, 23888, 23889];
-const HORAS_ADIANTE = 48;
+/* Vazia = vale a janela de datas. Preenchida, as datas nao valem: SELECAO
+   vira `e.id IN (...)` e nao importa que dia e hoje -- util pra reanalisar
+   uma edicao especifica. Ficou pregada nos nove eventos de 09/09 por um
+   tempo, o que fazia todo run devolver aquele recorte em vez da regra. */
+const EVENTOS_IDS = [];
+/* piso fixo do recorte, em hora de Brasilia (pedido de 2026-09-10:
+   "todos os eventos finalizados a partir do dia 09/09 e nao finalizados").
+   Vazio => volta a valer a meia-noite de hoje. */
+const PISO_FIXO = '2026-09-09';
+/* 0 = SEM TETO. Com teto, evento que ainda nao encerrou mas termina depois
+   da janela ficaria de fora -- e "nao finalizados" nao tem teto. */
+const HORAS_ADIANTE = 0;
 const INCLUI_ENCERRADOS_HOJE = true;  /* pedido em 2026-09-09 - ver nota abaixo */
+
+/* ─── OS CANAIS QUE CONTAM (pedido de 2026-09-11) ────────────────────
+   Só estes seis whitelabels entram na base — evento que não alveja nenhum
+   deles fica fora, e loja de outro canal sai do universo.
+
+   Por ID, não por nome: renomear um canal no banco quebraria um filtro por
+   nome em silêncio. Os seis ids foram confirmados pelo Thomas em
+   2026-09-11; antes disso, 48 e 65 vinham da documentação do brain, que os
+   declara inferidos, e não apareciam na janela para conferir pelo dado.
+
+   A `q_wl_nomes` continua valendo como guarda: id trocado não dá erro de
+   SQL, só devolve base menor e plausível. Ela detecta mudança futura.
+
+   Lista vazia = sem restrição de canal. */
+const WHITELABELS = [4, 7, 43, 48, 62, 65];
+const WL_ESPERADO = {
+  4: 'Trucks2you',
+  7: 'Marketplace Cars2You',
+  43: 'Canal de vendas C6 Auto',
+  48: 'Colaboradores C6',
+  62: 'Lance Fácil BTB',
+  65: 'Lance Fácil BTB Associados'
+};
+const WL_IN = WHITELABELS.join(',');
+/* o evento precisa alvejar pelo menos um dos seis */
+const SO_WL_EVENTO = WHITELABELS.length
+  ? " AND EXISTS (SELECT 1 FROM event_whitelabels ew2" +
+    " WHERE ew2.event_id = e.id AND ew2.whitelabel_id IN (" + WL_IN + "))"
+  : "";
+/* e a loja compradora precisa pertencer a um deles */
+const SO_WL_LOJA = WHITELABELS.length
+  ? " AND s.whitelabel_id IN (" + WL_IN + ")"
+  : "";
+/* usado nas duas consultas de event_whitelabels, que precisam contar a
+   mesma coisa uma que a outra */
+const SO_WL_EW = WHITELABELS.length
+  ? " AND ew.whitelabel_id IN (" + WL_IN + ")"
+  : "";
 const MESES_HISTORICO = 6;   /* janela do perfil de compra das lojas */
 const PAGE = 50;             /* teto duro do MCP. NÃO aumentar */
 const LADO = 'buyer_shop_id';  /* a loja que DEU o lance */
@@ -64,8 +116,13 @@ const DATA_INI = dataDe(ini);
 
 /* piso = meia-noite de hoje em Brasilia, pra evento que ja encerrou hoje
    continuar na base; teto = agora + HORAS_ADIANTE, tambem em Brasilia */
-const PISO = INCLUI_ENCERRADOS_HOJE ? (HOJE_BR + ' 00:00:00') : AGORA_BR;
-const TETO = horaDe(new Date(now.getTime() + HORAS_ADIANTE * 3600000));
+const PISO = PISO_FIXO
+  ? (PISO_FIXO + ' 00:00:00')
+  : (INCLUI_ENCERRADOS_HOJE ? (HOJE_BR + ' 00:00:00') : AGORA_BR);
+/* string vazia = sem teto, e a clausula nem entra no SQL */
+const TETO = HORAS_ADIANTE > 0
+  ? horaDe(new Date(now.getTime() + HORAS_ADIANTE * 3600000))
+  : '';
 
 /* o filtro de evento, montado uma vez e reusado na fase 2.
    Erro que ja cometi: com o piso em NOW(), evento que fechou mais cedo no
@@ -80,12 +137,14 @@ const TETO = horaDe(new Date(now.getTime() + HORAS_ADIANTE * 3600000));
    la embaixo: evento cancelado deixa suas negociacoes em status 10, que
    nao esta na lista, entao o carro cai fora por si. Filtrar pelo evento
    seria redundante e, aqui, prejudicial. */
-const SELECAO = EVENTOS_IDS.length
+/* o recorte de canal vale nos DOIS modos: "manter na base somente estes
+   whitelabels" e regra da base inteira, nao do modo de selecao. */
+const SELECAO = (EVENTOS_IDS.length
   ? " e.deleted_at IS NULL AND e.id IN (" + EVENTOS_IDS.join(',') + ")"
   : " e.deleted_at IS NULL" +
     (INCLUI_ENCERRADOS_HOJE ? "" : " AND e.status = 1") +
     " AND e.finish_date_event >= '" + PISO + "'" +
-    " AND e.finish_date_event <= '" + TETO + "'";
+    (TETO ? " AND e.finish_date_event <= '" + TETO + "'" : "")) + SO_WL_EVENTO;
 
 /* ─── QUAL VEÍCULO CONTA ──────────────────────────────────────────────
    Uma linha por VEÍCULO, com o status da ÚLTIMA negociação dele — não uma
@@ -165,10 +224,46 @@ push('q_por_status',
   " INNER JOIN vehicles v ON v.id = u.vehicle_id AND v.deleted_at IS NULL" +
   " GROUP BY an.status ORDER BY veiculos DESC");
 
+/* quantos pares evento x whitelabel existem. Nao dimensiona a paginacao
+   daqui (a fase 1 nao le resultado), mas deixa a fase 2 CONFERIR se a
+   q_evento_wl veio inteira -- ver a nota na paginacao dela, abaixo. */
+push('q_evwl_total',
+  "SELECT COUNT(*) AS pares" +
+  " FROM event_whitelabels ew" +
+  " INNER JOIN events e ON e.id = ew.event_id AND" + SELECAO +
+  " WHERE 1 = 1" + SO_WL_EW);
+
+/* o banco confirma que cada id e o canal que eu penso que e. Sem isto, um
+   id errado tiraria um canal inteiro da base e o relatorio sairia menor sem
+   uma linha de aviso. */
+push('q_wl_nomes',
+  "SELECT w.id AS whitelabel_id, w.name AS whitelabel" +
+  " FROM whitelabels w WHERE w.id IN (" + WL_IN + ") ORDER BY w.id");
+
+/* quantas lojas TEM moda de modelo e quantas TEM moda de categoria.
+   Serve pra conferir cobertura das duas consultas de moda, que sao as
+   unicas que podem passar do numero de lojas (empate no topo rende mais de
+   uma linha por loja) e por isso nao dao pra dimensionar por contagem de
+   linha. A conferencia e por LOJA DISTINTA. */
+push('q_moda_lojas',
+  "SELECT COUNT(DISTINCT CASE WHEN v.model_id IS NOT NULL THEN o." + LADO + " END) AS lojas_modelo," +
+  " COUNT(DISTINCT CASE WHEN v.category_id IS NOT NULL THEN o." + LADO + " END) AS lojas_categoria" +
+  " FROM offers o" +
+  " INNER JOIN shops s ON s.id = o." + LADO + " AND s.deleted_at IS NULL" + SO_WL_LOJA +
+  " INNER JOIN advertisements a ON a.id = o.advertisement_id AND a.deleted_at IS NULL" +
+  " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
+  " WHERE" + JANELA_OFERTAS);
+
 /* quantas lojas têm histórico de oferta — dimensiona o perfil */
+/* o INNER JOIN em shops entra por causa do recorte de canal. Ele e o
+   gabarito que dimensiona a q_lojas da fase 2 -- os dois PRECISAM ter o
+   mesmo filtro, senao a paginacao sobra (pagina vazia custa um agregado
+   inteiro) ou falta (coleta incompleta, que a completude acusa). */
 push('q_lojas_total',
   "SELECT COUNT(DISTINCT o." + LADO + ") AS lojas, COUNT(*) AS ofertas" +
-  " FROM offers o WHERE" + JANELA_OFERTAS);
+  " FROM offers o" +
+  " INNER JOIN shops s ON s.id = o." + LADO + " AND s.deleted_at IS NULL" + SO_WL_LOJA +
+  " WHERE" + JANELA_OFERTAS);
 
 /* o value_actual está preenchido? O Thomas escolheu ele como preço do
    veículo; se vier nulo ou zero na maioria, o relatório nasce cego. */
@@ -196,7 +291,13 @@ push('q_evento_wl',
   " FROM event_whitelabels ew" +
   " INNER JOIN events e ON e.id = ew.event_id AND" + SELECAO +
   " LEFT JOIN whitelabels w ON w.id = ew.whitelabel_id" +
-  " ORDER BY ew.event_id, ew.whitelabel_id", 4);
+  " WHERE 1 = 1" + SO_WL_EW +
+  /* 8 paginas, nao 4: as 4 anteriores dimensionavam NOVE eventos, e a
+     janela aberta traz 47. Numero escolhido, mas VERIFICADO -- a fase 2
+     confere contra q_evwl_total e mata o run se faltar pagina, em vez de
+     deixar veiculo perder whitelabel calado. Barato por ser join simples,
+     nao agregado: pagina vazia nao custa um GROUP BY inteiro. */
+  " ORDER BY ew.event_id, ew.whitelabel_id", 8);
 
 if (PAGE > 50) throw new Error('PAGE > 50: o MCP corta a resposta em 50 linhas');
 
@@ -208,6 +309,9 @@ const META = {
   janela_ini: PISO,
   janela_fim: TETO,
   disponivel: DISPONIVEL,
+  whitelabels: WHITELABELS,
+  wl_esperado: WL_ESPERADO,
+  so_wl_loja: SO_WL_LOJA,
   eventos_ids: EVENTOS_IDS,
   horas_adiante: EVENTOS_IDS.length ? null : HORAS_ADIANTE,
   meses_historico: MESES_HISTORICO,

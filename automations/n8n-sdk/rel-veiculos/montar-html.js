@@ -4,8 +4,11 @@
    ─── ELEGIBILIDADE (a regra que define o universo) ────────────────────
    Um par (veículo, loja) só existe se as DUAS condições valerem:
 
-     1. MESMA UF     — a UF do veículo é a da loja vendedora; a da loja
-                       compradora vem do endereço dela.
+     1. MESMA UF     — a UF do veículo é a do PÁTIO onde ele está
+                       (`shop_stocks`), não a do endereço da loja
+                       vendedora; a da loja compradora vem do endereço
+                       dela. 68% dos veículos divergem entre as duas
+                       (sonda 50068), então a fonte importa muito.
      2. MESMO WHITELABEL — a loja compradora precisa pertencer a um dos
                        whitelabels que o EVENTO do veículo alveja. Um
                        evento pode alvejar vários (`event_whitelabels`),
@@ -16,7 +19,7 @@
    Por isso o ranking de cada veículo é curto: ele só disputa dentro da
    própria praça e do próprio canal.
 
-   ─── A FÓRMULA ────────────────────────────────────────────────────────
+   ─── A FÓRMULA ───────────────────────────────────────────────────
    Cinco componentes. Cada um tem uma ADERÊNCIA (0..1) e um PESO (0..1).
 
      preço, idade, km:  aderência = 1 / (1 + |valor − média| / desvio)
@@ -47,10 +50,7 @@ const CONFIANCA_MIN = 5;
    O corte e sobre o SCORE, nao sobre a aderencia bruta -- score = aderencia
    x confianca, e e o numero que ordena as tabelas. Cortar pela aderencia
    deixaria passar loja com um carro so de historico e aderencia 100, que e
-   justamente o caso que a confianca existe pra segurar.
-
-   Efeito colateral bem-vindo: derruba o tamanho do arquivo. Os 94 mil pares
-   do run 49975 viravam 6,8 MB embarcados. */
+   justamente o caso que a confianca existe pra segurar. */
 const CORRESP_MIN = 50;
 
 const pedidos = $('Montar Fase 2').all().map((i) => i.json);
@@ -66,7 +66,7 @@ function erroTexto(e) {
   try { return JSON.stringify(e).slice(0, 300); } catch (x) { return String(e).slice(0, 300); }
 }
 
-/* ── ingestão ───────────────────────────────────────────────────────── */
+/* ── ingestão ────────────────────────────────────────────────────── */
 const dados = {};
 const diag = {};
 for (let i = 0; i < pedidos.length; i++) {
@@ -112,7 +112,7 @@ function primeiraPorLoja(arr) {
   return m;
 }
 
-/* ── mapa evento -> whitelabels que ele alveja ──────────────────────── */
+/* ── mapa evento -> whitelabels que ele alveja ─────────────────────────── */
 const eventoWl = {};
 const wlNome = {};
 (META.evento_wl || []).forEach((r) => {
@@ -122,7 +122,7 @@ const wlNome = {};
   if (r.whitelabel) wlNome[String(r.whitelabel_id)] = r.whitelabel;
 });
 
-/* ── perfil das lojas ───────────────────────────────────────────────── */
+/* ── perfil das lojas ───────────────────────────────────────────── */
 const iOf = indexa(dados.q_ofertas || [], 'shop_id');
 const iPe = indexa(dados.q_perfil || [], 'shop_id');
 const iMo = primeiraPorLoja(dados.q_modelo || []);
@@ -168,11 +168,7 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
   };
 }).filter((l) => l.qt_veiculos);
 
-/* ── veículos ───────────────────────────────────────────────────────── */
-/* Dominio informado pelo Thomas em 2026-09-09 -- ver
-   context/banco-de-dados/dominios.md. So os cinco de STATUS_OK chegam
-   aqui; os outros ficam no dicionario porque um dia a lista pode mudar e
-   e melhor a tela dizer o nome do que mostrar um numero solto. */
+/* ── veículos ──────────────────────────────────────────────────── */
 const STATUS_NOME = {
   1: 'Ativo', 2: 'Aguardando Pagamento', 3: 'Aguardando Confirmacao de Pagamento',
   7: 'Vendido', 8: 'Suspenso', 9: 'Em Analise Comprador', 10: 'Cancelado',
@@ -187,6 +183,24 @@ const vistos = {};
 let dupVeic = 0;
 const ANO = new Date().getFullYear();
 const veiculos = [];
+
+/* cars2you.com.br/anuncio/veiculo/{marca}/{modelo}/{versao}/{uuid}
+   Padrao da reuniao de 25/08, conferido contra os exemplos do Gui. Tudo
+   minusculo, encodeURIComponent por trecho (espaco vira %20, nao hifen),
+   uuid sem hifens.
+
+   Faltando UM pedaco, devolve null e o relatorio nao mostra botao. Melhor
+   sem botao que botao que cai em lugar nenhum. */
+function linkAnuncio(marca, modelo, versao, uuid) {
+  const t = (x) => String(x == null ? '' : x).trim();
+  const partes = [t(marca), t(modelo), t(versao)];
+  const id = t(uuid).split('-').join('');
+  if (!id || partes.some((p) => !p)) return null;
+  return 'https://cars2you.com.br/anuncio/veiculo/' +
+    partes.map((p) => encodeURIComponent(p.toLowerCase())).join('/') +
+    '/' + id;
+}
+
 (dados.q_veiculos || []).forEach((r) => {
   const k = String(r.vehicle_id);
   if (vistos[k]) { dupVeic++; return; }
@@ -195,6 +209,8 @@ const veiculos = [];
   const evid = num(r.evento_id);
   const wls = Object.keys(eventoWl[String(evid)] || {}).map(Number);
   veiculos.push({
+    versao: r.versao || null,
+    link: linkAnuncio(r.marca, r.modelo, r.versao, r.anuncio_uuid),
     neg_id: num(r.neg_id), vehicle_id: num(r.vehicle_id),
     evento_id: evid, evento: r.evento, fim_evento: r.fim_evento,
     valor: num(r.valor), fipe: num(r.fipe),
@@ -215,7 +231,7 @@ const veiculos = [];
   });
 });
 
-/* ── aderência, só entre pares elegíveis ────────────────────────────── */
+/* ── aderência, só entre pares elegíveis ─────────────────────────────── */
 function adNum(valor, media, desvio) {
   if (valor === null || media === null || !media) return null;
   if (desvio && desvio > 0) return 1 / (1 + (Math.abs(valor - media) / desvio));
@@ -251,6 +267,14 @@ lojasTodas.forEach((l, i) => {
   porUf[l.uf].push(i);
 });
 
+/* Canais que tem PELO MENOS UMA loja no universo inteiro, nao so entre as
+   publicadas. Evento que alveja unicamente canal de pessoa fisica --
+   colaborador, associado, clube -- nao tem loja compradora possivel, e o
+   veiculo dele nunca vai ter par. Isso e categoria, nao falta de
+   aderencia, e a tela tem que dizer a diferenca. */
+const wlComLoja = {};
+lojasTodas.forEach((l) => { wlComLoja[String(l.whitelabel_id)] = 1; });
+
 let descartados = 0;       /* pares que existiam mas nao chegaram a CORRESP_MIN */
 const pares = [];          /* flat: [vi, li, score*10, det...] */
 const detPares = [];       /* decomposição, mesmo índice do par */
@@ -260,9 +284,14 @@ veiculos.forEach((v, vi) => {
   const wlSet = {};
   v.wls.forEach((w) => { wlSet[String(w)] = 1; });
   let n = 0;
+  let eleg = 0;
   for (let i = 0; i < cands.length; i++) {
     const l = lojasTodas[cands[i]];
     if (!wlSet[String(l.whitelabel_id)]) continue;   /* whitelabel do evento */
+    /* passou na regra de elegibilidade. Contar AQUI, antes do corte, e o
+       que permite distinguir "nao ha loja pra este carro" de "havia loja e
+       o corte cortou" -- duas causas que pedem decisoes opostas. */
+    eleg++;
     const r = pontua(v, l);
     if (!r || !(r.score >= CORRESP_MIN)) { if (r) descartados++; continue; }
     pares.push(vi, cands[i], Math.round(r.score * 10));
@@ -271,6 +300,9 @@ veiculos.forEach((v, vi) => {
     n++;
   }
   v.candidatos = n;
+  v.elegiveis = eleg;
+  /* o canal inteiro nao tem loja: o par era impossivel desde o inicio */
+  v.canal_sem_loja = !!(v.wls.length && !v.wls.some((w) => wlComLoja[String(w)]));
 });
 
 /* só publica as lojas que participam de pelo menos um par */
@@ -312,7 +344,7 @@ for (let i = 0; i < pares.length; i += 3) {
 veiculos.forEach((v, i) => { v.melhor = v.candidatos ? melhorV[i] : null; });
 lojas.forEach((l, i) => { l.melhor = melhorL[i]; l.pares = nParesL[i]; });
 
-/* ── completude ─────────────────────────────────────────────────────── */
+/* ── completude ────────────────────────────────────────────────── */
 const falhas = [];
 if (META.esperado_veiculos && veiculos.length !== META.esperado_veiculos) {
   falhas.push('coletei ' + veiculos.length + ' veiculos mas a fase 1 contou ' +
@@ -327,12 +359,72 @@ if (dupVeic) {
   falhas.push(dupVeic + ' veiculo(s) vieram mais de uma vez do banco e foram descartados: ' +
     'a query deveria trazer so a ultima negociacao de cada um');
 }
+/* ── os canais do recorte sao mesmo os que eu penso? ───────────────────
+   O recorte e por ID, e id errado nao da erro de SQL: a base so vem menor,
+   com um canal faltando, e parece plausivel. A fase 1 perguntou o nome de
+   cada id ao banco; aqui se confere contra o nome esperado. */
+const wlEsperado = META.wl_esperado || {};
+const wlBanco = {};
+(META.wl_nomes_banco || []).forEach((r) => {
+  wlBanco[String(r.whitelabel_id)] = r.whitelabel;
+});
+const wlIds = Object.keys(wlEsperado);
+if (wlIds.length) {
+  const sumiram = wlIds.filter((id) => !wlBanco[id]);
+  if (sumiram.length) {
+    falhas.push('whitelabel(s) que o recorte pede mas o banco nao tem: ' +
+      sumiram.map((id) => id + ' (esperado "' + wlEsperado[id] + '")').join(', ') +
+      ' — o canal sumiu da base inteira sem dar erro de SQL.');
+  }
+  const trocados = wlIds.filter((id) => wlBanco[id] && wlBanco[id] !== wlEsperado[id]);
+  if (trocados.length) {
+    falhas.push('whitelabel(s) com nome diferente do esperado: ' +
+      trocados.map((id) => id + ' e "' + wlBanco[id] + '", nao "' + wlEsperado[id] + '"').join('; ') +
+      ' — confira se o id ainda aponta pro canal certo.');
+  }
+}
+
+/* As duas consultas de moda podem passar do numero de lojas (empate no
+   topo rende mais de uma linha por loja), entao elas NAO dao pra conferir
+   por contagem de linha -- so por LOJA DISTINTA. Sem isto, truncamento
+   nelas tira o componente de modelo/categoria de algumas lojas e o score
+   sai menor sem ninguem notar. */
+const mLoj = META.moda_lojas || {};
+[['q_modelo', 'lojas_modelo', 'modelo'], ['q_categoria', 'lojas_categoria', 'categoria']]
+  .forEach((par) => {
+    const esperado = Number(mLoj[par[1]]);
+    if (!Number.isFinite(esperado)) return;
+    const vistas = {};
+    (dados[par[0]] || []).forEach((r) => { vistas[String(r.shop_id)] = 1; });
+    const n = Object.keys(vistas).length;
+    if (n < esperado) {
+      falhas.push('a moda de ' + par[2] + ' cobriu ' + n + ' lojas de ' + esperado +
+        ': faltam ' + (esperado - n) + ' — provavel truncamento da consulta, e as ' +
+        'lojas que faltam perdem esse componente do score em silencio.');
+    }
+  });
+
 const semWl = veiculos.filter((v) => !v.wls.length).length;
 if (semWl) falhas.push(semWl + ' veiculo(s) em evento sem whitelabel declarado: ficam sem nenhuma loja elegivel');
+/* Tres populacoes, tres causas, tres decisoes diferentes. Declarar as tres
+   como uma frase so fez o run 50106 parecer ter 23% de buraco, quando 9,6%
+   era impossivel por construcao e so 8,8% responde ao limiar. */
+const semCanal = veiculos.filter((v) => v.canal_sem_loja).length;
+const semNaUf = veiculos.filter((v) => !v.canal_sem_loja && !v.elegiveis).length;
+const cortadosPeloMin = veiculos.filter((v) => v.elegiveis && !v.candidatos).length;
 const semPar = veiculos.filter((v) => !v.candidatos).length;
-if (semPar) {
-  falhas.push(semPar + ' veiculo(s) sem nenhuma loja: ou nao ha loja na mesma UF e whitelabel, ' +
-    'ou nenhuma passou da correspondencia minima de ' + CORRESP_MIN + '%');
+if (semCanal) {
+  falhas.push(semCanal + ' veiculo(s) em evento cujo canal NAO TEM loja alguma ' +
+    '(canal de pessoa fisica: colaborador, associado, clube). Par impossivel por ' +
+    'construcao — nao e falta de aderencia, e categoria.');
+}
+if (semNaUf) {
+  falhas.push(semNaUf + ' veiculo(s) sem nenhuma loja do canal na UF do patio.');
+}
+if (cortadosPeloMin) {
+  falhas.push(cortadosPeloMin + ' veiculo(s) TINHAM loja elegivel, mas nenhuma ' +
+    'passou da correspondencia minima de ' + CORRESP_MIN + '% — sao estes, e so ' +
+    'estes, que mudariam se o corte baixasse.');
 }
 
 const DADOS = {
@@ -346,6 +438,8 @@ const DADOS = {
   parametros: {
     confianca_min: CONFIANCA_MIN,
     corresp_min: CORRESP_MIN,
+    whitelabels: META.whitelabels || [],
+    wl_esperado: wlEsperado,
     pares_descartados: descartados,
     status_ok: META.status_ok || [],
     status_nome: STATUS_NOME
@@ -363,6 +457,9 @@ const DADOS = {
     encerrados: veiculos.filter((v) => v.encerrado).length,
     sobra: veiculos.filter((v) => v.sobra).length,
     sem_par: semPar,
+    sem_canal: semCanal,
+    sem_loja_na_uf: semNaUf,
+    cortados_pelo_min: cortadosPeloMin,
     media_candidatos: veiculos.length
       ? Math.round(veiculos.reduce((s, v) => s + v.candidatos, 0) / veiculos.length) : 0
   },
@@ -381,19 +478,56 @@ const DADOS_JSON = JSON.stringify(DADOS).split('</').join('<\\/');
 /* ==== RENDER:INICIO ==== (daqui pra baixo tudo depende so de DADOS,
    entao monta_html_de_dados.js reusa este trecho pra regerar o HTML sem
    rodar o workflow de novo. Mexeu so na tela? roda o script local.) */
+
+/* A frase do cabecalho muda de forma conforme o recorte, porque os tres
+   modos sao mesmo diferentes -- e no modo lista as datas simplesmente nao
+   valem, entao anunciar uma janela seria mentira.
+
+   Ela mora DENTRO do bloco RENDER de proposito: o cabecalho e o glossario
+   a usam, e fora daqui o monta_html_de_dados.js nao a enxerga e estoura. */
+function descreveRecorte() {
+  const ids = META.eventos_ids || [];
+  if (ids.length) {
+    return ids.length + ' evento(s) escolhido(s) a dedo (o recorte é a lista de ids, não a data)';
+  }
+  const de = META.janela_ini || '?';
+  if (!META.janela_fim) {
+    return 'Eventos encerrados a partir de <b>' + de +
+      '</b> (hora de Brasília), mais os que ainda não encerraram';
+  }
+  return 'Eventos que encerram entre <b>' + de + '</b> e <b>' +
+    META.janela_fim + '</b> (hora de Brasília)';
+}
+
 const CSS = [
+  /* --mar e a cor da marca (#1523A0), medida no proprio arquivo da logo.
+     Ela tambem vira o acento (--ac) do relatorio: barra de score, links, a
+     barra do titulo e o KPI de veiculos passam a falar a mesma lingua. */
   ':root{--bg:#f4f6f9;--card:#fff;--line:#e3e7ed;--line2:#eef1f5;',
-  '--tx:#1b2e4b;--dim:#7987a1;--ac:#0168fa;--gr:#10b759;--or:#f49917;',
+  '--mar:#1523A0;',
+  '--tx:#1b2e4b;--dim:#7987a1;--ac:#1523A0;--gr:#10b759;--or:#f49917;',
   '--rd:#dc3545;--pu:#6f42c1;--tl:#00b8d4}',
   '*{box-sizing:border-box}',
   'body{margin:0;background:var(--bg);color:var(--tx);',
   'font:13px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}',
-  '.topo{background:#fff;border-bottom:1px solid var(--line);padding:12px 24px;',
-  'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}',
-  '.topo b{font-size:19px;letter-spacing:-.4px}',
-  '.topo .dir{display:flex;align-items:center;gap:14px}',
-  '.topo .dim{font-size:11.5px}',
-  '#btn_info{display:flex;align-items:center;gap:6px;font-weight:600}',
+  '.topo{background:var(--mar);color:#fff;padding:10px 24px;',
+  'display:flex;align-items:center;gap:10px}',
+  /* tres faixas de mesma largura (1fr cada) com o titulo no meio: e o que
+     mantem o titulo no CENTRO DA PAGINA, e nao no centro do espaco que
+     sobrou entre a logo e o botao -- que e o que `space-between` faria. */
+  '.topo .esq,.topo .dir{flex:1 1 0;display:flex;align-items:center;gap:12px;min-width:0}',
+  '.topo .dir{justify-content:flex-end}',
+  '.topo .meio{flex:1 1 auto;text-align:center;min-width:0}',
+  /* o fundo da logo e exatamente --mar, entao ela encaixa sem emenda: o que
+     se ve e so o wordmark branco. Nada de borda ou raio aqui. */
+  '.topo .logo{height:26px;width:26px;display:block;flex:0 0 26px}',
+  '.topo b{font-size:19px;letter-spacing:-.4px;color:#fff}',
+  '.topo .dim{font-size:11.5px;color:rgba(255,255,255,.72)}',
+  /* botao sobre fundo escuro: contorno claro, nao a borda cinza do tema */
+  '#btn_info{display:flex;align-items:center;gap:6px;font-weight:600;',
+  'background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}',
+  '#btn_info:hover{background:rgba(255,255,255,.14);color:#fff;',
+  'border-color:rgba(255,255,255,.8)}',
   '#btn_info svg{width:15px;height:15px}',
   '.pg{max-width:1460px;margin:0 auto;padding:20px 24px 40px}',
   '.tit{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}',
@@ -417,7 +551,9 @@ const CSS = [
   'button:hover{border-color:var(--ac);color:var(--ac)}',
   '.nota{margin-top:12px;padding-top:12px;border-top:1px solid var(--line2);',
   'font-size:11.5px;color:var(--dim);line-height:1.6}',
-  '.kpis{display:grid;grid-template-columns:repeat(6,1fr);background:#fff;',
+  /* 5 colunas, nao 6: o KPI de correspondencias saiu a pedido, e deixar a
+     grade em 6 abriria um buraco no fim da linha. */
+  '.kpis{display:grid;grid-template-columns:repeat(5,1fr);background:#fff;',
   'border:1px solid var(--line);border-radius:3px;margin-bottom:20px}',
   '@media(max-width:1250px){.kpis{grid-template-columns:repeat(3,1fr)}}',
   '@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}',
@@ -451,6 +587,8 @@ const CSS = [
   'tr.dado td{padding-top:2px;padding-bottom:9px}',
   'tr.dado{border-bottom:1px solid var(--line2)}',
   'tr.ctxr .uf{color:var(--tx);font-weight:600;letter-spacing:.3px}',
+  'a.lk{color:var(--ac);text-decoration:none;border-bottom:1px dotted var(--ac)}',
+  'a.lk:hover{border-bottom-style:solid}',
   '.tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;',
   'background:#eaf2fe;color:var(--ac);white-space:nowrap}',
   '.tag.w{background:#fff3e0;color:#b25e00}',
@@ -488,10 +626,21 @@ const CSS = [
   '.gl .st-out{color:var(--dim)}'
 ].join('');
 
+/* O JS do cliente viaja como STRING dentro deste no, e este no viaja pro n8n
+   como string JSON transcrita a mao. Barra invertida e onde este projeto
+   erra: em 2026-09-10 as 248 sequencias de escape de aspa foram dobradas em
+   duas tentativas seguidas e o cliente nem compilou. Por isso:
+
+     - elemento que emite aspa simples de atributo HTML usa CRASE, e dentro
+       de template literal a aspa nao precisa de escape nenhum;
+     - ·, — e ↗ vao como CARACTERE.
+
+   Resultado: 4 barras no arquivo inteiro, que dao pra conferir na mao.
+   NAO reintroduza \' aqui, e nao use ${ -- a prova local mede as duas. */
 const APP = [
   'const $=(s)=>document.querySelector(s);',
-  'const nf=(v,d)=>v===null||v===undefined?"\\u2014":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d||0,maximumFractionDigits:d||0});',
-  'const money=(v)=>v===null||v===undefined?"\\u2014":"R$ "+nf(v,0);',
+  'const nf=(v,d)=>v===null||v===undefined?"—":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d||0,maximumFractionDigits:d||0});',
+  'const money=(v)=>v===null||v===undefined?"—":"R$ "+nf(v,0);',
   'const esc=(s)=>String(s===null||s===undefined?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;");',
   '$("#ger").textContent=new Date(D.gerado_em).toLocaleString("pt-BR");',
   /* ---- indexa os pares nas duas direcoes ---- */
@@ -516,20 +665,15 @@ const APP = [
   'function noWl(v,w){return w===null||(v.wls||[]).indexOf(w)>=0;}',
   'function passaV(v,ev,w,uf){return (!ev||v.evento===ev)&&noWl(v,w)&&(uf===null||v.uf===uf);}',
   'function passaL(l,w,uf){return (w===null||l.whitelabel_id===w)&&(uf===null||l.uf===uf);}',
-  /* Filtro facetado: cada dropdown se reconta considerando os OUTROS dois.
-     Sem isso o dropdown promete 79 e a tabela entrega 12. A selecao e
-     preservada quando continua existindo. */
   /* `tot` e CONTADO, nao somado. Somar as opcoes inflava o whitelabel:
-     um evento alveja varios canais e o mesmo carro conta em cada um, entao
-     a soma dava 821 para 735 veiculos. Evento e UF particionam e nao tinham
-     o problema -- por isso ele so aparecia num dos tres dropdowns. */
+     um evento alveja varios canais e o mesmo carro conta em cada um. */
   'function opcoes(alvo,itens,rotulo,conta,tot,cur){',
   'var manteve=false;',
   'const opts=itens.map(function(it,i){',
   'const n=conta(it);if(!n)return "";',
   'if(String(i)===cur)manteve=true;',
-  'return "<option value=\'"+i+"\'>"+rotulo(it)+" ("+n+")</option>";}).join("");',
-  '$(alvo).innerHTML="<option value=\'\'>"+(alvo==="#f_wl"?"todos os whitelabels":alvo==="#f_uf"?"todas as UFs":"todos os eventos")+" ("+tot+")</option>"+opts;',
+  `return "<option value='"+i+"'>"+rotulo(it)+" ("+n+")</option>";}).join("");`,
+  `$(alvo).innerHTML="<option value=''>"+(alvo==="#f_wl"?"Todos os whitelabels":alvo==="#f_uf"?"Todas as UFs":"Todos os eventos")+" ("+tot+")</option>"+opts;`,
   '$(alvo).value=manteve?cur:"";}',
   'function pintaFiltros(){',
   'const w=wlSel(),ev=evSel(),uf=ufSel();',
@@ -542,17 +686,17 @@ const APP = [
   'function(x){return qt(x,w,uf);},qt(null,w,uf),$("#f_ev").value);}',
   'var selV=null,selL=null;',
   /* ---- KPIs: recalculados a cada troca de filtro ---- */
-  'function ic(p){return "<svg class=\'ic\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'>"+p+"</svg>";}',
+  `function ic(p){return "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'>"+p+"</svg>";}`,
   'const ICO={',
-  'veic:"<rect x=\'2.5\' y=\'8\' width=\'19\' height=\'8\' rx=\'2\'/><path d=\'M6.5 16v2M17.5 16v2M5 8l1.6-3.2A2 2 0 018.4 3.7h7.2a2 2 0 011.8 1.1L19 8\'/>",',
-  'loja:"<path d=\'M4.5 9.5h15V20h-15z\'/><path d=\'M4.5 9.5L5.7 4.5h12.6l1.2 5\'/><path d=\'M10 20v-5h4v5\'/>",',
-  'par:"<circle cx=\'8.5\' cy=\'12\' r=\'4.5\'/><circle cx=\'15.5\' cy=\'12\' r=\'4.5\'/>",',
-  'med:"<path d=\'M3.5 19.5h17\'/><path d=\'M6.5 19.5v-6M11 19.5v-11M15.5 19.5v-8M20 19.5v-4\'/>",',
-  'sobra:"<path d=\'M12 3.5l8.5 4-8.5 4-8.5-4z\'/><path d=\'M3.5 7.5v9l8.5 4 8.5-4v-9\'/>",',
-  'zero:"<circle cx=\'12\' cy=\'12\' r=\'8.5\'/><path d=\'M9 9l6 6M15 9l-6 6\'/>",',
-  'info:"<circle cx=\'12\' cy=\'12\' r=\'9\'/><path d=\'M12 11v5M12 7.6v.6\'/>"};',
-  'function kpi(cor,icone,rot,val){return "<div class=\'kpi\'><div class=\'ring\' style=\'color:"+cor+"\'>"+ic(icone)+"</div>"+',
-  '"<div class=\'tx\'><div class=\'lb\' style=\'color:"+cor+"\'>"+rot+"</div><div class=\'vl\'>"+val+"</div></div></div>";}',
+  `veic:"<rect x='2.5' y='8' width='19' height='8' rx='2'/><path d='M6.5 16v2M17.5 16v2M5 8l1.6-3.2A2 2 0 018.4 3.7h7.2a2 2 0 011.8 1.1L19 8'/>",`,
+  `loja:"<path d='M4.5 9.5h15V20h-15z'/><path d='M4.5 9.5L5.7 4.5h12.6l1.2 5'/><path d='M10 20v-5h4v5'/>",`,
+  `par:"<circle cx='8.5' cy='12' r='4.5'/><circle cx='15.5' cy='12' r='4.5'/>",`,
+  `med:"<path d='M3.5 19.5h17'/><path d='M6.5 19.5v-6M11 19.5v-11M15.5 19.5v-8M20 19.5v-4'/>",`,
+  `sobra:"<path d='M12 3.5l8.5 4-8.5 4-8.5-4z'/><path d='M3.5 7.5v9l8.5 4 8.5-4v-9'/>",`,
+  `zero:"<circle cx='12' cy='12' r='8.5'/><path d='M9 9l6 6M15 9l-6 6'/>",`,
+  `info:"<circle cx='12' cy='12' r='9'/><path d='M12 11v5M12 7.6v.6'/>"};`,
+  `function kpi(cor,icone,rot,val){return "<div class='kpi'><div class='ring' style='color:"+cor+"'>"+ic(icone)+"</div>"+`,
+  `"<div class='tx'><div class='lb' style='color:"+cor+"'>"+rot+"</div><div class='vl'>"+val+"</div></div></div>";}`,
   'function pintaKpis(){',
   'const ev=evSel(),w=wlSel(),uf=ufSel();',
   'const vIdx=[];D.veiculos.forEach(function(v,i){if(passaV(v,ev,w,uf))vIdx.push(i);});',
@@ -562,20 +706,22 @@ const APP = [
   'if(!naLista[P[i]])continue;',
   'if(!passaL(D.lojas[P[i+1]],w,uf))continue;',
   'nPares++;lojasVistas[P[i+1]]=1;porVeic[P[i]]=(porVeic[P[i]]||0)+1;}',
-  'const semPar=vIdx.filter(function(i){return !porVeic[i];}).length;',
-  'const sobra=vIdx.filter(function(i){return D.veiculos[i].sobra;}).length;',
+  /* "Sem correspondencia" so conta quem PODIA ter par. Veiculo cujo canal
+     nao tem loja alguma vai pro KPI proprio, em cinza: numero que nao e
+     culpa de ninguem nao deve aparecer em vermelho ao lado dos que sao. */
+  'const semCanal=vIdx.filter(function(i){return D.veiculos[i].canal_sem_loja;}).length;',
+  'const semPar=vIdx.filter(function(i){return !porVeic[i]&&!D.veiculos[i].canal_sem_loja;}).length;',
   'const media=vIdx.length?Math.round(nPares/vIdx.length):0;',
   '$("#kpis").innerHTML=',
-  'kpi("var(--ac)",ICO.veic,"veiculos",nf(vIdx.length))+',
-  'kpi("var(--gr)",ICO.loja,"lojas elegiveis",nf(Object.keys(lojasVistas).length))+',
-  'kpi("var(--pu)",ICO.par,"correspondencias",nf(nPares))+',
-  'kpi("var(--tl)",ICO.med,"media de lojas por veiculo",nf(media))+',
-  'kpi("var(--or)",ICO.sobra,"sobra de evento encerrado",nf(sobra))+',
-  'kpi(semPar?"var(--rd)":"var(--dim)",ICO.zero,"sem correspondencia",nf(semPar));}',
+  'kpi("var(--ac)",ICO.veic,"Veículos",nf(vIdx.length))+',
+  'kpi("var(--gr)",ICO.loja,"Lojas elegíveis",nf(Object.keys(lojasVistas).length))+',
+  'kpi("var(--tl)",ICO.med,"Média de lojas por veículo",nf(media))+',
+  'kpi("var(--dim)",ICO.sobra,"Canal sem loja",nf(semCanal))+',
+  'kpi(semPar?"var(--rd)":"var(--dim)",ICO.zero,"Sem correspondência",nf(semPar));}',
   /* ---- helpers de celula ---- */
-  'function barra(s){return "<span class=\'bar\' style=\'width:"+Math.round(s/2.6)+"px\'></span> "+nf(s,1);}',
-  'function celulas(s,conf){if(s===null||s===undefined)return "<td>\\u2014</td><td>\\u2014</td>";const c=conf||1;const bruto=s/c;return "<td>"+nf(bruto,1)+"</td><td>"+barra(s)+"</td>";}',
-  'function det(d){if(!d)return "";const p=[];["preco","idade","km","modelo","categoria"].forEach(k=>{if(d[k]!==undefined)p.push(k[0].toUpperCase()+" "+d[k]);});return "<span class=\'dim mono\'>"+p.join(" \\u00b7 ")+"</span>";}',
+  `function barra(s){return "<span class='bar' style='width:"+Math.round(s/2.6)+"px'></span> "+nf(s,1);}`,
+  'function celulas(s,conf){if(s===null||s===undefined)return "<td>—</td><td>—</td>";const c=conf||1;const bruto=s/c;return "<td>"+nf(bruto,1)+"</td><td>"+barra(s)+"</td>";}',
+  `function det(d){if(!d)return "";const p=[];["preco","idade","km","modelo","categoria"].forEach(k=>{if(d[k]!==undefined)p.push(k[0].toUpperCase()+" "+d[k]);});return "<span class='dim mono'>"+p.join(" · ")+"</span>";}`,
   /* ---- veiculos: dois niveis por carro ---- */
   'function linhasV(){',
   'const q=$("#f_v").value.toLowerCase();',
@@ -589,20 +735,26 @@ const APP = [
   'const comScore=selL!==null;',
   'const nCols=comScore?7:6;',
   '$("#cv").textContent=rows.length+" de "+D.veiculos.length;',
-  'if(!rows.length){$("#t_v").innerHTML="";$("#v_vazio").innerHTML="<div class=\'vazio\'>Nenhum veiculo no filtro atual.</div>";return;}',
+  `if(!rows.length){$("#t_v").innerHTML="";$("#v_vazio").innerHTML="<div class='vazio'>Nenhum veículo no filtro atual.</div>";return;}`,
   '$("#v_vazio").innerHTML="";',
-  '$("#t_v").innerHTML="<thead><tr><th class=\'tx\'>Veiculo</th><th>Ano</th><th>Km</th><th>Valor</th>"+(comScore?"<th>Aderencia</th><th>Score</th>":"<th>Melhor score</th>")+"<th>Lojas</th></tr></thead><tbody>"+',
+  `$("#t_v").innerHTML="<thead><tr><th class='tx'>Veículo</th><th>Ano</th><th>Km</th><th>Valor</th>"+(comScore?"<th>Aderência</th><th>Score</th>":"<th>Melhor score</th>")+"<th>Lojas</th></tr></thead><tbody>"+`,
   'rows.map(function(r){',
   'const sel=(r.i===selV?" sel":"");',
   /* nivel 1: UF e evento */
-  'return "<tr data-i=\'"+r.i+"\' class=\'ctxr"+sel+"\'><td class=\'tx\' colspan=\'"+nCols+"\'>"+',
-  '"<span class=\'uf\'>"+esc(r.v.uf)+"</span> \\u00b7 "+esc(r.v.evento)+',
-  '(r.v.sobra?" <span class=\'tag w\'>"+esc(r.v.status_nome)+"</span>":"")+"</td></tr>"+',
+  `return "<tr data-i='"+r.i+"' class='ctxr"+sel+"'><td class='tx' colspan='"+nCols+"'>"+`,
+  `"<span class='uf'>"+esc(r.v.uf)+"</span> · "+esc(r.v.evento)+`,
+  `(r.v.sobra?" <span class='tag w'>"+esc(r.v.status_nome)+"</span>":"")+`,
+  /* canal sem loja: dizer na propria linha, senao o carro parece so "sem
+     correspondencia" e o leitor procura culpa na aderencia */
+  `(r.v.canal_sem_loja?" <span class='tag'>canal sem loja</span>":"")+`,
+  /* stopPropagation: a linha toda seleciona o veiculo, e clicar no link nao
+     deve mexer na selecao por baixo */
+  `(r.v.link?" · <a class='lk' href='"+esc(r.v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td></tr>"+`,
   /* nivel 2: o veiculo em si */
-  '"<tr data-i=\'"+r.i+"\' class=\'dado"+sel+"\'>"+',
-  '"<td class=\'tx nm\' title=\'"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+"\'>"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+" <span class=\'dim mono\'>#"+r.v.vehicle_id+"</span></td>"+',
-  '"<td>"+(r.v.model_year||"\\u2014")+"</td><td>"+nf(r.v.km)+"</td><td>"+money(r.v.valor)+"</td>"+',
-  '(comScore?celulas(r.s,D.lojas[selL].confianca):"<td>"+(r.s===null?"\\u2014":barra(r.s))+"</td>")+',
+  `"<tr data-i='"+r.i+"' class='dado"+sel+"'>"+`,
+  `"<td class='tx nm' title='"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+"'>"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+" <span class='dim mono'>#"+r.v.vehicle_id+"</span></td>"+`,
+  '"<td>"+(r.v.model_year||"—")+"</td><td>"+nf(r.v.km)+"</td><td>"+money(r.v.valor)+"</td>"+',
+  '(comScore?celulas(r.s,D.lojas[selL].confianca):"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+',
   '"<td>"+nf(r.v.candidatos)+"</td></tr>";}).join("")+"</tbody>";',
   'Array.prototype.forEach.call($("#t_v").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selV=(selV===i?null:i);selL=null;pinta();};});}',
   /* ---- lojas ---- */
@@ -617,63 +769,63 @@ const APP = [
   'const rows=linhasL();',
   'const comScore=selV!==null;',
   '$("#cl").textContent=rows.length+" de "+D.lojas.length;',
-  'if(!rows.length){$("#t_l").innerHTML="";$("#l_vazio").innerHTML="<div class=\'vazio\'>Nenhuma loja no filtro atual.</div>";return;}',
+  `if(!rows.length){$("#t_l").innerHTML="";$("#l_vazio").innerHTML="<div class='vazio'>Nenhuma loja no filtro atual.</div>";return;}`,
   '$("#l_vazio").innerHTML="";',
-  '$("#t_l").innerHTML="<thead><tr><th class=\'tx\'>Loja</th><th class=\'tx\'>UF</th>"+(comScore?"<th>Aderencia</th><th>Score</th><th class=\'tx\'>Componentes</th>":"<th>Melhor score</th>")+"<th>Veiculos ofertados 6m</th></tr></thead><tbody>"+',
-  'rows.map(r=>"<tr data-i=\'"+r.i+"\' class=\'"+(r.i===selL?"sel":"")+"\'>"+',
-  '"<td class=\'tx nm\' title=\'"+esc(r.l.loja)+"\'>"+esc(r.l.loja)+" <span class=\'dim mono\'>#"+r.l.loja_id+"</span>"+(r.l.amostra_baixa?" <span class=\'tag w\'>amostra baixa</span>":"")+"</td>"+',
-  '"<td class=\'tx\'>"+esc(r.l.uf)+"</td>"+',
-  '(comScore?celulas(r.s,r.l.confianca)+"<td class=\'tx\'>"+det(r.d)+"</td>":"<td>"+(r.s===null?"\\u2014":barra(r.s))+"</td>")+',
+  `$("#t_l").innerHTML="<thead><tr><th class='tx'>Loja</th><th class='tx'>UF</th>"+(comScore?"<th>Aderência</th><th>Score</th><th class='tx'>Componentes</th>":"<th>Melhor score</th>")+"<th>Veículos ofertados 6m</th></tr></thead><tbody>"+`,
+  `rows.map(r=>"<tr data-i='"+r.i+"' class='"+(r.i===selL?"sel":"")+"'>"+`,
+  `"<td class='tx nm' title='"+esc(r.l.loja)+"'>"+esc(r.l.loja)+" <span class='dim mono'>#"+r.l.loja_id+"</span>"+(r.l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+"</td>"+`,
+  `"<td class='tx'>"+esc(r.l.uf)+"</td>"+`,
+  `(comScore?celulas(r.s,r.l.confianca)+"<td class='tx'>"+det(r.d)+"</td>":"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+`,
   '"<td>"+nf(r.l.qt_veiculos)+"</td></tr>").join("")+"</tbody>";',
   'Array.prototype.forEach.call($("#t_l").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selL=(selL===i?null:i);selV=null;pinta();};});}',
   /* ---- contexto da selecao ---- */
   'function ctx(){',
   'if(selV!==null){const v=D.veiculos[selV];',
-  '$("#ctx").innerHTML="<b>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" "+(v.model_year||"")+"</b> \\u00b7 "+money(v.valor)+" \\u00b7 "+nf(v.km)+" km \\u00b7 "+esc(v.categoria||"?")+" \\u00b7 "+esc(v.uf)+" \\u00b7 "+esc(v.evento)+"<br><span class=\'dim\'>Lojas elegiveis: mesma UF (<b>"+esc(v.uf)+"</b>) e whitelabel do evento (<b>"+esc(v.wl_nomes||"nenhum")+"</b>) \\u2014 "+nf(v.candidatos)+" loja(s) acima de "+MIN+"%, ordenadas por aderencia.</span>";',
+  `$("#ctx").innerHTML="<b>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" "+(v.model_year||"")+"</b> · "+money(v.valor)+" · "+nf(v.km)+" km · "+esc(v.categoria||"?")+" · "+esc(v.uf)+" · "+esc(v.evento)+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener'>abrir anúncio ↗</a>":"")+"<br><span class='dim'>"+(v.canal_sem_loja?"O canal deste evento (<b>"+esc(v.wl_nomes||"?")+"</b>) não tem loja compradora alguma — é canal de pessoa física, então não existe par possível para este veículo.":"Lojas elegíveis: mesma UF (<b>"+esc(v.uf)+"</b>) e whitelabel do evento (<b>"+esc(v.wl_nomes||"nenhum")+"</b>) — "+nf(v.elegiveis)+" elegível(is), "+nf(v.candidatos)+" acima de "+MIN+"%.")+"</span>";`,
   '$("#ctx").style.display="";return;}',
   'if(selL!==null){const l=D.lojas[selL];',
-  '$("#ctx").innerHTML="<b>"+esc(l.loja)+"</b> \\u00b7 "+esc(l.uf)+" \\u00b7 "+esc(l.whitelabel)+" \\u00b7 perfil: "+money(l.preco_medio)+" \\u00b7 "+nf(l.idade_media,1)+" anos \\u00b7 "+nf(l.km_medio)+" km \\u00b7 "+esc(l.modelo||"?")+" ("+nf(l.pct_modelo,1)+"% das ofertas)<br><span class=\'dim\'>Veiculos elegiveis: "+nf(l.pares)+", ordenados por aderencia.</span>";',
+  `$("#ctx").innerHTML="<b>"+esc(l.loja)+"</b> · "+esc(l.uf)+" · "+esc(l.whitelabel)+" · perfil: "+money(l.preco_medio)+" · "+nf(l.idade_media,1)+" anos · "+nf(l.km_medio)+" km · "+esc(l.modelo||"?")+" ("+nf(l.pct_modelo,1)+"% das ofertas)<br><span class='dim'>Veículos elegíveis: "+nf(l.pares)+", ordenados por aderência.</span>";`,
   '$("#ctx").style.display="";return;}',
   '$("#ctx").style.display="none";}',
   /* ---- extrato ---- */
   'const LIMIAR=70;',
   'const MIN=(D.parametros&&D.parametros.corresp_min)||0;',
   'function cvDe(m,d){if(!m||d===null||d===undefined)return null;return d/m;}',
-  'function leitura(cv){if(cv===null)return "<span class=\'dim\'>sem desvio medido</span>";if(cv<0.25)return "faixa apertada: acertar este numero vale muito";if(cv<0.6)return "faixa media";return "dispersao alta: este indicador quase nao informa";}',
+  `function leitura(cv){if(cv===null)return "<span class='dim'>sem desvio medido</span>";if(cv<0.25)return "faixa apertada: acertar este número vale muito";if(cv<0.6)return "faixa média";return "dispersão alta: este indicador quase não informa";}`,
   'function extrato(){',
   'if(selL===null){$("#extrato").innerHTML="";$("#extrato").style.display="none";return;}',
   'const l=D.lojas[selL];',
   'const linhas=[];',
-  '[["Preco",l.preco_medio,l.preco_desvio,l.p_preco,money],',
+  '[["Preço",l.preco_medio,l.preco_desvio,l.p_preco,money],',
   ' ["Idade",l.idade_media,l.idade_desvio,l.p_idade,function(v){return nf(v,1)+" anos";}],',
   ' ["Km",l.km_medio,l.km_desvio,l.p_km,function(v){return nf(v)+" km";}]].forEach(function(r){',
   'const cv=cvDe(r[1],r[2]);',
-  'linhas.push("<tr><td class=\'tx\'>"+r[0]+"</td><td>"+(r[1]===null?"\\u2014":r[4](r[1]))+"</td><td>"+(r[2]===null||r[2]===undefined?"\\u2014":r[4](r[2]))+"</td><td>"+(cv===null?"\\u2014":nf(cv,2))+"</td><td>"+nf(r[3],3)+"</td><td class=\'tx\'>"+leitura(cv)+"</td></tr>");});',
-  'linhas.push("<tr><td class=\'tx\'>Modelo</td><td class=\'tx\' colspan=\'3\'>"+esc(l.modelo||"\\u2014")+"</td><td>"+nf(l.pct_modelo/100,3)+"</td><td class=\'tx\'>"+nf(l.pct_modelo,1)+"% das ofertas caem neste modelo</td></tr>");',
-  'linhas.push("<tr><td class=\'tx\'>Categoria</td><td class=\'tx\' colspan=\'3\'>"+esc(l.categoria||"\\u2014")+"</td><td>"+nf(l.pct_categoria/100,3)+"</td><td class=\'tx\'>"+nf(l.pct_categoria,1)+"% das ofertas caem nesta categoria</td></tr>");',
+  `linhas.push("<tr><td class='tx'>"+r[0]+"</td><td>"+(r[1]===null?"—":r[4](r[1]))+"</td><td>"+(r[2]===null||r[2]===undefined?"—":r[4](r[2]))+"</td><td>"+(cv===null?"—":nf(cv,2))+"</td><td>"+nf(r[3],3)+"</td><td class='tx'>"+leitura(cv)+"</td></tr>");});`,
+  `linhas.push("<tr><td class='tx'>Modelo</td><td class='tx' colspan='3'>"+esc(l.modelo||"—")+"</td><td>"+nf(l.pct_modelo/100,3)+"</td><td class='tx'>"+nf(l.pct_modelo,1)+"% das ofertas caem neste modelo</td></tr>");`,
+  `linhas.push("<tr><td class='tx'>Categoria</td><td class='tx' colspan='3'>"+esc(l.categoria||"—")+"</td><td>"+nf(l.pct_categoria/100,3)+"</td><td class='tx'>"+nf(l.pct_categoria,1)+"% das ofertas caem nesta categoria</td></tr>");`,
   'const ev2=evSel(),w2=wlSel(),uf2=ufSel();',
   'const todos=(porL[selL]||[]).filter(function(x){return x.s>LIMIAR;});',
   'const acima=todos.filter(function(x){return passaV(D.veiculos[x.o],ev2,w2,uf2);});',
   'const escondidos=todos.length-acima.length;',
-  'const listaV=acima.length?("<div class=\'wrap\' style=\'max-height:40vh\'><table><thead><tr><th>Aderencia</th><th>Score</th><th class=\'tx\'>Veiculo</th><th class=\'tx\'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class=\'tx\'>Evento</th><th class=\'tx\'>Componentes</th></tr></thead><tbody>"+acima.map(function(x){const v=D.veiculos[x.o];return "<tr>"+celulas(x.s,l.confianca)+"<td class=\'tx\'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class=\'dim mono\'>#"+v.vehicle_id+"</span></td><td class=\'tx\'>"+esc(v.categoria||"\\u2014")+"</td><td>"+(v.model_year||"\\u2014")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class=\'tx\'>"+esc(v.evento)+"</td><td class=\'tx\'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")',
-  ':(todos.length?("<div class=\'vazio\'>Os "+todos.length+" veiculo(s) acima de "+LIMIAR+"% desta loja estao fora do filtro atual.</div>"):("<div class=\'vazio\'>Nenhum veiculo passa de "+LIMIAR+"% de aderencia para esta loja. O melhor e "+nf(l.melhor,1)+"%.</div>"));',
-  '$("#extrato").innerHTML="<div class=\'card\'><div class=\'card-h\'>Extrato da loja \\u2014 "+esc(l.loja)+" <span class=\'n mono\'>#"+l.loja_id+"</span></div><div class=\'card-b\'>"+',
-  '"<div style=\'margin-bottom:12px\'>"+esc(l.uf)+" &middot; "+esc(l.whitelabel)+" &middot; <b>"+nf(l.qt_veiculos)+"</b> veiculos ofertados em <b>"+nf(l.qt_ofertas)+"</b> lances nos ultimos 6 meses"+(l.amostra_baixa?" <span class=\'tag w\'>amostra baixa</span>":"")+" &middot; fator de confianca <b>"+nf(l.confianca,2)+"</b> &middot; elegivel para <b>"+nf(l.pares)+"</b> veiculo(s)</div>"+',
-  '"<table><thead><tr><th class=\'tx\'>Indicador</th><th>Referencia</th><th>Desvio</th><th>CV</th><th>Peso</th><th class=\'tx\'>Leitura</th></tr></thead><tbody>"+linhas.join("")+"</tbody></table>"+',
-  '"<div class=\'dim\' style=\'margin-top:10px;font-size:11.5px\'>Estes numeros vem do historico de 6 meses da loja inteira e <b>nao mudam</b> com o filtro. Ver o glossario para como o peso e formado.</div></div></div>"+',
-  '"<div class=\'card\'><div class=\'card-h\'>Veiculos com aderencia acima de "+LIMIAR+"% <span class=\'n\'>"+acima.length+" de "+nf(l.pares)+" elegiveis"+(escondidos?", "+escondidos+" fora do filtro":"")+"</span></div>"+listaV+"</div>";',
+  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x){const v=D.veiculos[x.o];return "<tr>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
+  `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
+  `$("#extrato").innerHTML="<div class='card'><div class='card-h'>Extrato da loja — "+esc(l.loja)+" <span class='n mono'>#"+l.loja_id+"</span></div><div class='card-b'>"+`,
+  `"<div style='margin-bottom:12px'>"+esc(l.uf)+" &middot; "+esc(l.whitelabel)+" &middot; <b>"+nf(l.qt_veiculos)+"</b> veículos ofertados em <b>"+nf(l.qt_ofertas)+"</b> lances nos últimos 6 meses"+(l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+" &middot; fator de confiança <b>"+nf(l.confianca,2)+"</b> &middot; elegível para <b>"+nf(l.pares)+"</b> veículo(s)</div>"+`,
+  `"<table><thead><tr><th class='tx'>Indicador</th><th>Referência</th><th>Desvio</th><th>CV</th><th>Peso</th><th class='tx'>Leitura</th></tr></thead><tbody>"+linhas.join("")+"</tbody></table>"+`,
+  `"<div class='dim' style='margin-top:10px;font-size:11.5px'>Estes números vêm do histórico de 6 meses da loja inteira e <b>não mudam</b> com o filtro. Ver o glossário para como o peso é formado.</div></div></div>"+`,
+  `"<div class='card'><div class='card-h'>Veículos com aderência acima de "+LIMIAR+"% <span class='n'>"+acima.length+" de "+nf(l.pares)+" elegíveis"+(escondidos?", "+escondidos+" fora do filtro":"")+"</span></div>"+listaV+"</div>";`,
   '$("#extrato").style.display="";}',
   /* ---- avisos ---- */
   'const av=[];D.falhas.forEach(f=>av.push("<li>"+esc(f)+"</li>"));',
-  'D.diagnostico.filter(d=>d.veredito!=="ok").forEach(p=>av.push("<li><code>"+p.queryName+"</code>: "+esc(p.veredito)+(p.erro?" \\u2014 <span class=\'mono\'>"+esc(p.erro)+"</span>":"")+"</li>"));',
-  'if(av.length){$("#alerta").innerHTML="<div class=\'card aviso\'><div class=\'card-h\'>"+av.length+" ponto(s) de atencao</div><div class=\'card-b\'><ul>"+av.join("")+"</ul></div></div>";}',
+  `D.diagnostico.filter(d=>d.veredito!=="ok").forEach(p=>av.push("<li><code>"+p.queryName+"</code>: "+esc(p.veredito)+(p.erro?" — <span class='mono'>"+esc(p.erro)+"</span>":"")+"</li>"));`,
+  `if(av.length){$("#alerta").innerHTML="<div class='card aviso'><div class='card-h'>"+av.length+" ponto(s) de atenção</div><div class='card-b'><ul>"+av.join("")+"</ul></div></div>";}`,
   /* ---- as duas telas ---- */
-  '$("#btn_info").innerHTML=ic(ICO.info)+"<span id=\'btn_tx\'>glossario</span>";',
+  `$("#btn_info").innerHTML=ic(ICO.info)+"<span id='btn_tx'>Glossário</span>";`,
   'var vendoGloss=false;',
   'function mostra(g){vendoGloss=g;',
   '$("#pg_rel").style.display=g?"none":"";',
   '$("#pg_gloss").style.display=g?"":"none";',
-  '$("#btn_tx").textContent=g?"voltar ao relatorio":"glossario";',
+  '$("#btn_tx").textContent=g?"Voltar ao relatório":"Glossário";',
   'window.scrollTo(0,0);}',
   '$("#btn_info").onclick=function(){const g=!vendoGloss;location.hash=g?"glossario":"";mostra(g);};',
   'window.onhashchange=function(){mostra(location.hash==="#glossario");};',
@@ -704,34 +856,37 @@ const LINHAS_ST = Object.keys(ST_NOME).map(Number).sort((a, b) => a - b).map((k)
 const html = [
   '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1">',
-  '<title>Veiculos x lojas - aderencia</title>',
+  '<title>Veículos x lojas — aderência</title>',
   '<style>' + CSS + '</style></head><body>',
-  '<div class="topo"><b>Veiculos em evento &times; lojas compradoras</b>',
+  '<div class="topo"><span class="esq">' +
+  '<img class="logo" alt="Cars2You" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAACAUlEQVR42u3c223CMBgGULCyQlmg2YvVmr2YgCn6gIQqIqLUsfPb4XyPlCLHx/cEzl/fPyeJS1IFAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACIBuMjRevvvt+t9/uYyTHhBW+4YgAQBAAHSTc+M/WbZ9Hm58UXQ+3m/Gzc1aNjAEHXQj9m7oaLMxvpR2ZSGLdLVU42IWBu7lv3Y98eS1rbRb1bfMkFF3pcqfHBsUuZzsoXU4Xr3k1cVlnF4+/H67vvuogq1tqFcv89L/fVtfZ5b1thppzzJdxunxepu1v9xiKg22af+NT8ttP6NsGy8nNdUf2591iq817IQ3NaDtrW2wHFxThsfH5m2YOwaIOlabL0lPH3tT/vBNwRwQvJQAEMyTPEsS2wn0gGCYMrck189Rj3dm3/HYv8pqr8RSvWXDfA/5fKXfYar4uDRUXTgv3xpr/9Bih4aSHAHFXmPq9xTlGI8GDzXayHLRO+0rlYpd98Gs7bfAop6Mq3Hu9ilPxvV1CGgjFjxdAQg+SgEQvFoDEHySCCB4swIg+CAdQPCG0T7g5BsyAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAAABAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAF3lFyBct/RsBkMiAAAAAElFTkSuQmCC">' +
+  '</span>',
+  '<span class="meio"><b>Veículos em evento &times; lojas compradoras</b></span>',
   '<span class="dir"><button id="btn_info"></button>',
-  '<span class="dim">gerado em <span id="ger"></span></span></span></div>',
+  '<span class="dim">Gerado em <span id="ger"></span></span></span></div>',
   /* ═══ TELA 1: o relatorio ═══ */
   '<div class="pg" id="pg_rel">',
-  '<div class="tit"><h1>Aderencia por veiculo</h1>',
-  '<span class="via">eventos que encerram entre <b>' + (META.janela_ini || '?') + '</b> e <b>' + (META.janela_fim || '?') + '</b> (hora de Brasilia) &middot; perfil de compra desde ' + (META.data_ini || '?') + '</span></div>',
+  '<div class="tit"><h1>Aderência por veículo</h1>',
+  '<span class="via">' + descreveRecorte() + ' &middot; perfil de compra desde ' + (META.data_ini || '?') + '</span></div>',
   '<div class="card"><div class="card-h">Filtros</div><div class="card-b">',
   '<div class="filtros">',
   '<div class="fg"><label for="f_wl">Whitelabel</label><select id="f_wl"></select></div>',
   '<div class="fg"><label for="f_uf">UF</label><select id="f_uf"></select></div>',
   '<div class="fg"><label for="f_ev">Evento</label><select id="f_ev"></select></div>',
-  '<div class="fg"><label for="f_v">Buscar veiculo</label><input id="f_v" placeholder="marca, modelo ou status" size="26"></div>',
+  '<div class="fg"><label for="f_v">Buscar veículo</label><input id="f_v" placeholder="marca, modelo ou status" size="26"></div>',
   '<div class="fg"><label for="f_l">Buscar loja</label><input id="f_l" placeholder="loja, UF ou whitelabel" size="26"></div>',
-  '<div class="fg"><label>&nbsp;</label><button id="limpar">limpar tudo</button></div>',
+  '<div class="fg"><label>&nbsp;</label><button id="limpar">Limpar tudo</button></div>',
   '</div>',
-  '<div class="nota"><b>Whitelabel</b>, <b>UF</b> e <b>evento</b> valem para a pagina inteira: KPIs, as duas tabelas e o extrato. As duas <b>buscas</b> so filtram a tabela em que estao.<br>',
-  'O filtro <b>nao</b> alcanca o perfil de compra da loja nem o fator de confianca: esses vem do historico de <b>6 meses da loja inteira</b>. Como a aderencia e calculada contra esse perfil, o <b>score de cada par tambem nao muda</b> com o filtro &mdash; o filtro escolhe quais pares aparecem, nao os recalcula.' +
-  (MIN_TX ? ' Correspondencia minima de <b>' + MIN_TX + '%</b>' + (CORTADOS ? ' (' + CORTADOS.toLocaleString('pt-BR') + ' pares descartados nesta coleta)' : '') + '.' : '') +
-  ' Os termos estao no <b>glossario</b>, no botao acima.</div>',
+  '<div class="nota"><b>Whitelabel</b>, <b>UF</b> e <b>evento</b> valem para a página inteira: KPIs, as duas tabelas e o extrato. As duas <b>buscas</b> só filtram a tabela em que estão.<br>',
+  'O filtro <b>não</b> alcança o perfil de compra da loja nem o fator de confiança: esses vêm do histórico de <b>6 meses da loja inteira</b>. Como a aderência é calculada contra esse perfil, o <b>score de cada par também não muda</b> com o filtro &mdash; o filtro escolhe quais pares aparecem, não os recalcula.' +
+  (MIN_TX ? ' Correspondência mínima de <b>' + MIN_TX + '%</b>' + (CORTADOS ? ' (' + CORTADOS.toLocaleString('pt-BR') + ' pares descartados nesta coleta)' : '') + '.' : '') +
+  ' Os termos estão no <b>glossário</b>, no botão acima.</div>',
   '</div></div>',
   '<div class="kpis" id="kpis"></div>',
   '<div id="alerta"></div>',
   '<div id="ctx" class="ctx" style="display:none"></div>',
   '<div class="grid">',
-  '<div class="card"><div class="card-h">Veiculos <span class="n" id="cv"></span></div>',
+  '<div class="card"><div class="card-h">Veículos <span class="n" id="cv"></span></div>',
   '<div class="wrap"><table id="t_v"></table></div><div id="v_vazio"></div></div>',
   '<div class="card"><div class="card-h">Lojas <span class="n" id="cl"></span></div>',
   '<div class="wrap"><table id="t_l"></table></div><div id="l_vazio"></div></div>',
@@ -740,55 +895,72 @@ const html = [
   '</div>',
   /* ═══ TELA 2: o glossario ═══ */
   '<div class="pg gl" id="pg_gloss" style="display:none">',
-  '<div class="tit"><h1>Glossario</h1>',
-  '<span class="via">o que entra na base, quem pode casar com quem, e como o numero e feito</span></div>',
+  '<div class="tit"><h1>Glossário</h1>',
+  '<span class="via">O que entra na base, as regras de elegibilidade, e como o número é feito</span></div>',
 
   '<div class="card"><div class="card-h">O que entra na base</div><div class="card-b"><dl>',
-  '<dt>Uma linha por veiculo</dt>',
-  '<dd>Nao uma linha por negociacao. O mesmo carro aparece em varios eventos &mdash; os feiroes sao diarios e reciclam estoque &mdash; e contar por negociacao o duplicava.</dd>',
-  '<dt>Ultima negociacao</dt>',
-  '<dd>De cada veiculo, vale o status da <b>ultima</b> negociacao dentro da janela de eventos escolhida. A ordem importa e e facil de inverter sem perceber: primeiro se acha a ultima negociacao, <b>depois</b> se olha o status dela. O contrario faria um carro vendido hoje reaparecer como disponivel pela negociacao de ontem, que ficou em "Sem Ofertas".</dd>',
-  '<dt>Status da negociacao</dt>',
-  '<dd>Cinco dos doze estados entram. Ficam de fora os que tem <b>oferta viva na mesa</b> (9 e 13) &mdash; ranquear loja para um carro em negociacao atrapalha o negocio em andamento &mdash; alem da venda e do que foi suspenso ou cancelado.</dd>',
-  '<dd><table><thead><tr><th>Cod.</th><th class="tx">Significado</th><th class="tx">No relatorio</th></tr></thead><tbody>' + LINHAS_ST + '</tbody></table></dd>',
+  '<dt>Uma linha por veículo</dt>',
+  '<dd>Não uma linha por negociação. O mesmo carro aparece em vários eventos &mdash; os feirões são diários e reciclam estoque &mdash; e contar por negociação o duplicava.</dd>',
+  '<dt>Última negociação</dt>',
+  '<dd>De cada veículo, vale o status da <b>última</b> negociação dentro da janela de eventos escolhida. A ordem importa e é fácil de inverter sem perceber: primeiro se acha a última negociação, <b>depois</b> se olha o status dela. O contrário faria um carro vendido hoje reaparecer como disponível pela negociação de ontem, que ficou em "Sem Ofertas".</dd>',
+  '<dt>Status da negociação</dt>',
+  '<dd>Cinco dos doze estados entram. Ficam de fora os que têm <b>oferta viva na mesa</b> (9 e 13) &mdash; ranquear loja para um carro em negociação atrapalha o negócio em andamento &mdash; além da venda e do que foi suspenso ou cancelado.</dd>',
+  '<dd><table><thead><tr><th>Cód.</th><th class="tx">Significado</th><th class="tx">No relatório</th></tr></thead><tbody>' + LINHAS_ST + '</tbody></table></dd>',
   '<dt>Sobra</dt>',
-  '<dd>Veiculo cuja ultima negociacao NAO esta em "Ativo": passou pelo evento e nao foi vendido. E o estoque que faz sentido reofertar, e vem marcado com o nome do status na tabela.</dd>',
+  '<dd>Veículo cuja última negociação NÃO está em "Ativo": passou pelo evento e não foi vendido. É o estoque que faz sentido reofertar, e vem marcado com o nome do status na tabela.</dd>',
+  '<dt>Canais que entram</dt>',
+  /* o recorte de 2026-09-11. Quem le a tela tem que saber que a base NAO e
+     a plataforma inteira, senao compara com outro numero e acha erro */
+  '<dd>A base <b>não</b> é a plataforma inteira: só entram eventos e lojas de <b>' + ((DADOS.parametros.whitelabels || []).length || 'todos os') + '</b> canais &mdash; ' + (Object.keys(DADOS.parametros.wl_esperado || {}).length ? Object.keys(DADOS.parametros.wl_esperado).map((k) => DADOS.parametros.wl_esperado[k]).join(', ') : 'todos') + '. Evento que não alveja nenhum deles fica fora, e loja de outro canal sai do universo.</dd>',
+  '<dt>UF do veículo</dt>',
+  /* a UF mudou de fonte em 2026-09-10 e o glossario tem que dizer qual e,
+     porque ela decide metade da elegibilidade */
+  '<dd>É a UF do <b>pátio</b> onde o carro está (o estoque da loja), não a do endereço da loja vendedora. São coisas diferentes com frequência: <b>68%</b> dos veículos desta base têm pátio numa UF diferente da UF cadastral de quem vende. Como a elegibilidade exige mesma UF, é o pátio que decide quem pode ver o carro.</dd>',
+  '<dt>Link do anúncio</dt>',
+  '<dd>Cada veículo leva o link do anúncio na plataforma. Faltando marca, modelo, versão ou identificador, o link <b>não</b> é mostrado &mdash; melhor sem botão que botão que cai em lugar nenhum.</dd>',
+  '<dd class="ex">Ter anúncio não é o mesmo que poder receber proposta: veículo de evento encerrado ou marcado como sobra tem link, mas o anúncio pode não aceitar mais lance. O status vem ao lado do link justamente por isso.</dd>',
   '<dt>Janela de eventos</dt>',
-  '<dd>Vai da meia-noite de hoje ate 48h a frente, em <b>hora de Brasilia</b> &mdash; evento que ja encerrou hoje continua na base. O recorte tambem pode ser uma lista fixa de eventos, que e o modo usado quando se quer olhar edicoes especificas.</dd>',
+  /* o glossario descreve o recorte DESTA coleta, nao um recorte de exemplo */
+  '<dd>Nesta coleta: ' + descreveRecorte() + '. Datas em <b>hora de Brasília</b> &mdash; o banco responde em UTC, então o recorte é calculado fora do SQL e vai como literal; evento que já encerrou continua na base de propósito, porque é justamente onde está a sobra.</dd>',
+  '<dd>Quando não há teto, tudo o que ainda não encerrou entra, inclusive evento de fim distante. O filtro de <b>evento</b> acima é a forma de isolar uma edição. O recorte também pode ser uma lista fixa de ids, modo usado para reanalisar edições específicas.</dd>',
   '</dl></div></div>',
 
-  '<div class="card"><div class="card-h">Quem pode casar com quem</div><div class="card-b"><dl>',
+  '<div class="card"><div class="card-h">Regras de elegibilidade</div><div class="card-b"><dl>',
   '<dt>Elegibilidade</dt>',
-  '<dd>Um par (veiculo, loja) <b>so existe</b> se as duas condicoes valerem: a loja esta na <b>mesma UF</b> do veiculo <b>e</b> pertence a um dos <b>whitelabels que o evento alveja</b>.</dd>',
-  '<dd>Fora disso nao ha aderencia baixa &mdash; o par simplesmente nao existe. E por isso que o ranking de cada veiculo e curto: ele so disputa dentro da propria praca e do proprio canal.</dd>',
+  '<dd>Um par (veículo, loja) <b>só existe</b> se as duas condições valerem: a loja está na <b>mesma UF</b> do veículo <b>e</b> pertence a um dos <b>whitelabels que o evento alveja</b>.</dd>',
+  '<dd>Fora disso não há aderência baixa &mdash; o par simplesmente não existe. É por isso que o ranking de cada veículo é curto: ele só disputa dentro da própria praça e do próprio canal.</dd>',
   '<dt>Whitelabel do evento</dt>',
-  '<dd>Um evento pode alvejar varios whitelabels, entao a comparacao e "o whitelabel da loja esta no conjunto do evento", nao uma igualdade simples. Como consequencia, somar veiculos por whitelabel da um numero maior que o total: o mesmo carro conta em cada canal onde e exposto.</dd>',
-  '<dt>Correspondencia minima</dt>',
-  '<dd>Par com score abaixo de <b>' + (MIN_TX || 0) + '%</b> nao existe em lugar nenhum do relatorio: nao entra nas tabelas, nao conta nos KPIs, nao aparece em nenhuma das duas direcoes. Veiculo que nao alcanca esse piso com ninguem aparece no KPI <b>sem correspondencia</b>.</dd>',
+  '<dd>Um evento pode alvejar vários whitelabels, então a comparação é "o whitelabel da loja está no conjunto do evento", não uma igualdade simples. Como consequência, somar veículos por whitelabel dá um número maior que o total: o mesmo carro conta em cada canal onde é exposto.</dd>',
+  '<dt>Canal sem loja compradora</dt>',
+  /* sem este verbete, esses carros parecem so "sem correspondencia" e o
+     leitor procura culpa na aderencia ou no corte */
+  '<dd>Alguns eventos alvejam <b>canais de pessoa física</b> &mdash; colaborador, associado, clube. Ali não existe loja compradora como categoria, então o veículo <b>nunca</b> pode ter par: não é aderência baixa, é ausência de contraparte. Esses carros vêm marcados com a etiqueta <b>canal sem loja</b> e têm KPI próprio, separado de <b>Sem correspondência</b>.</dd>',
+  '<dt>Correspondência mínima</dt>',
+  '<dd>Par com score abaixo de <b>' + (MIN_TX || 0) + '%</b> não existe em lugar nenhum do relatório: não entra nas tabelas, não conta nos KPIs, não aparece em nenhuma das duas direções. O KPI <b>Sem correspondência</b> conta só quem <b>podia</b> ter par: tinha loja elegível e nenhuma alcançou o piso. São esses, e só esses, que mudariam se o corte baixasse.</dd>',
   '</dl></div></div>',
 
-  '<div class="card"><div class="card-h">Como o numero e feito</div><div class="card-b"><dl>',
+  '<div class="card"><div class="card-h">Como o número é feito</div><div class="card-b"><dl>',
   '<dt>A ideia</dt>',
-  '<dd>Cada loja tem um <b>perfil de compra</b> tirado dos ultimos ' + (META.meses_historico || 6) + ' meses de lances dela: em que faixa de preco compra, de que idade, de que quilometragem, e qual modelo e categoria mais oferta. A aderencia mede o quanto um veiculo cai dentro desse perfil.</dd>',
-  '<dt>Aderencia de um indicador</dt>',
-  '<dd>Nos numericos (preco, idade, km): <code>1 / (1 + |valor &minus; media| / desvio)</code>. Vale 1 quando o veiculo esta exatamente na media da loja e cai conforme se afasta, medido em desvios.</dd>',
-  '<dd>Em modelo e categoria e binario: 1 se bate com o item que a loja mais oferta, 0 se nao bate.</dd>',
+  '<dd>Cada loja tem um <b>perfil de compra</b> tirado dos últimos ' + (META.meses_historico || 6) + ' meses de lances dela: em que faixa de preço compra, de que idade, de que quilometragem, e qual modelo e categoria mais oferta. A aderência mede o quanto um veículo cai dentro desse perfil.</dd>',
+  '<dt>Aderência de um indicador</dt>',
+  '<dd>Nos numéricos (preço, idade, km): <code>1 / (1 + |valor &minus; média| / desvio)</code>. Vale 1 quando o veículo está exatamente na média da loja e cai conforme se afasta, medido em desvios.</dd>',
+  '<dd>Em modelo e categoria é binário: 1 se bate com o item que a loja mais oferta, 0 se não bate.</dd>',
   '<dt>Peso de um indicador</dt>',
-  '<dd>Nos numericos: <code>1 / (1 + desvio / media)</code> &mdash; o inverso do coeficiente de variacao. <b>Loja de faixa apertada e previsivel</b>, entao acertar o numero dela vale muito; loja que compra de tudo tem dispersao alta, o peso cai sozinho e o indicador deixa de mandar no resultado.</dd>',
-  '<dd>Em modelo e categoria, o peso e o <b>% de ofertas</b> da loja naquele item. Loja que concentra 70% dos lances num modelo faz esse indicador pesar mais do que uma que espalha.</dd>',
-  '<dt>Aderencia (o total)</dt>',
-  '<dd><code>&Sigma;(peso &times; aderencia) / &Sigma;(peso)</code>, de 0 a 100. E a media dos cinco indicadores ponderada pelo quanto cada um informa sobre aquela loja.</dd>',
-  '<dt>Fator de confianca</dt>',
-  '<dd><code>min(1, veiculos / ' + CONFIANCA_MIN + ')</code>. Loja com pouco historico tem perfil pouco confiavel, entao o resultado dela e descontado &mdash; com menos de ' + CONFIANCA_MIN + ' veiculos ela aparece marcada como <b>amostra baixa</b>.</dd>',
-  '<dd class="ex">Esta parte foi adicao minha, nao estava no pedido original: sem ela, uma loja com um unico carro de historico e aderencia 100 lideraria por sorte.</dd>',
+  '<dd>Nos numéricos: <code>1 / (1 + desvio / média)</code> &mdash; o inverso do coeficiente de variação. <b>Loja de faixa apertada é previsível</b>, então acertar o número dela vale muito; loja que compra de tudo tem dispersão alta, o peso cai sozinho e o indicador deixa de mandar no resultado.</dd>',
+  '<dd>Em modelo e categoria, o peso é o <b>% de ofertas</b> da loja naquele item. Loja que concentra 70% dos lances num modelo faz esse indicador pesar mais do que uma que espalha.</dd>',
+  '<dt>Aderência (o total)</dt>',
+  '<dd><code>&Sigma;(peso &times; aderência) / &Sigma;(peso)</code>, de 0 a 100. É a média dos cinco indicadores ponderada pelo quanto cada um informa sobre aquela loja.</dd>',
+  '<dt>Fator de confiança</dt>',
+  '<dd><code>min(1, veículos / ' + CONFIANCA_MIN + ')</code>. Loja com pouco histórico tem perfil pouco confiável, então o resultado dela é descontado &mdash; com menos de ' + CONFIANCA_MIN + ' veículos ela aparece marcada como <b>amostra baixa</b>.</dd>',
+  '<dd class="ex">Esta parte foi adição minha, não estava no pedido original: sem ela, uma loja com um único carro de histórico e aderência 100 lideraria por sorte.</dd>',
   '<dt>Score</dt>',
-  '<dd><b>Aderencia &times; confianca.</b> E o numero que ordena as duas tabelas e o que a barra azul desenha. Quando ha selecao, as duas colunas aparecem lado a lado: <b>aderencia</b> e o casamento bruto com o perfil, <b>score</b> ja e o numero descontado.</dd>',
+  '<dd><b>Aderência &times; confiança.</b> É o número que ordena as duas tabelas e o que a barra azul desenha. Quando há seleção, as duas colunas aparecem lado a lado: <b>aderência</b> é o casamento bruto com o perfil, <b>score</b> já é o número descontado.</dd>',
   '<dt>Componentes</dt>',
-  '<dd>A decomposicao do par, indicador a indicador (P, I, K, M, C), cada um de 0 a 100. Serve para ver <i>por que</i> aquele score saiu: um 90 sustentado por preco e idade e diferente de um 90 que veio so de categoria.</dd>',
-  '<dt>O que o filtro nao muda</dt>',
-  '<dd>O perfil de compra e o fator de confianca saem do historico da <b>loja inteira</b>, sem recorte por whitelabel, UF ou evento. Como a aderencia e calculada contra esse perfil, <b>o score de cada par nao muda</b> com o filtro. O filtro escolhe quais pares aparecem; nao os recalcula.</dd>',
+  '<dd>A decomposição do par, indicador a indicador (P, I, K, M, C), cada um de 0 a 100. Serve para ver <i>por que</i> aquele score saiu: um 90 sustentado por preço e idade é diferente de um 90 que veio só de categoria.</dd>',
+  '<dt>O que o filtro não muda</dt>',
+  '<dd>O perfil de compra e o fator de confiança saem do histórico da <b>loja inteira</b>, sem recorte por whitelabel, UF ou evento. Como a aderência é calculada contra esse perfil, <b>o score de cada par não muda</b> com o filtro. O filtro escolhe quais pares aparecem; não os recalcula.</dd>',
   '<dt>Volume de ofertas</dt>',
-  '<dd>Nao entra no score. "Veiculos ofertados 6m" esta na tabela como leitura de porte da loja, nao como criterio de ranking.</dd>',
+  '<dd>Não entra no score. "Veículos ofertados 6m" está na tabela como leitura de porte da loja, não como critério de ranking.</dd>',
   '</dl></div></div>',
   '</div>',
   '<script>const D=' + DADOS_JSON + ';</' + 'script>',
