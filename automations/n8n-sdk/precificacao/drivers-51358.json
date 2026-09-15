@@ -1,0 +1,1378 @@
+{
+ "gerado_em": "2026-09-15T17:51:43.502Z",
+ "amostra": {
+  "estudo": "precificacao-10",
+  "amostra": "top20-modelos-12m",
+  "chave": "marca + nome do modelo, normalizados (UPPER/TRIM)",
+  "data_ini": "2025-09-15",
+  "hoje": "2026-09-15",
+  "corte_razao": [
+   0.2,
+   1.2
+  ],
+  "modelos": 20,
+  "excluidas": [
+   "Motocicleta",
+   "Caminhao",
+   "Onibus",
+   "Reboque",
+   "Semireboque"
+  ],
+  "vendas_esperadas": 4582,
+  "paginas": 95,
+  "colunas": 39,
+  "venda": "ultima negociacao valida do veiculo com status IN (2,3,7)",
+  "valor_venda": "offers.price via an.offer_actual_id",
+  "fipe": "advertisements.fipe_price",
+  "desagio": "calculado na analise: 1 - venda/valor_fipe_anuncio"
+ },
+ "coleta": {
+  "esperadas": 4582,
+  "colhidas": 4582,
+  "completa": true,
+  "duplicadas": 0,
+  "usadas_na_regressao": 4582,
+  "paginas": 95,
+  "paginas_vazias": 3,
+  "truncadas": 0,
+  "erro": null,
+  "periodo": [
+   "2025-09-15T11:04:15Z",
+   "2026-09-14T16:21:30Z"
+  ],
+  "codigos_fipe": 334
+ },
+ "desagio": {
+  "media": 0.3105,
+  "desvio": 0.107,
+  "por_grupo": [
+   {
+    "grupo": "VOLKSWAGEN GOL",
+    "n": 507,
+    "desagio": 0.3322
+   },
+   {
+    "grupo": "CHEVROLET ONIX",
+    "n": 500,
+    "desagio": 0.3211
+   },
+   {
+    "grupo": "HYUNDAI HB20",
+    "n": 365,
+    "desagio": 0.2765
+   },
+   {
+    "grupo": "RENAULT KWID",
+    "n": 268,
+    "desagio": 0.3514
+   },
+   {
+    "grupo": "VOLKSWAGEN POLO",
+    "n": 246,
+    "desagio": 0.2564
+   },
+   {
+    "grupo": "FORD KA",
+    "n": 244,
+    "desagio": 0.3767
+   },
+   {
+    "grupo": "VOLKSWAGEN VOYAGE",
+    "n": 240,
+    "desagio": 0.3233
+   },
+   {
+    "grupo": "FIAT ARGO",
+    "n": 237,
+    "desagio": 0.2628
+   },
+   {
+    "grupo": "RENAULT SANDERO",
+    "n": 214,
+    "desagio": 0.3642
+   },
+   {
+    "grupo": "FIAT STRADA",
+    "n": 205,
+    "desagio": 0.2718
+   },
+   {
+    "grupo": "VOLKSWAGEN SAVEIRO",
+    "n": 198,
+    "desagio": 0.2897
+   },
+   {
+    "grupo": "FIAT MOBI",
+    "n": 171,
+    "desagio": 0.3045
+   },
+   {
+    "grupo": "FIAT TORO",
+    "n": 159,
+    "desagio": 0.2701
+   },
+   {
+    "grupo": "TOYOTA COROLLA",
+    "n": 157,
+    "desagio": 0.217
+   },
+   {
+    "grupo": "FIAT PALIO",
+    "n": 155,
+    "desagio": 0.3789
+   },
+   {
+    "grupo": "JEEP RENEGADE",
+    "n": 154,
+    "desagio": 0.2817
+   },
+   {
+    "grupo": "FIAT UNO",
+    "n": 142,
+    "desagio": 0.3521
+   },
+   {
+    "grupo": "CHEVROLET PRISMA",
+    "n": 141,
+    "desagio": 0.3562
+   },
+   {
+    "grupo": "TOYOTA HILUX",
+    "n": 141,
+    "desagio": 0.2373
+   },
+   {
+    "grupo": "VOLKSWAGEN FOX",
+    "n": 138,
+    "desagio": 0.3478
+   }
+  ]
+ },
+ "regressoes": [
+  {
+   "coluna": "comprador_loja_id",
+   "tipo": "cat",
+   "n": 4562,
+   "niveis": 725,
+   "r2": 0.5544,
+   "r2aj": 0.4703,
+   "r2ctl": 0.5087,
+   "r2ctlAj": 0.416,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "4622",
+     "n": 33,
+     "desagio": 0.5776
+    },
+    {
+     "nivel": "110670",
+     "n": 34,
+     "desagio": 0.478
+    },
+    {
+     "nivel": "103921",
+     "n": 29,
+     "desagio": 0.4742
+    },
+    {
+     "nivel": "14842",
+     "n": 22,
+     "desagio": 0.4556
+    },
+    {
+     "nivel": "36746",
+     "n": 21,
+     "desagio": 0.2321
+    },
+    {
+     "nivel": "13357",
+     "n": 37,
+     "desagio": 0.225
+    },
+    {
+     "nivel": "12189",
+     "n": 32,
+     "desagio": 0.168
+    },
+    {
+     "nivel": "106970",
+     "n": 46,
+     "desagio": 0.1371
+    }
+   ]
+  },
+  {
+   "coluna": "km",
+   "tipo": "num",
+   "n": 4346,
+   "niveis": null,
+   "r2": 0.2214,
+   "r2aj": 0.2212,
+   "r2ctl": 0.181,
+   "r2ctlAj": 0.1808,
+   "b": 8.091200375084799e-07,
+   "t": 35.15,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "cluster",
+   "tipo": "cat",
+   "n": 3260,
+   "niveis": 21,
+   "r2": 0.2908,
+   "r2aj": 0.2865,
+   "r2ctl": 0.1856,
+   "r2ctlAj": 0.1806,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "G17",
+     "n": 227,
+     "desagio": 0.4293
+    },
+    {
+     "nivel": "G16",
+     "n": 56,
+     "desagio": 0.4023
+    },
+    {
+     "nivel": "G15",
+     "n": 283,
+     "desagio": 0.3982
+    },
+    {
+     "nivel": "G13",
+     "n": 114,
+     "desagio": 0.3839
+    },
+    {
+     "nivel": "G3",
+     "n": 23,
+     "desagio": 0.2586
+    },
+    {
+     "nivel": "G6",
+     "n": 132,
+     "desagio": 0.2474
+    },
+    {
+     "nivel": "G2",
+     "n": 76,
+     "desagio": 0.2053
+    },
+    {
+     "nivel": "G1",
+     "n": 154,
+     "desagio": 0.1847
+    }
+   ]
+  },
+  {
+   "coluna": "versao",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 634,
+   "r2": 0.3736,
+   "r2aj": 0.2732,
+   "r2ctl": 0.2509,
+   "r2ctlAj": 0.1307,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Gol (novo) 1.0 Mi Total Flex 8V 4p",
+     "n": 45,
+     "desagio": 0.4081
+    },
+    {
+     "nivel": "Sed. Joy/ LS 1.0 8V FlexPower 4p",
+     "n": 24,
+     "desagio": 0.4049
+    },
+    {
+     "nivel": "(novo) 1.0 Mi Total Flex 8V 4p",
+     "n": 22,
+     "desagio": 0.3966
+    },
+    {
+     "nivel": "SE 1.0 12V",
+     "n": 60,
+     "desagio": 0.3859
+    },
+    {
+     "nivel": "Track 1.0 Flex 12V 5p",
+     "n": 103,
+     "desagio": 0.2491
+    },
+    {
+     "nivel": "Sense 1.0 Flex 12V Mec.",
+     "n": 37,
+     "desagio": 0.2445
+    },
+    {
+     "nivel": "Freedom 1.3 Flex 8V CD",
+     "n": 22,
+     "desagio": 0.2373
+    },
+    {
+     "nivel": "XEi 2.0 Flex 16V Aut.",
+     "n": 71,
+     "desagio": 0.1899
+    }
+   ]
+  },
+  {
+   "coluna": "codigo_molicar",
+   "tipo": "cat",
+   "n": 4073,
+   "niveis": 364,
+   "r2": 0.3365,
+   "r2aj": 0.2716,
+   "r2ctl": 0.2035,
+   "r2ctlAj": 0.1255,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "001267-0",
+     "n": 22,
+     "desagio": 0.4242
+    },
+    {
+     "nivel": "025143-7",
+     "n": 23,
+     "desagio": 0.4121
+    },
+    {
+     "nivel": "004358-3",
+     "n": 24,
+     "desagio": 0.4049
+    },
+    {
+     "nivel": "005275-2",
+     "n": 67,
+     "desagio": 0.4043
+    },
+    {
+     "nivel": "005540-9",
+     "n": 106,
+     "desagio": 0.2495
+    },
+    {
+     "nivel": "001530-0",
+     "n": 22,
+     "desagio": 0.2373
+    },
+    {
+     "nivel": "002141-5",
+     "n": 27,
+     "desagio": 0.2106
+    },
+    {
+     "nivel": "002111-3",
+     "n": 71,
+     "desagio": 0.1899
+    }
+   ]
+  },
+  {
+   "coluna": "codigo_fipe",
+   "tipo": "cat",
+   "n": 4127,
+   "niveis": 334,
+   "r2": 0.3306,
+   "r2aj": 0.2719,
+   "r2ctl": 0.196,
+   "r2ctlAj": 0.1254,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "001267-0",
+     "n": 22,
+     "desagio": 0.4242
+    },
+    {
+     "nivel": "025143-7",
+     "n": 24,
+     "desagio": 0.4076
+    },
+    {
+     "nivel": "004358-3",
+     "n": 24,
+     "desagio": 0.4049
+    },
+    {
+     "nivel": "005275-2",
+     "n": 69,
+     "desagio": 0.4017
+    },
+    {
+     "nivel": "005540-9",
+     "n": 107,
+     "desagio": 0.2495
+    },
+    {
+     "nivel": "001530-0",
+     "n": 25,
+     "desagio": 0.2237
+    },
+    {
+     "nivel": "002141-5",
+     "n": 27,
+     "desagio": 0.2106
+    },
+    {
+     "nivel": "002111-3",
+     "n": 71,
+     "desagio": 0.1899
+    }
+   ]
+  },
+  {
+   "coluna": "patio",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 244,
+   "r2": 0.1846,
+   "r2aj": 0.1389,
+   "r2ctl": 0.1448,
+   "r2ctlAj": 0.0969,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "VJB TRANSPORTES / Guilherme de Almeida",
+     "n": 28,
+     "desagio": 0.4087
+    },
+    {
+     "nivel": "HUB - MANAUS",
+     "n": 34,
+     "desagio": 0.4007
+    },
+    {
+     "nivel": "HUB - RIO DE JANEIRO - RJ - CARBUY",
+     "n": 239,
+     "desagio": 0.3716
+    },
+    {
+     "nivel": "HUB - PR - CARBUY",
+     "n": 252,
+     "desagio": 0.3464
+    },
+    {
+     "nivel": "Freitas Utinga",
+     "n": 47,
+     "desagio": 0.2657
+    },
+    {
+     "nivel": "Filial SBC - Transf Paddock",
+     "n": 20,
+     "desagio": 0.2602
+    },
+    {
+     "nivel": "São Bernardo",
+     "n": 20,
+     "desagio": 0.2207
+    },
+    {
+     "nivel": "Barra Funda",
+     "n": 45,
+     "desagio": 0.2198
+    }
+   ]
+  },
+  {
+   "coluna": "loja_id",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 18,
+   "r2": 0.1066,
+   "r2aj": 0.1033,
+   "r2ctl": 0.0623,
+   "r2ctlAj": 0.0588,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "9034",
+     "n": 29,
+     "desagio": 0.3619
+    },
+    {
+     "nivel": "3192",
+     "n": 147,
+     "desagio": 0.3334
+    },
+    {
+     "nivel": "594",
+     "n": 2184,
+     "desagio": 0.3287
+    },
+    {
+     "nivel": "104754",
+     "n": 856,
+     "desagio": 0.3141
+    },
+    {
+     "nivel": "2991",
+     "n": 162,
+     "desagio": 0.2778
+    },
+    {
+     "nivel": "100668",
+     "n": 272,
+     "desagio": 0.2617
+    },
+    {
+     "nivel": "1931",
+     "n": 67,
+     "desagio": 0.2263
+    },
+    {
+     "nivel": "108442",
+     "n": 85,
+     "desagio": 0.1301
+    }
+   ]
+  },
+  {
+   "coluna": "loja",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 18,
+   "r2": 0.1066,
+   "r2aj": 0.1033,
+   "r2ctl": 0.0623,
+   "r2ctlAj": 0.0588,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "C6 Bank",
+     "n": 29,
+     "desagio": 0.3619
+    },
+    {
+     "nivel": "Multifrota",
+     "n": 147,
+     "desagio": 0.3334
+    },
+    {
+     "nivel": "Itaú Unibanco",
+     "n": 2184,
+     "desagio": 0.3287
+    },
+    {
+     "nivel": "C6 Bank Lojista",
+     "n": 856,
+     "desagio": 0.3141
+    },
+    {
+     "nivel": "Creditas Ltda",
+     "n": 162,
+     "desagio": 0.2778
+    },
+    {
+     "nivel": "Banco Volkswagen",
+     "n": 272,
+     "desagio": 0.2617
+    },
+    {
+     "nivel": "Outlet Netcarros",
+     "n": 67,
+     "desagio": 0.2263
+    },
+    {
+     "nivel": "Banco Toyota",
+     "n": 85,
+     "desagio": 0.1301
+    }
+   ]
+  },
+  {
+   "coluna": "ano_fabricacao",
+   "tipo": "num",
+   "n": 4573,
+   "niveis": null,
+   "r2": 0.1146,
+   "r2aj": 0.1144,
+   "r2ctl": 0.0536,
+   "r2ctlAj": 0.0534,
+   "b": -0.008592685653084003,
+   "t": -24.33,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "ano_modelo",
+   "tipo": "num",
+   "n": 4572,
+   "niveis": null,
+   "r2": 0.1109,
+   "r2aj": 0.1107,
+   "r2ctl": 0.0535,
+   "r2ctlAj": 0.0533,
+   "b": -0.008428178547537853,
+   "t": -23.87,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "patio_cidade",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 96,
+   "r2": 0.0579,
+   "r2aj": 0.0379,
+   "r2ctl": 0.0565,
+   "r2ctlAj": 0.0365,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Manaus",
+     "n": 66,
+     "desagio": 0.3684
+    },
+    {
+     "nivel": "Rio de Janeiro",
+     "n": 305,
+     "desagio": 0.3576
+    },
+    {
+     "nivel": "Valparaíso de Goiás",
+     "n": 43,
+     "desagio": 0.3528
+    },
+    {
+     "nivel": "Marituba",
+     "n": 77,
+     "desagio": 0.3421
+    },
+    {
+     "nivel": "Santa Bárbara D'Oeste",
+     "n": 36,
+     "desagio": 0.2854
+    },
+    {
+     "nivel": "Contagem",
+     "n": 33,
+     "desagio": 0.2831
+    },
+    {
+     "nivel": "Suzano",
+     "n": 276,
+     "desagio": 0.2792
+    },
+    {
+     "nivel": "Santo André",
+     "n": 47,
+     "desagio": 0.2657
+    }
+   ]
+  },
+  {
+   "coluna": "patio_uf",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 24,
+   "r2": 0.0337,
+   "r2aj": 0.0288,
+   "r2ctl": 0.0336,
+   "r2ctlAj": 0.0287,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "AM",
+     "n": 66,
+     "desagio": 0.3684
+    },
+    {
+     "nivel": "RJ",
+     "n": 305,
+     "desagio": 0.3576
+    },
+    {
+     "nivel": "PA",
+     "n": 97,
+     "desagio": 0.3426
+    },
+    {
+     "nivel": "PI",
+     "n": 20,
+     "desagio": 0.3406
+    },
+    {
+     "nivel": "DF",
+     "n": 41,
+     "desagio": 0.2967
+    },
+    {
+     "nivel": "BA",
+     "n": 207,
+     "desagio": 0.296
+    },
+    {
+     "nivel": "SP",
+     "n": 1566,
+     "desagio": 0.2952
+    },
+    {
+     "nivel": "MS",
+     "n": 37,
+     "desagio": 0.292
+    }
+   ]
+  },
+  {
+   "coluna": "whitelabel_id",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 6,
+   "r2": 0.0599,
+   "r2aj": 0.0589,
+   "r2ctl": 0.0254,
+   "r2ctlAj": 0.0243,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "7",
+     "n": 3630,
+     "desagio": 0.3144
+    },
+    {
+     "nivel": "43",
+     "n": 856,
+     "desagio": 0.3141
+    },
+    {
+     "nivel": "62",
+     "n": 85,
+     "desagio": 0.1301
+    }
+   ]
+  },
+  {
+   "coluna": "valor_fipe_veiculo",
+   "tipo": "num",
+   "n": 3024,
+   "niveis": null,
+   "r2": 0.1454,
+   "r2aj": 0.1452,
+   "r2ctl": 0.024,
+   "r2ctlAj": 0.0237,
+   "b": -1.0829245255316984e-06,
+   "t": -22.68,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "valor_fipe_anuncio",
+   "tipo": "num",
+   "n": 4582,
+   "niveis": null,
+   "r2": 0.1407,
+   "r2aj": 0.1405,
+   "r2ctl": 0.0216,
+   "r2ctlAj": 0.0214,
+   "b": -1.1078305325086126e-06,
+   "t": -27.39,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "valor_molicar_anuncio",
+   "tipo": "num",
+   "n": 2478,
+   "niveis": null,
+   "r2": 0.1392,
+   "r2aj": 0.1389,
+   "r2ctl": 0.0214,
+   "r2ctlAj": 0.021,
+   "b": -1.4007446656714158e-06,
+   "t": -20.01,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "valor_ref_vendedor",
+   "tipo": "num",
+   "n": 2612,
+   "niveis": null,
+   "r2": 0.1376,
+   "r2aj": 0.1373,
+   "r2ctl": 0.0201,
+   "r2ctlAj": 0.0197,
+   "b": -1.0632728276300503e-06,
+   "t": -20.41,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "fipe_qtd_versoes",
+   "tipo": "num",
+   "n": 234,
+   "niveis": null,
+   "r2": 0.0313,
+   "r2aj": 0.0271,
+   "r2ctl": 0.0206,
+   "r2ctlAj": 0.0163,
+   "b": 0.018321023157581696,
+   "t": 2.74,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "combustivel",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 12,
+   "r2": 0.0328,
+   "r2aj": 0.0304,
+   "r2ctl": 0.0157,
+   "r2ctlAj": 0.0133,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Alcool / Gasolina / Gas Natural Veicular",
+     "n": 55,
+     "desagio": 0.4091
+    },
+    {
+     "nivel": "Alcool / Gasolina",
+     "n": 3411,
+     "desagio": 0.3129
+    },
+    {
+     "nivel": "Flex",
+     "n": 856,
+     "desagio": 0.3108
+    },
+    {
+     "nivel": "Diesel",
+     "n": 222,
+     "desagio": 0.2564
+    }
+   ]
+  },
+  {
+   "coluna": "situacao_codigo",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 7,
+   "r2": 0.024,
+   "r2aj": 0.0227,
+   "r2ctl": 0.0124,
+   "r2ctlAj": 0.0112,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "9",
+     "n": 3662,
+     "desagio": 0.3166
+    },
+    {
+     "nivel": "5",
+     "n": 608,
+     "desagio": 0.2942
+    },
+    {
+     "nivel": "8",
+     "n": 149,
+     "desagio": 0.2807
+    },
+    {
+     "nivel": "6",
+     "n": 143,
+     "desagio": 0.2449
+    }
+   ]
+  },
+  {
+   "coluna": "cambio",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 3,
+   "r2": 0.0455,
+   "r2aj": 0.0451,
+   "r2ctl": 0.0106,
+   "r2ctlAj": 0.0102,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Não informado",
+     "n": 2274,
+     "desagio": 0.3279
+    },
+    {
+     "nivel": "Manual",
+     "n": 1762,
+     "desagio": 0.3051
+    },
+    {
+     "nivel": "Automático",
+     "n": 546,
+     "desagio": 0.2556
+    }
+   ]
+  },
+  {
+   "coluna": "cor",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 21,
+   "r2": 0.0162,
+   "r2aj": 0.0119,
+   "r2ctl": 0.0128,
+   "r2ctlAj": 0.0085,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Preta",
+     "n": 33,
+     "desagio": 0.3569
+    },
+    {
+     "nivel": "Vermelho",
+     "n": 259,
+     "desagio": 0.3246
+    },
+    {
+     "nivel": "Preto",
+     "n": 560,
+     "desagio": 0.323
+    },
+    {
+     "nivel": "Prata",
+     "n": 902,
+     "desagio": 0.3176
+    },
+    {
+     "nivel": "Azul",
+     "n": 69,
+     "desagio": 0.2991
+    },
+    {
+     "nivel": "39",
+     "n": 24,
+     "desagio": 0.2985
+    },
+    {
+     "nivel": "Cinza",
+     "n": 425,
+     "desagio": 0.2913
+    },
+    {
+     "nivel": "Branca",
+     "n": 212,
+     "desagio": 0.2893
+    }
+   ]
+  },
+  {
+   "coluna": "carroceria",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 20,
+   "r2": 0.0536,
+   "r2aj": 0.0496,
+   "r2ctl": 0.0103,
+   "r2ctlAj": 0.0061,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Hatch",
+     "n": 2110,
+     "desagio": 0.3295
+    },
+    {
+     "nivel": "Sedan",
+     "n": 472,
+     "desagio": 0.3046
+    },
+    {
+     "nivel": "Não Informado",
+     "n": 1204,
+     "desagio": 0.3046
+    },
+    {
+     "nivel": "CARROCERIA ABERTA",
+     "n": 190,
+     "desagio": 0.2955
+    },
+    {
+     "nivel": "Sedã",
+     "n": 68,
+     "desagio": 0.2678
+    },
+    {
+     "nivel": "JIPE",
+     "n": 57,
+     "desagio": 0.2532
+    },
+    {
+     "nivel": "ABERTA/CABINE DUPLA",
+     "n": 297,
+     "desagio": 0.2515
+    },
+    {
+     "nivel": "Cab dupla",
+     "n": 31,
+     "desagio": 0.2021
+    }
+   ]
+  },
+  {
+   "coluna": "portas",
+   "tipo": "num",
+   "n": 38,
+   "niveis": null,
+   "r2": 0.0131,
+   "r2aj": -0.0143,
+   "r2ctl": 0.0314,
+   "r2ctlAj": 0.0045,
+   "b": -0.013371932097912556,
+   "t": -0.69,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "status_negociacao",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 3,
+   "r2": 0.0036,
+   "r2aj": 0.0032,
+   "r2ctl": 0.0005,
+   "r2ctlAj": 0.0001,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "7",
+     "n": 3974,
+     "desagio": 0.313
+    },
+    {
+     "nivel": "3",
+     "n": 145,
+     "desagio": 0.2965
+    },
+    {
+     "nivel": "2",
+     "n": 463,
+     "desagio": 0.2934
+    }
+   ]
+  },
+  {
+   "coluna": "veiculo_criado_em",
+   "tipo": "data",
+   "n": 4582,
+   "niveis": null,
+   "r2": 0.0014,
+   "r2aj": 0.0012,
+   "r2ctl": 0.0001,
+   "r2ctlAj": -0.0001,
+   "b": -3.483423479132121e-05,
+   "t": -2.56,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "vmv",
+   "tipo": "num",
+   "n": 4564,
+   "niveis": null,
+   "r2": 0,
+   "r2aj": -0.0002,
+   "r2ctl": 0.0001,
+   "r2ctlAj": -0.0002,
+   "b": -4.47252371790914e-11,
+   "t": -0.01,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "categoria",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 3,
+   "r2": 0.0303,
+   "r2aj": 0.0299,
+   "r2ctl": 0.0002,
+   "r2ctlAj": -0.0002,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Não informada",
+     "n": 20,
+     "desagio": 0.3468
+    },
+    {
+     "nivel": "Automovel",
+     "n": 3730,
+     "desagio": 0.3191
+    },
+    {
+     "nivel": "Utilitario",
+     "n": 832,
+     "desagio": 0.2712
+    }
+   ]
+  },
+  {
+   "coluna": "veiculo_atualizado_em",
+   "tipo": "data",
+   "n": 4582,
+   "niveis": null,
+   "r2": 0.0005,
+   "r2aj": 0.0003,
+   "r2ctl": 0,
+   "r2ctlAj": -0.0002,
+   "b": -2.206573659431707e-05,
+   "t": -1.51,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "data_venda",
+   "tipo": "data",
+   "n": 4582,
+   "niveis": null,
+   "r2": 0.0004,
+   "r2aj": 0.0002,
+   "r2ctl": 0,
+   "r2ctlAj": -0.0002,
+   "b": -1.996989534688283e-05,
+   "t": -1.35,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "valor_molicar_veiculo",
+   "tipo": "num",
+   "n": 1131,
+   "niveis": null,
+   "r2": 0.0394,
+   "r2aj": 0.0386,
+   "r2ctl": 0.0003,
+   "r2ctlAj": -0.0006,
+   "b": -6.804496360182902e-07,
+   "t": -6.81,
+   "niveis_topo": null
+  },
+  {
+   "coluna": "marca",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 8,
+   "r2": 0.0968,
+   "r2aj": 0.0955,
+   "r2ctl": 0,
+   "r2ctlAj": -0.0015,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Ford",
+     "n": 244,
+     "desagio": 0.3767
+    },
+    {
+     "nivel": "Renault",
+     "n": 482,
+     "desagio": 0.3571
+    },
+    {
+     "nivel": "Chevrolet",
+     "n": 641,
+     "desagio": 0.3288
+    },
+    {
+     "nivel": "Volkswagen",
+     "n": 1329,
+     "desagio": 0.3118
+    },
+    {
+     "nivel": "Fiat",
+     "n": 1069,
+     "desagio": 0.301
+    },
+    {
+     "nivel": "Jeep",
+     "n": 154,
+     "desagio": 0.2817
+    },
+    {
+     "nivel": "Hyundai",
+     "n": 365,
+     "desagio": 0.2765
+    },
+    {
+     "nivel": "Toyota",
+     "n": 298,
+     "desagio": 0.2266
+    }
+   ]
+  },
+  {
+   "coluna": "grupo",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 20,
+   "r2": 0.1625,
+   "r2aj": 0.159,
+   "r2ctl": 0,
+   "r2ctlAj": -0.0042,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "FIAT PALIO",
+     "n": 155,
+     "desagio": 0.3789
+    },
+    {
+     "nivel": "FORD KA",
+     "n": 244,
+     "desagio": 0.3767
+    },
+    {
+     "nivel": "RENAULT SANDERO",
+     "n": 214,
+     "desagio": 0.3642
+    },
+    {
+     "nivel": "CHEVROLET PRISMA",
+     "n": 141,
+     "desagio": 0.3562
+    },
+    {
+     "nivel": "FIAT ARGO",
+     "n": 237,
+     "desagio": 0.2628
+    },
+    {
+     "nivel": "VOLKSWAGEN POLO",
+     "n": 246,
+     "desagio": 0.2564
+    },
+    {
+     "nivel": "TOYOTA HILUX",
+     "n": 141,
+     "desagio": 0.2373
+    },
+    {
+     "nivel": "TOYOTA COROLLA",
+     "n": 157,
+     "desagio": 0.217
+    }
+   ]
+  },
+  {
+   "coluna": "modelo",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 20,
+   "r2": 0.1625,
+   "r2aj": 0.159,
+   "r2ctl": 0,
+   "r2ctlAj": -0.0042,
+   "b": null,
+   "t": null,
+   "degenerada": false,
+   "niveis_topo": [
+    {
+     "nivel": "Palio",
+     "n": 155,
+     "desagio": 0.3789
+    },
+    {
+     "nivel": "Ka",
+     "n": 244,
+     "desagio": 0.3767
+    },
+    {
+     "nivel": "Sandero",
+     "n": 214,
+     "desagio": 0.3642
+    },
+    {
+     "nivel": "Prisma",
+     "n": 141,
+     "desagio": 0.3562
+    },
+    {
+     "nivel": "Argo",
+     "n": 237,
+     "desagio": 0.2628
+    },
+    {
+     "nivel": "Polo",
+     "n": 246,
+     "desagio": 0.2564
+    },
+    {
+     "nivel": "Hilux",
+     "n": 141,
+     "desagio": 0.2373
+    },
+    {
+     "nivel": "Corolla",
+     "n": 157,
+     "desagio": 0.217
+    }
+   ]
+  },
+  {
+   "coluna": "veiculo_id",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 4582,
+   "r2": 1,
+   "r2aj": null,
+   "r2ctl": 1,
+   "r2ctlAj": null,
+   "b": null,
+   "t": null,
+   "degenerada": true,
+   "niveis_topo": []
+  },
+  {
+   "coluna": "negociacao_id",
+   "tipo": "cat",
+   "n": 4582,
+   "niveis": 4582,
+   "r2": 1,
+   "r2aj": null,
+   "r2ctl": 1,
+   "r2ctlAj": null,
+   "b": null,
+   "t": null,
+   "degenerada": true,
+   "niveis_topo": []
+  }
+ ]
+}

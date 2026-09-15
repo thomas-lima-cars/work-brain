@@ -32,7 +32,42 @@ function elemento(id) {
     _attrs: {},
     getAttribute: function (k) { return el._attrs[k]; },
     setAttribute: function (k, v) { el._attrs[k] = v; },
-    querySelectorAll: function () { return []; }
+    /* Devolve linhas de verdade, lidas do proprio innerHTML.
+
+       Antes isto devolvia [] e a consequencia era silenciosa: o app preso
+       os handlers de clique com
+       `querySelectorAll("tbody tr").forEach(tr => tr.onclick = ...)`, entao
+       com lista vazia NENHUM handler nascia -- e o smoke "passava" sem
+       nunca ter exercitado clique em linha. Todo o extrato da loja e do
+       veiculo ficava fora do teste. */
+    querySelectorAll: function (sel) {
+      if (String(sel).indexOf('tr') < 0) return [];
+      const i = el.innerHTML.indexOf('<tbody');
+      if (i < 0) return [];
+      /* MEMOIZA enquanto o innerHTML nao muda. Sem isto cada chamada cria
+         objetos novos, o `tr.onclick = ...` do app cai em objetos
+         descartados, e quem chamar depois recebe linhas sem handler --
+         foi exatamente o que aconteceu na primeira versao deste trecho.
+         No navegador de verdade o mesmo no volta a cada consulta; aqui a
+         memoizacao e o que reproduz isso. */
+      if (el._cacheTr && el._cacheTrHtml === el.innerHTML) return el._cacheTr;
+      const trs = el.innerHTML.slice(i).match(/<tr[^>]*>/g) || [];
+      el._cacheTrHtml = el.innerHTML;
+      el._cacheTr = trs.map(function (t) {
+        const m = t.match(/data-i=['"]?(\d+)/);
+        const linha = {
+          onclick: null,
+          className: '',
+          style: {},
+          _attrs: { 'data-i': m ? m[1] : null },
+          getAttribute: function (k) { return linha._attrs[k]; },
+          setAttribute: function (k, v) { linha._attrs[k] = v; },
+          querySelectorAll: function () { return []; }
+        };
+        return linha;
+      });
+      return el._cacheTr;
+    }
   };
   return el;
 }
@@ -276,6 +311,70 @@ function smoke(html) {
       }
     } catch (e) {
       erros.push('erro ao abrir o glossario: ' + e.message);
+    }
+  }
+
+  /* 7b. clicar numa LOJA abre o extrato, e o extrato desenha o painel
+     dos cinco campos. Sem este passo, `perfilExtra` e codigo de navegador
+     que nunca roda em teste nenhum. */
+  const tl = cache['t_l'];
+  const linhasL = tl ? tl.querySelectorAll('tbody tr') : [];
+  const comHandler = linhasL.filter(function (tr) { return typeof tr.onclick === 'function'; });
+  if (!linhasL.length) {
+    erros.push('a tabela de lojas nao devolveu linhas para clicar');
+  } else if (!comHandler.length) {
+    erros.push('nenhuma linha de loja recebeu handler de clique');
+  } else {
+    try {
+      comHandler[0].onclick();
+      const ex = cache['extrato'] && cache['extrato'].innerHTML || '';
+      if (!ex) {
+        erros.push('clicar na loja nao preencheu o extrato');
+      } else {
+        if (ex.indexOf('Extrato da loja') < 0) {
+          erros.push('o extrato abriu sem o cabecalho esperado');
+        }
+        /* O painel dos cinco campos so e EXIGIDO quando o dado embarcado
+           tem os campos. Um `dados-*.json` anterior a 11/09 nao tem, e
+           nesse caso cada bloco se apaga sozinho e a ausencia do painel e
+           o comportamento certo -- exigir sempre transformaria a
+           regeneracao de qualquer arquivo antigo num falso alarme, e
+           alarme que grita no caso normal e alarme que se aprende a
+           ignorar. */
+        const temCampos = html.indexOf('"cluster_nome"') >= 0;
+        if (temCampos) {
+          if (ex.indexOf("class='xg'") < 0 && ex.indexOf('class="xg"') < 0) {
+            erros.push('o extrato abriu SEM o painel dos cinco campos (.xg)');
+          }
+          if (ex.indexOf('Faixa de recência') < 0) {
+            erros.push('o painel abriu sem a faixa de recencia');
+          }
+        }
+        /* O ROTULO nao prova nada: e texto fixo, aparece com ou sem dado.
+           O que prova e o VALOR. `esc()` transforma undefined em string
+           vazia, entao campo nao repassado vira buraco silencioso na tela
+           -- o modo de falha classico deste projeto. Exigir um dos sete
+           nomes conhecidos so passa se `cluster_nome` chegou de verdade. */
+        const NOMES = ['Cliente Diamante', 'Cliente Ouro', 'Cliente Prata',
+          'Cliente Recuperação', 'Lead Quente', 'Lead Morno', 'Lead Frio'];
+        if (ex.indexOf('Faixa de recência') >= 0 &&
+            !NOMES.some(function (n) { return ex.indexOf(n) >= 0; })) {
+          erros.push('o painel mostra o rotulo da faixa mas nenhum nome de faixa — ' +
+            'o valor nao chegou na tela');
+        }
+        /* undefined em tela e o sintoma classico deste projeto: campo que o
+           no esqueceu de repassar chega assim, em silencio */
+        if (ex.indexOf('undefined') >= 0) {
+          erros.push('o extrato da loja mostra "undefined" — campo nao repassado');
+        }
+        if (ex.indexOf('NaN') >= 0) {
+          erros.push('o extrato da loja mostra "NaN" — conta com valor ausente');
+        }
+      }
+      /* fecha a selecao para nao contaminar o passo seguinte */
+      comHandler[0].onclick();
+    } catch (e) {
+      erros.push('erro ao clicar numa loja: ' + e.message);
     }
   }
 

@@ -209,10 +209,116 @@ const f2 = fase2Com(168, 1300);
 const p2 = f2.map((i) => i.json);
 const M = p2[0].meta;
 ok(M.pag_veic === 4 && M.pag_lojas === 26, '168 veic -> 4 paginas; 1.300 lojas -> 26');
-/* 4 paginas de veiculo + 3 consultas de loja x 26 + 2 modas x 28.
-   As modas levam 2 paginas a mais porque empate no topo rende mais de uma
-   linha por loja -- ver PAG_MODA na fase 2. */
-ok(p2.length === 4 + 3 * 26 + 2 * 28, 'fase 2 = ' + (4 + 3 * 26 + 2 * 28) + ' chamadas — tem ' + p2.length);
+/* 4 paginas de veiculo + 8 consultas de loja x 26 = 212 chamadas.
+   Toda consulta por loja custa PAG_LOJAS, entao este numero E a conta do
+   run -- por isso a prova e um valor exato e nao um "menor que".
+
+   Historico do numero, que e o historico das decisoes:
+     134 = 4 + 5x26   depois que as modas colapsaram os empates no SQL
+     212 = 4 + 8x26   com os cinco campos de 11/09
+
+   Foram CINCO pedidos e so TRES consultas novas: o desagio pegou carona na
+   q_perfil (mesma varredura da ULTIMAS) e UF + laudo compartilham uma
+   varredura so. Ingenuamente seriam +130 chamadas; sao +78. */
+ok(p2.length === 4 + 8 * 26, 'fase 2 = ' + (4 + 8 * 26) + ' chamadas — tem ' + p2.length);
+
+/* ── os cinco campos de 2026-09-11 ─────────────────────────────────────── */
+(function () {
+  const acha = (n) => p2.find((x) => x.queryName === n);
+
+  /* 1. desagio: FIPE do ANUNCIO, nao do veiculo (85,6% contra 63,8%) */
+  const perfil = acha('q_perfil');
+  ok(!!perfil, 'q_perfil existe');
+  ok(perfil.sql.indexOf('aq.fipe_price') > 0, 'desagio usa a FIPE do anuncio');
+  ok(perfil.sql.indexOf('AS desagio_medio') > 0, 'q_perfil publica desagio_medio');
+  ok(perfil.sql.indexOf('BETWEEN -100 AND 95') > 0, 'o corte de outlier esta na SQL');
+
+  /* NEGATIVA: junção INNER em advertisements mudaria qt_veiculos, preco,
+     idade e km -- numeros que ja existem e ja foram conferidos. Coluna nova
+     nao pode mexer nas antigas. */
+  ok(perfil.sql.indexOf('LEFT JOIN advertisements aq') > 0,
+    'a juncao do desagio e LEFT');
+  ok(perfil.sql.indexOf('INNER JOIN advertisements aq') < 0,
+    '[neg] NAO existe INNER JOIN em advertisements na q_perfil');
+
+  /* 2 e 3. UF e laudo, numa varredura so */
+  const ufl = acha('q_uf_laudo');
+  ok(!!ufl, 'q_uf_laudo existe');
+  ok(ufl.sql.indexOf('AS ofertas_mesma_uf') > 0, 'publica ofertas_mesma_uf');
+  ok(ufl.sql.indexOf('AS ofertas_base') > 0, 'publica o denominador');
+  /* os cinco status medidos na sonda 50346, cada um com coluna propria */
+  ['laudo_aprovado', 'laudo_apontamento', 'laudo_reprovado',
+   'laudo_nao_informado', 'laudo_vazio', 'laudo_ausente'].forEach(function (c) {
+    ok(ufl.sql.indexOf('AS ' + c) > 0, 'laudo pivotado: ' + c);
+  });
+  /* ausente (sem laudo) e nao_informado (laudo sem veredito) sao COISAS
+     DIFERENTES -- 78% dos laudos do banco sao nao_informado */
+  ok(ufl.sql.indexOf('vpr.id IS NULL') > 0,
+    'laudo_ausente conta veiculo SEM laudo');
+  ok(ufl.sql.indexOf("vpr.situation = 'nao_informado'") > 0,
+    'laudo_nao_informado conta laudo SEM veredito');
+  /* a UF da loja entra agregada: loja com dois enderecos duplicaria ofertas */
+  ok(ufl.sql.indexOf('GROUP BY sa2.shop_id') > 0,
+    'a UF da loja vem de tabela derivada, sem fan-out de endereco');
+
+  /* 4. contato */
+  const cont = acha('q_contato');
+  ok(!!cont, 'q_contato existe');
+  ok(cont.sql.indexOf('MIN(us.user_id)') > 0,
+    'o e-mail desempata por menor user_id (deterministico entre runs)');
+  ok(cont.sql.indexOf('INNER JOIN users u') > 0, 'o e-mail vem de users');
+  ok(cont.sql.indexOf('AS qt_emails') > 0,
+    'a contagem de usuarios viaja: a tela diz "1 de N"');
+  ['tel_comercial', 'whatsapp', 'tel_privativo'].forEach(function (c) {
+    ok(cont.sql.indexOf('AS ' + c) > 0, 'telefone: ' + c);
+  });
+  /* NEGATIVA: o e-mail de shops esta em 5,8% -- se voltar a ser a fonte, o
+     campo sai vazio em 19 de cada 20 linhas */
+  ok(cont.sql.indexOf('comercial_email') < 0,
+    '[neg] o e-mail NAO vem de shops.comercial_email');
+
+  /* 5. cluster: so as datas cruas; a regra e JS e testavel */
+  const clu = acha('q_cluster');
+  ok(!!clu, 'q_cluster existe');
+  ok(clu.sql.indexOf('AS ult_oferta') > 0 && clu.sql.indexOf('AS ult_acesso') > 0,
+    'o cluster traz as duas datas');
+  /* "ja ofertou alguma vez" nao pode levar a janela de 6 meses: offers
+     alcanca 2020-06-24 e e isso que torna "nunca ofertou" verificavel */
+  const uo = clu.sql.slice(clu.sql.indexOf('AS ult_oferta') - 220,
+                           clu.sql.indexOf('AS ult_oferta'));
+  ok(uo.indexOf('created_at >=') < 0,
+    'ult_oferta NAO leva filtro de janela: a pergunta e "ja ofertou alguma vez"');
+
+  /* o corte do desagio viaja no META pro glossario */
+  ok(M.desagio_min === -100 && M.desagio_max === 95,
+    'o META publica o corte de outlier do desagio');
+
+  /* toda consulta nova e UMA linha por loja, entao pagina por PAG_LOJAS */
+  ['q_uf_laudo', 'q_contato', 'q_cluster'].forEach(function (n) {
+    const paginas = p2.filter((x) => x.queryName === n).length;
+    ok(paginas === 26, n + ' pagina por PAG_LOJAS (26), nao por chute — tem ' + paginas);
+  });
+
+  /* parenteses equilibrados: a SQL viaja como string e nenhum validador
+     local olha pra ela. A sonda de 11/09 nasceu com um COALESCE(x,, ) que
+     passou no node --check e so morreria no banco. */
+  ['q_perfil', 'q_uf_laudo', 'q_contato', 'q_cluster'].forEach(function (n) {
+    const sql = acha(n).sql;
+    const a = sql.split('(').length - 1;
+    const b = sql.split(')').length - 1;
+    ok(a === b, n + ': parenteses equilibrados (' + a + '/' + b + ')');
+    ok(sql.indexOf(',,') < 0 && sql.indexOf('( )') < 0 && sql.indexOf(',)') < 0,
+      n + ': sem virgula dupla nem parentese vazio');
+  });
+})();
+/* uma linha por loja: o desempate deixou de depender da ordem de chegada */
+['q_modelo', 'q_categoria'].forEach(function (nome) {
+  const q = p2.find((x) => x.queryName === nome);
+  ok(!!q && q.sql.indexOf('MIN(ag.item_id)') > 0,
+     nome + ' colapsa empate no SQL (MIN do item_id), uma linha por loja');
+  ok(!!q && q.sql.indexOf('GROUP BY ag.shop_id) t') > 0,
+     nome + ' agrupa por loja, entao o total = numero de lojas com moda');
+});
 ok(M.evento_wl.length === 4, 'o mapa evento->whitelabel chegou no meta (4 linhas)');
 /* a fase 2 reconstroi o META do zero: campo esquecido chega undefined em
    silencio. O cabecalho decide a frase do recorte por eventos_ids, entao
@@ -310,7 +416,7 @@ try { fase2Com(0, 1300); } catch (e) { morreu = e.message; }
 ok(/nenhum veiculo disponivel/.test(morreu), 'evento sem veiculo morre alto');
 
 /* ═══ 3. ELEGIBILIDADE ══════════════════════════════════════════════ */
-console.log('\n[3] Elegibilidade — mesma UF E whitelabel do evento');
+console.log('\n[3] Elegibilidade — o CANAL e porta; a UF virou peso (11/09)');
 const ANO = new Date().getFullYear();
 /* lojas: (id, nome, whitelabel_id, whitelabel, uf) */
 const LOJAS = [
@@ -323,52 +429,108 @@ const LOJAS = [
   [15, 'Fora de faixa SP wl7', 7, 'Marketplace', 'SP']
 ];
 const OFERTAS = [[11, 100], [12, 100], [13, 100], [14, 100], [15, 100]];
+/* as tres ultimas colunas sao desagio_n, desagio_medio e desagio_desvio.
+   Sem elas o componente de desagio fica com peso zero e as provas dele
+   passariam sem provar nada. */
 const PERFIL = [
-  [11, 50, 100000, 10000, 5, 1, 100000, 20000],
-  [12, 50, 100000, 100000, 5, 5, 100000, 100000],
+  [11, 50, 100000, 10000, 5, 1, 100000, 20000, 50, 5, 1],
+  [12, 50, 100000, 100000, 5, 5, 100000, 100000, 50, 5, 20],
   /* 4 veiculos de historico -> confianca 4/5 = 0,8. Antes era 1, o que dava
      score 20 e caia no corte; 80 continua provando que a confianca abaixa o
      score, sem sumir da tela. */
-  [13, 4, 100000, 10000, 5, 1, 100000, 20000],
-  [14, 50, 100000, 10000, 5, 1, 100000, 20000],
+  [13, 4, 100000, 10000, 5, 1, 100000, 20000, 4, 5, 1],
+  [14, 50, 100000, 10000, 5, 1, 100000, 20000, 50, 5, 1],
   /* faixa apertada e distante: adere quase zero em preco, idade e km */
-  [15, 50, 300000, 1000, 15, 0.5, 300000, 1000]
+  [15, 50, 300000, 1000, 15, 0.5, 300000, 1000, 50, 80, 1]
 ];
 const MODELO = [[11, 501, 'Onix', 50], [12, 501, 'Onix', 50], [13, 501, 'Onix', 50], [14, 501, 'Onix', 50], [15, 501, 'Onix', 50]];
 const CATEG = [[11, 1, 'Automovel', 80], [12, 1, 'Automovel', 80], [13, 1, 'Automovel', 80], [14, 1, 'Automovel', 80], [15, 1, 'Automovel', 80]];
-const COLV = ['neg_id', 'evento_id', 'evento', 'fim_evento', 'anuncio_id', 'vehicle_id', 'valor', 'valor_inicial', 'fipe', 'model_id', 'modelo', 'category_id', 'categoria', 'marca', 'versao', 'anuncio_uuid', 'model_year', 'km', 'loja_id', 'loja_vendedora', 'uf', 'neg_status'];
+/* `laudo` no fim: a coluna nova da q_veiculos. NULL vira 'ausente' no no,
+   que e categoria propria e nao a mesma coisa que 'nao_informado'. */
+const COLV = ['neg_id', 'evento_id', 'evento', 'fim_evento', 'anuncio_id', 'vehicle_id', 'valor', 'valor_inicial', 'fipe', 'model_id', 'modelo', 'category_id', 'categoria', 'marca', 'versao', 'anuncio_uuid', 'model_year', 'km', 'loja_id', 'loja_vendedora', 'uf', 'neg_status', 'laudo'];
 const VEIC = [
   /* v_orfao: SP, perfil identico ao v0 (onde HA lojas boas), mas no evento
      23904, cujo canal nao tem loja alguma. Fica sem par exclusivamente por
      causa do canal -- e e isso que a prova precisa isolar. */
-  [7, 23904, 'Clube de Associados', '2026-09-11 16:00', 906, 5006, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa9999bbbb8888cccc7777dddd6666', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
+  [7, 23904, 'Clube de Associados', '2026-09-11 16:00', 906, 5006, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa9999bbbb8888cccc7777dddd6666', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado'],
   /* v0: evento 23885 (wl 7), SP  -> elegiveis: 11 e 12                     */
-  [1, 23885, 'Feirao VWFS', '2026-09-10 14:00', 900, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa1111bbbb2222cccc3333dddd4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
+  [1, 23885, 'Feirao VWFS', '2026-09-10 14:00', 900, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa1111bbbb2222cccc3333dddd4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado'],
   /* v1: evento 23903 (wl 4 e 7), SP -> elegiveis: 11, 12 e 14              */
-  [2, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 901, 5002, 120000, null, 125000, 502, 'HB20', 1, 'Automovel', 'Hyundai', 'Comfort Plus 1.0', 'bbbb1111cccc2222dddd3333eeee4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1],
+  [2, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 901, 5002, 120000, null, 125000, 502, 'HB20', 1, 'Automovel', 'Hyundai', 'Comfort Plus 1.0', 'bbbb1111cccc2222dddd3333eeee4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado'],
   /* v2: evento 23885 (wl 7), MG -> elegivel so a 13                        */
-  [3, 23885, 'Feirao VWFS', '2026-09-10 14:00', 902, 5003, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'cccc1111dddd2222eeee3333ffff4444', ANO - 5, 100000, 700, 'Vendedora', 'MG', 1],
+  [3, 23885, 'Feirao VWFS', '2026-09-10 14:00', 902, 5003, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'cccc1111dddd2222eeee3333ffff4444', ANO - 5, 100000, 700, 'Vendedora', 'MG', 1, 'aprovado'],
   /* v3: evento 23885 (wl 7), RJ -> nenhuma loja no RJ, zero pares          */
-  [4, 23885, 'Feirao VWFS', '2026-09-10 14:00', 903, 5004, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', null, 'dddd1111eeee2222ffff3333aaaa4444', ANO - 5, 100000, 700, 'Vendedora', 'RJ', 1],
+  [4, 23885, 'Feirao VWFS', '2026-09-10 14:00', 903, 5004, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', null, 'dddd1111eeee2222ffff3333aaaa4444', ANO - 5, 100000, 700, 'Vendedora', 'RJ', 1, 'reprovado'],
   /* v4: SOBRA — mesmo perfil do v0, mas status 11 (Sem Ofertas). Tem que
      entrar na base, pontuar igual ao v0 e sair MARCADO como sobra.       */
-  [5, 23885, 'Feirao VWFS', '2026-09-10 14:00', 904, 5005, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'eeee1111ffff2222aaaa3333bbbb4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 11],
+  [5, 23885, 'Feirao VWFS', '2026-09-10 14:00', 904, 5005, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'eeee1111ffff2222aaaa3333bbbb4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 11, null],
   /* v5: DUPLICATA — mesmo vehicle_id do v0 numa negociacao diferente. O
      SQL ja colapsa por veiculo; se um dia parar, isto pega: tem que ser
      descartado E declarado nas falhas, nunca somado duas vezes.          */
-  [6, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 905, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'ffff1111aaaa2222bbbb3333cccc4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1]
+  [6, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 905, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'ffff1111aaaa2222bbbb3333cccc4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado']
 ];
 /* 6 veiculos unicos: v0..v4 mais o do canal orfao. A sexta LINHA de VEIC e
    a duplicata do v0 de proposito, e tem que ser descartada e declarada --
    por isso o gabarito e 6, nao 7. */
+/* ── dado sintetico dos cinco campos de 2026-09-11 ────────────────────────
+   As datas saem do META do proprio run, nunca de um "hoje" fixo: prova com
+   data cravada envelhece e um dia passa a verificar outra coisa. */
+const f2datas = fase2Com(6, 5);
+const MREF = f2datas[0].json.meta;   /* o no devolve {json:{...}}, como no n8n */
+const MS_AGORA = Date.parse(String(MREF.agora_br).split(' ').join('T') + 'Z');
+const MS_INI = Date.parse(String(MREF.data_ini).split(' ').join('T') + 'Z');
+const DIA_MS = 86400000;
+const iso = (ms) => new Date(ms).toISOString();
+
+/* uma loja por faixa, 11 a 15, mais duas so-datas para as faixas 6 e 7.
+   Cada linha e um caso da cascata, na ordem da tabela do Thomas. */
+const CLUSTER_LINHAS = [
+  /* 11 -> 1 Diamante: ofertou ha 5 dias                                  */
+  [11, iso(MS_AGORA - 5 * DIA_MS), iso(MS_AGORA - 5 * DIA_MS)],
+  /* 12 -> 2 Ouro: ofertou depois do inicio da janela, mas ha mais de 30d.
+     O ponto do meio da janela e sempre >= data_ini e sempre > 30 dias.   */
+  [12, iso((MS_INI + MS_AGORA) / 2), iso(MS_AGORA - 200 * DIA_MS)],
+  /* 13 -> 3 Prata: ofertou ANTES da janela, acessou ha 10 dias           */
+  [13, iso(MS_INI - 400 * DIA_MS), iso(MS_AGORA - 10 * DIA_MS)],
+  /* 14 -> 4 Recuperacao: ofertou antes da janela, acesso velho           */
+  [14, iso(MS_INI - 400 * DIA_MS), iso(MS_AGORA - 200 * DIA_MS)],
+  /* 15 -> 5 Lead Quente: nunca ofertou, acessou ha 10 dias               */
+  [15, null, iso(MS_AGORA - 10 * DIA_MS)]
+];
+
+const COL_UFL = ['shop_id', 'ofertas_base', 'ofertas_mesma_uf', 'laudo_ausente',
+  'laudo_aprovado', 'laudo_apontamento', 'laudo_reprovado', 'laudo_nao_informado',
+  'laudo_vazio'];
+/* os seis baldes somam ofertas_base em todas: e a invariante que a guarda
+   do no confere. A quebra dela e testada separado, mais abaixo. */
+const UFL = [
+  [11, 100, 25, 10, 40, 20, 5, 25, 0],
+  [12, 50, 50, 0, 50, 0, 0, 0, 0],
+  [13, 40, 0, 40, 0, 0, 0, 0, 0],
+  [14, 20, 10, 5, 5, 5, 5, 0, 0],
+  [15, 10, 3, 1, 2, 3, 4, 0, 0]
+];
+
+const COL_CT = ['shop_id', 'tel_comercial', 'whatsapp', 'tel_privativo', 'email', 'qt_emails'];
+const CONTATO = [
+  [11, '(11) 3000-0000', '(11) 99999-0000', '(11) 98888-0000', 'contato@loja11.exemplo', 3],
+  [12, '(11) 3000-0012', null, null, 'contato@loja12.exemplo', 1],
+  [13, null, null, null, null, 0],
+  [14, '(31) 3000-0014', '(31) 99999-0014', null, 'contato@loja14.exemplo', 1],
+  [15, null, '(41) 99999-0015', null, null, 0]
+];
+
 const f2b = fase2Com(6, 5);
 /* nomeado pra ser reusado pela prova negativa de cobertura das modas */
 function respostaDe(p) {
   if (p.queryName === 'q_veiculos') return resp(COLV, VEIC, p.pagina);
   if (p.queryName === 'q_lojas') return resp(['shop_id', 'loja', 'whitelabel_id', 'whitelabel', 'uf'], LOJAS, p.pagina);
   if (p.queryName === 'q_ofertas') return resp(['shop_id', 'qt_ofertas'], OFERTAS, p.pagina);
-  if (p.queryName === 'q_perfil') return resp(['shop_id', 'qt_veiculos', 'preco_medio', 'preco_desvio', 'idade_media', 'idade_desvio', 'km_medio', 'km_desvio'], PERFIL, p.pagina);
+  if (p.queryName === 'q_perfil') return resp(['shop_id', 'qt_veiculos', 'preco_medio', 'preco_desvio', 'idade_media', 'idade_desvio', 'km_medio', 'km_desvio', 'desagio_n', 'desagio_medio', 'desagio_desvio'], PERFIL, p.pagina);
   if (p.queryName === 'q_modelo') return resp(['shop_id', 'item_id', 'nome', 'n'], MODELO, p.pagina);
+  if (p.queryName === 'q_uf_laudo') return resp(COL_UFL, UFL, p.pagina);
+  if (p.queryName === 'q_contato') return resp(COL_CT, CONTATO, p.pagina);
+  if (p.queryName === 'q_cluster') return resp(['shop_id', 'ult_oferta', 'ult_acesso'], CLUSTER_LINHAS, p.pagina);
   return resp(['shop_id', 'item_id', 'nome', 'n'], CATEG, p.pagina);
 }
 const respostas = f2b.map((i) => i.json).map(respostaDe);
@@ -395,17 +557,18 @@ ok(ps7 && ps7.no_relatorio === false && ps7.nome === 'Vendido',
    'status 7 aparece na leitura marcado como FORA do relatorio');
 ok(ps11 && ps11.no_relatorio === true && ps11.nome === 'Sem Ofertas',
    'status 11 aparece marcado como dentro');
-ok(D.resumo.pares === 8, 'PARES = 2 + 3 + 1 + 0 + 2 = 8 — tem ' + D.resumo.pares);
-ok(D.veiculos[0].candidatos === 2 || D.veiculos.find((v) => v.neg_id === 1).candidatos === 2,
-  'v1 (SP, wl7) tem 2 lojas elegiveis');
 const byNeg = {};
 D.veiculos.forEach((v, i) => { byNeg[v.neg_id] = { v: v, i: i }; });
-ok(byNeg[2].v.candidatos === 3, 'v2 (SP, evento alveja wl 4 e 7) tem 3 elegiveis — tem ' + byNeg[2].v.candidatos);
-ok(byNeg[3].v.candidatos === 1, 'v3 (MG) so casa com a loja de MG — tem ' + byNeg[3].v.candidatos);
-ok(byNeg[4].v.candidatos === 0, 'v4 (RJ) nao tem nenhuma loja — tem ' + byNeg[4].v.candidatos);
-ok(byNeg[4].v.melhor === null, 'v4 sem par fica com melhor = null');
-ok(S.falhas.some((f) => /1 veiculo\(s\) sem nenhuma loja/.test(f)),
-  'a falha declara o veiculo sem par — ' + JSON.stringify(S.falhas));
+
+/* ── a UF deixou de ser porta (2026-09-11, segunda rodada) ─────────────
+   Ate aqui a regra era "mesma UF E mesmo whitelabel". A UF virou
+   preferencia ponderada, entao estas assercoes mudaram de conteudo -- nao
+   foram silenciadas. O whitelabel CONTINUA porta e segue provado abaixo. */
+ok(byNeg[3].v.candidatos > 1,
+  'v3 (MG) agora alcanca loja de outra UF — tem ' + byNeg[3].v.candidatos);
+ok(byNeg[4].v.candidatos > 0,
+  'v4 (RJ), que antes ficava sem par nenhum, agora alcanca loja — tem ' + byNeg[4].v.candidatos);
+ok(byNeg[4].v.melhor !== null, 'e por isso deixa de ter melhor = null');
 
 /* a loja de MG NAO pode aparecer para o veiculo de SP */
 const P = D.pares;
@@ -415,12 +578,98 @@ function paresDe(vi) {
   return r;
 }
 const idsDe = (vi) => paresDe(vi).map((p) => D.lojas[p.li].loja_id).sort();
-ok(JSON.stringify(idsDe(byNeg[1].i)) === '[11,12]', 'v1 casa exatamente com 11 e 12 — tem ' + JSON.stringify(idsDe(byNeg[1].i)));
-ok(JSON.stringify(idsDe(byNeg[2].i)) === '[11,12,14]', 'v2 casa com 11, 12 e 14 (wl 4 entra) — tem ' + JSON.stringify(idsDe(byNeg[2].i)));
-ok(JSON.stringify(idsDe(byNeg[3].i)) === '[13]', 'v3 casa so com a 13 (MG)');
-ok(idsDe(byNeg[1].i).indexOf(13) < 0, 'a loja de MG NAO aparece para veiculo de SP');
-ok(idsDe(byNeg[1].i).indexOf(14) < 0, 'a loja wl4 NAO aparece em evento que so alveja wl7');
+/* `scoreDe` ja existe mais abaixo, como declaracao de funcao -- e declaracao
+   de funcao e içada, entao da pra usar aqui em cima. Redeclarar com `const`
+   no mesmo escopo e SyntaxError, e foi o que aconteceu na primeira versao
+   deste bloco. */
+
+/* o WHITELABEL continua sendo porta, e isso nao mudou */
+ok(idsDe(byNeg[1].i).indexOf(14) < 0,
+  'a loja wl4 NAO aparece em evento que so alveja wl7 — o canal ainda e porta');
+ok(idsDe(byNeg[2].i).indexOf(14) >= 0,
+  'e aparece quando o evento alveja wl4 — tem ' + JSON.stringify(idsDe(byNeg[2].i)));
+
+/* a UF NAO e mais porta */
+ok(idsDe(byNeg[1].i).indexOf(13) >= 0,
+  'a loja de MG AGORA aparece para veiculo de SP — tem ' + JSON.stringify(idsDe(byNeg[1].i)));
+
+/* ── A PROVA QUE DECIDE ────────────────────────────────────────────────
+   Contagem de pares nao distingue "UF prioriza" de "UF foi ignorada": nos
+   dois casos o par existe. O que distingue e o SCORE.
+
+   v1 e v3 sao o mesmo carro em UFs diferentes (mesmo evento, valor, modelo,
+   ano e km — so muda SP/MG). Entao a mesma loja tem que pontuar MAIS ALTO
+   para o veiculo da propria praca. Se os dois scores derem igual, o peso da
+   UF nao esta valendo e nenhuma outra prova aqui perceberia. */
+const s11sp = scoreDe(byNeg[1].i, 11);   /* loja SP  x veiculo SP */
+const s11mg = scoreDe(byNeg[3].i, 11);   /* loja SP  x veiculo MG */
+ok(s11sp !== null && s11mg !== null,
+  'a loja 11 alcanca os dois veiculos, em SP e em MG');
+ok(s11sp > s11mg,
+  'a loja de SP pontua MAIS ALTO no veiculo de SP que no de MG (' +
+  s11sp + ' > ' + s11mg + ') — a UF prioriza, nao so deixa passar');
+
+/* E O CONTRAPONTO, que prova a PROPORCIONALIDADE em vez de so "a UF
+   influencia": a loja 13 compra 0% dentro da propria UF, entao o peso da UF
+   dela e zero e ela tem que ficar EXATAMENTE indiferente. Se desse
+   diferenca, a UF estaria valendo como bonus fixo, nao como preferencia
+   proporcional -- e a prova de cima sozinha nao notaria. */
+const s13mg = scoreDe(byNeg[3].i, 13);   /* loja MG (0% na praca) x veiculo MG */
+const s13sp = scoreDe(byNeg[1].i, 13);   /* loja MG (0% na praca) x veiculo SP */
+const l13 = D.lojas.find((l) => l.loja_id === 13);
+ok(l13 && l13.p_uf === 0, 'a loja 13 nao oferta nada na propria UF — peso zero');
+ok(s13mg !== null && s13sp !== null && s13mg === s13sp,
+  'e por isso fica INDIFERENTE a UF: ' + s13mg + ' nos dois casos — ' +
+  'a preferencia e proporcional, nao um bonus fixo');
 ok(D.lojas.length === 4, 'as 4 lojas com par entram; a 15 nao — tem ' + D.lojas.length);
+
+/* ── desagio e laudo como indicadores ──────────────────────────────────
+   Os dois entram na decomposicao do par (`det`), que e o que a tela mostra
+   na coluna Componentes. Se o componente nao aparecer ali, ele nao entrou
+   na conta -- e o score continuaria "plausivel". */
+(function () {
+  const det = D.det;
+  const P2 = D.pares;
+  let idx = -1;
+  for (let i = 0, k = 0; i < P2.length; i += 3, k++) {
+    if (P2[i] === byNeg[1].i && D.lojas[P2[i + 1]].loja_id === 11) { idx = k; break; }
+  }
+  ok(idx >= 0, 'achei a decomposicao do par v1 x loja 11');
+  const d = det[idx] || {};
+  ok(d.desagio !== undefined, 'o DESAGIO entra na decomposicao do par');
+  ok(d.laudo !== undefined, 'o LAUDO entra na decomposicao do par');
+  ok(d.uf !== undefined, 'a UF entra na decomposicao do par');
+  /* v1 e 'aprovado' e a moda da loja 11 tambem (40 de 100 ofertas) */
+  ok(d.laudo === 100, 'laudo do veiculo bate com a moda da loja -> 100');
+  /* v1 e SP, loja 11 e SP */
+  ok(d.uf === 100, 'mesma UF -> componente de UF vale 100');
+
+  const l11 = D.lojas.find((l) => l.loja_id === 11);
+  ok(l11.laudo_moda === 'aprovado',
+    'a moda de laudo da loja 11 e "aprovado" (40 de 100) — tem ' + l11.laudo_moda);
+  ok(l11.desagio_desvio === 1, 'o desvio do desagio atravessou ate a loja');
+  ok(l11.p_desagio > 0, 'e virou peso — tem ' + l11.p_desagio);
+
+  /* NEGATIVA: veiculo sem laudo cai em 'ausente', que NAO e 'nao_informado'.
+     Confundir os dois apagaria a distincao que o dominio do banco faz. */
+  const semLaudo = D.veiculos.find((v) => v.neg_id === 5);
+  ok(semLaudo && semLaudo.laudo === 'ausente',
+    'veiculo sem linha de laudo vira "ausente" — tem ' + (semLaudo && semLaudo.laudo));
+  ok(semLaudo && semLaudo.laudo !== 'nao_informado',
+    '[neg] "sem laudo" NAO e "nao informado"');
+
+  /* o desagio do veiculo sai de valor/fipe, com o mesmo corte das lojas */
+  const v1 = byNeg[1].v;
+  ok(v1.desagio !== null && Math.abs(v1.desagio - 4.76) < 0.01,
+    'desagio do veiculo = 100*(1 - 100000/105000) = 4,76% — tem ' + v1.desagio);
+})();
+
+/* ── o teto por veiculo ────────────────────────────────────────────────
+   Com TETO_LOJAS = 30 e so 5 lojas sinteticas, o teto nao morde aqui; o que
+   se prova e que ele foi PUBLICADO e que nada foi cortado em silencio. */
+ok(D.resumo.teto_lojas === 30, 'o teto viaja no resumo — tem ' + D.resumo.teto_lojas);
+ok(D.resumo.cortados_pelo_teto === 0,
+  'com 5 lojas o teto nao corta nada — tem ' + D.resumo.cortados_pelo_teto);
 
 /* O CORTE DE 50%. A loja 15 e elegivel (mesma UF, mesmo whitelabel) e sem o
    corte apareceria com score ~32. Com ele, nao pode existir em lugar
@@ -439,8 +688,23 @@ function scoreDe(vi, lojaId) {
   const p = paresDe(vi).find((x) => D.lojas[x.li].loja_id === lojaId);
   return p ? p.s : null;
 }
-ok(perto(scoreDe(byNeg[1].i, 11), 100, 0.05), 'v1 na media exata da loja 11 -> 100 — tem ' + scoreDe(byNeg[1].i, 11));
-ok(perto(scoreDe(byNeg[3].i, 13), 80, 0.05), 'loja 13 tem amostra 4: confianca 4/5 abaixa 100 para 80 — tem ' + scoreDe(byNeg[3].i, 13));
+/* Antes da formula de 8 componentes este par dava 100 exato. Agora da 97, e
+   a conta esta no cabecalho do _prova_aritmetica_nova.py: o veiculo esta na
+   media exata da loja em preco, idade, km, modelo, categoria, laudo e UF --
+   o UNICO componente abaixo de 100 e o desagio (4,76% contra media 5%,
+   desvio 1 -> aderencia 0,807), e com peso 0,833 ele puxa o par para 97. */
+ok(perto(scoreDe(byNeg[1].i, 11), 97, 0.05),
+  'v1 bate a loja 11 em tudo menos desagio -> 97 — tem ' + scoreDe(byNeg[1].i, 11));
+/* a confianca CONTINUA descontando (4 veiculos de historico -> x0,8), mas
+   agora ha outro peso pra baixo: a moda de laudo da loja 13 e "ausente" e o
+   veiculo e "aprovado", entao o componente de laudo vale 0 com peso 1,0.
+   0,797 x 0,8 = 0,637. Provar os dois juntos e o que impede alguem trocar
+   um pelo outro sem perceber. */
+ok(perto(scoreDe(byNeg[3].i, 13), 63.7, 0.1),
+  'loja 13: confianca 0,8 E laudo divergente -> 63,7 — tem ' + scoreDe(byNeg[3].i, 13));
+ok(l13.confianca === 0.8, 'a confianca da loja 13 continua 4/5');
+ok(l13.laudo_moda === 'ausente' && l13.pct_laudo === 100,
+  'e a moda de laudo dela e "ausente", em 100% das ofertas');
 /* v2: 2 desvios acima no preco da loja 11 e de OUTRO modelo.
    pesos  preco 0,90909  idade 0,83333  km 0,83333  modelo 0,5  categoria 0,8 = 3,87575
    ader.  preco 0,33333  idade 1  km 1  modelo 0  categoria 1
@@ -464,11 +728,18 @@ const totalV = Object.keys(porV).reduce((s, k) => s + porV[k].length, 0);
 const totalL = Object.keys(porL).reduce((s, k) => s + porL[k].length, 0);
 ok(totalV === totalL && totalV === D.resumo.pares, 'veiculo->loja e loja->veiculo somam o mesmo: ' + totalV);
 const li11 = D.lojas.findIndex((l) => l.loja_id === 11);
-ok(porL[li11].length === 3, 'a loja 11 aparece para 3 veiculos (os dois SP ativos + a sobra) — tem ' + porL[li11].length);
+/* Eram 3 (so os de SP). Sem a porta de UF a loja 11 alcanca os cinco
+   veiculos do canal dela -- inclusive o de MG e o de RJ, que antes eram
+   invisiveis pra ela. E esse o efeito pedido. */
+ok(porL[li11].length === 5,
+  'a loja 11 agora alcanca os 5 veiculos do canal, nao so os de SP — tem ' + porL[li11].length);
 const li13 = D.lojas.findIndex((l) => l.loja_id === 13);
-ok(porL[li13].length === 1, 'a loja 13 (MG) so aparece para o veiculo de MG');
-ok(D.lojas[li11].pares === 3 && D.lojas[li13].pares === 1, 'a contagem de pares por loja bate');
-ok(D.lojas[li11].melhor === 100, 'melhor score da loja 11 = 100');
+ok(porL[li13].length === 4,
+  'a loja 13 (MG) tambem sai da propria praca — tem ' + porL[li13].length);
+ok(D.lojas[li11].pares === porL[li11].length && D.lojas[li13].pares === porL[li13].length,
+  'a contagem de pares por loja bate com o indice');
+ok(D.lojas[li11].melhor === 97,
+  'melhor score da loja 11 = 97 (o teto de 100 caiu com o desagio) — tem ' + D.lojas[li11].melhor);
 
 /* ═══ 6. HTML ═══════════════════════════════════════════════════════ */
 console.log('\n[6] HTML');
@@ -496,8 +767,10 @@ ok(h.indexOf('id="t_v"') > 0 && h.indexOf('id="t_l"') > 0, 'as duas tabelas exis
 ok(h.indexOf('id="limpar"') > 0, 'botao de limpar selecao');
 const m = h.match(/<script>const D=([\s\S]*?);<\/script>/);
 const rep = JSON.parse(m[1].split('<\\/').join('</'));
-ok(rep.pares.length === 24, 'JSON embarcado: 8 pares x 3 numeros = 24 — tem ' + rep.pares.length);
-ok(rep.det.length === 8, 'uma decomposicao por par');
+/* 15 pares agora, nao 8: a UF parou de excluir. O numero exato importa --
+   se mudar sem alguem mexer na regra, alguma coisa se moveu sozinha. */
+ok(rep.pares.length === 45, 'JSON embarcado: 15 pares x 3 numeros = 45 — tem ' + rep.pares.length);
+ok(rep.det.length === 15, 'uma decomposicao por par');
 
 /* erro de query continua legivel */
 const respE = f2b.map((i) => i.json).map((p, i) =>
@@ -673,6 +946,58 @@ const semComent = fonteHtml.replace(/\/\*[\s\S]*?\*\//g, '');
   .forEach((marca) => ok(semComent.indexOf(marca) > 0,
     'a limpeza de comentarios preservou ' + marca));
 
+/* O arquivo NAO pode terminar em quebra de linha.
+
+   Motivo concreto: a transcricao do montar-html.js para o n8n saiu com
+   73.251 de 73.252 caracteres corretos, e a unica diferenca era a quebra
+   final. Reenviar 73 KB digitados a mao por causa de um caractere troca um
+   erro conhecido e inofensivo por uma chance real de erro novo -- entao o
+   arquivo local se alinhou ao no.
+
+   Esta prova existe para a decisao nao se desfazer sozinha: editor que
+   recoloca a quebra final faz a conferencia de transcricao acusar
+   divergencia depois de um upload de 73 KB. Aqui a falha aparece em
+   segundos, antes de rodar qualquer coisa. */
+/* ── o CONTRATO do bloco RENDER ────────────────────────────────────────
+   O `monta_html_de_dados.js` recorta o trecho entre RENDER:INICIO e
+   RENDER:FIM e executa com QUATRO nomes no escopo: DADOS, META,
+   CONFIANCA_MIN e DADOS_JSON. Nada mais.
+
+   No no isso nao se percebe: tudo esta no mesmo escopo. Entao e facil citar
+   uma constante de cima do arquivo e so descobrir depois, quando alguem
+   tenta regerar a tela. Ja aconteceu tres vezes (descreveRecorte fora do
+   RENDER, META.desagio_min ausente do DADOS.meta, e TETO_LOJAS citado
+   dentro do RENDER).
+
+   Aqui o bloco roda com exatamente o escopo do regenerador, sobre o DADOS
+   sintetico que as provas acima produziram. Identificador de fora estoura
+   nesta linha, em segundos. */
+(function () {
+  const ini = fonteHtml.indexOf('/* ==== RENDER:INICIO ====');
+  const fim = fonteHtml.indexOf('/* ==== RENDER:FIM ==== */');
+  ok(ini > 0 && fim > ini, 'os marcadores RENDER existem no montar-html.js');
+  const render = fonteHtml.slice(ini, fim);
+  const METAr = D.meta || {};
+  const CONFr = (D.parametros && D.parametros.confianca_min) || 5;
+  const JSONr = JSON.stringify(D).split('</').join('<\\/');
+  let erro = null;
+  let saiu = '';
+  try {
+    saiu = new Function('DADOS', 'META', 'CONFIANCA_MIN', 'DADOS_JSON',
+      render + '\nreturn html;')(D, METAr, CONFr, JSONr);
+  } catch (e) {
+    erro = e.message;
+  }
+  ok(erro === null,
+    'o bloco RENDER roda com o escopo do regenerador (DADOS, META, ' +
+    'CONFIANCA_MIN, DADOS_JSON) — ' + (erro || 'sem erro'));
+  ok(saiu && saiu.indexOf('</html>') > 0,
+    'e devolve um documento completo');
+})();
+
+ok(!fonteHtml.endsWith('\n'),
+   'montar-html.js nao termina em quebra de linha (alinhado byte a byte com o no)');
+
 const nBarras = (semComent.match(/\\/g) || []).length;
 ok(nBarras <= 4, 'o codigo tem no maximo 4 barras invertidas (tem ' + nBarras + ')');
 /* a assinatura da corrupcao e ESTA: duas barras antes da aspa. Foi o que
@@ -684,6 +1009,118 @@ ok(semComent.indexOf("\\'") < 0,
    'nenhum escape de aspa simples: elemento de array usa crase');
 ok(semComent.indexOf('${') < 0,
    'nenhuma interpolacao: com crase, ${ deixaria de ser texto literal');
+
+/* ══ os cinco campos de 2026-09-11, no que o NO faz com a resposta ══════ */
+(function () {
+  const porId = {};
+  D.lojas.forEach((l) => { porId[l.loja_id] = l; });
+
+  /* ── a cascata das sete faixas, uma a uma ─────────────────────────────
+     A ordem E a regra: a primeira condicao que bate ganha. Testar so o
+     agregado deixaria passar troca de ordem entre duas faixas. */
+  [[11, 1, 'Cliente Diamante'], [12, 2, 'Cliente Ouro'], [13, 3, 'Cliente Prata'],
+   [14, 4, 'Cliente Recuperação']].forEach(function (c) {
+    const l = porId[c[0]];
+    ok(!!l, 'loja ' + c[0] + ' publicada');
+    ok(l && l.cluster === c[1],
+      'loja ' + c[0] + ' -> faixa ' + c[1] + ' (' + c[2] + ') — veio ' + (l && l.cluster));
+    ok(l && l.cluster_nome === c[2], 'o nome da faixa viaja resolvido: ' + c[2]);
+  });
+
+  /* As faixas 5, 6 e 7 exigem "nunca ofertou", e nenhuma loja do dado
+     sintetico serve: as que sobrevivem ao corte de 50% sao justamente as
+     que ofertam. Entao a cascata e exercitada rerodando o no com as datas
+     na loja 11, que sempre sobrevive. Isso tambem deixa a prova imune a
+     mudanca no corte -- ela nao depende mais de QUAL loja e publicada. */
+  function faixaDe(ultOferta, ultAcesso) {
+    const r = rodaNo('montar-html.js', ctxDe({
+      'Montar Fase 2': f2b,
+      'MCP Fase 2': f2b.map((i) => i.json).map(function (p) {
+        if (p.queryName !== 'q_cluster') return respostaDe(p);
+        return resp(['shop_id', 'ult_oferta', 'ult_acesso'],
+          [[11, ultOferta, ultAcesso]], p.pagina);
+      })
+    }))[0].json;
+    const l = r.DADOS.lojas.filter((x) => x.loja_id === 11)[0];
+    return l ? l.cluster : null;
+  }
+
+  [[null, iso(MS_AGORA - 10 * DIA_MS), 5, 'Lead Quente — acessou, nunca ofertou'],
+   [null, iso(MS_AGORA - 200 * DIA_MS), 6, 'Lead Morno — acesso velho, nunca ofertou'],
+   [null, null, 7, 'Lead Frio — sem acesso e sem oferta']].forEach(function (c) {
+    const f = faixaDe(c[0], c[1]);
+    ok(f === c[2], 'faixa ' + c[2] + ': ' + c[3] + ' — veio ' + f);
+  });
+
+  /* as bordas dos 30 e dos 90 dias, que e onde cascata costuma errar */
+  ok(faixaDe(iso(MS_AGORA - 29 * DIA_MS), null) === 1, 'oferta de 29 dias ainda e Diamante');
+  ok(faixaDe(iso(MS_AGORA - 31 * DIA_MS), null) === 2, 'oferta de 31 dias ja e Ouro');
+  ok(faixaDe(null, iso(MS_AGORA - 89 * DIA_MS)) === 5, 'acesso de 89 dias ainda e Lead Quente');
+  ok(faixaDe(null, iso(MS_AGORA - 91 * DIA_MS)) === 6, 'acesso de 91 dias ja e Lead Morno');
+
+  /* NEGATIVA da faixa 2: ela usa a JANELA DO RELATORIO, nao "180 dias".
+     Com INTERVAL 180 DAY contra uma base de 6 meses de calendario (184
+     dias), 16 lojas caiam em Prata por causa de 4 dias — artefato de
+     unidade medido na sonda 50347. Uma oferta no PRIMEIRO dia da janela
+     tem que ser Ouro, nunca Prata. */
+  const noLimite = rodaNo('montar-html.js', ctxDe({
+    'Montar Fase 2': f2b,
+    'MCP Fase 2': f2b.map((i) => i.json).map(function (p) {
+      if (p.queryName !== 'q_cluster') return respostaDe(p);
+      return resp(['shop_id', 'ult_oferta', 'ult_acesso'],
+        [[11, iso(MS_INI), iso(MS_AGORA - 300 * DIA_MS)]], p.pagina);
+    })
+  }))[0].json;
+  const lim = noLimite.DADOS.lojas.filter((l) => l.loja_id === 11)[0];
+  ok(!!lim && lim.cluster === 2,
+    'oferta no primeiro dia da janela e Ouro, nao Prata — veio ' + (lim && lim.cluster));
+
+  /* ── desagio ──────────────────────────────────────────────────────── */
+  /* Antes o dado sintetico nao tinha desagio e a prova conferia o NULO.
+     Agora tem (a q_perfil passou a devolver media e desvio), entao o que se
+     confere e o valor -- e que o desvio chegou junto, porque sem ele o
+     indicador nao teria peso. */
+  ok(porId[11] && porId[11].desagio === 5,
+    'a media de desagio da loja chega — tem ' + (porId[11] && porId[11].desagio));
+  ok(porId[11] && porId[11].desagio_desvio === 1,
+    'e o desvio tambem, que e o que da peso ao indicador');
+
+  /* ── % de ofertas na mesma UF ─────────────────────────────────────── */
+  ok(porId[11] && porId[11].pct_mesma_uf === 25, 'loja 11: 25 de 100 ofertas na propria UF');
+  ok(porId[12] && porId[12].pct_mesma_uf === 100, 'loja 12: 100% na propria UF');
+  ok(porId[13] && porId[13].pct_mesma_uf === 0, 'loja 13: zero por cento, e nao nulo');
+
+  /* ── laudo: as seis fatias, e a distincao que importa ──────────────── */
+  const L11 = porId[11] && porId[11].laudo;
+  ok(!!L11, 'a loja 11 publica o laudo');
+  ok(L11 && L11.aprovado === 40, 'laudo aprovado 40%');
+  ok(L11 && L11.nao_informado === 25, 'laudo nao informado 25%');
+  ok(L11 && L11.ausente === 10, 'sem laudo 10%');
+  /* a razao de existirem os dois: sao populacoes diferentes e 78% do banco
+     esta em nao_informado */
+  ok(L11 && L11.ausente !== L11.nao_informado,
+    '"sem laudo" e "nao informado" sao campos separados');
+
+  /* ── contato ──────────────────────────────────────────────────────── */
+  ok(porId[11] && porId[11].email === 'contato@loja11.exemplo', 'o e-mail chega');
+  ok(porId[11] && porId[11].qt_emails === 3, 'a contagem de usuarios chega, pra tela dizer 1 de N');
+  ok(porId[13] && porId[13].email === null, 'loja sem usuario fica com e-mail nulo');
+  ok(porId[11] && porId[11].tel_privativo === '(11) 98888-0000',
+    'o telefone privativo entra, a pedido de 11/09');
+
+  /* ── NEGATIVA: baldes de laudo que nao somam viram falha declarada ──
+     Fan-out de juncao ja mordeu duas vezes aqui, as duas silenciosamente.
+     Aqui a loja 11 recebe 100 ofertas e baldes somando 105. */
+  const quebrado = rodaNo('montar-html.js', ctxDe({
+    'Montar Fase 2': f2b,
+    'MCP Fase 2': f2b.map((i) => i.json).map(function (p) {
+      if (p.queryName !== 'q_uf_laudo') return respostaDe(p);
+      return resp(COL_UFL, [[11, 100, 25, 10, 45, 20, 5, 25, 0]], p.pagina);
+    })
+  }))[0].json;
+  const acusou = quebrado.falhas.some((f) => f.indexOf('nao somam o total de ofertas') >= 0);
+  ok(acusou, '[neg] balde de laudo que nao fecha vira falha declarada, nao arredondamento');
+})();
 
 /* ── o cabecalho descreve a janela QUE EXISTE ──────────────────────────── */
 /* sem teto, a frase antiga imprimia "entre <piso> e <b>?</b>" -- detalhe que

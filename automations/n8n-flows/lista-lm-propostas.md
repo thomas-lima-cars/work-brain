@@ -310,6 +310,17 @@ O que muda no Code node em relação ao local:
 
 ⚠️ **Duas credenciais têm que ser vinculadas na interface:** SharePoint no `Subir no SharePoint` e Evolution no `Enviar por WhatsApp`. O MCP do n8n não anexa credencial genérica de HTTP nem `httpHeaderAuth`.
 
+> ✅ **Corrigido em 2026-09-11 (run 50379):** o MCP **anexa** credencial
+> predefinida em nó HTTP — mas só pela operação **`setNodeCredential`**, com
+> `credentialKey`/`credentialId`/`credentialName` explícitos. O que não
+> funciona é a **auto-atribuição** (o MCP procurar sozinho ao criar o nó), e
+> é dela que vem o aviso `were skipped during credential auto-assignment`.
+> Passar `credentials` dentro do `addNode` cai no mesmo caso e não basta.
+> Medido com o `Subir no SharePoint` do `rel-veiculos`, que autenticou e
+> subiu 4,47 MB sem ninguém tocar na interface.
+> ⚠️ `httpHeaderAuth` (Evolution) **não** foi testado; a ressalva continua.
+
+
 **SharePoint:** pasta `Documentos > Lista LM - Excel Cruzamento Base`, endereçada **por nome** via `automakers.sharepoint.com/sites/N8N/_api/v2.0/drive/root:/<pasta>/<arquivo>:/content` — dispensa descobrir `folderId`. `graph.microsoft.com` dá 401 com essa credencial.
 
 **Destinatário:** só o Caio no começo (e-mail e WhatsApp), a pedido dele.

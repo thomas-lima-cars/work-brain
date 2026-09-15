@@ -21,6 +21,18 @@
 | Cars2You | `yAo7DiqDfz6XfXyv` | team |
 | Thomas Lima <thomas.lima@cars2you.com.br> | `OcIBv5UMs6Iqfu51` | personal |
 
+> 📁 **Mover workflow entre projetos só pela interface.** O MCP tem
+> `move_workflows_to_folder`, que move entre **pastas do mesmo projeto** — não
+> entre projetos. Pelo menu ⋯ do workflow → **Move**. O **id não muda**, e as
+> credenciais continuam vinculadas (elas são globais). Verificado em 11/09 ao
+> mover o `rel-veiculos`: os quatro nós Code atravessaram idênticos byte a byte.
+>
+> ⚠️ **O projeto pessoal NÃO está mais vazio.** Em 11/09/2026 tinha seis:
+> `LZL3mxfbMIz4avyx` (Lojas ofertantes), `QImk2D4HdzIqHZe9` (C6 lote 2),
+> `a6fNNTUYYayehNIn` e `7TCmS8JFacDTmySQ` (sondas, descartáveis),
+> `0pUtqToo0zNNibQT` (sandbox C6) e `GgjVZlU04wvJzLbK` (cópia da Auditoria,
+> a perigosa). O `rel-veiculos` saiu de lá nessa data.
+
 Todos os workflows de produção vivem no projeto **Cars2You**. O projeto pessoal do Thomas estava
 vazio até criarmos a cópia descrita na seção 4.
 

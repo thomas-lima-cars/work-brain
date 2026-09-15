@@ -1,0 +1,481 @@
+{
+ "execucao": 51095,
+ "total": 1306,
+ "media": 0.324824,
+ "dimensoes": {
+  "q_km": {
+   "titulo": "Quilometragem",
+   "total": 1306,
+   "faixas": [
+    {
+     "faixa": "a ate 20k",
+     "rotulo": "ate 20k",
+     "sem": false,
+     "n": 19,
+     "bruto": 0.279402052631579,
+     "efeito": -0.01758739911695949,
+     "dentro": 0.3072366008830405,
+     "codigos": 6
+    },
+    {
+     "faixa": "b 20 a 40k",
+     "rotulo": "20 a 40k",
+     "sem": false,
+     "n": 50,
+     "bruto": 0.26924084,
+     "efeito": -0.037526380522306495,
+     "dentro": 0.2872976194776935,
+     "codigos": 8
+    },
+    {
+     "faixa": "c 40 a 60k",
+     "rotulo": "40 a 60k",
+     "sem": false,
+     "n": 102,
+     "bruto": 0.2738998431372549,
+     "efeito": -0.034893874070252164,
+     "dentro": 0.2899301259297478,
+     "codigos": 8
+    },
+    {
+     "faixa": "d 60 a 80k",
+     "rotulo": "60 a 80k",
+     "sem": false,
+     "n": 147,
+     "bruto": 0.2867503809523809,
+     "efeito": -0.032997718685723335,
+     "dentro": 0.2918262813142767,
+     "codigos": 10
+    },
+    {
+     "faixa": "e 80 a 100k",
+     "rotulo": "80 a 100k",
+     "sem": false,
+     "n": 223,
+     "bruto": 0.28953942152466366,
+     "efeito": -0.021015368759086633,
+     "dentro": 0.3038086312409134,
+     "codigos": 9
+    },
+    {
+     "faixa": "f 100 a 150k",
+     "rotulo": "100 a 150k",
+     "sem": false,
+     "n": 367,
+     "bruto": 0.323522689373297,
+     "efeito": 0.0034875350560970987,
+     "dentro": 0.3283115350560971,
+     "codigos": 10
+    },
+    {
+     "faixa": "g 150 a 200k",
+     "rotulo": "150 a 200k",
+     "sem": false,
+     "n": 156,
+     "bruto": 0.35866172435897437,
+     "efeito": 0.029577619925754577,
+     "dentro": 0.3544016199257546,
+     "codigos": 10
+    },
+    {
+     "faixa": "h 200k ou mais",
+     "rotulo": "200k ou mais",
+     "sem": false,
+     "n": 160,
+     "bruto": 0.40278953125,
+     "efeito": 0.03652254383663776,
+     "dentro": 0.3613465438366378,
+     "codigos": 9
+    },
+    {
+     "faixa": "z sem km",
+     "rotulo": "sem km",
+     "sem": true,
+     "n": 82,
+     "bruto": 0.3861134268292683,
+     "efeito": 0.04352567752089632,
+     "dentro": 0.3683496775208963,
+     "codigos": 10
+    }
+   ]
+  },
+  "q_idade": {
+   "titulo": "Idade do veículo (ano da venda − ano do modelo)",
+   "total": 1306,
+   "faixas": [
+    {
+     "faixa": "a 0 a 1 ano",
+     "rotulo": "0 a 1 ano",
+     "sem": false,
+     "n": 118,
+     "bruto": 0.29738535593220333,
+     "efeito": -0.002586720469072394,
+     "dentro": 0.3222372795309276,
+     "codigos": 5
+    },
+    {
+     "faixa": "b 2 anos",
+     "rotulo": "2 anos",
+     "sem": false,
+     "n": 216,
+     "bruto": 0.3199832731481481,
+     "efeito": 0.0015364881060893744,
+     "dentro": 0.32636048810608936,
+     "codigos": 7
+    },
+    {
+     "faixa": "c 3 anos",
+     "rotulo": "3 anos",
+     "sem": false,
+     "n": 276,
+     "bruto": 0.32178247826086953,
+     "efeito": -0.011582479086777925,
+     "dentro": 0.3132415209132221,
+     "codigos": 7
+    },
+    {
+     "faixa": "d 4 anos",
+     "rotulo": "4 anos",
+     "sem": false,
+     "n": 145,
+     "bruto": 0.3364921931034483,
+     "efeito": -0.010741876847811653,
+     "dentro": 0.31408212315218836,
+     "codigos": 6
+    },
+    {
+     "faixa": "e 5 anos",
+     "rotulo": "5 anos",
+     "sem": false,
+     "n": 89,
+     "bruto": 0.3195604494382022,
+     "efeito": 0.0016078710953382445,
+     "dentro": 0.3264318710953382,
+     "codigos": 6
+    },
+    {
+     "faixa": "f 6 anos",
+     "rotulo": "6 anos",
+     "sem": false,
+     "n": 113,
+     "bruto": 0.33483207964601774,
+     "efeito": 0.01393427105642252,
+     "dentro": 0.33875827105642253,
+     "codigos": 7
+    },
+    {
+     "faixa": "g 7 anos",
+     "rotulo": "7 anos",
+     "sem": false,
+     "n": 120,
+     "bruto": 0.3417754416666667,
+     "efeito": 0.013324565801856517,
+     "dentro": 0.33814856580185654,
+     "codigos": 7
+    },
+    {
+     "faixa": "h 8 a 9 anos",
+     "rotulo": "8 a 9 anos",
+     "sem": false,
+     "n": 118,
+     "bruto": 0.337292593220339,
+     "efeito": 0.009621169724018023,
+     "dentro": 0.334445169724018,
+     "codigos": 7
+    },
+    {
+     "faixa": "i 10 anos ou mais",
+     "rotulo": "10 anos ou mais",
+     "sem": false,
+     "n": 108,
+     "bruto": 0.31783104629629627,
+     "efeito": 0.0025741871335673043,
+     "dentro": 0.32739818713356733,
+     "codigos": 3
+    },
+    {
+     "faixa": "z sem ano",
+     "rotulo": "sem ano",
+     "sem": true,
+     "n": 3,
+     "bruto": 0.33071766666666663,
+     "efeito": -0.0007477785414684394,
+     "dentro": 0.32407622145853154,
+     "codigos": 3
+    }
+   ]
+  },
+  "q_uf": {
+   "titulo": "UF do pátio",
+   "total": 1306,
+   "faixas": [
+    {
+     "faixa": "AL",
+     "rotulo": "AL",
+     "sem": false,
+     "n": 2,
+     "bruto": 0.2870565,
+     "efeito": -0.047878139667232755,
+     "dentro": 0.27694586033276725,
+     "codigos": 2
+    },
+    {
+     "faixa": "AM",
+     "rotulo": "AM",
+     "sem": false,
+     "n": 28,
+     "bruto": 0.3704308571428571,
+     "efeito": 0.04265865352648759,
+     "dentro": 0.36748265352648757,
+     "codigos": 9
+    },
+    {
+     "faixa": "BA",
+     "rotulo": "BA",
+     "sem": false,
+     "n": 71,
+     "bruto": 0.3088724084507043,
+     "efeito": -0.01684476864444904,
+     "dentro": 0.30797923135555094,
+     "codigos": 10
+    },
+    {
+     "faixa": "CE",
+     "rotulo": "CE",
+     "sem": false,
+     "n": 43,
+     "bruto": 0.3248087441860465,
+     "efeito": 0.0025874357562102788,
+     "dentro": 0.3274114357562103,
+     "codigos": 10
+    },
+    {
+     "faixa": "DF",
+     "rotulo": "DF",
+     "sem": false,
+     "n": 15,
+     "bruto": 0.3391594,
+     "efeito": 0.01874646144125882,
+     "dentro": 0.3435704614412588,
+     "codigos": 6
+    },
+    {
+     "faixa": "ES",
+     "rotulo": "ES",
+     "sem": false,
+     "n": 1,
+     "bruto": 0.266682,
+     "efeito": -0.034066601626016324,
+     "dentro": 0.2907573983739837,
+     "codigos": 1
+    },
+    {
+     "faixa": "GO",
+     "rotulo": "GO",
+     "sem": false,
+     "n": 140,
+     "bruto": 0.3308845071428571,
+     "efeito": 0.0012606815151542808,
+     "dentro": 0.3260846815151543,
+     "codigos": 10
+    },
+    {
+     "faixa": "MA",
+     "rotulo": "MA",
+     "sem": false,
+     "n": 34,
+     "bruto": 0.3507489117647059,
+     "efeito": 0.004533130160594111,
+     "dentro": 0.3293571301605941,
+     "codigos": 8
+    },
+    {
+     "faixa": "MG",
+     "rotulo": "MG",
+     "sem": false,
+     "n": 61,
+     "bruto": 0.3266127213114754,
+     "efeito": 0.0015901021373469924,
+     "dentro": 0.326414102137347,
+     "codigos": 10
+    },
+    {
+     "faixa": "MS",
+     "rotulo": "MS",
+     "sem": false,
+     "n": 15,
+     "bruto": 0.31593513333333334,
+     "efeito": 0.0017930999644528748,
+     "dentro": 0.3266170999644529,
+     "codigos": 7
+    },
+    {
+     "faixa": "MT",
+     "rotulo": "MT",
+     "sem": false,
+     "n": 78,
+     "bruto": 0.35072479487179486,
+     "efeito": 0.0016819884665630776,
+     "dentro": 0.3265059884665631,
+     "codigos": 10
+    },
+    {
+     "faixa": "PA",
+     "rotulo": "PA",
+     "sem": false,
+     "n": 34,
+     "bruto": 0.3509396470588236,
+     "efeito": 0.025479678301646408,
+     "dentro": 0.35030367830164644,
+     "codigos": 9
+    },
+    {
+     "faixa": "PB",
+     "rotulo": "PB",
+     "sem": false,
+     "n": 2,
+     "bruto": 0.239367,
+     "efeito": -0.04026726174095739,
+     "dentro": 0.2845567382590426,
+     "codigos": 2
+    },
+    {
+     "faixa": "PE",
+     "rotulo": "PE",
+     "sem": false,
+     "n": 65,
+     "bruto": 0.32685783076923075,
+     "efeito": 0.011155850587771087,
+     "dentro": 0.3359798505877711,
+     "codigos": 10
+    },
+    {
+     "faixa": "PI",
+     "rotulo": "PI",
+     "sem": false,
+     "n": 8,
+     "bruto": 0.37333675,
+     "efeito": 0.03892607590732854,
+     "dentro": 0.36375007590732855,
+     "codigos": 7
+    },
+    {
+     "faixa": "PR",
+     "rotulo": "PR",
+     "sem": false,
+     "n": 100,
+     "bruto": 0.31734743000000004,
+     "efeito": -0.001371151533376141,
+     "dentro": 0.32345284846662387,
+     "codigos": 10
+    },
+    {
+     "faixa": "RJ",
+     "rotulo": "RJ",
+     "sem": false,
+     "n": 69,
+     "bruto": 0.3496755217391304,
+     "efeito": 0.021266028727056588,
+     "dentro": 0.3460900287270566,
+     "codigos": 9
+    },
+    {
+     "faixa": "RO",
+     "rotulo": "RO",
+     "sem": false,
+     "n": 9,
+     "bruto": 0.3218506666666667,
+     "efeito": 0.01993808232862454,
+     "dentro": 0.34476208232862454,
+     "codigos": 4
+    },
+    {
+     "faixa": "RS",
+     "rotulo": "RS",
+     "sem": false,
+     "n": 31,
+     "bruto": 0.32867080645161295,
+     "efeito": 0.014785396795519327,
+     "dentro": 0.3396093967955193,
+     "codigos": 9
+    },
+    {
+     "faixa": "SC",
+     "rotulo": "SC",
+     "sem": false,
+     "n": 44,
+     "bruto": 0.30916370454545455,
+     "efeito": 0.0018454588068240122,
+     "dentro": 0.326669458806824,
+     "codigos": 10
+    },
+    {
+     "faixa": "SP",
+     "rotulo": "SP",
+     "sem": false,
+     "n": 456,
+     "bruto": 0.31263221052631573,
+     "efeito": -0.010347262419223667,
+     "dentro": 0.3144767375807763,
+     "codigos": 10
+    }
+   ]
+  },
+  "q_laudo": {
+   "titulo": "Laudo cautelar",
+   "total": 1306,
+   "faixas": [
+    {
+     "faixa": "aprovado",
+     "rotulo": "aprovado",
+     "sem": false,
+     "n": 470,
+     "bruto": 0.31558217872340416,
+     "efeito": -0.01891918830670896,
+     "dentro": 0.30590481169329103,
+     "codigos": 10
+    },
+    {
+     "faixa": "aprovado_com_apontamento",
+     "rotulo": "aprovado_com_apontamento",
+     "sem": false,
+     "n": 186,
+     "bruto": 0.32278412903225806,
+     "efeito": 0.005357522346153413,
+     "dentro": 0.3301815223461534,
+     "codigos": 10
+    },
+    {
+     "faixa": "nao_informado",
+     "rotulo": "nao_informado",
+     "sem": false,
+     "n": 477,
+     "bruto": 0.32282026415094345,
+     "efeito": 0.004971710854547205,
+     "dentro": 0.32979571085454723,
+     "codigos": 9
+    },
+    {
+     "faixa": "reprovado",
+     "rotulo": "reprovado",
+     "sem": false,
+     "n": 145,
+     "bruto": 0.3552367724137931,
+     "efeito": 0.030225648992441508,
+     "dentro": 0.3550496489924415,
+     "codigos": 8
+    },
+    {
+     "faixa": "z sem laudo",
+     "rotulo": "sem laudo",
+     "sem": true,
+     "n": 28,
+     "bruto": 0.37012432142857143,
+     "efeito": 0.040760505937344094,
+     "dentro": 0.3655845059373441,
+     "codigos": 8
+    }
+   ]
+  }
+ }
+}

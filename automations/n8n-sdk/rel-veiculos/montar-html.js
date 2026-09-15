@@ -1,36 +1,48 @@
-/* ══════════════════════════════════════════════════════════════════════
+/* ════════
    NÓ "Montar HTML" — aderência loja x veículo, com filtro cruzado
 
-   ─── ELEGIBILIDADE (a regra que define o universo) ────────────────────
-   Um par (veículo, loja) só existe se as DUAS condições valerem:
+   ─── ELEGIBILIDADE (a regra que define o universo) ────────
+   Um par (veículo, loja) só existe se UMA condição valer:
 
-     1. MESMA UF     — a UF do veículo é a do PÁTIO onde ele está
-                       (`shop_stocks`), não a do endereço da loja
-                       vendedora; a da loja compradora vem do endereço
-                       dela. 68% dos veículos divergem entre as duas
-                       (sonda 50068), então a fonte importa muito.
-     2. MESMO WHITELABEL — a loja compradora precisa pertencer a um dos
-                       whitelabels que o EVENTO do veículo alveja. Um
-                       evento pode alvejar vários (`event_whitelabels`),
-                       então a comparação é loja.whitelabel_id ∈ conjunto
-                       do evento, não uma igualdade simples.
+     MESMO WHITELABEL — a loja compradora precisa pertencer a um dos
+                        whitelabels que o EVENTO do veículo alveja. Um
+                        evento pode alvejar vários (`event_whitelabels`),
+                        então a comparação é loja.whitelabel_id ∈ conjunto
+                        do evento, não uma igualdade simples.
 
    Fora disso não há aderência — nem baixa, nem zero: o par não existe.
-   Por isso o ranking de cada veículo é curto: ele só disputa dentro da
-   própria praça e do próprio canal.
 
-   ─── A FÓRMULA ───────────────────────────────────────────────────
-   Cinco componentes. Cada um tem uma ADERÊNCIA (0..1) e um PESO (0..1).
+   ⚠️ ATÉ 2026-09-11 A UF TAMBÉM ERA PORTA, e deixou de ser. Carro de São
+   Paulo nunca aparecia para loja de Minas; agora aparece, com o componente
+   de UF pesando contra. A UF do veículo continua saindo do PÁTIO
+   (`shop_stocks`), não do endereço da loja vendedora — 68% divergem entre
+   as duas (sonda 50068) —, só que agora ela informa em vez de excluir.
 
-     preço, idade, km:  aderência = 1 / (1 + |valor − média| / desvio)
+   Consequência medida: o universo de pares cresceu 5,3x e o ranking de
+   cada veículo ficou longo, o que é a razão de existir o TETO_LOJAS.
+   Comparar o número de correspondências com o de um relatório anterior a
+   essa data não faz sentido.
+
+   ─── A FÓRMULA ────────
+   OITO componentes. Cada um tem uma ADERÊNCIA (0..1) e um PESO (0..1).
+
+     preço, idade, km, deságio:
+                        aderência = 1 / (1 + |valor − média| / desvio)
                         peso      = 1 / (1 + desvio / média)     ← CV
 
        Loja de faixa apertada é previsível, então acertar o número dela
        vale muito. Loja que compra de tudo tem CV alto e o peso cai
        sozinho, porque o indicador não informa.
 
-     modelo, categoria: aderência = 1 se bate com o item mais ofertado
+     modelo, categoria, laudo, UF:
+                        aderência = 1 se bate com o item mais ofertado
                         peso      = o % de ofertas da loja naquele item
+
+       ⚠️ A UF entrou aqui em 2026-09-11 e ANTES ERA UMA PORTA: par entre
+       UFs diferentes simplesmente não existia. Agora é preferência com
+       peso proporcional — loja que compra 90% na própria praça prioriza
+       forte, loja que compra 0% fica indiferente. Como o universo de pares
+       cresceu 5,3x, existe TETO_LOJAS por veículo.
 
    score = Σ(peso × aderência) / Σ(peso), de 0 a 100.
 
@@ -39,7 +51,7 @@
    liderar por sorte. Ponha 1 para desligar.
 
    Volume de ofertas NÃO entra no score — está na tela como leitura.
-   ══════════════════════════════════════════════════════════════════════ */
+   ════════ */
 
 const CONFIANCA_MIN = 5;
 
@@ -52,6 +64,53 @@ const CONFIANCA_MIN = 5;
    deixaria passar loja com um carro so de historico e aderencia 100, que e
    justamente o caso que a confianca existe pra segurar. */
 const CORRESP_MIN = 50;
+
+/* TETO DE LOJAS POR VEICULO (2026-09-11, segunda rodada).
+   Existe porque a UF deixou de ser porta: cada veiculo passou a disputar com
+   todas as lojas do canal, e sem teto sao 203.658 pares e ~20 MB de HTML,
+   que trava navegador. Medido na simulacao local sobre o run 50379.
+
+   E POR VEICULO, nao global, porque o relatorio e um ranking: teto global
+   cortaria veiculos inteiros, teto por veiculo corta a cauda de cada um.
+   Com 30 o arquivo fica em ~3,6 MB, menor que os 4,5 MB de hoje, com 5,3x
+   mais candidatos avaliados.
+
+   Ponha 0 para desligar. */
+const TETO_LOJAS = 30;
+
+/* o mesmo corte de outlier que a fase 2 aplica no desagio das lojas. O
+   desagio do VEICULO e calculado aqui (valor e fipe ja estao na base, pedir
+   ao banco custaria 26 chamadas por nada), entao o corte precisa ser o
+   mesmo dos dois lados -- senao a aderencia compara coisas de escalas
+   diferentes. */
+const DESAGIO_MIN = -100;
+const DESAGIO_MAX = 95;
+
+/* os seis estados do laudo. `ausente` NAO e um valor do banco: e a ausencia
+   de linha em vehicle_precautionary_reports, e vale como categoria propria
+   porque "nao tem laudo" e diferente de "tem laudo que nao diz nada"
+   (`nao_informado`, 78% da base). */
+const LAUDO_AUSENTE = 'ausente';
+const LAUDO_CHAVES = ['aprovado', 'apontamento', 'reprovado', 'nao_informado',
+                      'vazio', LAUDO_AUSENTE];
+const LAUDO_NOME = {
+  aprovado: 'Aprovado',
+  apontamento: 'Aprovado com apontamento',
+  reprovado: 'Reprovado',
+  nao_informado: 'Nao informado',
+  vazio: 'Laudo sem situacao',
+  ausente: 'Sem laudo'
+};
+/* o banco escreve `aprovado_com_apontamento`; a coluna pivotada da fase 2
+   chama `laudo_apontamento`. Um de-para explicito evita que a diferenca de
+   nome vire aderencia zero em silencio. */
+function laudoChave(x) {
+  const v = String(x == null ? '' : x).trim();
+  if (!v) return null;
+  if (v === 'aprovado_com_apontamento') return 'apontamento';
+  if (LAUDO_CHAVES.indexOf(v) >= 0) return v;
+  return 'vazio';
+}
 
 const pedidos = $('Montar Fase 2').all().map((i) => i.json);
 const outs = $('MCP Fase 2').all();
@@ -66,7 +125,7 @@ function erroTexto(e) {
   try { return JSON.stringify(e).slice(0, 300); } catch (x) { return String(e).slice(0, 300); }
 }
 
-/* ── ingestão ────────────────────────────────────────────────────── */
+/* ── ingestão ──────── */
 const dados = {};
 const diag = {};
 for (let i = 0; i < pedidos.length; i++) {
@@ -112,7 +171,7 @@ function primeiraPorLoja(arr) {
   return m;
 }
 
-/* ── mapa evento -> whitelabels que ele alveja ─────────────────────────── */
+/* ── mapa evento -> whitelabels que ele alveja ──────── */
 const eventoWl = {};
 const wlNome = {};
 (META.evento_wl || []).forEach((r) => {
@@ -122,9 +181,77 @@ const wlNome = {};
   if (r.whitelabel) wlNome[String(r.whitelabel_id)] = r.whitelabel;
 });
 
-/* ── perfil das lojas ───────────────────────────────────────────── */
+/* ── as sete faixas de recencia ────────
+   Regra do Thomas (2026-09-11), com "ofertou" no lugar de "comprou". Em
+   cascata: a primeira que bate ganha, entao a ORDEM e a regra.
+
+   A faixa 2 usa a janela do proprio relatorio em vez de "180 dias". Medido
+   na sonda 50347: com INTERVAL 180 DAY contra uma base de 6 meses de
+   calendario (184 dias), 16 lojas cairam em Prata/Recuperacao so pelos 4
+   dias de diferenca -- artefato de unidade, nao segmento real.
+
+   🚨 Nesta base o cluster e DEGENERADO e isso nao e defeito da regra: a base
+   *e* "lojas que ofertaram nos ultimos 6 meses", entao nenhuma pode cair em
+   "nunca ofertou" e 98,8% fica em Diamante ou Ouro. Medido antes de
+   implementar; entra assim por decisao do Thomas. Os sete so tem para onde
+   variar sobre o universo inteiro de lojas.
+
+   ⚠️ "Nunca acessou" e uma promessa que o dado NAO sustenta: `access_logs`
+   comeca em 2025-08-31. O que existe e "nao acessou nos ultimos 12 meses", e
+   o glossario diz isso com todas as letras. Ja "nunca ofertou" e verificavel
+   de verdade -- `offers` alcanca 2020-06-24. */
+const CLUSTERS = {
+  1: { nome: 'Cliente Diamante', desc: 'Top — ofertou nos últimos 30 dias' },
+  2: { nome: 'Cliente Ouro', desc: 'Ativo recente — ofertou na janela de 6 meses' },
+  3: { nome: 'Cliente Prata', desc: 'Risco de churn — já ofertou e acessou nos últimos 90 dias' },
+  4: { nome: 'Cliente Recuperação', desc: 'Ex-ofertante — já ofertou mas não acessou nos últimos 90 dias' },
+  5: { nome: 'Lead Quente', desc: 'Engajado sem oferta — acessou nos últimos 90 dias, nunca ofertou' },
+  6: { nome: 'Lead Morno', desc: 'Inativo — não acessou nos últimos 90 dias e nunca ofertou' },
+  7: { nome: 'Lead Frio', desc: 'Nunca engajado — sem acesso registrado e nunca ofertou' }
+};
+
+/* O banco grava data de evento em hora de Brasilia mas responde NOW() em
+   UTC (ver dominios.md). META.agora_br ja e o relogio de Brasilia calculado
+   no no, entao comparar contra ele mantem os dois lados no mesmo fuso. */
+function instante(x) {
+  if (!x) return null;
+  const t = Date.parse(String(x).indexOf('T') > 0 ? String(x)
+    : String(x).split(' ').join('T') + 'Z');
+  return isNaN(t) ? null : t;
+}
+const AGORA_MS = instante(META.agora_br) || Date.now();
+const INI_MS = instante(META.data_ini);
+const DIA = 86400000;
+
+function clusterDe(ultOferta, ultAcesso) {
+  const o = instante(ultOferta);
+  const a = instante(ultAcesso);
+  if (o !== null && o >= AGORA_MS - 30 * DIA) return 1;
+  if (o !== null && INI_MS !== null && o >= INI_MS) return 2;
+  if (o !== null && a !== null && a >= AGORA_MS - 90 * DIA) return 3;
+  if (o !== null) return 4;
+  if (a !== null && a >= AGORA_MS - 90 * DIA) return 5;
+  if (a !== null) return 6;
+  return 7;
+}
+
+/* ── perfil das lojas ──────── */
 const iOf = indexa(dados.q_ofertas || [], 'shop_id');
 const iPe = indexa(dados.q_perfil || [], 'shop_id');
+const iUl = indexa(dados.q_uf_laudo || [], 'shop_id');
+const iCt = indexa(dados.q_contato || [], 'shop_id');
+const iCl = indexa(dados.q_cluster || [], 'shop_id');
+
+/* Os seis baldes de laudo tem que somar as ofertas da loja. Nao somando, a
+   juncao com vehicle_precautionary_reports duplicou ofertas (veiculo com
+   mais de um laudo) -- fan-out silencioso, a familia de erro que ja mordeu
+   duas vezes aqui. Conta-se para declarar na tela, nao para arredondar. */
+let laudoDesencontro = 0;
+(dados.q_uf_laudo || []).forEach((r) => {
+  const soma = num(r.laudo_ausente) + num(r.laudo_aprovado) + num(r.laudo_apontamento) +
+    num(r.laudo_reprovado) + num(r.laudo_nao_informado) + num(r.laudo_vazio);
+  if (soma !== num(r.ofertas_base)) laudoDesencontro++;
+});
 const iMo = primeiraPorLoja(dados.q_modelo || []);
 const iCa = primeiraPorLoja(dados.q_categoria || []);
 
@@ -149,6 +276,36 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
   const kmMedio = num(pe.km_medio);
   const kmDesvio = num(pe.km_desvio);
   const qtVeiculos = num(pe.qt_veiculos);
+
+  /* os cinco campos de 11/09 */
+  const ul = iUl[k] || {};
+  const ct = iCt[k] || {};
+  const cl = iCl[k] || {};
+  const base = num(ul.ofertas_base);
+  const fatia = (n) => (base ? Math.round((num(n) / base) * 1000) / 10 : null);
+  const cid = clusterDe(cl.ult_oferta, cl.ult_acesso);
+
+  /* moda de laudo da loja: o balde com mais ofertas, e o peso e a fatia
+     dele. Mesma forma de modelo e categoria -- loja que concentra 70% das
+     ofertas em carro aprovado faz o indicador pesar; loja que compra de
+     tudo tem peso baixo e o indicador deixa de mandar. */
+  let laudoModa = null;
+  let laudoN = 0;
+  if (base) {
+    const balde = {
+      aprovado: num(ul.laudo_aprovado), apontamento: num(ul.laudo_apontamento),
+      reprovado: num(ul.laudo_reprovado), nao_informado: num(ul.laudo_nao_informado),
+      vazio: num(ul.laudo_vazio), ausente: num(ul.laudo_ausente)
+    };
+    /* empate desempatado pela ORDEM de LAUDO_CHAVES, que e fixa -- assim a
+       mesma loja da o mesmo resultado entre dois runs. Mesmo motivo do
+       MIN(item_id) na moda de modelo. */
+    for (let i = 0; i < LAUDO_CHAVES.length; i++) {
+      const k = LAUDO_CHAVES[i];
+      if ((balde[k] || 0) > laudoN) { laudoN = balde[k]; laudoModa = k; }
+    }
+  }
+
   return {
     loja_id: num(s.shop_id), loja: s.loja,
     whitelabel_id: num(s.whitelabel_id),
@@ -164,11 +321,52 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
     p_idade: pesoNum(idadeMedia, idadeDesvio),
     p_km: pesoNum(kmMedio, kmDesvio),
     confianca: Math.min(1, (qtVeiculos || 0) / CONFIANCA_MIN),
-    amostra_baixa: (qtVeiculos || 0) < CONFIANCA_MIN
+    amostra_baixa: (qtVeiculos || 0) < CONFIANCA_MIN,
+
+    /* 1. desagio medio contra a FIPE do anuncio, ja com o corte de outlier
+       aplicado no SQL. `desagio_n` diz sobre quantos veiculos a media foi
+       feita -- media de 3 carros e media de 300 nao valem a mesma coisa. */
+    desagio: num(pe.desagio_medio),
+    desagio_desvio: num(pe.desagio_desvio),
+    desagio_n: num(pe.desagio_n),
+    /* peso do desagio: o mesmo inverso do CV de preco, idade e km. Loja que
+       compra sempre 30% abaixo da FIPE e previsivel; loja erratica tem CV
+       alto e o peso cai sozinho. */
+    p_desagio: pesoNum(num(pe.desagio_medio), num(pe.desagio_desvio)),
+    /* laudo como indicador qualitativo, igual a modelo e categoria */
+    laudo_moda: laudoModa,
+    laudo_moda_nome: laudoModa ? LAUDO_NOME[laudoModa] : null,
+    pct_laudo: base ? (laudoN / base) : 0,
+    /* peso da UF: a fatia de ofertas que a loja faz dentro do proprio
+       estado. Loja que compra 90% na praca prioriza forte; loja que compra
+       20% e quase indiferente a UF. */
+    p_uf: base ? (num(ul.ofertas_mesma_uf) / base) : 0,
+    /* 2. quanto a loja oferta dentro da propria praca */
+    pct_mesma_uf: fatia(ul.ofertas_mesma_uf),
+    /* 3. laudo: seis categorias, e `ausente` nao e `nao_informado` */
+    laudo: base ? {
+      ausente: fatia(ul.laudo_ausente),
+      aprovado: fatia(ul.laudo_aprovado),
+      apontamento: fatia(ul.laudo_apontamento),
+      reprovado: fatia(ul.laudo_reprovado),
+      nao_informado: fatia(ul.laudo_nao_informado),
+      vazio: fatia(ul.laudo_vazio)
+    } : null,
+    /* 4. contato. PII: isto sai no HTML e o HTML sobe pro SharePoint. */
+    email: ct.email || null,
+    qt_emails: num(ct.qt_emails),
+    tel_comercial: ct.tel_comercial || null,
+    whatsapp: ct.whatsapp || null,
+    tel_privativo: ct.tel_privativo || null,
+    /* 5. faixa de recencia, id e nome resolvidos aqui para a tela so exibir */
+    cluster: cid,
+    cluster_nome: CLUSTERS[cid].nome,
+    ult_oferta: cl.ult_oferta || null,
+    ult_acesso: cl.ult_acesso || null
   };
 }).filter((l) => l.qt_veiculos);
 
-/* ── veículos ──────────────────────────────────────────────────── */
+/* ── veículos ──────── */
 const STATUS_NOME = {
   1: 'Ativo', 2: 'Aguardando Pagamento', 3: 'Aguardando Confirmacao de Pagamento',
   7: 'Vendido', 8: 'Suspenso', 9: 'Em Analise Comprador', 10: 'Cancelado',
@@ -183,6 +381,17 @@ const vistos = {};
 let dupVeic = 0;
 const ANO = new Date().getFullYear();
 const veiculos = [];
+
+/* desagio do veiculo, com o MESMO corte que a fase 2 aplica no das lojas.
+   Fora da faixa devolve null em vez de um numero absurdo: o dado cru chega
+   a -1.586%, e um par comparado contra isso produziria aderencia sem
+   sentido em vez de nenhuma. */
+function desagioDe(valor, fipe) {
+  if (valor === null || fipe === null || !fipe || fipe <= 0) return null;
+  const d = 100 * (1 - (valor / fipe));
+  if (d < DESAGIO_MIN || d > DESAGIO_MAX) return null;
+  return Math.round(d * 100) / 100;
+}
 
 /* cars2you.com.br/anuncio/veiculo/{marca}/{modelo}/{versao}/{uuid}
    Padrao da reuniao de 25/08, conferido contra os exemplos do Gui. Tudo
@@ -217,6 +426,16 @@ function linkAnuncio(marca, modelo, versao, uuid) {
     model_id: num(r.model_id), modelo: r.modelo,
     category_id: num(r.category_id), categoria: r.categoria,
     marca: r.marca, model_year: my, idade: my ? ANO - my : null, km: num(r.km),
+    /* desagio DO VEICULO: quanto o valor esta abaixo da FIPE do anuncio.
+       Calculado aqui porque `valor` e `fipe` ja vieram na q_veiculos --
+       pedir ao banco custaria 26 chamadas por um numero que ja se tem.
+       Mesmo corte de outlier das lojas: as duas pontas tem que estar na
+       mesma escala pra aderencia significar alguma coisa. */
+    desagio: desagioDe(num(r.valor), num(r.fipe)),
+    /* laudo: NULL no banco vira 'ausente', que e categoria propria. Ver o
+       comentario em LAUDO_CHAVES. */
+    laudo: laudoChave(r.laudo) || LAUDO_AUSENTE,
+    laudo_nome: LAUDO_NOME[laudoChave(r.laudo) || LAUDO_AUSENTE],
     loja_id: num(r.loja_id), loja_vendedora: r.loja_vendedora, uf: r.uf,
     wls: wls,
     wl_nomes: wls.map((w) => wlNome[String(w)] || ('#' + w)).join(', '),
@@ -231,7 +450,7 @@ function linkAnuncio(marca, modelo, versao, uuid) {
   });
 });
 
-/* ── aderência, só entre pares elegíveis ─────────────────────────────── */
+/* ── aderência, só entre pares elegíveis ──────── */
 function adNum(valor, media, desvio) {
   if (valor === null || media === null || !media) return null;
   if (desvio && desvio > 0) return 1 / (1 + (Math.abs(valor - media) / desvio));
@@ -251,6 +470,21 @@ function pontua(v, l) {
   if (l.pct_categoria > 0 && v.category_id !== null) {
     comps.push({ k: 'categoria', a: (v.category_id === l.categoria_id ? 1 : 0), p: l.pct_categoria });
   }
+  /* desagio: QUANTITATIVO, mesma forma de preco, idade e km */
+  const aD = adNum(v.desagio, l.desagio, l.desagio_desvio);
+  if (aD !== null && l.p_desagio > 0) comps.push({ k: 'desagio', a: aD, p: l.p_desagio });
+  /* laudo: QUALITATIVO, mesma forma de modelo e categoria */
+  if (l.pct_laudo > 0 && l.laudo_moda) {
+    comps.push({ k: 'laudo', a: (v.laudo === l.laudo_moda ? 1 : 0), p: l.pct_laudo });
+  }
+  /* UF: QUALITATIVO. Ate 2026-09-11 era uma PORTA -- par entre UFs
+     diferentes simplesmente nao existia. Agora e preferencia, com peso
+     igual a fatia de ofertas que a loja faz na propria praca: quem compra
+     90% dentro do estado prioriza forte, quem compra 20% e quase
+     indiferente. */
+  if (l.p_uf > 0) {
+    comps.push({ k: 'uf', a: (v.uf === l.uf ? 1 : 0), p: l.p_uf });
+  }
   if (!comps.length) return null;
   let somaP = 0, somaPA = 0;
   for (let i = 0; i < comps.length; i++) { somaP += comps[i].p; somaPA += comps[i].p * comps[i].a; }
@@ -260,11 +494,15 @@ function pontua(v, l) {
   return { score: (somaPA / somaP) * l.confianca * 100, det: det };
 }
 
-/* índice de lojas por UF, pra não varrer as 1.300 em cada veículo */
-const porUf = {};
+/* Indice de lojas por WHITELABEL, nao mais por UF.
+   A UF deixou de ser porta em 2026-09-11 (virou indicador com peso), entao
+   o que ainda restringe o universo e so o canal do evento. Sem indice
+   nenhum seriam 1.256 x 1.299 comparacoes; com ele, 670 mil. */
+const porWl = {};
 lojasTodas.forEach((l, i) => {
-  if (!porUf[l.uf]) porUf[l.uf] = [];
-  porUf[l.uf].push(i);
+  const k = String(l.whitelabel_id);
+  if (!porWl[k]) porWl[k] = [];
+  porWl[k].push(i);
 });
 
 /* Canais que tem PELO MENOS UMA loja no universo inteiro, nao so entre as
@@ -279,27 +517,40 @@ let descartados = 0;       /* pares que existiam mas nao chegaram a CORRESP_MIN 
 const pares = [];          /* flat: [vi, li, score*10, det...] */
 const detPares = [];       /* decomposição, mesmo índice do par */
 const usadas = {};
+let cortadosPeloTeto = 0;  /* passaram no corte mas ficaram fora do top-N */
 veiculos.forEach((v, vi) => {
-  const cands = porUf[v.uf] || [];
-  const wlSet = {};
-  v.wls.forEach((w) => { wlSet[String(w)] = 1; });
-  let n = 0;
+  /* candidatos = lojas do CANAL do evento. A UF nao exclui mais ninguem. */
+  const vistosL = {};
+  const cands = [];
+  v.wls.forEach((w) => {
+    (porWl[String(w)] || []).forEach((i) => {
+      if (!vistosL[i]) { vistosL[i] = 1; cands.push(i); }
+    });
+  });
   let eleg = 0;
+  /* junta TODOS os que passam do corte, ordena, e so entao aplica o teto.
+     Cortar durante a varredura guardaria os primeiros, nao os melhores. */
+  const passaram = [];
   for (let i = 0; i < cands.length; i++) {
     const l = lojasTodas[cands[i]];
-    if (!wlSet[String(l.whitelabel_id)]) continue;   /* whitelabel do evento */
     /* passou na regra de elegibilidade. Contar AQUI, antes do corte, e o
        que permite distinguir "nao ha loja pra este carro" de "havia loja e
        o corte cortou" -- duas causas que pedem decisoes opostas. */
     eleg++;
     const r = pontua(v, l);
     if (!r || !(r.score >= CORRESP_MIN)) { if (r) descartados++; continue; }
-    pares.push(vi, cands[i], Math.round(r.score * 10));
-    detPares.push(r.det);
-    usadas[cands[i]] = 1;
-    n++;
+    passaram.push({ i: cands[i], s: Math.round(r.score * 10), d: r.det });
   }
-  v.candidatos = n;
+  passaram.sort((a, b) => b.s - a.s);
+  const fica = TETO_LOJAS > 0 ? passaram.slice(0, TETO_LOJAS) : passaram;
+  cortadosPeloTeto += passaram.length - fica.length;
+  for (let i = 0; i < fica.length; i++) {
+    pares.push(vi, fica[i].i, fica[i].s);
+    detPares.push(fica[i].d);
+    usadas[fica[i].i] = 1;
+  }
+  v.candidatos = fica.length;
+  v.acima_do_corte = passaram.length;   /* antes do teto */
   v.elegiveis = eleg;
   /* o canal inteiro nao tem loja: o par era impossivel desde o inicio */
   v.canal_sem_loja = !!(v.wls.length && !v.wls.some((w) => wlComLoja[String(w)]));
@@ -325,7 +576,24 @@ Object.keys(usadas).map(Number).sort((a, b) => a - b).forEach((idx) => {
     modelo: l.modelo, categoria: l.categoria,
     pct_modelo: Math.round(l.pct_modelo * 1000) / 10,
     pct_categoria: Math.round(l.pct_categoria * 1000) / 10,
-    amostra_baixa: l.amostra_baixa
+    amostra_baixa: l.amostra_baixa,
+    desagio: l.desagio, desagio_n: l.desagio_n,
+    /* os pesos e as modas dos indicadores novos TEM que ser publicados:
+       a pontuacao usa `lojasTodas`, mas a tela e o prova-local so enxergam
+       este array. Esqueci na primeira versao e o efeito foi silencioso --
+       score certo, campo `undefined` na tela. E a mesma familia do "cada no
+       reconstroi o proprio META". */
+    desagio_desvio: l.desagio_desvio, p_desagio: l.p_desagio,
+    laudo_moda: l.laudo_moda, laudo_moda_nome: l.laudo_moda_nome,
+    pct_laudo: Math.round(l.pct_laudo * 1000) / 10,
+    p_uf: Math.round(l.p_uf * 1000) / 1000,
+    pct_mesma_uf: l.pct_mesma_uf,
+    laudo: l.laudo,
+    email: l.email, qt_emails: l.qt_emails,
+    tel_comercial: l.tel_comercial, whatsapp: l.whatsapp,
+    tel_privativo: l.tel_privativo,
+    cluster: l.cluster, cluster_nome: l.cluster_nome,
+    ult_oferta: l.ult_oferta, ult_acesso: l.ult_acesso
   });
 });
 /* reindexa os pares para o array publicado */
@@ -344,7 +612,7 @@ for (let i = 0; i < pares.length; i += 3) {
 veiculos.forEach((v, i) => { v.melhor = v.candidatos ? melhorV[i] : null; });
 lojas.forEach((l, i) => { l.melhor = melhorL[i]; l.pares = nParesL[i]; });
 
-/* ── completude ────────────────────────────────────────────────── */
+/* ── completude ──────── */
 const falhas = [];
 if (META.esperado_veiculos && veiculos.length !== META.esperado_veiculos) {
   falhas.push('coletei ' + veiculos.length + ' veiculos mas a fase 1 contou ' +
@@ -359,7 +627,7 @@ if (dupVeic) {
   falhas.push(dupVeic + ' veiculo(s) vieram mais de uma vez do banco e foram descartados: ' +
     'a query deveria trazer so a ultima negociacao de cada um');
 }
-/* ── os canais do recorte sao mesmo os que eu penso? ───────────────────
+/* ── os canais do recorte sao mesmo os que eu penso? ────────
    O recorte e por ID, e id errado nao da erro de SQL: a base so vem menor,
    com um canal faltando, e parece plausivel. A fase 1 perguntou o nome de
    cada id ao banco; aqui se confere contra o nome esperado. */
@@ -406,6 +674,13 @@ const mLoj = META.moda_lojas || {};
 
 const semWl = veiculos.filter((v) => !v.wls.length).length;
 if (semWl) falhas.push(semWl + ' veiculo(s) em evento sem whitelabel declarado: ficam sem nenhuma loja elegivel');
+/* os seis baldes de laudo tem que somar as ofertas da loja; nao somando, a
+   juncao duplicou ofertas (veiculo com mais de um laudo). Declarar, nao
+   arredondar -- fan-out silencioso ja mordeu duas vezes neste projeto. */
+if (laudoDesencontro) {
+  falhas.push(laudoDesencontro + ' loja(s) em que os status de laudo nao somam o total de ofertas: ' +
+    'algum veiculo tem mais de um laudo e as ofertas dele foram contadas em duplicata');
+}
 /* Tres populacoes, tres causas, tres decisoes diferentes. Declarar as tres
    como uma frase so fez o run 50106 parecer ter 23% de buraco, quando 9,6%
    era impossivel por construcao e so 8,8% responde ao limiar. */
@@ -419,7 +694,21 @@ if (semCanal) {
     'construcao — nao e falta de aderencia, e categoria.');
 }
 if (semNaUf) {
-  falhas.push(semNaUf + ' veiculo(s) sem nenhuma loja do canal na UF do patio.');
+  /* Ate 2026-09-11 isto dizia "sem loja do canal na UF do patio". A UF
+     deixou de ser porta, entao a unica forma de ficar sem elegivel agora e
+     o canal nao ter loja alguma -- que ja tem KPI proprio. Se este numero
+     aparecer, e sinal de outra coisa. */
+  falhas.push(semNaUf + ' veiculo(s) com canal povoado mas nenhuma loja elegivel: ' +
+    'a UF nao exclui mais, entao isto nao deveria acontecer — investigar.');
+}
+/* Par cortado pelo TETO e par que passou de tudo e ficou de fora mesmo
+   assim. Declarar, sempre: descarte silencioso e o defeito que este
+   relatorio persegue desde o inicio. */
+if (cortadosPeloTeto) {
+  falhas.push(cortadosPeloTeto.toLocaleString('pt-BR') + ' par(es) passaram da ' +
+    'correspondencia minima mas ficaram fora do teto de ' + TETO_LOJAS +
+    ' lojas por veiculo — sao os de menor score de cada carro, e o teto existe ' +
+    'porque sem ele o arquivo passa de 20 MB.');
 }
 if (cortadosPeloMin) {
   falhas.push(cortadosPeloMin + ' veiculo(s) TINHAM loja elegivel, mas nenhuma ' +
@@ -432,6 +721,11 @@ const DADOS = {
   meta: {
     meses_historico: META.meses_historico, data_ini: META.data_ini,
     agora_br: META.agora_br, janela_ini: META.janela_ini, janela_fim: META.janela_fim,
+    /* o glossario imprime o corte do desagio, e a regeneracao local le
+       META de DADOS.meta -- que e um SUBCONJUNTO curado, nao o META
+       inteiro. Campo esquecido aqui chega `undefined` no texto do
+       glossario, em silencio. Ja aconteceu duas vezes neste projeto. */
+    desagio_min: META.desagio_min, desagio_max: META.desagio_max,
     esperado_veiculos: META.esperado_veiculos, esperado_lojas: META.esperado_lojas,
     cobertura_valor: META.cobertura_valor
   },
@@ -460,6 +754,8 @@ const DADOS = {
     sem_canal: semCanal,
     sem_loja_na_uf: semNaUf,
     cortados_pelo_min: cortadosPeloMin,
+    cortados_pelo_teto: cortadosPeloTeto,
+    teto_lojas: TETO_LOJAS,
     media_candidatos: veiculos.length
       ? Math.round(veiculos.reduce((s, v) => s + v.candidatos, 0) / veiculos.length) : 0
   },
@@ -589,6 +885,14 @@ const CSS = [
   'tr.ctxr .uf{color:var(--tx);font-weight:600;letter-spacing:.3px}',
   'a.lk{color:var(--ac);text-decoration:none;border-bottom:1px dotted var(--ac)}',
   'a.lk:hover{border-bottom-style:solid}',
+  /* painel dos cinco campos: grade que quebra sozinha no estreito */
+  '.xg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}',
+  '.xk{flex:1 1 170px;background:var(--bg);border:1px solid var(--line);',
+  'border-left:3px solid var(--mar);border-radius:7px;padding:8px 11px}',
+  '.xk span{display:block;color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}',
+  '.xk b{display:block;font-size:17px;font-weight:600;margin-top:2px}',
+  '.xk i{display:block;color:var(--dim);font-size:10.5px;font-style:normal;margin-top:2px}',
+  '.xk a{color:var(--mar)}',
   '.tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;',
   'background:#eaf2fe;color:var(--ac);white-space:nowrap}',
   '.tag.w{background:#fff3e0;color:#b25e00}',
@@ -667,12 +971,19 @@ const APP = [
   'function passaL(l,w,uf){return (w===null||l.whitelabel_id===w)&&(uf===null||l.uf===uf);}',
   /* `tot` e CONTADO, nao somado. Somar as opcoes inflava o whitelabel:
      um evento alveja varios canais e o mesmo carro conta em cada um. */
-  'function opcoes(alvo,itens,rotulo,conta,tot,cur){',
+  /* `extra` e um contador SECUNDARIO, opcional. Existe por causa do facete
+     de UF: desde que a UF deixou de ser porta (11/09), uma loja pode ficar
+     numa UF onde nao ha veiculo nenhum -- e ela sumia da lista, porque a
+     contagem e de veiculos e opcao zerada era descartada. Medido no run
+     50406: a loja #104753 fica em RR, tem 19 pares, e RR nao aparecia. */
+  'function opcoes(alvo,itens,rotulo,conta,tot,cur,extra){',
   'var manteve=false;',
   'const opts=itens.map(function(it,i){',
-  'const n=conta(it);if(!n)return "";',
+  'const n=conta(it);const x=extra?extra(it):0;',
+  'if(!n&&!x)return "";',
   'if(String(i)===cur)manteve=true;',
-  `return "<option value='"+i+"'>"+rotulo(it)+" ("+n+")</option>";}).join("");`,
+  `const rot=n?(" ("+n+")"):(" (0 · "+x+" loja"+(x>1?"s":"")+")");`,
+  `return "<option value='"+i+"'>"+rotulo(it)+rot+"</option>";}).join("");`,
   `$(alvo).innerHTML="<option value=''>"+(alvo==="#f_wl"?"Todos os whitelabels":alvo==="#f_uf"?"Todas as UFs":"Todos os eventos")+" ("+tot+")</option>"+opts;`,
   '$(alvo).value=manteve?cur:"";}',
   'function pintaFiltros(){',
@@ -680,8 +991,12 @@ const APP = [
   'const qt=function(e2,w2,u2){return D.veiculos.filter(function(v){return passaV(v,e2,w2,u2);}).length;};',
   'opcoes("#f_wl",wls,function(x){return esc(wlNome[x]);},',
   'function(x){return qt(ev,x,uf);},qt(ev,null,uf),$("#f_wl").value);',
+  /* o quinto argumento conta LOJAS naquela UF: e o que impede uma UF com
+     loja e sem veiculo de desaparecer do filtro. */
+  'const qtL=function(w2,u2){return D.lojas.filter(function(l){return passaL(l,w2,u2);}).length;};',
   'opcoes("#f_uf",ufs,function(x){return esc(x);},',
-  'function(x){return qt(ev,w,x);},qt(ev,w,null),$("#f_uf").value);',
+  'function(x){return qt(ev,w,x);},qt(ev,w,null),$("#f_uf").value,',
+  'function(x){return qtL(w,x);});',
   'opcoes("#f_ev",evs,function(x){return esc(x)+(evFechado[x]?" [encerrado]":"");},',
   'function(x){return qt(x,w,uf);},qt(null,w,uf),$("#f_ev").value);}',
   'var selV=null,selL=null;',
@@ -721,7 +1036,7 @@ const APP = [
   /* ---- helpers de celula ---- */
   `function barra(s){return "<span class='bar' style='width:"+Math.round(s/2.6)+"px'></span> "+nf(s,1);}`,
   'function celulas(s,conf){if(s===null||s===undefined)return "<td>—</td><td>—</td>";const c=conf||1;const bruto=s/c;return "<td>"+nf(bruto,1)+"</td><td>"+barra(s)+"</td>";}',
-  `function det(d){if(!d)return "";const p=[];["preco","idade","km","modelo","categoria"].forEach(k=>{if(d[k]!==undefined)p.push(k[0].toUpperCase()+" "+d[k]);});return "<span class='dim mono'>"+p.join(" · ")+"</span>";}`,
+  `function det(d){if(!d)return "";const p=[];["preco","idade","km","desagio","modelo","categoria","laudo","uf"].forEach(k=>{if(d[k]!==undefined)p.push(k[0].toUpperCase()+" "+d[k]);});return "<span class='dim mono'>"+p.join(" · ")+"</span>";}`,
   /* ---- veiculos: dois niveis por carro ---- */
   'function linhasV(){',
   'const q=$("#f_v").value.toLowerCase();',
@@ -781,7 +1096,7 @@ const APP = [
   /* ---- contexto da selecao ---- */
   'function ctx(){',
   'if(selV!==null){const v=D.veiculos[selV];',
-  `$("#ctx").innerHTML="<b>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" "+(v.model_year||"")+"</b> · "+money(v.valor)+" · "+nf(v.km)+" km · "+esc(v.categoria||"?")+" · "+esc(v.uf)+" · "+esc(v.evento)+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener'>abrir anúncio ↗</a>":"")+"<br><span class='dim'>"+(v.canal_sem_loja?"O canal deste evento (<b>"+esc(v.wl_nomes||"?")+"</b>) não tem loja compradora alguma — é canal de pessoa física, então não existe par possível para este veículo.":"Lojas elegíveis: mesma UF (<b>"+esc(v.uf)+"</b>) e whitelabel do evento (<b>"+esc(v.wl_nomes||"nenhum")+"</b>) — "+nf(v.elegiveis)+" elegível(is), "+nf(v.candidatos)+" acima de "+MIN+"%.")+"</span>";`,
+  `$("#ctx").innerHTML="<b>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" "+(v.model_year||"")+"</b> · "+money(v.valor)+" · "+nf(v.km)+" km · "+esc(v.categoria||"?")+" · "+esc(v.uf)+" · "+esc(v.evento)+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener'>abrir anúncio ↗</a>":"")+"<br><span class='dim'>"+(v.canal_sem_loja?"O canal deste evento (<b>"+esc(v.wl_nomes||"?")+"</b>) não tem loja compradora alguma — é canal de pessoa física, então não existe par possível para este veículo.":"Lojas elegíveis: as do canal do evento (<b>"+esc(v.wl_nomes||"nenhum")+"</b>) — "+nf(v.elegiveis)+" elegível(is), "+nf(v.candidatos)+" acima de "+MIN+"%. A UF do pátio (<b>"+esc(v.uf)+"</b>) não exclui ninguém: ela <b>pesa</b> no score de cada loja, conforme o quanto aquela loja compra na própria praça.")+"</span>";`,
   '$("#ctx").style.display="";return;}',
   'if(selL!==null){const l=D.lojas[selL];',
   `$("#ctx").innerHTML="<b>"+esc(l.loja)+"</b> · "+esc(l.uf)+" · "+esc(l.whitelabel)+" · perfil: "+money(l.preco_medio)+" · "+nf(l.idade_media,1)+" anos · "+nf(l.km_medio)+" km · "+esc(l.modelo||"?")+" ("+nf(l.pct_modelo,1)+"% das ofertas)<br><span class='dim'>Veículos elegíveis: "+nf(l.pares)+", ordenados por aderência.</span>";`,
@@ -798,19 +1113,57 @@ const APP = [
   'const linhas=[];',
   '[["Preço",l.preco_medio,l.preco_desvio,l.p_preco,money],',
   ' ["Idade",l.idade_media,l.idade_desvio,l.p_idade,function(v){return nf(v,1)+" anos";}],',
-  ' ["Km",l.km_medio,l.km_desvio,l.p_km,function(v){return nf(v)+" km";}]].forEach(function(r){',
+  ' ["Km",l.km_medio,l.km_desvio,l.p_km,function(v){return nf(v)+" km";}],',
+  /* desagio entrou como quantitativo em 11/09: mesma forma de preco, idade
+     e km, entao entra na MESMA tabela e nao num canto separado. */
+  ' ["Deságio",l.desagio,l.desagio_desvio,l.p_desagio,function(v){return nf(v,1)+"%";}]].forEach(function(r){',
   'const cv=cvDe(r[1],r[2]);',
   `linhas.push("<tr><td class='tx'>"+r[0]+"</td><td>"+(r[1]===null?"—":r[4](r[1]))+"</td><td>"+(r[2]===null||r[2]===undefined?"—":r[4](r[2]))+"</td><td>"+(cv===null?"—":nf(cv,2))+"</td><td>"+nf(r[3],3)+"</td><td class='tx'>"+leitura(cv)+"</td></tr>");});`,
   `linhas.push("<tr><td class='tx'>Modelo</td><td class='tx' colspan='3'>"+esc(l.modelo||"—")+"</td><td>"+nf(l.pct_modelo/100,3)+"</td><td class='tx'>"+nf(l.pct_modelo,1)+"% das ofertas caem neste modelo</td></tr>");`,
   `linhas.push("<tr><td class='tx'>Categoria</td><td class='tx' colspan='3'>"+esc(l.categoria||"—")+"</td><td>"+nf(l.pct_categoria/100,3)+"</td><td class='tx'>"+nf(l.pct_categoria,1)+"% das ofertas caem nesta categoria</td></tr>");`,
+  /* laudo e UF: qualitativos, como modelo e categoria.
+     As duas linhas SE APAGAM quando o dado nao existe, em vez de renderizar
+     NaN. Acontece de verdade: um `dados-*.json` anterior a 11/09 (noite) nao
+     tem pct_laudo, e `undefined/100` vira NaN na tela. O smoke pegou isso na
+     regeneracao do run 50379. */
+  'if(l.pct_laudo!==null&&l.pct_laudo!==undefined){',
+  `linhas.push("<tr><td class='tx'>Laudo</td><td class='tx' colspan='3'>"+esc(l.laudo_moda_nome||"—")+"</td><td>"+nf(l.pct_laudo/100,3)+"</td><td class='tx'>"+nf(l.pct_laudo,1)+"% das ofertas caem neste estado de laudo</td></tr>");}`,
+  'if(l.p_uf!==null&&l.p_uf!==undefined){',
+  `linhas.push("<tr><td class='tx'>UF</td><td class='tx' colspan='3'>"+esc(l.uf)+"</td><td>"+nf(l.p_uf,3)+"</td><td class='tx'>"+nf(l.pct_mesma_uf,1)+"% das ofertas na própria praça"+(l.p_uf?"":" — indiferente à UF")+"</td></tr>");}`,
   'const ev2=evSel(),w2=wlSel(),uf2=ufSel();',
   'const todos=(porL[selL]||[]).filter(function(x){return x.s>LIMIAR;});',
+  /* ---- painel dos cinco campos de 11/09 ----
+     Cada bloco se apaga sozinho quando o dado nao existe, em vez de mostrar
+     um travessao: linha vazia ocupa espaco e nao informa nada. */
+  'function perfilExtra(l){',
+  'const b=[];',
+  /* deságio: media ja cortada nos extremos, com o n ao lado porque media de
+     3 carros e media de 300 nao valem o mesmo */
+  `if(l.desagio!==null&&l.desagio!==undefined){b.push("<div class='xk'><span>Deságio médio</span><b>"+nf(l.desagio,1)+"%</b><i>abaixo da FIPE, em "+nf(l.desagio_n)+" veículo(s)</i></div>");}`,
+  `if(l.pct_mesma_uf!==null&&l.pct_mesma_uf!==undefined){b.push("<div class='xk'><span>Ofertas na própria UF</span><b>"+nf(l.pct_mesma_uf,1)+"%</b><i>o resto foi para fora de "+esc(l.uf)+"</i></div>");}`,
+  `if(l.cluster_nome){b.push("<div class='xk'><span>Faixa de recência</span><b>"+esc(l.cluster_nome||"—")+"</b><i>"+(l.ult_oferta?("última oferta "+dataBr(l.ult_oferta)):"sem oferta registrada")+"</i></div>");}`,
+  /* laudo: so os status com valor, e `sem laudo` separado de `não informado` */
+  'if(l.laudo){const L=l.laudo;const p=[];',
+  `[["Aprovado",L.aprovado],["Com apontamento",L.apontamento],["Reprovado",L.reprovado],["Não informado",L.nao_informado],["Sem laudo",L.ausente]].forEach(function(x){if(x[1]){p.push(esc(x[0])+" <b>"+nf(x[1],1)+"%</b>");}});`,
+  `if(p.length){b.push("<div class='xk' style='flex:1 1 100%'><span>Laudo cautelar dos veículos ofertados</span><b style='font-size:13px;font-weight:400'>"+p.join(" &middot; ")+"</b><i>&ldquo;não informado&rdquo; é laudo sem veredito, diferente de não ter laudo</i></div>");}}`,
+  /* contato: PII, por isso so aparece no painel que se abre por clique */
+  'const c=[];',
+  `if(l.email){c.push("<a href='mailto:"+esc(l.email)+"'>"+esc(l.email)+"</a>"+(l.qt_emails>1?" <span class='dim'>(1 de "+l.qt_emails+")</span>":""));}`,
+  `if(l.tel_comercial){c.push(esc(l.tel_comercial)+" <span class='dim'>comercial</span>");}`,
+  `if(l.whatsapp){c.push(esc(l.whatsapp)+" <span class='dim'>WhatsApp</span>");}`,
+  `if(l.tel_privativo){c.push(esc(l.tel_privativo)+" <span class='dim'>privativo</span>");}`,
+  `if(c.length){b.push("<div class='xk' style='flex:1 1 100%'><span>Contato</span><b style='font-size:13px;font-weight:400'>"+c.join(" &middot; ")+"</b></div>");}`,
+  `return b.length?("<div class='xg'>"+b.join("")+"</div>"):"";}`,
+  /* data curta em pt-BR, tolerante a formato do banco */
+  'function dataBr(x){const t=Date.parse(String(x).indexOf("T")>0?String(x):String(x).split(" ").join("T")+"Z");return isNaN(t)?"—":new Date(t).toLocaleDateString("pt-BR");}',
   'const acima=todos.filter(function(x){return passaV(D.veiculos[x.o],ev2,w2,uf2);});',
   'const escondidos=todos.length-acima.length;',
   `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x){const v=D.veiculos[x.o];return "<tr>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
   `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
   `$("#extrato").innerHTML="<div class='card'><div class='card-h'>Extrato da loja — "+esc(l.loja)+" <span class='n mono'>#"+l.loja_id+"</span></div><div class='card-b'>"+`,
   `"<div style='margin-bottom:12px'>"+esc(l.uf)+" &middot; "+esc(l.whitelabel)+" &middot; <b>"+nf(l.qt_veiculos)+"</b> veículos ofertados em <b>"+nf(l.qt_ofertas)+"</b> lances nos últimos 6 meses"+(l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+" &middot; fator de confiança <b>"+nf(l.confianca,2)+"</b> &middot; elegível para <b>"+nf(l.pares)+"</b> veículo(s)</div>"+`,
+  /* ---- os cinco campos de 11/09 ---- */
+  'perfilExtra(l)+',
   `"<table><thead><tr><th class='tx'>Indicador</th><th>Referência</th><th>Desvio</th><th>CV</th><th>Peso</th><th class='tx'>Leitura</th></tr></thead><tbody>"+linhas.join("")+"</tbody></table>"+`,
   `"<div class='dim' style='margin-top:10px;font-size:11.5px'>Estes números vêm do histórico de 6 meses da loja inteira e <b>não mudam</b> com o filtro. Ver o glossário para como o peso é formado.</div></div></div>"+`,
   `"<div class='card'><div class='card-h'>Veículos com aderência acima de "+LIMIAR+"% <span class='n'>"+acima.length+" de "+nf(l.pares)+" elegíveis"+(escondidos?", "+escondidos+" fora do filtro":"")+"</span></div>"+listaV+"</div>";`,
@@ -915,7 +1268,7 @@ const html = [
   '<dt>UF do veículo</dt>',
   /* a UF mudou de fonte em 2026-09-10 e o glossario tem que dizer qual e,
      porque ela decide metade da elegibilidade */
-  '<dd>É a UF do <b>pátio</b> onde o carro está (o estoque da loja), não a do endereço da loja vendedora. São coisas diferentes com frequência: <b>68%</b> dos veículos desta base têm pátio numa UF diferente da UF cadastral de quem vende. Como a elegibilidade exige mesma UF, é o pátio que decide quem pode ver o carro.</dd>',
+  '<dd>É a UF do <b>pátio</b> onde o carro está (o estoque da loja), não a do endereço da loja vendedora. São coisas diferentes com frequência: <b>68%</b> dos veículos desta base têm pátio numa UF diferente da UF cadastral de quem vende. É a UF do pátio que entra no score, como preferência de praça &mdash; e era ela que, até 11/09/2026, decidia sozinha quem podia ver o carro.</dd>',
   '<dt>Link do anúncio</dt>',
   '<dd>Cada veículo leva o link do anúncio na plataforma. Faltando marca, modelo, versão ou identificador, o link <b>não</b> é mostrado &mdash; melhor sem botão que botão que cai em lugar nenhum.</dd>',
   '<dd class="ex">Ter anúncio não é o mesmo que poder receber proposta: veículo de evento encerrado ou marcado como sobra tem link, mas o anúncio pode não aceitar mais lance. O status vem ao lado do link justamente por isso.</dd>',
@@ -927,8 +1280,8 @@ const html = [
 
   '<div class="card"><div class="card-h">Regras de elegibilidade</div><div class="card-b"><dl>',
   '<dt>Elegibilidade</dt>',
-  '<dd>Um par (veículo, loja) <b>só existe</b> se as duas condições valerem: a loja está na <b>mesma UF</b> do veículo <b>e</b> pertence a um dos <b>whitelabels que o evento alveja</b>.</dd>',
-  '<dd>Fora disso não há aderência baixa &mdash; o par simplesmente não existe. É por isso que o ranking de cada veículo é curto: ele só disputa dentro da própria praça e do próprio canal.</dd>',
+  '<dd>Um par (veículo, loja) <b>só existe</b> se a loja pertence a um dos <b>whitelabels que o evento alveja</b>. O canal é a única condição obrigatória.</dd>',
+  '<dd class="ex">⚠️ <b>Mudou em 11/09/2026.</b> Até então a <b>mesma UF</b> também era obrigatória: carro de São Paulo nunca aparecia para loja de Minas. Agora a UF <b>pesa</b> em vez de excluir (ver <i>UF como preferência</i> abaixo), então o ranking de cada veículo ficou bem mais longo e comparar o número de correspondências com o de um relatório anterior a essa data não faz sentido.</dd>',
   '<dt>Whitelabel do evento</dt>',
   '<dd>Um evento pode alvejar vários whitelabels, então a comparação é "o whitelabel da loja está no conjunto do evento", não uma igualdade simples. Como consequência, somar veículos por whitelabel dá um número maior que o total: o mesmo carro conta em cada canal onde é exposto.</dd>',
   '<dt>Canal sem loja compradora</dt>',
@@ -943,20 +1296,44 @@ const html = [
   '<dt>A ideia</dt>',
   '<dd>Cada loja tem um <b>perfil de compra</b> tirado dos últimos ' + (META.meses_historico || 6) + ' meses de lances dela: em que faixa de preço compra, de que idade, de que quilometragem, e qual modelo e categoria mais oferta. A aderência mede o quanto um veículo cai dentro desse perfil.</dd>',
   '<dt>Aderência de um indicador</dt>',
-  '<dd>Nos numéricos (preço, idade, km): <code>1 / (1 + |valor &minus; média| / desvio)</code>. Vale 1 quando o veículo está exatamente na média da loja e cai conforme se afasta, medido em desvios.</dd>',
-  '<dd>Em modelo e categoria é binário: 1 se bate com o item que a loja mais oferta, 0 se não bate.</dd>',
+  '<dd>Nos numéricos (preço, idade, km e deságio): <code>1 / (1 + |valor &minus; média| / desvio)</code>. Vale 1 quando o veículo está exatamente na média da loja e cai conforme se afasta, medido em desvios.</dd>',
+  '<dd>Nos qualitativos (modelo, categoria, laudo e UF) é binário: 1 se bate com o item que a loja mais oferta, 0 se não bate.</dd>',
   '<dt>Peso de um indicador</dt>',
   '<dd>Nos numéricos: <code>1 / (1 + desvio / média)</code> &mdash; o inverso do coeficiente de variação. <b>Loja de faixa apertada é previsível</b>, então acertar o número dela vale muito; loja que compra de tudo tem dispersão alta, o peso cai sozinho e o indicador deixa de mandar no resultado.</dd>',
-  '<dd>Em modelo e categoria, o peso é o <b>% de ofertas</b> da loja naquele item. Loja que concentra 70% dos lances num modelo faz esse indicador pesar mais do que uma que espalha.</dd>',
+  '<dd>Nos qualitativos, o peso é o <b>% de ofertas</b> da loja naquele item. Loja que concentra 70% dos lances num modelo faz esse indicador pesar mais do que uma que espalha.</dd>',
   '<dt>Aderência (o total)</dt>',
-  '<dd><code>&Sigma;(peso &times; aderência) / &Sigma;(peso)</code>, de 0 a 100. É a média dos cinco indicadores ponderada pelo quanto cada um informa sobre aquela loja.</dd>',
+  '<dd><code>&Sigma;(peso &times; aderência) / &Sigma;(peso)</code>, de 0 a 100. É a média dos <b>oito</b> indicadores ponderada pelo quanto cada um informa sobre aquela loja.</dd>',
+  '<dd class="ex">Quantitativos: preço, idade, km e <b>deságio</b>. Qualitativos: modelo, categoria, <b>laudo</b> e <b>UF</b>. Indicador sem dado na loja simplesmente não entra na média — não entra como zero, que puxaria o resultado para baixo sem motivo.</dd>',
   '<dt>Fator de confiança</dt>',
   '<dd><code>min(1, veículos / ' + CONFIANCA_MIN + ')</code>. Loja com pouco histórico tem perfil pouco confiável, então o resultado dela é descontado &mdash; com menos de ' + CONFIANCA_MIN + ' veículos ela aparece marcada como <b>amostra baixa</b>.</dd>',
   '<dd class="ex">Esta parte foi adição minha, não estava no pedido original: sem ela, uma loja com um único carro de histórico e aderência 100 lideraria por sorte.</dd>',
   '<dt>Score</dt>',
   '<dd><b>Aderência &times; confiança.</b> É o número que ordena as duas tabelas e o que a barra azul desenha. Quando há seleção, as duas colunas aparecem lado a lado: <b>aderência</b> é o casamento bruto com o perfil, <b>score</b> já é o número descontado.</dd>',
+  '<dt>Deságio médio</dt>',
+  `<dd>Quanto a loja costuma pagar <b>abaixo da tabela FIPE</b>. Para cada veículo toma-se a <b>última</b> oferta dela e compara-se com a FIPE do anúncio; o número é a média dessas diferenças.</dd>`,
+  '<dd class="ex">São descartadas as distorções fora da faixa de ' + META.desagio_min + '% a ' + META.desagio_max + '%. O dado cru chega a &minus;1.586%, ou seja oferta dezesseis vezes acima da FIPE registrada, e um único caso desses destrói a média de uma loja. A quantidade de veículos que sobrou aparece ao lado — média de três carros e média de trezentos não valem o mesmo.</dd>',
+  '<dt>Ofertas na própria UF</dt>',
+  `<dd>Fatia dos lances da loja em veículos cujo <b>pátio</b> fica no mesmo estado dela. O complemento é compra para fora, que envolve frete e logística.</dd>`,
+  '<dt>Laudo cautelar</dt>',
+  `<dd>Distribuição dos veículos que a loja ofertou por situação do laudo. <b>&ldquo;Não informado&rdquo; não é o mesmo que &ldquo;sem laudo&rdquo;:</b> o primeiro é um laudo que existe e não traz o resultado — a maior parte da base —, o segundo é veículo sem laudo nenhum. Os dois aparecem separados de propósito.</dd>`,
+  '<dt>Faixa de recência</dt>',
+  `<dd>Classificação da loja em sete faixas, da mais ativa à mais fria, combinando <b>quando ofertou pela última vez</b> e <b>quando acessou a plataforma pela última vez</b>. A primeira faixa que se aplica é a que vale.</dd>`,
+  `<dd class="ex"><b>Nesta tela a faixa quase não varia, e isso é esperado:</b> a base do relatório é justamente &ldquo;lojas que ofertaram nos últimos 6 meses&rdquo;, então praticamente toda loja aqui é Diamante ou Ouro. As sete faixas só se separam sobre o conjunto completo de lojas da plataforma.</dd>`,
+  `<dd class="ex">⚠️ O registro de acesso começa em 31/08/2025. Onde se lê &ldquo;nunca acessou&rdquo;, o que o dado sustenta é <b>&ldquo;não acessou nos últimos 12 meses&rdquo;</b>. Já &ldquo;nunca ofertou&rdquo; é verificável de verdade: o histórico de ofertas alcança 2020.</dd>`,
+  '<dt>Contato</dt>',
+  `<dd>Telefones vêm do cadastro da loja; o <b>e-mail vem do usuário vinculado a ela</b>, porque o campo de e-mail do cadastro está preenchido em menos de 6% dos casos contra 99% no usuário. Quando há mais de um usuário com e-mail, mostra-se o de menor identificador e a contagem aparece ao lado.</dd>`,
+  '<dt>UF como preferência</dt>',
+  '<dd>A UF do pátio do veículo comparada com a da loja. Vale 1 se batem, 0 se não batem &mdash; e o <b>peso</b> é a fatia de lances que aquela loja faz dentro do próprio estado.</dd>',
+  '<dd class="ex">É o que torna a preferência <b>proporcional ao comportamento de cada loja</b>: quem compra 90% na própria praça prioriza forte o carro local; quem compra 20% quase não se importa; quem nunca comprou no próprio estado fica <b>exatamente indiferente</b>, porque o peso é zero e o indicador nem entra na conta.</dd>',
+  '<dt>Teto de lojas por veículo</dt>',
+  /* DADOS.resumo, nao a constante: dentro do RENDER so existe o que o
+     `monta_html_de_dados.js` injeta (DADOS, META, CONFIANCA_MIN,
+     DADOS_JSON). Citar TETO_LOJAS aqui quebrou a regeneracao na hora --
+     mesma familia do descreveRecorte() de 10/09, so que ao contrario. */
+  '<dd>Cada veículo publica no máximo <b>' + ((DADOS.resumo && DADOS.resumo.teto_lojas) || 0) + '</b> lojas &mdash; as de maior score. Existe porque a UF deixou de excluir: o universo de pares cresceu mais de cinco vezes e, sem teto, o arquivo passaria de 20 MB e travaria o navegador.</dd>',
+  '<dd class="ex">O corte é da <b>cauda</b> de cada carro, nunca de carros inteiros, e o número de pares que ficaram de fora é declarado no aviso do topo &mdash; descarte silencioso seria pior que teto nenhum.</dd>',
   '<dt>Componentes</dt>',
-  '<dd>A decomposição do par, indicador a indicador (P, I, K, M, C), cada um de 0 a 100. Serve para ver <i>por que</i> aquele score saiu: um 90 sustentado por preço e idade é diferente de um 90 que veio só de categoria.</dd>',
+  '<dd>A decomposição do par, indicador a indicador (P preço, I idade, K km, D deságio, M modelo, C categoria, L laudo, U UF), cada um de 0 a 100. Serve para ver <i>por que</i> aquele score saiu: um 90 sustentado por preço e idade é diferente de um 90 que veio só de categoria.</dd>',
   '<dt>O que o filtro não muda</dt>',
   '<dd>O perfil de compra e o fator de confiança saem do histórico da <b>loja inteira</b>, sem recorte por whitelabel, UF ou evento. Como a aderência é calculada contra esse perfil, <b>o score de cada par não muda</b> com o filtro. O filtro escolhe quais pares aparecem; não os recalcula.</dd>',
   '<dt>Volume de ofertas</dt>',

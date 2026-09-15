@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════════════════════════════════
+/* ════════
    NÓ "Montar Fase 2" — coleta dimensionada
 
    Lê da fase 1 quantos veículos e quantas lojas existem, e monta
@@ -9,10 +9,6 @@
    (q_lojas_total), entao todas precisam do MESMO filtro que ela. Filtrar
    so uma parte nao da erro: as outras batem no teto da paginacao e perdem
    as ultimas linhas em silencio. Aconteceu no run 50268.
-
-   As duas consultas de MODA sao a excecao: elas podem passar do numero de
-   lojas por empate no topo, entao levam folga (PAG_MODA) e sao conferidas
-   por LOJA DISTINTA no Montar HTML.
 
    Dois conjuntos:
 
@@ -28,7 +24,7 @@
         (execução 49803, 1.300 lojas). Sem função de janela: a última
         oferta sai de MAX(offers.id) e o topo das modas de INNER JOIN no
         MAX(n), porque o validador do MCP rejeita `OVER (`.
-   ══════════════════════════════════════════════════════════════════════ */
+   ════════ */
 
 const cab = $('Montar Fase 1').all()[0].json;
 const META_IN = cab.meta;
@@ -47,7 +43,7 @@ const JANELA_FIM = META_IN.janela_fim;
 /* o mesmo filtro de canal que dimensionou a q_lojas_total na fase 1 */
 const SO_WL_LOJA = META_IN.so_wl_loja || '';
 
-/* ── lê os totais da fase 1 ─────────────────────────────────────────── */
+/* ── lê os totais da fase 1 ──────── */
 const pedidos1 = $('Montar Fase 1').all().map((i) => i.json);
 const outs1 = $('MCP Fase 1').all();
 /* ACUMULA todas as paginas da consulta, nao devolve a primeira.
@@ -111,16 +107,14 @@ if (Number.isFinite(EVWL_ESPERADO) && eventoWl.length !== EVWL_ESPERADO) {
 
 const PAG_VEIC = Math.ceil(VEICULOS / PAGE);
 const PAG_LOJAS = Math.ceil(LOJAS / PAGE);
-/* As duas consultas de MODA sao as unicas que podem passar do numero de
-   lojas: elas devolvem uma linha por (loja, item) empatado no topo, entao
-   loja com empate rende mais de uma linha. No run 50270 as duas voltaram
-   com exatos 1.300 = 26 x 50, batendo no teto -- sem folga nao da pra
-   saber se aquilo era a contagem real ou corte.
+/* As modas voltaram a caber em PAG_LOJAS: elas agora colapsam os empates no
+   proprio SQL e devolvem UMA linha por loja. A folga de 2 paginas que
+   existia aqui era chute, e o run 50327 mostrou que chute nao serve --
+   bastou pra categoria (28 empates) e nao bastou pra modelo, que bateu no
+   teto e deixou 47 lojas sem o componente.
 
-   2 paginas de folga sao numero ESCOLHIDO, nao medido. O que torna a
-   escolha segura e a conferencia de cobertura no Montar HTML, que compara
-   as lojas distintas que chegaram contra q_moda_lojas. */
-const PAG_MODA = PAG_LOJAS + 2;
+   A conferencia de cobertura no Montar HTML continua de pe: foi ela que
+   pegou isto, e e ela que pega a proxima surpresa. */
 
 const UF_CASE =
   "CASE WHEN UPPER(TRIM(sa.state)) IN ('SP','MG','PR','SC','RJ','GO','RS','BA','MT','DF','CE','MS','ES','PE','PA','SE','AM','MA','RN','PB','AL','PI','RO','TO','AP','AC','RR') THEN UPPER(TRIM(sa.state))" +
@@ -170,7 +164,7 @@ function push(nome, sql, pages) {
   }
 }
 
-/* ── A) os veículos do evento ───────────────────────────────────────── */
+/* ── A) os veículos do evento ──────── */
 push('q_veiculos',
   "SELECT an.id AS neg_id, e.id AS evento_id, e.name AS evento," +
   " DATE_FORMAT(e.finish_date_event, '%Y-%m-%d %H:%i') AS fim_evento," +
@@ -183,6 +177,11 @@ push('q_veiculos',
   " br.name AS marca, ve.name AS versao, a.uuid AS anuncio_uuid," +
   " v.model_year AS model_year, NULLIF(v.km, 0) AS km," +
   " an.status AS neg_status," +
+  /* laudo cautelar do veiculo. Dominio medido na sonda 50346: aprovado,
+     aprovado_com_apontamento, reprovado, nao_informado e vazio.
+     'nao_informado' e laudo SEM VEREDITO (78% da base), diferente de nao ter
+     laudo -- que aqui chega como NULL. Sao tres estados, nao dois. */
+  " vpr.situation AS laudo," +
   " a.shop_id AS loja_id, s.name AS loja_vendedora," +
   " COALESCE(" + UF_PATIO + ", 'Não identificada') AS uf" +
   " FROM " + ULTIMA_NEG +
@@ -202,10 +201,15 @@ push('q_veiculos',
      agregado paginado. */
   " LEFT JOIN shop_stocks ss ON ss.id = COALESCE(a.shop_stock_id, v.shop_stock_id)" +
   " AND ss.deleted_at IS NULL" +
+  /* LEFT, nunca INNER: 4% dos veiculos nao tem laudo (sonda 50346) e com
+     INNER eles sumiriam da base inteira, mudando a contagem em silencio.
+     Uma linha por veiculo, medido -- a juncao nao multiplica. */
+  " LEFT JOIN vehicle_precautionary_reports vpr" +
+  " ON vpr.vehicle_id = a.vehicle_id AND vpr.deleted_at IS NULL" +
   " WHERE" + DISPONIVEL +
   " GROUP BY neg_id, evento_id, evento, fim_evento, anuncio_id, vehicle_id," +
   " valor, valor_inicial, fipe, model_id, modelo, category_id, categoria," +
-  " marca, versao, anuncio_uuid, model_year, km, neg_status," +
+  " marca, versao, anuncio_uuid, model_year, km, neg_status, laudo," +
   " loja_id, loja_vendedora, uf" +
   " ORDER BY an.id", PAG_VEIC);
 
@@ -235,6 +239,24 @@ const ULTIMAS =
   " GROUP BY o." + LADO + ", a.vehicle_id) u";
 const IDADE = "(YEAR(CURDATE()) - NULLIF(v.model_year, 0))";
 
+/* ── desagio contra a FIPE ────────
+   A FIPE sai de `advertisements.fipe_price`, medida na sonda 50346 em 85,6%
+   das ofertas contra 63,8% de `vehicles.fipe_price`. Nao existe tabela de
+   preco FIPE por codigo: `versions.code_fipe` guarda so o codigo, e o valor
+   vive denormalizado nessas duas colunas, que divergem entre si em 633
+   ofertas.
+
+   O corte de outlier NAO e conservadorismo: o desagio cru medido vai de
+   -1.586% a +94%, ou seja existe oferta 16 vezes acima da FIPE registrada.
+   Uma media por loja e destruida por um unico caso desses. O corte e
+   declarado aqui e aparece no glossario -- numero descartado em silencio e
+   pior que numero errado. */
+const DESAGIO_MIN = -100;
+const DESAGIO_MAX = 95;
+const DESAGIO = "(100 * (1 - ult.price / aq.fipe_price))";
+const DESAGIO_OK = "aq.fipe_price > 0 AND " + DESAGIO +
+  " BETWEEN " + DESAGIO_MIN + " AND " + DESAGIO_MAX;
+
 push('q_perfil',
   "SELECT u.shop_id AS shop_id, COUNT(*) AS qt_veiculos," +
   " ROUND(AVG(ult.price), 2) AS preco_medio," +
@@ -242,11 +264,134 @@ push('q_perfil',
   " ROUND(AVG(" + IDADE + "), 2) AS idade_media," +
   " ROUND(STDDEV_SAMP(" + IDADE + "), 2) AS idade_desvio," +
   " ROUND(AVG(NULLIF(v.km, 0)), 0) AS km_medio," +
-  " ROUND(STDDEV_SAMP(NULLIF(v.km, 0)), 0) AS km_desvio" +
+  " ROUND(STDDEV_SAMP(NULLIF(v.km, 0)), 0) AS km_desvio," +
+  /* o desagio pega carona: a ULTIMA oferta de cada (loja, veiculo) ja e a
+     linha que ele precisa, entao nao custa chamada nenhuma. */
+  " COUNT(CASE WHEN " + DESAGIO_OK + " THEN 1 END) AS desagio_n," +
+  " ROUND(AVG(CASE WHEN " + DESAGIO_OK + " THEN " + DESAGIO + " END), 2) AS desagio_medio," +
+  /* o desvio e o que torna o desagio um indicador QUANTITATIVO de verdade:
+     a aderencia usa 1/(1+|valor-media|/desvio) e o peso usa o inverso do
+     coeficiente de variacao. Sem ele, loja de desagio consistente e loja
+     erratica pesariam igual. */
+  " ROUND(STDDEV_SAMP(CASE WHEN " + DESAGIO_OK + " THEN " + DESAGIO + " END), 2) AS desagio_desvio," +
+  " COUNT(CASE WHEN aq.fipe_price > 0 THEN 1 END) AS com_fipe" +
   " FROM " + ULTIMAS +
   " INNER JOIN offers ult ON ult.id = u.offer_id" +
   " INNER JOIN vehicles v ON v.id = u.vehicle_id AND v.deleted_at IS NULL" +
+  /* LEFT, nunca INNER: com INNER, oferta cujo anuncio foi apagado sairia da
+     conta e qt_veiculos/preco/idade/km -- que ja existem e ja foram
+     conferidos -- mudariam de valor em silencio. Coluna nova nao pode mexer
+     nas antigas. */
+  " LEFT JOIN advertisements aq ON aq.id = ult.advertisement_id AND aq.deleted_at IS NULL" +
   " GROUP BY u.shop_id ORDER BY u.shop_id", PAG_LOJAS);
+
+/* ── UF e laudo cautelar, numa varredura so ────────
+   As duas perguntas ("% de ofertas na mesma UF" e "% por status de laudo")
+   leem exatamente as mesmas linhas: offers + advertisements da janela. Duas
+   consultas custariam 52 chamadas; esta custa 26.
+
+   A UF da loja entra por TABELA DERIVADA, nao por junção direta em
+   `shop_addresses`: loja com dois enderecos duplicaria cada oferta dela e
+   inflaria a contagem. Agregar antes garante uma linha por loja. (Medido:
+   nenhuma loja da base tem mais de um endereco hoje -- isto e guarda contra
+   o dia em que tiver.)
+
+   O laudo vem PIVOTADO em colunas em vez de uma linha por (loja, status):
+   uma linha por loja mantem a paginacao em PAG_LOJAS e dimensionada. Foi a
+   licao do run 50327, em que a moda devolvia uma linha por empate e bateu no
+   teto sem ninguem ver.
+
+   🚨 `laudo_nao_informado` NAO e o mesmo que `laudo_ausente`. O primeiro e
+   laudo que existe e nao diz o resultado (78% dos laudos do banco); o
+   segundo e veiculo sem laudo nenhum. Somar os dois apaga a diferenca. */
+const UF_LOJA_AG =
+  "(SELECT sa2.shop_id AS shop_id, MAX(sa2.state) AS state" +
+  " FROM shop_addresses sa2 WHERE sa2.deleted_at IS NULL" +
+  " GROUP BY sa2.shop_id) lu";
+
+push('q_uf_laudo',
+  "SELECT o." + LADO + " AS shop_id, COUNT(*) AS ofertas_base," +
+  " SUM(CASE WHEN TRIM(COALESCE(ss.state, '')) <> ''" +
+  " AND UPPER(TRIM(ss.state)) = UPPER(TRIM(lu.state)) THEN 1 ELSE 0 END) AS ofertas_mesma_uf," +
+  " SUM(CASE WHEN vpr.id IS NULL THEN 1 ELSE 0 END) AS laudo_ausente," +
+  " SUM(CASE WHEN vpr.situation = 'aprovado' THEN 1 ELSE 0 END) AS laudo_aprovado," +
+  " SUM(CASE WHEN vpr.situation = 'aprovado_com_apontamento' THEN 1 ELSE 0 END) AS laudo_apontamento," +
+  " SUM(CASE WHEN vpr.situation = 'reprovado' THEN 1 ELSE 0 END) AS laudo_reprovado," +
+  " SUM(CASE WHEN vpr.situation = 'nao_informado' THEN 1 ELSE 0 END) AS laudo_nao_informado," +
+  " SUM(CASE WHEN vpr.id IS NOT NULL AND TRIM(COALESCE(vpr.situation, '')) = ''" +
+  " THEN 1 ELSE 0 END) AS laudo_vazio" +
+  " FROM offers o" + JOIN_LOJA_CANAL +
+  " INNER JOIN advertisements a ON a.id = o.advertisement_id AND a.deleted_at IS NULL" +
+  " LEFT JOIN vehicles v ON v.id = a.vehicle_id" +
+  " LEFT JOIN shop_stocks ss ON ss.id = COALESCE(a.shop_stock_id, v.shop_stock_id)" +
+  " LEFT JOIN " + UF_LOJA_AG + " ON lu.shop_id = o." + LADO +
+  " LEFT JOIN vehicle_precautionary_reports vpr" +
+  " ON vpr.vehicle_id = a.vehicle_id AND vpr.deleted_at IS NULL" +
+  " WHERE" + JANELA +
+  " GROUP BY o." + LADO + " ORDER BY o." + LADO, PAG_LOJAS);
+
+/* ── contato ────────
+   Telefone sai de `shops` (comercial 79,3%, whatsapp 79,0%, privativo 8,9%).
+   O privativo entra a pedido explicito do Thomas em 11/09.
+
+   🔴 O e-mail NAO sai de `shops`: medido em 5,8% ali contra 99,5% em `users`
+   via `user_shops` (sonda 50347). Quando a loja tem mais de um usuario com
+   e-mail -- 1,19 por loja na media -- o desempate e o MENOR user_id, pelo
+   mesmo motivo que a moda usa MIN(item_id): e deterministico entre runs.
+   `user_shops.function` nao serve de criterio, esta nulo em 77% dos
+   vinculos.
+
+   🚨 ISTO E PII. O relatorio passa a carregar e-mail e telefone de loja real,
+   e ele sobe pro SharePoint. `qt_emails` viaja junto para a tela poder dizer
+   "1 de N" em vez de fingir que a loja tem um contato so. */
+const EMAIL_AG =
+  "(SELECT us.shop_id AS shop_id, MIN(us.user_id) AS user_id," +
+  " COUNT(DISTINCT us.user_id) AS qt" +
+  " FROM user_shops us" +
+  " INNER JOIN users u ON u.id = us.user_id AND u.deleted_at IS NULL" +
+  " WHERE TRIM(COALESCE(u.email, '')) <> ''" +
+  " GROUP BY us.shop_id) ue";
+
+push('q_contato',
+  "SELECT s.id AS shop_id," +
+  " MAX(s.comercial_number) AS tel_comercial," +
+  " MAX(s.whatsapp_number) AS whatsapp," +
+  " MAX(s.privative_number) AS tel_privativo," +
+  " MAX(uu.email) AS email," +
+  " MAX(ue.qt) AS qt_emails" +
+  " FROM shops s" +
+  " LEFT JOIN " + EMAIL_AG + " ON ue.shop_id = s.id" +
+  " LEFT JOIN users uu ON uu.id = ue.user_id" +
+  " WHERE s.deleted_at IS NULL" + SO_WL_LOJA +
+  " AND EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id" +
+  " AND o.deleted_at IS NULL AND o.created_at >= '" + DATA_INI + "' AND o.price > 0)" +
+  " GROUP BY s.id ORDER BY s.id", PAG_LOJAS);
+
+/* ── as duas datas do cluster ────────
+   So as DATAS CRUAS vem do banco; a regra das sete faixas e calculada no
+   Montar HTML. Assim ela e testavel pelo prova-local.js sem tocar no banco,
+   e mudar uma faixa nao exige rodar o workflow inteiro.
+
+   `ult_oferta` NAO leva filtro de janela: a pergunta e "ja ofertou alguma
+   vez", e `offers` alcanca 2020-06-24 (sonda 50347). `ult_acesso` sai de
+   `access_logs`, que so comeca em 2025-08-31 -- por isso "nunca acessou" e,
+   na verdade, "nao acessou nos ultimos 12 meses". A tela tem que dizer isso.
+
+   🚨 Na base deste relatorio o cluster e DEGENERADO: 98,8% cai em Diamante
+   ou Ouro, porque a base *e* "lojas que ofertaram nos ultimos 6 meses" e
+   nenhuma delas pode ser "nunca ofertou". Medido na sonda 50347. Entra assim
+   mesmo por decisao do Thomas; os sete so existem sobre o universo inteiro
+   de lojas. */
+push('q_cluster',
+  "SELECT s.id AS shop_id," +
+  " (SELECT MAX(o2.created_at) FROM offers o2 WHERE o2." + LADO + " = s.id" +
+  " AND o2.deleted_at IS NULL AND o2.price > 0) AS ult_oferta," +
+  " (SELECT MAX(al.created_at) FROM access_logs al WHERE al.shop_id = s.id) AS ult_acesso" +
+  " FROM shops s" +
+  " WHERE s.deleted_at IS NULL" + SO_WL_LOJA +
+  " AND EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id" +
+  " AND o.deleted_at IS NULL AND o.created_at >= '" + DATA_INI + "' AND o.price > 0)" +
+  " ORDER BY s.id", PAG_LOJAS);
 
 function moda(nome, campo, tabela) {
   const AG =
@@ -256,18 +401,30 @@ function moda(nome, campo, tabela) {
     " INNER JOIN vehicles v ON v.id = a.vehicle_id AND v.deleted_at IS NULL" +
     " WHERE" + JANELA + " AND v." + campo + " IS NOT NULL" +
     " GROUP BY o." + LADO + ", v." + campo + ")";
+  /* UMA linha por loja. O GROUP BY externo com MIN(item_id) colapsa os
+     empates no topo, e com isso:
+       - o numero de linhas passa a ser conhecido (= lojas com moda), entao
+         a paginacao volta a ser dimensionada em vez de chutada;
+       - o desempate fica DETERMINISTICO. Antes quem desempatava era o
+         `primeiraPorLoja` no Montar HTML, ficando com a linha que chegou
+         primeiro -- dependia da ordem de paginacao, entao a mesma loja
+         podia ter modelo diferente entre dois runs.
+     Medido no run 50327: com uma linha por (loja, item), q_modelo bateu no
+     teto de 1.400 e 47 lojas perderam o componente de modelo. */
   push(nome,
-    "SELECT ag.shop_id AS shop_id, ag.item_id AS item_id, cat.name AS nome, ag.n AS n" +
+    "SELECT t.shop_id AS shop_id, t.item_id AS item_id, cat.name AS nome, t.n AS n" +
+    " FROM (SELECT ag.shop_id AS shop_id, MIN(ag.item_id) AS item_id, MAX(ag.n) AS n" +
     " FROM " + AG + " ag" +
-    " INNER JOIN (SELECT t.shop_id AS shop_id, MAX(t.n) AS mx FROM " + AG + " t" +
-    " GROUP BY t.shop_id) top ON top.shop_id = ag.shop_id AND ag.n = top.mx" +
-    " LEFT JOIN " + tabela + " cat ON cat.id = ag.item_id" +
-    " ORDER BY ag.shop_id, ag.item_id", PAG_MODA);
+    " INNER JOIN (SELECT t2.shop_id AS shop_id, MAX(t2.n) AS mx FROM " + AG + " t2" +
+    " GROUP BY t2.shop_id) top ON top.shop_id = ag.shop_id AND ag.n = top.mx" +
+    " GROUP BY ag.shop_id) t" +
+    " LEFT JOIN " + tabela + " cat ON cat.id = t.item_id" +
+    " ORDER BY t.shop_id", PAG_LOJAS);
 }
 moda('q_modelo', 'model_id', 'models');
 moda('q_categoria', 'category_id', 'categories');
 
-/* ── guardas ────────────────────────────────────────────────────────── */
+/* ── guardas ──────── */
 /* Sem regex de proposito. Este arquivo viaja ate o n8n como string JSON
    escapada, transcrita a mao, e barra invertida e onde este projeto erra:
    escapar uma vez a mais gera "Invalid regular expression" e derruba o run
@@ -304,6 +461,10 @@ const META = {
   evento_wl: eventoWl,
   por_status: porStatus,
   meses_historico: META_IN.meses_historico,
+  /* o corte de outlier viaja pro glossario: numero descartado em silencio e
+     pior que numero errado */
+  desagio_min: DESAGIO_MIN,
+  desagio_max: DESAGIO_MAX,
   data_ini: DATA_INI,
   page: PAGE,
   lado: LADO,

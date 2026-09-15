@@ -117,6 +117,17 @@ Porta a skill `/sobra-evento`: lista carros sem oferta de um evento IGA → **e-
   - ⚠️ **Descoberta do JID:** `GET /group/fetchAllGroups/Cars2You Comercial?getParticipants=false` (só lista grupos onde o chip é membro). Feito via workflow descartável (arquivado).
 - **✅ Publicado + validado em produção (08/07):** disparo real no grupo com evento **23463** (9 UFs, 28 carros) — e-mail pros 3 + resumo + .txt no grupo, todos `success` (exec 40648). Teste anterior no número do Caio (exec 40638, evento 23382) também ok.
 - **⚠️ Limitação do MCP n8n:** não anexa credencial genérica de HTTP (`httpHeaderAuth`) via API — os 2 nós de WhatsApp tiveram a cred Evolution vinculada **manualmente na UI** pelo Caio. (Outlook/SharePoint anexam via API normalmente.)
+
+> ✅ **Corrigido em 2026-09-11 (run 50379):** o MCP **anexa** credencial
+> predefinida em nó HTTP — mas só pela operação **`setNodeCredential`**, com
+> `credentialKey`/`credentialId`/`credentialName` explícitos. O que não
+> funciona é a **auto-atribuição** (o MCP procurar sozinho ao criar o nó), e
+> é dela que vem o aviso `were skipped during credential auto-assignment`.
+> Passar `credentials` dentro do `addNode` cai no mesmo caso e não basta.
+> Medido com o `Subir no SharePoint` do `rel-veiculos`, que autenticou e
+> subiu 4,47 MB sem ninguém tocar na interface.
+> ⚠️ `httpHeaderAuth` (Evolution) **não** foi testado; a ressalva continua.
+
 - **Pendências menores:** (1) pasta SharePoint ainda se chama **"Sobras de Evento IGA"** (folderId `01WJTTCQRUQ746MRWTVBF3K3OHKE7Y5BY4` estável mesmo renomeando — renomear na UI se quiser). (2) Limpar `sobra_evento_IGA_23463_*.txt` residual (versão antiga rodou junto do novo `remanescentes_*`). (3) `MAPA_GRUPOS_UF` no Formatar ficou vestigial (destino agora é único via `wa_numero`).
 
 ### ✅ Alinhamento à skill v4.6 do Guilherme (30/06) — precisão de dados

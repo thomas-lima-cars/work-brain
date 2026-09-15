@@ -112,3 +112,53 @@
   a ter folga com conferência de cobertura por loja distinta.
 - Pendências que seguem: distribuição do HTML (foi a ~4 MB), as 4 contas com cara de
   interna, e o corte de 50% — 133 veículos mudariam se ele baixasse.
+
+## 2026-09-14/15 — Estudo de precificação: o que move o deságio
+
+Nasceu de um pedido de `SELECT` em `vehicles` e virou um estudo com 13 sondas
+(execuções 51069 a 51368) e quatro páginas em
+`automations/n8n-sdk/precificacao/`. Deságio = 1 − venda/FIPE.
+
+**O recorte mudou duas vezes**, e cada mudança destravou medida:
+- de **código FIPE** para **modelo** (marca + nome normalizados, porque `models`
+  reparte o mesmo modelo em ≥50 nomes com ids diferentes);
+- e depois para os **20 modelos mais vendidos, sem motos e pesados** — 4.582
+  vendas, 50,4% da base elegível.
+
+Com código FIPE, idade rendia 2,6 p.p. de amplitude porque o ano quase não varia
+dentro do grupo. Por modelo, virou **9,2 p.p.**, e quilometragem foi de 7,4 para
+**15,0 p.p.**, monótona de ponta a ponta.
+
+🔴 **O maior efeito do estudo inteiro está num campo de texto.** `REPASSE`
+(1.045 vendas, 35,7% de deságio) contra `TRADICIONAL` (1.123, 28,7%) — **7,0
+p.p., t = 40,7**, maior que quilometragem, cluster ou comprador. Não descreve o
+veículo: **classifica a operação**. É uma coluna vivendo dentro do `TEXT` de
+`vehicles.description`, digitado à mão. Enquanto estiver ali, fica invisível
+para qualquer relatório que não tokenize o campo.
+
+🔴 **O status da documentação também está lá dentro** — `Documento Pronto` contra
+`DOCUMENTO EM REGULARIZAÇÃO`, 4,3 p.p. Em 13/09 a resposta tinha sido "esse
+campo não existe no banco"; existia, em texto.
+
+**Ranking das colunas** (R² controlado por modelo): comprador 41,6% · km 18,1% ·
+cluster 18,1% · versão 13,1% · código FIPE 12,5% · pátio 9,7%. Atributo de
+catálogo — marca, categoria, carroceria — colapsa para ~zero sob controle.
+
+**Definições que precisaram ser decididas, não supostas:** venda é a **última**
+linha válida de `advertisement_negotiations` em status 2/3/7 (correção do
+Thomas; a definição anterior inflava 2,6%); valor é `offers.price` via
+`offer_actual_id`; "última" sai por `MAX(an.id)` e não por data, porque
+`finish_date_offer` tem registro em 1969 e em 2030.
+
+**Qualidade de dado:** o código **Agile 004362-1** tem 39 de 44 vendas com `km
+NULL`, `ano_modelo 2010` e **VMV igual ao preço de venda** — até R$ 503 mil para
+FIPE de R$ 28 mil. Não são lances fora da curva; são registros de outra natureza
+dentro da base de vendas. E o **VMV foi reabilitado**: 91% são plausíveis, com
+moda em 0,5–0,8× a FIPE, o que **sustenta a regra "VMV = FIPE × 0,75"** da doc
+do C6, nunca antes conferida — o problema é uma cauda de 7,6% acima de 3×.
+Confirmado também que **34% das vendas fecham abaixo do VMV**.
+
+Pendências: levar REPASSE/TRADICIONAL a quem decide o modelo de dados; confirmar
+`motor nao funciona` (t = 4,1, abaixo do corte de Bonferroni); entender por que
+`ipva pago` aparece com **mais** deságio; e um modelo multivariado, já que km,
+idade e versão andam juntas.

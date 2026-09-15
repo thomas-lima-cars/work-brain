@@ -1,0 +1,47 @@
+{
+  "nome": "top10-codigos-12m",
+  "descricao": "As 1.302 vendas dos 10 codigos FIPE mais vendidos em 12 meses. Recorte definido na execucao 51072.",
+
+  "_como_editar": [
+    "Este arquivo E a definicao da amostra. Para trocar o recorte:",
+    "  1. edite os campos abaixo",
+    "  2. node monta-sonda-04.js      (gera o no e prova a SQL localmente)",
+    "  3. suba o no gerado e rode",
+    "Nada mais precisa mudar. A analise (analisa-drivers.js) le o que vier.",
+    "",
+    "Para ampliar para os 229 codigos com n>=10, troque codigos_fipe por [] e",
+    "ponha n_minimo: 10 — a query passa a filtrar por volume em vez de lista.",
+    "Atencao: ai sao ~5.819 vendas = 117 paginas, nao 27."
+  ],
+
+  "codigos_fipe": [
+    "005490-9",
+    "025266-2",
+    "001494-0",
+    "001461-3",
+    "003408-8",
+    "515178-3",
+    "015088-6",
+    "005540-9",
+    "004424-5",
+    "515201-1"
+  ],
+  "n_minimo": null,
+
+  "janela_meses": 12,
+  "corte_razao": [0.20, 1.20],
+
+  "vendas_esperadas": 1302,
+  "page": 50,
+  "paginas_margem": 2,
+
+  "_notas": [
+    "corte_razao 0,20-1,20 foi decidido pela distribuicao medida na execucao 51070:",
+    "95,7% da massa entre 0,40 e 0,90, e cauda ate 107x a FIPE. Descarta 0,6%.",
+    "Sem ele, UMA linha desloca a media do Onix em R$ 3.040 e 7,3 p.p.",
+    "",
+    "placa, chassi e descricao_livre NAO entram, de proposito: as duas primeiras",
+    "sao PII e identificam 1 linha cada (valor analitico zero); a terceira e texto",
+    "livre. O README do n8n-sdk proibe SELECT * em vehicles por isso."
+  ]
+}

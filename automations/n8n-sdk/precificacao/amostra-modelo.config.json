@@ -1,0 +1,77 @@
+{
+  "nome": "top20-modelos-12m",
+  "descricao": "Os 20 modelos mais vendidos em 12 meses, sem motos e pesados. Definido na execucao 51330.",
+
+  "_como_editar": [
+    "Este arquivo E a definicao da amostra. Para trocar o recorte:",
+    "  1. edite os campos abaixo",
+    "  2. node monta-sonda-09.js      (gera o no e prova a SQL localmente)",
+    "  3. suba o no gerado e rode",
+    "Para outro top N, rode a sonda 8 de novo e cole a lista nova aqui."
+  ],
+
+  "chave": "marca + nome do modelo, normalizados (UPPER/TRIM)",
+  "_por_que_nome_e_nao_id": [
+    "O catalogo `models` tem o mesmo modelo repartido em ids diferentes: a sonda",
+    "7 achou PELO MENOS 50 nomes nessa situacao (a consulta bateu no teto de 50",
+    "linhas). Strada = 601 e 2000000428; Saveiro, Toro, Renegade, Hilux, Compass,",
+    "S10 e Ecosport idem. Agrupar por model_id partiria o mesmo modelo em dois",
+    "grupos e quebraria o controle. Por nome, os 443 ids viram 396 modelos.",
+    "Marca entra na chave porque nome de modelo nao e unico entre marcas."
+  ],
+
+  "modelos": [
+    { "marca": "VOLKSWAGEN", "modelo": "GOL",      "vendas": 507, "ids": 1 },
+    { "marca": "CHEVROLET",  "modelo": "ONIX",     "vendas": 500, "ids": 1 },
+    { "marca": "HYUNDAI",    "modelo": "HB20",     "vendas": 365, "ids": 1 },
+    { "marca": "RENAULT",    "modelo": "KWID",     "vendas": 268, "ids": 1 },
+    { "marca": "VOLKSWAGEN", "modelo": "POLO",     "vendas": 246, "ids": 1 },
+    { "marca": "FORD",       "modelo": "KA",       "vendas": 244, "ids": 1 },
+    { "marca": "VOLKSWAGEN", "modelo": "VOYAGE",   "vendas": 240, "ids": 1 },
+    { "marca": "FIAT",       "modelo": "ARGO",     "vendas": 237, "ids": 1 },
+    { "marca": "RENAULT",    "modelo": "SANDERO",  "vendas": 214, "ids": 1 },
+    { "marca": "FIAT",       "modelo": "STRADA",   "vendas": 205, "ids": 2 },
+    { "marca": "VOLKSWAGEN", "modelo": "SAVEIRO",  "vendas": 198, "ids": 2 },
+    { "marca": "FIAT",       "modelo": "MOBI",     "vendas": 171, "ids": 1 },
+    { "marca": "FIAT",       "modelo": "TORO",     "vendas": 159, "ids": 2 },
+    { "marca": "TOYOTA",     "modelo": "COROLLA",  "vendas": 157, "ids": 1 },
+    { "marca": "FIAT",       "modelo": "PALIO",    "vendas": 155, "ids": 1 },
+    { "marca": "JEEP",       "modelo": "RENEGADE", "vendas": 154, "ids": 2 },
+    { "marca": "FIAT",       "modelo": "UNO",      "vendas": 142, "ids": 1 },
+    { "marca": "CHEVROLET",  "modelo": "PRISMA",   "vendas": 141, "ids": 1 },
+    { "marca": "TOYOTA",     "modelo": "HILUX",    "vendas": 141, "ids": 2 },
+    { "marca": "VOLKSWAGEN", "modelo": "FOX",      "vendas": 138, "ids": 1 }
+  ],
+
+  "excluir_categorias": ["Motocicleta", "Caminhao", "Onibus", "Reboque", "Semireboque"],
+  "_por_que_essas": [
+    "Medido na execucao 51328: Caminhao 1.008 vendas, Motocicleta 185, Onibus 9,",
+    "Reboque 3, Semireboque 1. Somam 1.206 de 10.289 (11,7%).",
+    "'Nao informada' (46 vendas, 0,4%) FICA: nao se sabe o que e, e descartar sem",
+    "saber e pior do que manter e declarar.",
+    "O filtro e por LINHA, no WHERE. Filtrar por modelo com MAX(cat.name) estava",
+    "errado — MAX em texto pega o alfabeticamente ultimo, e UM veiculo sem",
+    "categoria rotulava o modelo inteiro."
+  ],
+
+  "janela_meses": 12,
+  "corte_razao": [0.2, 1.2],
+
+  "vendas_esperadas": 4582,
+  "page": 50,
+  "paginas_margem": 3,
+
+  "_notas": [
+    "4.582 vendas = 50,4% das 9.083 elegiveis. 396 modelos existem na base; os 20",
+    "maiores concentram metade das vendas.",
+    "",
+    "O GANHO DE TROCAR CODIGO FIPE POR MODELO: dentro de um codigo FIPE o ano do",
+    "modelo quase nao varia, entao idade dava so 2,6 p.p. de amplitude. Aqui o Gol",
+    "cobre 2006 a 2023 e o Corolla 2003 a 2026 — idade e km passam a variar de",
+    "verdade dentro do grupo. Em troca, o controle fica mais frouxo: 'mesmo",
+    "modelo' mistura versoes e geracoes que 'mesmo codigo FIPE' separava.",
+    "",
+    "BONUS: com modelo como grupo, `codigo_fipe` vira variavel testavel — antes",
+    "ele ERA o controle e dava zero por construcao."
+  ]
+}

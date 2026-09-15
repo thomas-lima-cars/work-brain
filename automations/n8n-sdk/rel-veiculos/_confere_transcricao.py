@@ -25,6 +25,7 @@ PARES = [
     ("Montar Fase 1", "montar-fase1.js"),
     ("Montar Fase 2", "montar-fase2.js"),
     ("Montar HTML", "montar-html.js"),
+    ("Virar Arquivo", "virar-arquivo.js"),
 ]
 
 d = json.load(io.open(sys.argv[1], encoding="utf-8"))
