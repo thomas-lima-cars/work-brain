@@ -208,7 +208,7 @@ publicados (41,6 / 18,1 / 18,1 / 13,1).
 ## Como reproduzir
 
 ```bash
-python automations/dealers-db/precificacao/roda-estudo.py
+python automations/precificacao/roda-estudo.py
 node automations/n8n-sdk/precificacao/analisa-dimensoes.js dados-dealers.json
 node automations/n8n-sdk/precificacao/analisa-drivers.js analitico-dealers.json
 ```

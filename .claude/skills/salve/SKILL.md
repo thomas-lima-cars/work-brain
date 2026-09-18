@@ -51,7 +51,53 @@ Fecha a sessão de trabalho persistindo memória de longo prazo. Faz commit + pu
 
    Se a sessão foi pequena e nada mudou no panorama, só atualiza a data do cabeçalho.
 
-9. **Faz `git add` + `git commit` + `git push`**.
+9. **🔒 GUARDA DE TAMANHO — antes de commitar:**
+
+   ```bash
+   git diff --cached --name-only | while read f; do
+     [ -f "$f" ] && s=$(stat -c%s "$f") && [ "$s" -gt 1000000 ]        && printf "%6.1f MB  %s
+" "$(echo $s | awk '{print $1/1048576}')" "$f"
+   done
+   ```
+
+   Arquivo acima de 1 MB no stage **para o commit** até haver decisão explícita.
+   Coleta bruta de banco carrega nome real de loja e texto livre de cliente.
+
+   As regras do `.gitignore` já falharam duas vezes (por nome de arquivo e por
+   renomeação de pasta). **Esta guarda é a que não depende de o caminho estar
+   certo.**
+
+   E confira o que está sendo **APAGADO**, não só o que entra:
+
+   ```bash
+   git diff --cached --name-status | grep "^D"
+   ```
+
+   Em 18/09 uma regra de `.gitignore` escrita sem caminho ia apagar três
+   arquivos já commitados de outro estudo.
+
+10. **Faz `git add` + `git commit` + `git push`**.
+
+   🔴 **Se o push falhar, COMMITE MESMO ASSIM e avise alto.** O commit é local e
+   não depende de rede; deixar tudo sem commitar porque o push não foi é perder
+   o trabalho se a máquina reiniciar. Aconteceu em 17–18/09: o commit ficou
+   represado dois dias e 51 arquivos existiram só como alteração solta.
+
+   Depois de commitar sem push, escreva no topo de `estado-atual.md`:
+   > ⚠️ **N commit(s) local(is) não enviado(s)** desde <data>. Rodar `git push`.
+
+   E tire essa linha assim que o push sair.
+
+11. **Sessão que atravessa a meia-noite** ganha um arquivo por data, não um só.
+    O da data nova abre com uma linha de continuidade:
+    > Continuação direta de <data anterior> — a sessão atravessou a meia-noite.
+
+    O da data anterior recebe um ponteiro no fim. Sem isso, metade do trabalho
+    fica num arquivo que ninguém vai abrir procurando por ele.
+
+12. **Pasta nova entra no `mapa.md` no mesmo `/salve`.** Criar pasta em
+    `automations/` ou `subjects/` e não registrar deixa o mapa mentindo —
+    aconteceu com três pastas entre 17 e 18/09.
 
 ## Formato do arquivo `memory/sessions/<YYYY-MM-DD>.md`
 
@@ -106,3 +152,18 @@ Se a sessão tocou numa frente específica, lembre de atualizar `subjects/<frent
 - **`git push` falha por divergência:** roda `git pull --rebase`, resolve conflitos, push de novo.
 - **`git push` falha por auth:** avise pra rodar `gh auth status`.
 - **Nada pra commitar:** confirma "sessão registrada sem mudanças no repo".
+- **`git push` falha por rede/auth:** commite local assim mesmo e registre o
+  aviso no `estado-atual.md`. Nunca deixe de commitar por causa do push.
+
+## Checagem de fonte única
+
+Antes de escrever um número novo em qualquer arquivo, procure se ele já existe
+em outro:
+
+```bash
+grep -rn "<o número>" --include="*.md" .
+```
+
+Se existir, **linke em vez de repetir**. Se o número mudou, corrija na fonte e
+confira quem apontava para ela. A regra e o mapa de onde mora cada coisa estão
+no `mapa.md`.

@@ -93,7 +93,10 @@ Pronto pra trabalhar. O que vamos fazer?
 | Stakeholder específico | `subjects/<frente>/02-stakeholders.md` |
 | Decisão histórica referenciada | `memory/decisions/<arquivo>` |
 | Ata específica referenciada | `memory/inputs/meetings/<arquivo>` |
-| SQL, tabela, coluna, join, query nova | `context/banco-de-dados/README.md` e, só da tabela em questão, o bloco no `schema.md` (150 KB — nunca ler inteiro) |
+| SQL, tabela, coluna, join, query nova | **`context/banco-de-dados/README.md` primeiro** — ele diz qual arquivo responde a qual pergunta. A resposta já pode estar escrita, sem abrir o banco. Só depois o bloco da tabela em `plataforma/schema.md` (nunca ler inteiro) |
+| "quanto deu X?", "qual o deságio médio?" | `context/banco-de-dados/projetos/<projeto>/indicadores.md` — **fonte única** dos números medidos. Não recalcular o que já está lá |
+| "o que é uma venda?", "como se calcula o deságio?" | `context/banco-de-dados/projetos/precificacao/definicoes.md` |
+| Consultar o banco fora do n8n | `context/banco-de-dados/plataforma/acessos.md` |
 
 ## Modo onboarding (primeira sessão)
 

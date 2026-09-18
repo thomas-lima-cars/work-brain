@@ -6,11 +6,14 @@
 |---|---|---|
 | `estado-atual.md` (raiz) | **Painel vivo do dia** — frentes quentes, decisões em aberto, cobranças, alertas, compromissos. Mantido pelo `/salve`. | **Sempre no boot** — é o que o `/cerebro` lê pra montar o panorama |
 | `context/` | Quem sou: empresa, papel, produtos, stakeholders | **Sempre** — leitura inicial |
-| `context/banco-de-dados/` | Esquema do banco da plataforma: 144 tabelas, colunas, FKs, índices | **Antes de escrever qualquer SQL** — não ler no boot |
+| `context/banco-de-dados/` | **Conhecimento acumulado sobre os bancos**, em dois níveis: `plataforma/` (esquema, domínios, acessos, qualidade, receitas de SQL) e `projetos/` (definições, indicadores e palavras-chave de cada estudo) | **Antes de abrir o banco** — a resposta já pode estar escrita. Não ler no boot |
 | `subjects/` | **Frentes de trabalho ativas** | Trabalhar numa frente — atualizar histórico, ver decisões |
 | `memory/` | Estado vivo: sessions, decisions, inputs (meetings, jira, whatsapp, outlook, dailies) | Retomar contexto recente, detectar contradição |
 | `inbox/` | Captura rápida — processar e mover depois | Algo que ainda não tem lugar |
 | `automations/` | Automações reais: flows n8n documentados, scripts, estado (JSON), crons | Mexer/debugar uma automação, entender o que roda sozinho |
+| `automations/bancos/` | **Acesso direto aos bancos** (Cars2You e Dealers): conexão, runner somente-leitura, gerador de schema | Consultar banco fora do n8n |
+| `automations/precificacao/` | O estudo de precificação sobre as duas bases | Mexer no estudo |
+| `memory/decisions/` | Decisões grandes, com opções consideradas e consequências | Entender por que algo é do jeito que é |
 | `.claude/skills/` | Skills (slash commands) | Invocadas via `/<nome>` |
 
 ## Frentes ativas
@@ -57,6 +60,32 @@ abrir Claude Code dentro do work-brain
 - **Nomes de arquivo:** kebab-case
 - **Idioma:** português (Brasil)
 - **Commits:** descritivos, em português, no imperativo. Batch via `/salve` (não a cada mudança).
+
+## Regras que valem para o brain inteiro
+
+### Fonte única para número medido
+🔴 **Número medido mora em UM arquivo só. Os outros linkam, não repetem.**
+
+Existe por causa de 17/09: a afirmação "a Dealers é um superconjunto com versão
+mais nova" foi escrita em **cinco arquivos**. Quando a medição mostrou que
+estava errada, corrigir exigiu caçar com `grep` — e bastaria esquecer um para o
+brain seguir afirmando o falso.
+
+Onde mora cada coisa:
+
+| assunto | fonte única |
+|---|---|
+| Números sobre os bancos | `context/banco-de-dados/projetos/<projeto>/indicadores.md` |
+| O que é venda, deságio, FIPE | `context/banco-de-dados/projetos/precificacao/definicoes.md` |
+| Estado do dia | `estado-atual.md` |
+| O que roda sozinho | `automations/crons.md` |
+
+**Todo número traz data e como foi medido.** Número sem data não serve — a base
+se move.
+
+### Pasta nova entra no mapa
+Pasta criada em `automations/` ou `subjects/` ganha linha aqui **no mesmo
+`/salve`**. Três pastas ficaram fora do mapa entre 17 e 18/09.
 
 ## Privacidade
 

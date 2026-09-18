@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
-sys.path.insert(0, str(AQUI.parents[1] / "bancos"))
+sys.path.insert(0, str(AQUI.parent / "bancos"))
 sys.stdout.reconfigure(encoding="utf-8")
 from conexao import conectar as _conectar  # noqa: E402
 

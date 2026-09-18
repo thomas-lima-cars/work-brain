@@ -1,0 +1,24 @@
+{
+ "cars2you": {
+  "veiculos": 118669,
+  "anuncios": 252566,
+  "ofertas": 754334,
+  "lojas": 21873,
+  "usuarios": 48107,
+  "whitelabels": 73,
+  "vendas_total": 47415,
+  "models": 2876,
+  "models_nomes": 2390
+ },
+ "dealers": {
+  "veiculos": 54070,
+  "anuncios": 125133,
+  "ofertas": 979185,
+  "lojas": 13451,
+  "usuarios": 16864,
+  "whitelabels": 4,
+  "vendas_total": 21405,
+  "models": 3099,
+  "models_nomes": 2568
+ }
+}

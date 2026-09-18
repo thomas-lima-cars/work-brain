@@ -33,39 +33,46 @@ automations/n8n-sdk/*/saida-*.html
 # preenchido mora em ~/.dealers-dlc.env, FORA do repo. Estas linhas sao a
 # segunda barreira -- conexao.py recusa ler credencial de dentro do repo.
 .dealers-dlc.env
-automations/dealers-db/.env
-automations/dealers-db/*.local.env
-automations/dealers-db/dados-*.json
+automations/bancos/.env
+automations/bancos/*.local.env
+automations/bancos/dados-*.json
 
-# Coleta do estudo de precificacao da Dealers: 25 MB de dado comercial real de
-# outro tenant, linha a linha, com o texto livre junto -- e no texto livre
-# aparece CNPJ de instituicao financeira digitado a mao. Mesma regra ja aplicada
-# a automations/n8n-sdk/*/dados-*.json. Os resumos (dimensoes, termos, config,
-# resultado) ficam versionados; a coleta bruta, nao.
-# Reproduz com: python automations/dealers-db/precificacao/roda-estudo.py
-# Por PADRAO, e nao por nome: a regra antiga nomeava `analitico-dealers.json` e
-# `analitico-cars2you.json` passou direto quando a segunda base entrou (18/09).
-automations/dealers-db/precificacao/analitico-*.json
-automations/dealers-db/precificacao/texto-*.json
-automations/dealers-db/precificacao/sinais-*.json
-automations/dealers-db/precificacao/painel-dados.json
-
-# As paginas que embutem o texto livre linha a linha: 8 a 11 MB cada, ~40 MB no
-# total, com nome real de loja e a descricao de cada veiculo. Todas se
-# regeneram dos scripts + dos JSONs agregados, que ESTES sim vao pro repo
-# (dimensoes-*, drivers-*, termos-*, amostra-*).
-#   python roda-estudo.py --base cars2you && python roda-estudo.py --base dealers
-#   python analisa-sinais.py && python monta-painel-dados.py
-#   node ../../n8n-sdk/precificacao/monta-painel.js painel-dados.json painel-precificacao.html
-automations/dealers-db/precificacao/analitico-veiculos.html
-automations/dealers-db/precificacao/termos-linhas.html
-automations/dealers-db/precificacao/sinais-contexto.html
-automations/dealers-db/precificacao/painel-precificacao.html
+# Coleta bruta e paginas pesadas do estudo de precificacao.
+#
+# ⚠️ ESTAS REGRAS JA QUEBRARAM DUAS VEZES:
+#   1. por nome -- a regra dizia `analitico-dealers.json` e o
+#      `analitico-cars2you.json` entrou quando a segunda base chegou (18/09);
+#   2. por pasta -- dizia `automations/dealers-db/...` e parou de valer quando a
+#      pasta virou `automations/precificacao/` (18/09).
+#
+# Tirar o caminho pareceu a solucao, e era pior: sem caminho, `analitico-*.json`
+# tambem pega os arquivos JA COMMITADOS do estudo da Cars2You em
+# `automations/n8n-sdk/precificacao/`, e o proximo commit os APAGARIA.
+#
+# A protecao de verdade nao esta aqui: esta na guarda de tamanho do /salve, que
+# recusa commitar arquivo grande sem decisao explicita. O caminho fica.
+#
+# Sao 8 a 11 MB cada, com nome real de loja e a descricao livre de cada
+# veiculo. Todas se regeneram dos scripts + dos JSONs agregados, que ESTES sim
+# vao pro repo (dimensoes-*, drivers-*, termos-*, amostra-*):
+#   python automations/precificacao/roda-estudo.py --base cars2you
+#   python automations/precificacao/roda-estudo.py --base dealers
+#   python automations/precificacao/analisa-sinais.py
+#   python automations/precificacao/monta-painel-dados.py
+#   node automations/n8n-sdk/precificacao/monta-painel.js painel-dados.json painel-precificacao.html
+automations/precificacao/analitico-*.json
+automations/precificacao/texto-*.json
+automations/precificacao/sinais-*.json
+automations/precificacao/painel-dados.json
+automations/precificacao/analitico-veiculos.html
+automations/precificacao/termos-linhas.html
+automations/precificacao/sinais-contexto.html
+automations/precificacao/painel-precificacao.html
 
 # Cache do Python
 __pycache__/
 *.pyc
 
-# O MODELO de credencial e versionado de proposito: o README manda copiar dele.
-# A regra `.env.*` acima o pegaria junto. Sem valor real dentro -- so placeholders.
-!automations/dealers-db/.env.exemplo
+# Os MODELOS de credencial sao versionados de proposito: o README manda copiar
+# deles. A regra `.env.*` la em cima os pegaria junto. So tem placeholder dentro.
+!automations/bancos/.env-*.exemplo

@@ -1,6 +1,6 @@
 """Prova a guarda de SQL. Nao conecta em nada -- roda offline.
 
-  python automations/dealers-db/_prova_guarda.py
+  python automations/bancos/_prova_guarda.py
 
 Os casos que PASSAM valem tanto quanto os que barram: uma guarda que barra
 tudo e inutil, e uma que pega `updated_at` barra quase todo SELECT do padrao

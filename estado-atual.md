@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-18 (madrugada) — acesso às duas bases, painel unificado
+> **Última atualização:** 2026-09-18 (manhã) — cérebro reorganizado, espaço de banco por projeto
 
 ## 🔹 Frentes quentes agora
 - **bancos (cars2you + dealers)** — 🔥 **Acesso direto ao banco das DUAS operações.**
@@ -43,11 +43,12 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔵 **`schema.md` e `schema-gerado.md` devem se fundir?** O gerado tem as 193
+  tabelas; o escrito à mão tem as descrições em português e o agrupamento por
+  domínio. Fundir exige preservar o que é humano.
 - 🔴 **Para que serve o acesso à Dealers?** Sem objetivo declarado não abro pasta
   em `subjects/` e cada pedido vira avulso.
-- 🔴 **O `schema.md` deve passar a ser GERADO do banco?** A importação à mão de
-  09/09 já nasceu faltando 44 tabelas, e agora existe conexão para gerar.
-- 🔴 **`automations/dealers-db/` virou nome errado** — a pasta guarda o estudo das
+- 🔴 **`automations/bancos/` virou nome errado** — a pasta guarda o estudo das
   DUAS bases. Renomear para `automations/precificacao/`?
 - 🔴 **`REPASSE`/`TRADICIONAL` deve virar coluna?** Hoje vive no texto livre e carrega
   o maior efeito de preço do estudo. Decisão de modelo de dados, não minha.
@@ -74,7 +75,7 @@
 - [ ] Conferir o run **50327** do `rel-veiculos`
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
-- [ ] Reimportar/gerar o `schema.md` — faltam 44 tabelas
+- [ ] Preencher `context/banco-de-dados/projetos/c6/` e `.../rel-veiculos/` — medindo, não copiando
 - [ ] Modelo multivariado: só com o que se sabe ANTES da venda (o comprador não vale)
 - [ ] Incluir `laudo` na sonda 10 da Cars2You — rendeu 11,3% na Dealers e aqui não é extraída
 - [ ] Alinhar o controle dos dois analisadores do estudo (`no-analisar.js` usa `grupo`,
@@ -103,6 +104,12 @@
 - **Doni** — alinhamento do formato do Pulso de Eventos
 
 ## ⚠️ Alertas críticos
+- 📚 **Antes de abrir o banco, leia `context/banco-de-dados/README.md`.** Ele é
+  índice por pergunta, e a resposta já pode estar escrita. Número medido tem
+  fonte única em `projetos/<projeto>/indicadores.md` — não recalcular.
+- 🔒 **Guarda de tamanho no `/salve`:** arquivo acima de 1 MB no stage para o
+  commit. E conferir o que está sendo APAGADO, não só o que entra — em 18/09
+  uma regra de `.gitignore` sem caminho ia apagar 3 arquivos já commitados.
 - 🔑 **A credencial da Dealers está em `~/.dealers-dlc.env`, FORA do repo.** Três
   barreiras: `.gitignore`, recusa do `conexao.py` a ler credencial de dentro do repo,
   e mascaramento da senha em mensagem de erro. Não mover para dentro.

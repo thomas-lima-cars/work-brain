@@ -76,4 +76,4 @@ virou multi-base em `automations/bancos/`. Consequências que valem registro:
   voltaram juntas.
 
 Ver [`../sessions/2026-09-17.md`](../sessions/2026-09-17.md) e
-[`resultado-dealers.md`](../../automations/dealers-db/precificacao/resultado-dealers.md).
+[`resultado-dealers.md`](../../automations/precificacao/resultado-dealers.md).

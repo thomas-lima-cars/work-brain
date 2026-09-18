@@ -16,7 +16,7 @@ from pathlib import Path
 
 # O modulo de conexao virou compartilhado em 17/09, quando a Cars2You ganhou
 # acesso direto tambem. Duas copias divergiriam.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bancos"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from conexao import conectar, ler_env, caminho_env  # noqa: E402
 
 try:

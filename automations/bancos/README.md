@@ -20,13 +20,13 @@ lá e ganhou este caminho próprio.
 Moram **fora do repo**, em `~/.dealers-dlc.env` (ou no caminho de `DLC_ENV`):
 
 ```bash
-cp automations/dealers-db/.env.exemplo ~/.dealers-dlc.env
+cp automations/bancos/.env.exemplo ~/.dealers-dlc.env
 ```
 
 Três barreiras, porque `.gitignore` sozinho não é garantia — um `git add -f`
 ou um rename derruba:
 
-1. `.gitignore` cobre `.dealers-dlc.env` e `automations/dealers-db/.env*`
+1. `.gitignore` cobre `.dealers-dlc.env` e `automations/bancos/.env*`
 2. `conexao.py` **recusa** ler credencial de dentro do repo
 3. A senha nunca é impressa, nem dentro de mensagem de erro (`mascarar()`) —
    a lib às vezes ecoa a senha na exceção de conexão
@@ -34,15 +34,15 @@ ou um rename derruba:
 ## Uso
 
 ```bash
-python automations/dealers-db/consulta.py --testar
+python automations/bancos/consulta.py --testar
 ```
 
 ```bash
-python automations/dealers-db/consulta.py "SELECT ..." --limite 50
+python automations/bancos/consulta.py "SELECT ..." --limite 50
 ```
 
 ```bash
-python automations/dealers-db/consulta.py --arquivo consultas/x.sql --json dados-x.json
+python automations/bancos/consulta.py --arquivo consultas/x.sql --json dados-x.json
 ```
 
 `dados-*.json` desta pasta está no `.gitignore` — mesma regra do `n8n-sdk`:
