@@ -123,7 +123,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:v
 
 <h1>Analítico dos veículos</h1>
 <p class="sub">Uma linha por venda — ${num(c.colhidas)} vendas dos 20 modelos mais vendidos, sem motos e pesados</p>
-<p class="meta">Execução 51358 ·
+<p class="meta">${D.rotulo || 'Execução 51358'} ·
 ${c.periodo[0].slice(0, 10).split('-').reverse().join('/')} a
 ${c.periodo[1].slice(0, 10).split('-').reverse().join('/')} ·
 coleta conferida contra gabarito (${num(c.esperadas)}), ${c.duplicadas} duplicadas</p>
@@ -165,7 +165,7 @@ da FIPE. Fora disso há dado quebrado — venda registrada a 107× a tabela.</p>
 
 <footer>
 Gerado por <code>monta-analitico.js</code> a partir de <code>${path.basename(entrada)}</code> ·
-workflow <code>a6fNNTUYYayehNIn</code>, execução 51358.<br>
+${D.origem || 'workflow <code>a6fNNTUYYayehNIn</code>, execução 51358.'}<br>
 ⚠️ Contém nome real de loja e dado comercial de cliente. Repo privado — pensar antes de repassar.
 </footer>
 </div>

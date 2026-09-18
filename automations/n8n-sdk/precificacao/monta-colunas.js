@@ -68,14 +68,14 @@ const GLOSS = {
   modelo: 'É metade da chave de controle. Controlado ~0 por construção.'
 };
 
-const ALERTA = {
+const ALERTA = Object.assign({
   valor_fipe_anuncio: 'é o denominador do deságio — a relação crua é em parte mecânica',
   vmv: 'medido na execução 51328: 7,6% dos VMV estão acima de 3× a FIPE (até 83×). Usar só com filtro de sanidade',
   codigo_molicar: 'repete o valor de code_fipe na maioria das linhas — não é código Molicar',
   grupo: 'é a chave de controle; R² controlado zero é construção, não achado',
   modelo: 'é metade da chave de controle',
   marca: 'quase constante dentro do grupo'
-};
+}, D.alertas || {});
 
 const R = D.regressoes;
 const uteis = R.filter((r) => !r.degenerada);
@@ -253,7 +253,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;
 
 <h1>Avaliação coluna a coluna</h1>
 <p class="sub">Regressão simples de cada coluna contra o deságio, controlada por modelo</p>
-<p class="meta">Execução ${D.coleta ? '51358' : '?'} ·
+<p class="meta">${D.rotulo || 'Execução 51358'} ·
 ${c.periodo[0].slice(0, 10).split('-').reverse().join('/')} a
 ${c.periodo[1].slice(0, 10).split('-').reverse().join('/')} ·
 amostra <code>${esc(D.amostra.amostra)}</code> · sem motos e pesados</p>
@@ -319,7 +319,7 @@ variar de verdade dentro do grupo — o que a medição anterior não conseguia 
 
 <footer>
 Gerado por <code>monta-colunas.js</code> a partir de <code>${esc(path.basename(entrada))}</code>,
-que é a saída do nó <code>Analisar</code> do workflow <code>a6fNNTUYYayehNIn</code> ·
+${D.origem || 'que é a saída do nó <code>Analisar</code> do workflow <code>a6fNNTUYYayehNIn</code>'} ·
 coleta ${num(c.colhidas)}/${num(c.esperadas)} conferida contra gabarito, ${c.duplicadas} duplicadas,
 ${c.truncadas} truncadas.<br>
 ⚠️ Contém nome real de loja e dado comercial. Repo privado — pensar antes de repassar.

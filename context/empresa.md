@@ -15,6 +15,12 @@ Opera o ciclo do veículo retomado para bancos e financeiras:
 Bancos, financeiras e plataformas: **IGA/Itaú, C6, Win Leilões, Dealers Club, Tuunelis**.
 Detalhe de cada um em [`produtos.md`](produtos.md).
 
+⚠️ **Atualização 2026-09-17 — Dealers Club saiu do "fora do radar".** O Thomas pediu
+acesso ao banco de produção dela (`wl_dlc_prd`), que **roda a mesma plataforma** da
+Cars2You (193 tabelas contra 149; as 149 daqui existem lá com o mesmo nome).
+Acesso em [`automations/dealers-db/`](../automations/dealers-db/).
+❓ **O objetivo do acesso ainda não foi declarado** — pergunta aberta no `estado-atual.md`.
+
 ## Modelo de negócio
 NULL
 

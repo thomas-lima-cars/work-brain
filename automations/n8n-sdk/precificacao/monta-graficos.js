@@ -225,7 +225,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
 
 <h1>Deságio dentro do mesmo modelo</h1>
 <p class="sub">Quilometragem, idade, UF do pátio e laudo cautelar — 20 modelos, sem motos e pesados</p>
-<p class="meta">Execução ${D.execucao} · ${num(D.total)} vendas · 20 modelos · sem motos e pesados ·
+<p class="meta">${D.rotulo || ('Execução ' + D.execucao)} · ${num(D.total)} vendas · 20 modelos · sem motos e pesados ·
 deságio médio ${pct(MEDIA, 2)}</p>
 <div class="rule"></div>
 
@@ -283,8 +283,7 @@ os 20 modelos maiores concentram ${num(D.total)} delas. As categorias que restar
 amostra são Automóvel (3.730), Utilitário (832) e <b>"Não informada" (20)</b> — essas 20
 ficaram porque não se sabe o que são, e descartar sem saber é pior que manter e declarar.</p>
 <p><b>A amostra se move durante o dia.</b> Todo número aqui é o retrato de uma execução.
-Ontem duas extrações com 35 minutos de diferença deram 1.302 e 1.306 — eram vendas cujo
-status virou "vendido" no intervalo.</p>
+${D.nota_movimento || 'Ontem duas extrações com 35 minutos de diferença deram 1.302 e 1.306 — eram vendas cujo\nstatus virou "vendido" no intervalo.'}</p>
 <p><b>Correlação não é causa.</b> Cada dimensão foi medida sozinha. Quilometragem e idade
 andam juntas; UF e loja vendedora também. Separar o que é de quem exige um modelo com as
 variáveis juntas, que não é o que está aqui.</p>
@@ -292,7 +291,7 @@ variáveis juntas, que não é o que está aqui.</p>
 
 <footer>
 Gerado por <code>monta-graficos.js</code> a partir de <code>${esc(path.basename(entrada))}</code> ·
-execução ${D.execucao} do workflow <code>a6fNNTUYYayehNIn</code> ·
+${D.origem || ('execução ' + D.execucao + ' do workflow <code>a6fNNTUYYayehNIn</code>')} ·
 agregação por (modelo × faixa), coleta conferida contra gabarito.<br>
 ⚠️ Dado comercial de cliente. Repo privado — pensar antes de repassar.
 </footer>

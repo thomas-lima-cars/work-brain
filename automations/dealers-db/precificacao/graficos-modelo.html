@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deságio dentro do mesmo modelo</title>
+<style>
+:root{
+  color-scheme:light dark;
+  --surface:#fcfcfb; --card:#ffffff; --line:#e6e5e0;
+  --ink:#0b0b0b; --ink2:#52514e; --ink3:#87857e;
+  --s1:#2a78d6; --s2:#eb6834; --amber:#eda100; --grid:#e6e5e0;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --surface:#161615; --card:#1f1f1e; --line:#33332f;
+  --ink:#fff; --ink2:#c3c2b7; --ink3:#8d8b82;
+  --s1:#3987e5; --s2:#d95926; --amber:#c98500; --grid:#33332f;
+}}
+:root[data-theme="dark"]{
+  --surface:#161615; --card:#1f1f1e; --line:#33332f;
+  --ink:#fff; --ink2:#c3c2b7; --ink3:#8d8b82;
+  --s1:#3987e5; --s2:#d95926; --amber:#c98500; --grid:#33332f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding-block:32px 64px;padding-left:20px;padding-right:20px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:19px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--ink2);margin:0}
+.meta{color:var(--ink3);font-size:13px;margin:6px 0 0}
+.rule{height:3px;background:var(--amber);border-radius:2px;margin:14px 0 22px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.box{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--s1);
+  border-radius:8px;padding:14px 16px;margin:0 0 18px}
+.box.warn{border-left-color:var(--amber)}
+.box p{margin:0 0 8px} .box p:last-child{margin:0}
+
+.legenda{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:0 0 20px;
+  font-size:13px;color:var(--ink2)}
+.key{display:inline-flex;align-items:center;gap:7px}
+.key i{width:22px;height:9px;border-radius:2px;display:inline-block}
+.k1{background:var(--s1)} .k2{background:var(--s2)}
+
+.dim{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:18px 20px;margin:0 0 18px}
+.dim header{margin-bottom:12px}
+.perg{color:var(--ink2);margin:3px 0 0;font-size:14px}
+.scroll{overflow-x:auto}
+table.chart{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+.chart th[scope=col]{text-align:left;font-weight:600;color:var(--ink3);font-size:11px;
+  text-transform:uppercase;letter-spacing:.04em;padding:0 10px 8px 0;
+  border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+.chart th[scope=row]{text-align:left;font-weight:500;padding:6px 10px 6px 0;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+.chart td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.chart tbody tr:hover th[scope=row],.chart tbody tr:hover td{
+  background:color-mix(in srgb,var(--s1) 7%,transparent)}
+.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.abs{color:var(--ink2)}
+.efe{width:64px} .efe.dim{color:var(--ink3)}
+.dim td.dim{color:var(--ink3)}
+
+.plot{position:relative;width:46%;min-width:220px;height:24px;padding-right:0}
+th.plot{height:auto}
+.regua{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  margin:0 0 6px;font-size:11px;color:var(--ink3);max-width:100%}
+.regua .mid{color:var(--ink3);opacity:.8}
+.zero{position:absolute;left:50%;top:1px;bottom:1px;width:1px;background:var(--grid)}
+.plot i{position:absolute;height:7px;border-radius:2px;display:block}
+.plot .s1{top:4px;background:var(--s1)}
+.plot .s2{bottom:4px;background:var(--s2)}
+.plot .pos{border-radius:0 3px 3px 0}
+.plot .neg{border-radius:3px 0 0 3px}
+tr.ausente th[scope=row]{color:var(--ink3)}
+tr.ausente .plot i{opacity:.45}
+.tag{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);
+  border:1px solid var(--line);border-radius:99px;padding:1px 6px;margin-left:4px}
+
+.resumo{margin:14px 0 0;font-size:13.5px;color:var(--ink2);
+  background:color-mix(in srgb,var(--s1) 8%,transparent);border-radius:6px;padding:10px 12px}
+.nota{color:var(--ink3);font-size:11.5px;margin:8px 0 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;
+  background:color-mix(in srgb,var(--ink) 7%,transparent);padding:1px 5px;border-radius:4px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--ink3);font-size:12.5px}
+@media (max-width:640px){h1{font-size:21px} .dim{padding:14px}}
+</style></head>
+<body><div class="wrap">
+
+<h1>Deságio dentro do mesmo modelo</h1>
+<p class="sub">Quilometragem, idade, UF do pátio e laudo cautelar — 20 modelos, sem motos e pesados</p>
+<p class="meta">Base Dealers (<code>wl_dlc_prd</code>) · 4.771 vendas · 20 modelos · sem motos e pesados ·
+deságio médio 29,64%</p>
+<div class="rule"></div>
+
+<div class="box">
+<p><b>Cada barra é um desvio, não um valor absoluto.</b> Zero quer dizer "esta faixa
+vende igual à média do próprio modelo". Para a direita, mais deságio; para a
+esquerda, menos. O valor absoluto está na coluna <i>deságio</i>.</p>
+<p>Foi preciso medir assim porque o deságio das faixas vive entre 22% e 41%: barra
+ancorada em zero absoluto esconderia a variação, e barra com eixo cortado em 20%
+transformaria 3 pontos percentuais em montanha. O desvio tem um zero de verdade.</p>
+</div>
+
+<div class="legenda">
+  <span class="key"><i class="k1"></i> dentro do mesmo modelo — <b>a resposta</b></span>
+  <span class="key"><i class="k2"></i> bruto, misturando os 20 modelos</span>
+</div>
+
+<section class="dim">
+  <header>
+    <h2>Quilometragem</h2>
+    <p class="perg">Carro rodado vende com mais deságio?</p>
+  </header>
+  <p class="regua"><span>&larr; menos deságio</span><span class="mid">0 = média do próprio modelo</span><span>mais deságio &rarr;</span></p>
+  <div class="scroll"><table class="chart">
+  <caption class="sr">Deságio por faixa de km, dentro do mesmo modelo</caption>
+  <thead><tr>
+    <th scope="col">faixa de km</th>
+    <th scope="col" class="n">vendas</th>
+    <th scope="col" class="n">deságio</th>
+    <th scope="col" class="plot"></th>
+    <th scope="col" class="n">no modelo</th>
+    <th scope="col" class="n">bruto</th>
+  </tr></thead>
+  <tbody><tr><th scope="row">ate 20k</th><td class="n">170</td><td class="n abs">23,6%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:32.08%"></i><i class="s2 neg" style="right:50%;width:50.00%"></i></td><td class="n efe"><b>−6,1</b></td><td class="n efe dim">−9,5</td></tr>
+<tr><th scope="row">20 a 40k</th><td class="n">279</td><td class="n abs">26,0%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:19.00%"></i><i class="s2 neg" style="right:50%;width:33.12%"></i></td><td class="n efe"><b>−3,6</b></td><td class="n efe dim">−6,3</td></tr>
+<tr><th scope="row">40 a 60k</th><td class="n">331</td><td class="n abs">25,7%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:20.58%"></i><i class="s2 neg" style="right:50%;width:30.09%"></i></td><td class="n efe"><b>−3,9</b></td><td class="n efe dim">−5,7</td></tr>
+<tr><th scope="row">60 a 80k</th><td class="n">449</td><td class="n abs">25,9%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:19.63%"></i><i class="s2 neg" style="right:50%;width:22.68%"></i></td><td class="n efe"><b>−3,7</b></td><td class="n efe dim">−4,3</td></tr>
+<tr><th scope="row">80 a 100k</th><td class="n">561</td><td class="n abs">26,9%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:14.18%"></i><i class="s2 neg" style="right:50%;width:13.24%"></i></td><td class="n efe"><b>−2,7</b></td><td class="n efe dim">−2,5</td></tr>
+<tr><th scope="row">100 a 150k</th><td class="n">1.310</td><td class="n abs">28,2%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:7.74%"></i><i class="s2 neg" style="right:50%;width:4.15%"></i></td><td class="n efe"><b>−1,5</b></td><td class="n efe dim">−0,8</td></tr>
+<tr><th scope="row">150 a 200k</th><td class="n">699</td><td class="n abs">33,0%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:17.63%"></i><i class="s2 pos" style="left:50%;width:23.53%"></i></td><td class="n efe"><b>+3,3</b></td><td class="n efe dim">+4,5</td></tr>
+<tr><th scope="row">200k ou mais</th><td class="n">357</td><td class="n abs">38,3%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:45.86%"></i><i class="s2 pos" style="left:50%;width:49.64%"></i></td><td class="n efe"><b>+8,7</b></td><td class="n efe dim">+9,4</td></tr>
+<tr class="ausente"><th scope="row">sem km <span class="tag">ausência</span></th><td class="n">615</td><td class="n abs">34,5%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:25.65%"></i><i class="s2 pos" style="left:50%;width:26.95%"></i></td><td class="n efe"><b>+4,9</b></td><td class="n efe dim">+5,1</td></tr></tbody>
+  </table></div>
+  <p class="resumo">Entre as faixas com amostra, o deságio se desloca
+    <b>14,8 p.p.</b> de ponta a ponta dentro do mesmo modelo
+    — de <b>ate 20k</b> (−6,1) a
+    <b>200k ou mais</b> (+8,7).
+    No bruto seriam 18,9 p.p. — a diferença de 4,1 p.p. era composição de modelo, não quilometragem.</p>
+  
+</section>
+<section class="dim">
+  <header>
+    <h2>Idade do veículo</h2>
+    <p class="perg">Carro mais velho vende com mais deságio?</p>
+  </header>
+  <p class="regua"><span>&larr; menos deságio</span><span class="mid">0 = média do próprio modelo</span><span>mais deságio &rarr;</span></p>
+  <div class="scroll"><table class="chart">
+  <caption class="sr">Deságio por ano da venda − ano do modelo, dentro do mesmo modelo</caption>
+  <thead><tr>
+    <th scope="col">ano da venda − ano do modelo</th>
+    <th scope="col" class="n">vendas</th>
+    <th scope="col" class="n">deságio</th>
+    <th scope="col" class="plot"></th>
+    <th scope="col" class="n">no modelo</th>
+    <th scope="col" class="n">bruto</th>
+  </tr></thead>
+  <tbody><tr><th scope="row">0 a 1 ano</th><td class="n">455</td><td class="n abs">27,6%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:8.01%"></i><i class="s2 neg" style="right:50%;width:21.56%"></i></td><td class="n efe"><b>−2,1</b></td><td class="n efe dim">−5,6</td></tr>
+<tr><th scope="row">2 anos</th><td class="n">412</td><td class="n abs">28,3%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:5.15%"></i><i class="s2 neg" style="right:50%;width:13.22%"></i></td><td class="n efe"><b>−1,3</b></td><td class="n efe dim">−3,4</td></tr>
+<tr><th scope="row">3 anos</th><td class="n">508</td><td class="n abs">28,8%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:3.29%"></i><i class="s2 neg" style="right:50%;width:6.09%"></i></td><td class="n efe"><b>−0,8</b></td><td class="n efe dim">−1,6</td></tr>
+<tr><th scope="row">4 anos</th><td class="n">423</td><td class="n abs">28,6%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:3.98%"></i><i class="s2 neg" style="right:50%;width:8.06%"></i></td><td class="n efe"><b>−1,0</b></td><td class="n efe dim">−2,1</td></tr>
+<tr><th scope="row">5 anos</th><td class="n">491</td><td class="n abs">29,9%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:0.93%"></i><i class="s2 pos" style="left:50%;width:2.46%"></i></td><td class="n efe"><b>+0,2</b></td><td class="n efe dim">+0,6</td></tr>
+<tr><th scope="row">6 anos</th><td class="n">542</td><td class="n abs">29,7%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:0.39%"></i><i class="s2 pos" style="left:50%;width:3.43%"></i></td><td class="n efe"><b>+0,1</b></td><td class="n efe dim">+0,9</td></tr>
+<tr><th scope="row">7 anos</th><td class="n">420</td><td class="n abs">28,3%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:5.23%"></i><i class="s2 neg" style="right:50%;width:1.02%"></i></td><td class="n efe"><b>−1,3</b></td><td class="n efe dim">−0,3</td></tr>
+<tr><th scope="row">8 a 9 anos</th><td class="n">548</td><td class="n abs">29,1%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:2.22%"></i><i class="s2 pos" style="left:50%;width:2.34%"></i></td><td class="n efe"><b>−0,6</b></td><td class="n efe dim">+0,6</td></tr>
+<tr><th scope="row">10 a 14 anos</th><td class="n">841</td><td class="n abs">31,7%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:7.86%"></i><i class="s2 pos" style="left:50%;width:14.15%"></i></td><td class="n efe"><b>+2,0</b></td><td class="n efe dim">+3,6</td></tr>
+<tr><th scope="row">15 anos ou mais</th><td class="n">113</td><td class="n abs">41,3%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:45.14%"></i><i class="s2 pos" style="left:50%;width:50.00%"></i></td><td class="n efe"><b>+11,6</b></td><td class="n efe dim">+12,9</td></tr></tbody>
+  </table></div>
+  <p class="resumo">Entre as faixas com amostra, o deságio se desloca
+    <b>13,7 p.p.</b> de ponta a ponta dentro do mesmo modelo
+    — de <b>0 a 1 ano</b> (−2,1) a
+    <b>15 anos ou mais</b> (+11,6).
+    No bruto seriam 18,4 p.p. — a diferença de 4,7 p.p. era composição de modelo, não idade do veículo.</p>
+  <p class="nota">Fora do gráfico, com menos de 20 vendas: sem ano (18).</p>
+</section>
+<section class="dim">
+  <header>
+    <h2>UF do pátio</h2>
+    <p class="perg">Onde o carro está muda o preço?</p>
+  </header>
+  <p class="regua"><span>&larr; menos deságio</span><span class="mid">0 = média do próprio modelo</span><span>mais deságio &rarr;</span></p>
+  <div class="scroll"><table class="chart">
+  <caption class="sr">Deságio por UF do pátio (não do endereço da loja), dentro do mesmo modelo</caption>
+  <thead><tr>
+    <th scope="col">UF do pátio (não do endereço da loja)</th>
+    <th scope="col" class="n">vendas</th>
+    <th scope="col" class="n">deságio</th>
+    <th scope="col" class="plot"></th>
+    <th scope="col" class="n">no modelo</th>
+    <th scope="col" class="n">bruto</th>
+  </tr></thead>
+  <tbody><tr><th scope="row">RO</th><td class="n">32</td><td class="n abs">33,7%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:50.00%"></i><i class="s2 pos" style="left:50%;width:41.56%"></i></td><td class="n efe"><b>+4,1</b></td><td class="n efe dim">+3,4</td></tr>
+<tr><th scope="row">DF</th><td class="n">43</td><td class="n abs">33,7%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:49.63%"></i><i class="s2 pos" style="left:50%;width:45.37%"></i></td><td class="n efe"><b>+4,0</b></td><td class="n efe dim">+3,7</td></tr>
+<tr><th scope="row">PA</th><td class="n">177</td><td class="n abs">33,4%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:46.18%"></i><i class="s2 pos" style="left:50%;width:36.16%"></i></td><td class="n efe"><b>+3,8</b></td><td class="n efe dim">+2,9</td></tr>
+<tr><th scope="row">RS</th><td class="n">253</td><td class="n abs">32,3%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:32.81%"></i><i class="s2 pos" style="left:50%;width:35.66%"></i></td><td class="n efe"><b>+2,7</b></td><td class="n efe dim">+2,9</td></tr>
+<tr><th scope="row">RJ</th><td class="n">111</td><td class="n abs">32,2%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:31.77%"></i><i class="s2 pos" style="left:50%;width:17.96%"></i></td><td class="n efe"><b>+2,6</b></td><td class="n efe dim">+1,5</td></tr>
+<tr><th scope="row">AM</th><td class="n">68</td><td class="n abs">32,1%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:30.70%"></i><i class="s2 pos" style="left:50%;width:30.38%"></i></td><td class="n efe"><b>+2,5</b></td><td class="n efe dim">+2,5</td></tr>
+<tr><th scope="row">MG</th><td class="n">176</td><td class="n abs">31,9%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:27.76%"></i><i class="s2 pos" style="left:50%;width:23.63%"></i></td><td class="n efe"><b>+2,3</b></td><td class="n efe dim">+1,9</td></tr>
+<tr><th scope="row">CE</th><td class="n">85</td><td class="n abs">30,5%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:11.01%"></i><i class="s2 pos" style="left:50%;width:3.39%"></i></td><td class="n efe"><b>+0,9</b></td><td class="n efe dim">+0,3</td></tr>
+<tr><th scope="row">BA</th><td class="n">177</td><td class="n abs">30,4%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:9.83%"></i><i class="s2 neg" style="right:50%;width:4.80%"></i></td><td class="n efe"><b>+0,8</b></td><td class="n efe dim">−0,4</td></tr>
+<tr><th scope="row">MA</th><td class="n">105</td><td class="n abs">30,4%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:9.78%"></i><i class="s2 neg" style="right:50%;width:1.01%"></i></td><td class="n efe"><b>+0,8</b></td><td class="n efe dim">−0,1</td></tr>
+<tr><th scope="row">PI</th><td class="n">48</td><td class="n abs">30,3%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:7.81%"></i><i class="s2 neg" style="right:50%;width:7.35%"></i></td><td class="n efe"><b>+0,6</b></td><td class="n efe dim">−0,6</td></tr>
+<tr><th scope="row">MS</th><td class="n">105</td><td class="n abs">30,0%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:4.05%"></i><i class="s2 pos" style="left:50%;width:7.69%"></i></td><td class="n efe"><b>+0,3</b></td><td class="n efe dim">+0,6</td></tr>
+<tr><th scope="row">GO</th><td class="n">456</td><td class="n abs">29,8%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:2.32%"></i><i class="s2 neg" style="right:50%;width:1.75%"></i></td><td class="n efe"><b>+0,2</b></td><td class="n efe dim">−0,1</td></tr>
+<tr><th scope="row">PE</th><td class="n">331</td><td class="n abs">29,7%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:1.36%"></i><i class="s2 neg" style="right:50%;width:2.34%"></i></td><td class="n efe"><b>+0,1</b></td><td class="n efe dim">−0,2</td></tr>
+<tr><th scope="row">SC</th><td class="n">350</td><td class="n abs">29,2%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:5.97%"></i><i class="s2 neg" style="right:50%;width:1.63%"></i></td><td class="n efe"><b>−0,5</b></td><td class="n efe dim">−0,1</td></tr>
+<tr><th scope="row">SP</th><td class="n">1.536</td><td class="n abs">28,4%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:15.09%"></i><i class="s2 neg" style="right:50%;width:7.73%"></i></td><td class="n efe"><b>−1,2</b></td><td class="n efe dim">−0,6</td></tr>
+<tr><th scope="row">PR</th><td class="n">363</td><td class="n abs">28,4%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:15.56%"></i><i class="s2 neg" style="right:50%;width:13.98%"></i></td><td class="n efe"><b>−1,3</b></td><td class="n efe dim">−1,1</td></tr>
+<tr><th scope="row">MT</th><td class="n">355</td><td class="n abs">28,3%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:16.36%"></i><i class="s2 neg" style="right:50%;width:21.47%"></i></td><td class="n efe"><b>−1,3</b></td><td class="n efe dim">−1,7</td></tr></tbody>
+  </table></div>
+  <p class="resumo">Entre as faixas com amostra, o deságio se desloca
+    <b>5,4 p.p.</b> de ponta a ponta dentro do mesmo modelo
+    — de <b>MT</b> (−1,3) a
+    <b>RO</b> (+4,1).
+    No bruto seriam 5,4 p.p.</p>
+  
+</section>
+<section class="dim">
+  <header>
+    <h2>Laudo cautelar</h2>
+    <p class="perg">Laudo reprovado derruba o preço?</p>
+  </header>
+  <p class="regua"><span>&larr; menos deságio</span><span class="mid">0 = média do próprio modelo</span><span>mais deságio &rarr;</span></p>
+  <div class="scroll"><table class="chart">
+  <caption class="sr">Deságio por vehicle_precautionary_reports.situation, dentro do mesmo modelo</caption>
+  <thead><tr>
+    <th scope="col">vehicle_precautionary_reports.situation</th>
+    <th scope="col" class="n">vendas</th>
+    <th scope="col" class="n">deságio</th>
+    <th scope="col" class="plot"></th>
+    <th scope="col" class="n">no modelo</th>
+    <th scope="col" class="n">bruto</th>
+  </tr></thead>
+  <tbody><tr class="ausente"><th scope="row">sem laudo <span class="tag">ausência</span></th><td class="n">113</td><td class="n abs">40,5%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:50.00%"></i><i class="s2 pos" style="left:50%;width:49.77%"></i></td><td class="n efe"><b>+10,8</b></td><td class="n efe dim">+10,8</td></tr>
+<tr><th scope="row">reprovado</th><td class="n">1.382</td><td class="n abs">34,2%</td><td class="plot"><span class="zero"></span><i class="s1 pos" style="left:50%;width:21.22%"></i><i class="s2 pos" style="left:50%;width:27.38%"></i></td><td class="n efe"><b>+4,6</b></td><td class="n efe dim">+5,9</td></tr>
+<tr><th scope="row">aprovado_com_apontamento</th><td class="n">1.351</td><td class="n abs">28,6%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:4.81%"></i><i class="s2 neg" style="right:50%;width:4.99%"></i></td><td class="n efe"><b>−1,0</b></td><td class="n efe dim">−1,1</td></tr>
+<tr><th scope="row">aprovado</th><td class="n">1.924</td><td class="n abs">26,4%</td><td class="plot"><span class="zero"></span><i class="s1 neg" style="right:50%;width:14.80%"></i><i class="s2 neg" style="right:50%;width:19.08%"></i></td><td class="n efe"><b>−3,2</b></td><td class="n efe dim">−4,1</td></tr></tbody>
+  </table></div>
+  <p class="resumo">Entre as faixas com amostra, o deságio se desloca
+    <b>14,1 p.p.</b> de ponta a ponta dentro do mesmo modelo
+    — de <b>aprovado</b> (−3,2) a
+    <b>sem laudo</b> (+10,8).
+    No bruto seriam 14,9 p.p.</p>
+  <p class="nota">Fora do gráfico, com menos de 20 vendas: nao_informado (1).</p>
+</section>
+
+<h2 style="margin-top:34px">O que mudou ao trocar código FIPE por modelo</h2>
+<div class="box">
+<p>A medição anterior agrupava por <b>código FIPE</b> — versão + ano. Dentro de um
+grupo desses o ano do modelo quase não varia, então idade tinha pouco o que medir.
+Por modelo, o Gol cobre 2006–2023 e o Corolla 2003–2026.</p>
+<p><b>O efeito é grande onde deveria ser:</b></p>
+<table class="chart" style="margin-top:8px;min-width:0">
+<thead><tr><th scope="col">dimensão</th><th scope="col" class="n">por código FIPE</th>
+<th scope="col" class="n">por modelo</th></tr></thead>
+<tbody>
+<tr><th scope="row">Quilometragem</th><td class="n">7,4 p.p.</td><td class="n"><b>15,0 p.p.</b></td></tr>
+<tr><th scope="row">Idade</th><td class="n">2,6 p.p.</td><td class="n"><b>9,2 p.p.</b></td></tr>
+<tr><th scope="row">UF do pátio</th><td class="n">6,0 p.p.</td><td class="n"><b>7,9 p.p.</b></td></tr>
+<tr><th scope="row">Laudo</th><td class="n">4,9 p.p.</td><td class="n"><b>5,2 p.p.</b></td></tr>
+</tbody></table>
+<p style="margin-top:10px">⚠️ <b>Isso não é só ganho.</b> "Mesmo modelo" é um controle mais
+frouxo que "mesmo código FIPE": mistura gerações e versões. Um Onix 2014 e um Onix 2025
+caem no mesmo grupo. Parte do que aparece como efeito de quilometragem pode ser efeito de
+geração — as duas andam juntas. A leitura ficou mais sensível <i>e</i> menos limpa.</p>
+</div>
+
+<h2 style="margin-top:34px">Ressalvas</h2>
+<div class="box warn">
+<p><b>"Status da documentação" não existe no banco.</b> Procurei: as colunas
+<code>document</code> guardam CPF/CNPJ de pessoa. O que existe é o <b>laudo
+cautelar</b> (<code>vehicle_precautionary_reports.situation</code>), e é ele que está
+no quarto gráfico — rotulado como laudo, não como documentação. Se o pedido era
+outra coisa, o campo precisa ser encontrado antes.</p>
+<p><b><code>nao_informado</code> não é ausência de laudo.</b> São 2.170 vendas de veículo
+que <i>tem</i> laudo, e o laudo não traz veredito — quase metade da amostra.
+"Sem laudo" — veículo sem linha na tabela — são outras 84, e aparecem separadas de
+propósito. Juntar as duas mentiria.</p>
+<p><b>Motos e pesados saíram por categoria, linha a linha.</b> Motocicleta, Caminhão,
+Ônibus, Reboque e Semirreboque somavam 1.206 de 10.289 vendas (11,7%). Sobraram 9.083, e
+os 20 modelos maiores concentram 4.771 delas. As categorias que restaram na
+amostra são Automóvel (3.730), Utilitário (832) e <b>"Não informada" (20)</b> — essas 20
+ficaram porque não se sabe o que são, e descartar sem saber é pior que manter e declarar.</p>
+<p><b>A amostra se move durante o dia.</b> Todo número aqui é o retrato de uma execução.
+Medido aqui: as 4.771 vendas são o retrato da extração de 17/09/2026. A anedota das 1.302 contra 1.306 é da Cars2You, não desta base.</p>
+<p><b>Correlação não é causa.</b> Cada dimensão foi medida sozinha. Quilometragem e idade
+andam juntas; UF e loja vendedora também. Separar o que é de quem exige um modelo com as
+variáveis juntas, que não é o que está aqui.</p>
+</div>
+
+<footer>
+Gerado por <code>monta-graficos.js</code> a partir de <code>_dimensoes-rotulado.json</code> ·
+consulta direta ao RDS da Dealers via <code>roda-estudo.py</code>, sem passar pelo MCP ·
+agregação por (modelo × faixa), coleta conferida contra gabarito.<br>
+⚠️ Dado comercial de cliente. Repo privado — pensar antes de repassar.
+</footer>
+
+</div></body></html>

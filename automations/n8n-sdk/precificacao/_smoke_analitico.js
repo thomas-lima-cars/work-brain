@@ -101,14 +101,21 @@ ok(cab.indexOf('desagio') >= 0, 'coluna deságio ausente do cabeçalho');
 ok(cab.indexOf('grupo') >= 0, 'coluna grupo ausente do cabeçalho');
 
 const cnt = reg.cnt ? reg.cnt.textContent : '';
-ok(/4\.582 de 4\.582 vendas/.test(cnt), 'contador não bate: "' + cnt + '"');
+const mCnt = /^([\d.]+) de ([\d.]+) vendas$/.exec(cnt.trim());
+ok(!!mCnt, 'contador ilegivel: "' + cnt + '"');
+ok(!!mCnt && mCnt[1] === mCnt[2], 'contador nao bate consigo: "' + cnt + '"');
+const TOTAL = mCnt ? Number(mCnt[2].replace(/\./g, '')) : 0;
+ok(TOTAL > 0, 'total de vendas zerado na pagina');
 
 const tiles = reg.tiles ? reg.tiles.innerHTML : '';
-ok(/31,\d%/.test(tiles), 'deságio médio fora do esperado (~31%) nos cartões');
+const mDes = /(\d{1,2}),\d%/.exec(tiles);
+ok(!!mDes, 'nao achei o desagio medio nos cartoes');
+ok(!!mDes && Number(mDes[1]) >= 10 && Number(mDes[1]) <= 60,
+   'desagio medio implausivel nos cartoes: ' + (mDes ? mDes[0] : '?'));
 ok(tiles.indexOf('R$') >= 0, 'cartão de total vendido sem valor');
 
 const pgt = reg.pgt ? reg.pgt.textContent : '';
-ok(/^1–100 de 4\.582$/.test(pgt), 'paginação errada: "' + pgt + '"');
+ok(pgt.trim() === '1–100 de ' + mCnt[2], 'paginacao nao bate com o contador: "' + pgt + '"');
 
 /* a tabela está ordenada por deságio decrescente por padrão */
 const primeiros = Array.from(corpo.matchAll(/<b>(-?\d+,\d)%<\/b>/g)).map((m) => Number(m[1].replace(',', '.')));
@@ -125,7 +132,8 @@ if (reg.csv && reg.csv.onclick) {
   if (baixou) {
     const csv = baixou.partes[0];
     const l = csv.split('\r\n');
-    ok(l.length === 4583, 'CSV deveria ter 1 cabeçalho + 4.582 linhas, tem ' + l.length);
+    ok(l.length === TOTAL + 1, 'CSV deveria ter 1 cabecalho + ' + TOTAL +
+       ' linhas, tem ' + l.length);
     ok(l[0].indexOf(';') >= 0, 'CSV sem separador ponto-e-vírgula');
     ok(csv.charCodeAt(0) === 0xFEFF, 'CSV sem BOM — o Excel abriria com acento quebrado');
     ok(!/\d\.\d{2}(;|$)/.test(l[1]), 'CSV com ponto decimal — o Excel pt-BR não lê');

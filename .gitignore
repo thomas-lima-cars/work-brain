@@ -28,3 +28,44 @@ automations/n8n-sdk/saida-teste-local.html
 # Reproduz rodando o workflow e extraindo com _extrai_execucao.py.
 automations/n8n-sdk/*/dados-*.json
 automations/n8n-sdk/*/saida-*.html
+
+# Credenciais do banco da Dealers. O modelo (.env.exemplo) e versionado; o
+# preenchido mora em ~/.dealers-dlc.env, FORA do repo. Estas linhas sao a
+# segunda barreira -- conexao.py recusa ler credencial de dentro do repo.
+.dealers-dlc.env
+automations/dealers-db/.env
+automations/dealers-db/*.local.env
+automations/dealers-db/dados-*.json
+
+# Coleta do estudo de precificacao da Dealers: 25 MB de dado comercial real de
+# outro tenant, linha a linha, com o texto livre junto -- e no texto livre
+# aparece CNPJ de instituicao financeira digitado a mao. Mesma regra ja aplicada
+# a automations/n8n-sdk/*/dados-*.json. Os resumos (dimensoes, termos, config,
+# resultado) ficam versionados; a coleta bruta, nao.
+# Reproduz com: python automations/dealers-db/precificacao/roda-estudo.py
+# Por PADRAO, e nao por nome: a regra antiga nomeava `analitico-dealers.json` e
+# `analitico-cars2you.json` passou direto quando a segunda base entrou (18/09).
+automations/dealers-db/precificacao/analitico-*.json
+automations/dealers-db/precificacao/texto-*.json
+automations/dealers-db/precificacao/sinais-*.json
+automations/dealers-db/precificacao/painel-dados.json
+
+# As paginas que embutem o texto livre linha a linha: 8 a 11 MB cada, ~40 MB no
+# total, com nome real de loja e a descricao de cada veiculo. Todas se
+# regeneram dos scripts + dos JSONs agregados, que ESTES sim vao pro repo
+# (dimensoes-*, drivers-*, termos-*, amostra-*).
+#   python roda-estudo.py --base cars2you && python roda-estudo.py --base dealers
+#   python analisa-sinais.py && python monta-painel-dados.py
+#   node ../../n8n-sdk/precificacao/monta-painel.js painel-dados.json painel-precificacao.html
+automations/dealers-db/precificacao/analitico-veiculos.html
+automations/dealers-db/precificacao/termos-linhas.html
+automations/dealers-db/precificacao/sinais-contexto.html
+automations/dealers-db/precificacao/painel-precificacao.html
+
+# Cache do Python
+__pycache__/
+*.pyc
+
+# O MODELO de credencial e versionado de proposito: o README manda copiar dele.
+# A regra `.env.*` acima o pegaria junto. Sem valor real dentro -- so placeholders.
+!automations/dealers-db/.env.exemplo

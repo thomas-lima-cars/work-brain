@@ -1,9 +1,21 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-15 (tarde) — estudo de precificação por modelo, e o achado do texto
+> **Última atualização:** 2026-09-18 (madrugada) — acesso às duas bases, painel unificado
 
 ## 🔹 Frentes quentes agora
+- **bancos (cars2you + dealers)** — 🔥 **Acesso direto ao banco das DUAS operações.**
+  `automations/bancos/conexao.py`, multi-base, só leitura, guarda provada em 17 casos.
+  Credenciais `bi_read_cars2you` e `bi_read_wl_dlc_prd`, fora do repo. **Depende de VPN**
+  — em 18/09 as duas caíram juntas e voltaram juntas.
+  🔴 **O `schema.md` documenta 149 tabelas e o banco tem 193.** Faltam 44 desde 09/09.
+  Ver `context/banco-de-dados/tabelas-nao-documentadas.md`.
+  ✅ Ressalva 2 fechada: as 79 colunas ocultas em 4 tabelas, lidas direto.
+  ✅ Conferido: as duas bases são o MESMO esquema — 192 tabelas em comum, só
+  `notifications` difere em coluna.
+  📊 **Painel de precificação unificado**: `painel-precificacao.html`, 9.367 vendas
+  (Cars2You 4.596 + Dealers 4.771), deságio 30,4%, duas telas, Bootstrap embutido.
+  ❓ **O objetivo do acesso à Dealers segue sem ser declarado** — sem pasta em `subjects/`.
 - **cars2you** — 🔥 **Estudo de precificação entregue em quatro páginas.**
   `automations/n8n-sdk/precificacao/`. Deságio = 1 − venda/FIPE, sobre as 4.582 vendas
   dos 20 modelos mais vendidos em 12 meses, sem motos e pesados.
@@ -15,7 +27,7 @@
   Ver `automations/n8n-sdk/precificacao/README.md`.
   Pendente antigo: **`rel-veiculos`** (`8fiTFsjWG9RQinz8`) — conferir o run **50327**;
   e o Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
-- **c6** — 🔥 **Parado há 11 dias no mesmo ponto: falta um run que termine.**
+- **c6** — 🔥 **Parado há 13 dias no mesmo ponto: falta um run que termine.**
   Lote 2 pronto e provado, gerador novo em `automations/n8n-sdk/gerador/`.
   ⚠️ Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas eram do Raio-X, oculto.
   Workflow `QImk2D4HdzIqHZe9` · sondas em `7TCmS8JFacDTmySQ`
@@ -31,6 +43,12 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔴 **Para que serve o acesso à Dealers?** Sem objetivo declarado não abro pasta
+  em `subjects/` e cada pedido vira avulso.
+- 🔴 **O `schema.md` deve passar a ser GERADO do banco?** A importação à mão de
+  09/09 já nasceu faltando 44 tabelas, e agora existe conexão para gerar.
+- 🔴 **`automations/dealers-db/` virou nome errado** — a pasta guarda o estudo das
+  DUAS bases. Renomear para `automations/precificacao/`?
 - 🔴 **`REPASSE`/`TRADICIONAL` deve virar coluna?** Hoje vive no texto livre e carrega
   o maior efeito de preço do estudo. Decisão de modelo de dados, não minha.
 - 🔴 **O que são as 39 vendas do Agile (004362-1)?** `km NULL`, `ano_modelo 2010`, VMV
@@ -54,6 +72,13 @@
       `onError: continueRegularOutput` no nó MCP; (3) rodar `QImk2D4HdzIqHZe9`;
       (4) montar com `node monta_html_de_dados.js`.
 - [ ] Conferir o run **50327** do `rel-veiculos`
+- [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
+- [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
+- [ ] Reimportar/gerar o `schema.md` — faltam 44 tabelas
+- [ ] Modelo multivariado: só com o que se sabe ANTES da venda (o comprador não vale)
+- [ ] Incluir `laudo` na sonda 10 da Cars2You — rendeu 11,3% na Dealers e aqui não é extraída
+- [ ] Alinhar o controle dos dois analisadores do estudo (`no-analisar.js` usa `grupo`,
+      `analisa-drivers.js` usa `codigo_fipe`) — ou marcar em cada um qual é o seu
 - [ ] Levar o achado `REPASSE`/`TRADICIONAL` a quem decide o modelo de dados
 - [ ] Confirmar `motor nao funciona` numa amostra nova — t = 4,1, abaixo do corte de
       Bonferroni (4,8) que 32 mil testes exigem
@@ -71,14 +96,29 @@
 - [ ] Preencher `01-contexto.md` de `itau` e `lm`
 
 ## ⏳ Esperando outros
-- **Thomas** — REPASSE/TRADICIONAL vira coluna? · o que são as vendas do Agile? ·
+- **Thomas** — objetivo do acesso à Dealers? · REPASSE/TRADICIONAL vira coluna? · o que são as vendas do Agile? ·
   as 4 lojas do ranking são contas internas? · o corte de 50% baixa?
 - **Gui** — aprovação pra readicionar `fernando.tuunelis` no e-mail do IGA
 - **Caio / Gui / Daniel** — avaliação do Skip/Adapta
 - **Doni** — alinhamento do formato do Pulso de Eventos
 
 ## ⚠️ Alertas críticos
-- 🚨 **A entrega do C6 não saiu, e já são 11 dias.** É avaliação de skill (ata 2026-09-02).
+- 🔑 **A credencial da Dealers está em `~/.dealers-dlc.env`, FORA do repo.** Três
+  barreiras: `.gitignore`, recusa do `conexao.py` a ler credencial de dentro do repo,
+  e mascaramento da senha em mensagem de erro. Não mover para dentro.
+- 🧪 **Achado de uma base não é achado da outra.** O estudo roda igual nas duas, mas
+  `REPASSE` não existe na Dealers. O método viaja; a conclusão, não.
+- 🔌 **O acesso direto ao banco depende de VPN.** Em 18/09 as duas caíram ao mesmo
+  tempo. Se as duas falham juntas, é rede — não perca tempo no host.
+- 📄 **`node --check` não valida JS de navegador, e o smoke pode validar o arquivo
+  ANTIGO** se o gerador falhar e o HTML anterior continuar em disco. Conferir a
+  saída do gerador antes de confiar no teste.
+- 📐 **Os dois analisadores do estudo controlam por campos diferentes** — `grupo` no
+  nó do n8n, `codigo_fipe` no script local. Comparar resultado de um com número
+  publicado do outro faz a diferença de controle parecer achado.
+- 🔢 **`table_rows` do InnoDB é estimativa e erra.** Contar com `COUNT(*)` antes de
+  afirmar que uma tabela está vazia — errou em 2 de 44 em 17/09.
+- 🚨 **A entrega do C6 não saiu, e já são 13 dias.** É avaliação de skill (ata 2026-09-02).
 - 🕐 **O banco responde em UTC; as datas dos eventos estão em hora de Brasília.** Recorte
   de evento por data tem que ser calculado fora do SQL e ir como literal.
 - 📏 **Duas sondas que alimentam páginas da mesma amostra precisam do MESMO `WHERE`.**

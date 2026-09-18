@@ -13,12 +13,16 @@
 | **Itaú** | `itau` | Operação **IGA** — evento ~1x/semana, fecha 16h. 8 workflows em produção (relatório, remanescentes, planilha, cockpit comprador). | Em produção e estável |
 | **LM** | `lm` | Fornecedor que manda planilha de estoque ativo quase diariamente → vira Lista LM (HTML) + Proposta LM (formulário). ❓ **Sigla ainda não decifrada.** | Em produção; lance migrou p/ dentro da plataforma (25/08) |
 | **Lance Fácil BTB** | — _(sem pasta ainda)_ | Whitelabels 62 (BTB) e 65 (BTB Associados). Tem 2 workflows de controle de cadastros. | ❓ **Não é frente declarada** — decidir se abre pasta ou vive em `outros` |
+| **Dealers Club** | — _(sem pasta ainda)_ | Parceiro que roda a **mesma plataforma** num banco próprio (`wl_dlc_prd`, RDS us-east-1). Acesso direto via Python, fora do MCP. | ❓ **Acesso aberto em 17/09; objetivo ainda não declarado** |
 | **Outros** | `outros` | Coringa: o que não se encaixa nas frentes acima | — |
 
 ## Fora do radar
 
-Citados no briefing original mas **não** são frentes do Thomas: Win Leiões, Dealers Club,
-Tuunelis, VEIC.
+Citados no briefing original mas **não** são frentes do Thomas: Win Leiões, Tuunelis, VEIC.
+
+⚠️ **Correção 2026-09-17:** "Dealers Club" estava nesta lista. Saiu — o Thomas abriu
+acesso ao banco de produção dela em 17/09. Ainda não é frente declarada (sem pasta em
+`subjects/`), mas também não está mais fora do radar.
 
 ⚠️ **Correção 2026-09-03:** "IGA" estava listado aqui como fora do radar. IGA **é** a
 operação Itaú — mesma coisa que a frente `itau`, não um terceiro.

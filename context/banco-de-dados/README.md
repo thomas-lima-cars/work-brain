@@ -4,13 +4,28 @@
 > (relatórios C6/IGA, sondas, queries de coorte).
 >
 > **Importado em 2026-09-09** de dois arquivos exportados pelo Thomas, preservados em
-> [`_fontes/`](_fontes/).
+> [`_fontes/`](_fontes/). **Conferido em 2026-09-17** contra os dois bancos ao vivo.
+>
+> 🔴 **ESTE ARQUIVO ESTÁ INCOMPLETO: documenta 149 tabelas, e o banco tem 193.**
+> Faltam **44**, entre elas WhatsApp nativo (`whatsapp_*`), automação de loja
+> (`shop_automations`, `shop_webhooks`), `vozis_*`, `communication_*`,
+> `user_devices`, `password_histories`, `pickup_authorizations` e
+> `advertisement_request_status_logs`. O import de 09/09 não as trouxe.
+> Lista completa em [`tabelas-nao-documentadas.md`](tabelas-nao-documentadas.md).
+>
+> 🔵 **Cars2You e Dealers são o MESMO esquema.** Comparados ao vivo em 17/09:
+> 193 tabelas cada, idênticas exceto por uma de cada lado (`base_cars2you` ×
+> `base_dealersclub`). Uma correção: em 17/09 eu afirmei que a Dealers era um
+> superconjunto com versão mais nova — não é. Acesso direto às duas em
+> [`automations/bancos/`](../../automations/bancos/).
 
 ## Arquivos
 
 | Arquivo | O que tem |
 |---|---|
 | [`schema.md`](schema.md) | **As 144 tabelas.** Descrição, colunas com tipos, FKs de saída, quem referencia a tabela, índices. Índice por domínio no topo. |
+| [`colunas-ocultas.md`](colunas-ocultas.md) | **As 79 colunas que o diagrama escondeu** em 4 tabelas, lidas direto no banco da Cars2You. Fecha a ressalva 2. |
+| [`tabelas-nao-documentadas.md`](tabelas-nao-documentadas.md) | 🔴 **As 44 tabelas que existem no banco e não estão aqui.** 19 delas vazias. |
 | [`dominios.md`](dominios.md) | **O que os valores significam.** Domínios de `status` medidos por consulta, duplicidade no catálogo `models`, e o fan-out de whitelabel que infla contagem. |
 | [`consultas/`](consultas/) | SQL já escrita e conferida contra o schema. Cada arquivo declara suas premissas no cabeçalho. |
 | `_fontes/Banco_cars.txt` | Original: descrição + relacionamentos + índices por tabela. **Não tem colunas.** |
@@ -20,8 +35,15 @@ O `schema.md` é o cruzamento dos dois — é o arquivo pra ler no dia a dia.
 
 ## Números
 
-**144 tabelas · 1.474 colunas documentadas (+49 não documentadas, ver ressalva 2) · 239 chaves
-estrangeiras.** MySQL/MariaDB, padrão Laravel
+**Documentado aqui:** 144 tabelas descritas + 5 só do diagrama = 149 blocos ·
+1.474 colunas · 239 chaves estrangeiras.
+
+**No banco, medido em 18/09:** **193 tabelas · 2.075 colunas.** A diferença —
+44 tabelas e as 79 colunas das 4 que o diagrama colapsou — está em
+[`tabelas-nao-documentadas.md`](tabelas-nao-documentadas.md) e
+[`colunas-ocultas.md`](colunas-ocultas.md).
+
+MySQL **8.4.8**, padrão Laravel
 (`id BIGINT`, `created_at`/`updated_at`/`deleted_at TIMESTAMP`, tabelas pivô `a_b`).
 
 ## Como consultar
@@ -128,12 +150,24 @@ Lista completa de cada domínio no índice do [`schema.md`](schema.md).
 
    São 49 colunas ao todo. Dá pra inferir algumas por outras vias: `shops.deleted_at`
    aparece no índice `shops_id_deleted_idx`, e `whitelabels.client_group_id` aparece na
-   lista de FKs — as duas estão entre as ocultas. Pra fechar essas 4 tabelas, precisa de
-   um `SHOW COLUMNS` no banco ou de uma exportação do diagrama sem colapso.
+   lista de FKs — as duas estão entre as ocultas.
+
+   ✅ **RESOLVIDO em 2026-09-18** → [`colunas-ocultas.md`](colunas-ocultas.md).
+   As 4 tabelas foram lidas direto no banco da **Cars2You**, pela conexão em
+   `automations/bancos/`. São **79** colunas, não 49 — a estimativa vinha do
+   rótulo "N more..." do diagrama, que subcontava. Não foram mescladas neste
+   arquivo para o `schema.md` continuar sendo o retrato da importação de 09/09;
+   o arquivo novo é a fonte para essas quatro.
 3. **5 tabelas existem só no diagrama** e não no `.txt`: `oauth_clients`,
    `oauth_access_tokens`, `oauth_auth_codes`, `oauth_refresh_tokens`,
    `oauth_personal_access_clients` — OAuth do Laravel Passport. Ficam sem descrição,
-   FK nem índice, e o nome pode estar truncado no diagrama.
+   FK nem índice.
+
+   ✅ **Truncamento confirmado e corrigido em 2026-09-17.** Quatro dos cinco nomes
+   estavam cortados no diagrama (`oauth_access_toke`, `oauth_auth_cod`,
+   `oauth_personal_access_clie`, `oauth_refresh_toke`). Conferidos contra o banco vivo
+   da Dealers e corrigidos no `schema.md`. `oauth_clients` já estava certo.
+   **Nenhum nome de coluna está truncado** — auditei os 1.474, zero divergência.
 4. **Nenhuma das duas fontes tem `NOT NULL`, `DEFAULT`, `CHECK` ou os valores dos
    `ENUM`.** O diagrama mostra `ENUM(...)` em 3 colunas sem revelar o conteúdo.
    Colunas como `situation` e `status` (`TINYINT`) têm significado que o `.txt` não

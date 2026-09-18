@@ -1,0 +1,143 @@
+{
+  "nome": "top20-modelos-12m-DEALERS",
+  "descricao": "Mesmas definicoes do estudo da Cars2You, sobre wl_dlc_prd. Os 20 modelos foram re-derivados nesta base, nao copiados.",
+  "base": "dealers (wl_dlc_prd)",
+  "gerado_em": "2026-09-17 02:26 (Brasilia)",
+  "chave": "marca + nome do modelo, normalizados (UPPER/TRIM)",
+  "modelos": [
+    {
+      "marca": "CHEVROLET",
+      "modelo": "ONIX",
+      "vendas": 624,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "GOL",
+      "vendas": 531,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "POLO",
+      "vendas": 457,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "HB20",
+      "vendas": 330,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "KA",
+      "vendas": 269,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "COROLLA",
+      "vendas": 222,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "SANDERO",
+      "vendas": 206,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "SAVEIRO",
+      "vendas": 203,
+      "ids": 2
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "VOYAGE",
+      "vendas": 199,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "ARGO",
+      "vendas": 198,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "KWID",
+      "vendas": 188,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "T-CROSS",
+      "vendas": 166,
+      "ids": 1
+    },
+    {
+      "marca": "JEEP",
+      "modelo": "RENEGADE",
+      "vendas": 164,
+      "ids": 2
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "FOX",
+      "vendas": 160,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "MOBI",
+      "vendas": 156,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "VIRTUS",
+      "vendas": 151,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "UNO",
+      "vendas": 150,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "PRISMA",
+      "vendas": 138,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "HILUX",
+      "vendas": 133,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "STRADA",
+      "vendas": 126,
+      "ids": 2
+    }
+  ],
+  "excluir_categorias": [
+    "Motocicleta",
+    "Caminhao",
+    "Onibus",
+    "Reboque",
+    "Semireboque"
+  ],
+  "janela_meses": 12,
+  "corte_razao": [
+    0.2,
+    1.2
+  ],
+  "elegiveis": 8944,
+  "vendas_esperadas": 4771
+}

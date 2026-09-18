@@ -46,7 +46,7 @@
 [`failed_jobs`](#failed_jobs) · [`health_check_result_history_items`](#health_check_result_history_items) · [`import_logs`](#import_logs) · [`import_row_logs`](#import_row_logs) · [`migration_legacy`](#migration_legacy) · [`migrations`](#migrations) · [`reports`](#reports) · [`variables`](#variables) · [`websockets_statistics_entries`](#websockets_statistics_entries)
 
 **Só no diagrama, ausentes do .txt** (5) — OAuth do Laravel Passport
-`oauth_access_toke` · `oauth_auth_cod` · `oauth_clients` · `oauth_personal_access_clie` · `oauth_refresh_toke`
+`oauth_access_tokens` · `oauth_auth_codes` · `oauth_clients` · `oauth_personal_access_clients` · `oauth_refresh_tokens`
 
 ---
 
@@ -3680,10 +3680,11 @@ limit_max_ad_value                         VARCHAR(255)
 
 ---
 
-## oauth_access_toke
+## oauth_access_tokens
 
 > ⚠️ Presente apenas no `Diagrama_cars.pdf`; sem descrição, FKs ou índices no `.txt`.
-> Nome pode estar truncado pelo diagrama.
+> **Nome corrigido em 2026-09-17**: estava truncado pelo diagrama. Conferido contra
+> o banco vivo da Dealers (`wl_dlc_prd`), que roda a mesma plataforma.
 
 ```
 id                                         VARCHAR(100)
@@ -3699,10 +3700,11 @@ expires_at                                 DATETIME
 
 ---
 
-## oauth_auth_cod
+## oauth_auth_codes
 
 > ⚠️ Presente apenas no `Diagrama_cars.pdf`; sem descrição, FKs ou índices no `.txt`.
-> Nome pode estar truncado pelo diagrama.
+> **Nome corrigido em 2026-09-17**: estava truncado pelo diagrama. Conferido contra
+> o banco vivo da Dealers (`wl_dlc_prd`), que roda a mesma plataforma.
 
 ```
 id                                         VARCHAR(100)
@@ -3718,7 +3720,7 @@ expires_at                                 DATETIME
 ## oauth_clients
 
 > ⚠️ Presente apenas no `Diagrama_cars.pdf`; sem descrição, FKs ou índices no `.txt`.
-> Nome pode estar truncado pelo diagrama.
+> Nome conferido em 2026-09-17 contra o banco vivo da Dealers (`wl_dlc_prd`): está correto.
 
 ```
 id                                         BIGINT
@@ -3736,10 +3738,11 @@ updated_at                                 TIMESTAMP
 
 ---
 
-## oauth_personal_access_clie
+## oauth_personal_access_clients
 
 > ⚠️ Presente apenas no `Diagrama_cars.pdf`; sem descrição, FKs ou índices no `.txt`.
-> Nome pode estar truncado pelo diagrama.
+> **Nome corrigido em 2026-09-17**: estava truncado pelo diagrama. Conferido contra
+> o banco vivo da Dealers (`wl_dlc_prd`), que roda a mesma plataforma.
 
 ```
 id                                         BIGINT
@@ -3750,10 +3753,11 @@ updated_at                                 TIMESTAMP
 
 ---
 
-## oauth_refresh_toke
+## oauth_refresh_tokens
 
 > ⚠️ Presente apenas no `Diagrama_cars.pdf`; sem descrição, FKs ou índices no `.txt`.
-> Nome pode estar truncado pelo diagrama.
+> **Nome corrigido em 2026-09-17**: estava truncado pelo diagrama. Conferido contra
+> o banco vivo da Dealers (`wl_dlc_prd`), que roda a mesma plataforma.
 
 ```
 id                                         VARCHAR(100)

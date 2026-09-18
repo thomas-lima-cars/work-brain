@@ -162,3 +162,67 @@ Pendências: levar REPASSE/TRADICIONAL a quem decide o modelo de dados; confirma
 `motor nao funciona` (t = 4,1, abaixo do corte de Bonferroni); entender por que
 `ipva pago` aparece com **mais** deságio; e um modelo multivariado, já que km,
 idade e versão andam juntas.
+
+## 2026-09-17 — o estudo rodado numa segunda base, e um defeito no schema
+
+O estudo de precificação foi replicado na base da **Dealers** (`wl_dlc_prd`),
+com as mesmas definições, sobre 4.771 vendas. Serviu de teste de validade
+externa — e o resultado tem consequência direta para o que foi entregue aqui.
+
+🔴 **`REPASSE`/`TRADICIONAL` não existe na Dealers.** Zero ocorrências. O maior
+efeito do estudo da Cars2You (7,0 p.p., t = 40,7) é **específico desta
+operação**, não propriedade da plataforma. Isso não invalida o achado — reforça
+que é uma classificação comercial da Cars2You vivendo num `TEXT`, e que a
+decisão de virar coluna é daqui, não do produto.
+
+✅ **O status da documentação replica:** 3,0 p.p. lá contra 4,3 p.p. aqui.
+É o único achado de texto que sobrevive à troca de base.
+
+**O que a comparação expôs no método:** os dois analisadores do estudo usam
+controles diferentes — `no-analisar.js` (que gerou o ranking publicado)
+controla por `grupo`, e `analisa-drivers.js` controla por `codigo_fipe`.
+Comparar um com o número publicado do outro faz a diferença de controle
+aparecer como achado. Os dois lados foram recalculados com o mesmo script.
+
+**Defeito corrigido no `context/banco-de-dados/`:** o `schema.md` tinha 4 nomes
+de tabela truncados desde a importação de 09/09 (`oauth_access_toke` e outros
+três). O banco vivo da Dealers, que roda a mesma plataforma, permitiu confirmar
+e corrigir. As 1.474 colunas foram auditadas: nenhuma truncada.
+
+Pendência nova: **incluir `laudo` na sonda 10** — a coluna rendeu 11,3% de R²
+controlado na Dealers e não tem contraparte aqui porque não é extraída.
+
+## 2026-09-18 — conexão direta ao banco, e o schema que estava incompleto
+
+A Cars2You ganhou **acesso direto ao banco** (`bi_read_cars2you`, somente
+leitura), pelo mesmo caminho aberto para a Dealers em 17/09. Módulo multi-base
+em `automations/bancos/`. Não substitui o MCP — aquele segue sendo o caminho do
+que roda em produção no n8n; este é para análise, sem teto de 50 linhas, sem
+paginação e com `information_schema`.
+
+🔴 **O que isso revelou primeiro: `context/banco-de-dados/schema.md` documenta
+149 tabelas e o banco tem 193.** Faltam 44, desde a importação de 09/09 —
+WhatsApp nativo, automação de loja, `vozis_*`, `communication_*`,
+`pickup_authorizations`, `advertisement_request_status_logs`. Lista em
+[`tabelas-nao-documentadas.md`](../../context/banco-de-dados/tabelas-nao-documentadas.md).
+Não é erro do cruzamento: as fontes exportadas à mão já vieram incompletas.
+**O caminho agora é gerar o schema do banco, não importar.**
+
+✅ **A ressalva 2 de 09/09 fechou.** As colunas que o diagrama colapsou em
+"N more..." foram lidas direto: são **79** em 4 tabelas, não 49 —
+[`colunas-ocultas.md`](../../context/banco-de-dados/colunas-ocultas.md).
+
+✅ **Correção do que eu afirmei em 17/09.** Escrevi que a Dealers era um
+superconjunto com versão mais nova. **Não é.** Os dois bancos têm 193 tabelas,
+192 em comum, e das 192 só `notifications` difere em coluna (2 a mais na
+Cars2You). 2.075 colunas contra 2.074.
+
+**Entrega:** `painel-precificacao.html` — as duas análises num arquivo, com
+seletor de base, sobre **9.367 vendas** (Cars2You 4.596 + Dealers 4.771),
+deságio médio 30,4%. A extração da Cars2You foi refeita com `v.description` e o
+laudo, que a sonda 10 não trazia.
+
+Pendência nova: **o modelo multivariado só pode usar o que se sabe ANTES da
+venda.** O fator isolado mais forte medido é quem compra — e isso só se conhece
+depois. Um modelo que use o comprador acerta no histórico e é inútil para
+precificar.
