@@ -3,6 +3,10 @@
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
 > **Última atualização:** 2026-09-18 (noite) — Radar de Estoque mudou de eixo: janela de 7 dias à frente
 
+> ⚠️ **1 commit local NÃO enviado** desde 2026-09-18 (`14daf5b`). O `git push` foi
+> barrado pelo classificador de permissões desta sessão, não pela rede nem pelo git.
+> **Rodar `git push` na próxima sessão** e tirar esta linha.
+
 ## 🔹 Frentes quentes agora
 - **bancos (cars2you + dealers)** — 🔥 **Acesso direto ao banco das DUAS operações.**
   `automations/bancos/conexao.py`, multi-base, só leitura, guarda provada em 17 casos.
