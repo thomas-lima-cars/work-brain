@@ -159,7 +159,7 @@ Três hábitos que saíram disso:
    ```
 3. **Confira o resultado, não só a sintaxe.** Um caractere trocado no meio de
    uma fórmula passa pelo parser e só envenena os números. O
-   `rel-veiculos/_confere_run.js` recalcula todos os pares publicados a partir
+   `rel-veiculos/_confere_run.js` (Radar de Estoque) recalcula todos os pares publicados a partir
    do próprio JSON e grita se divergirem.
 
 ⚠️ Heredoc do bash come barra invertida neste ambiente. Patch em código

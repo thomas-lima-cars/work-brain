@@ -55,15 +55,25 @@
 
 const CONFIANCA_MIN = 5;
 
-/* CORRESPONDENCIA MINIMA (pedido do Thomas em 2026-09-10).
-   Par com score abaixo disto nao existe: nao entra no HTML, nao conta nos
-   KPIs, nao aparece em nenhuma das duas direcoes.
+/* CORRESPONDENCIA MINIMA. DESLIGADA em 2026-09-18 a pedido do Thomas.
+   Par com score abaixo disto nao existiria em lugar nenhum do relatorio.
 
-   O corte e sobre o SCORE, nao sobre a aderencia bruta -- score = aderencia
-   x confianca, e e o numero que ordena as tabelas. Cortar pela aderencia
-   deixaria passar loja com um carro so de historico e aderencia 100, que e
-   justamente o caso que a confianca existe pra segurar. */
-const CORRESP_MIN = 50;
+   Foi 50 entre 10 e 18/09. Desligar mexe menos do que o nome sugere, e
+   medir antes evitou a surpresa: no run 50406 o minimo zerava apenas 10
+   veiculos dos 1.221, e os pares iam de 33.503 para no maximo 36.409
+   (+8,7%). Quem corta de verdade e o TETO_LOJAS abaixo -- 110.006 pares
+   por run. Se um dia o pedido for "ver mais loja por veiculo", a alavanca
+   e o teto, nao este numero.
+
+   O piso agora e do usuario: a barra deslizante do extrato nasce em 70%.
+   Em troca, a cauda dos veiculos com poucas lojas boas passa a exibir par
+   de score baixo -- e isso e intencional desde a decisao de 18/09.
+
+   Se voltar a valer: o corte e sobre o SCORE, nao sobre a aderencia bruta
+   -- score = aderencia x confianca, e e o numero que ordena as tabelas.
+   Cortar pela aderencia deixaria passar loja com um carro so de historico
+   e aderencia 100, que e justamente o caso que a confianca segura. */
+const CORRESP_MIN = 0;
 
 /* TETO DE LOJAS POR VEICULO (2026-09-11, segunda rodada).
    Existe porque a UF deixou de ser porta: cada veiculo passou a disputar com
@@ -715,6 +725,12 @@ if (cortadosPeloMin) {
     'passou da correspondencia minima de ' + CORRESP_MIN + '% — sao estes, e so ' +
     'estes, que mudariam se o corte baixasse.');
 }
+/* Com o minimo em 0 a frase acima nunca sai, e o silencio enganaria: o
+   teto continua cortando. Entao declara que o piso agora e do leitor. */
+if (!CORRESP_MIN) {
+  falhas.push('Sem correspondencia minima nesta coleta: todo par elegivel entra, ' +
+    'ate score baixo. O piso e a barra deslizante do extrato, que nasce em 70%.');
+}
 
 const DADOS = {
   gerado_em: new Date().toISOString(),
@@ -795,140 +811,428 @@ function descreveRecorte() {
     META.janela_fim + '</b> (hora de Brasília)';
 }
 
-const CSS = [
-  /* --mar e a cor da marca (#1523A0), medida no proprio arquivo da logo.
-     Ela tambem vira o acento (--ac) do relatorio: barra de score, links, a
-     barra do titulo e o KPI de veiculos passam a falar a mesma lingua. */
-  ':root{--bg:#f4f6f9;--card:#fff;--line:#e3e7ed;--line2:#eef1f5;',
-  '--mar:#1523A0;',
-  '--tx:#1b2e4b;--dim:#7987a1;--ac:#1523A0;--gr:#10b759;--or:#f49917;',
-  '--rd:#dc3545;--pu:#6f42c1;--tl:#00b8d4}',
-  '*{box-sizing:border-box}',
-  'body{margin:0;background:var(--bg);color:var(--tx);',
-  'font:13px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}',
-  '.topo{background:var(--mar);color:#fff;padding:10px 24px;',
-  'display:flex;align-items:center;gap:10px}',
-  /* tres faixas de mesma largura (1fr cada) com o titulo no meio: e o que
-     mantem o titulo no CENTRO DA PAGINA, e nao no centro do espaco que
-     sobrou entre a logo e o botao -- que e o que `space-between` faria. */
-  '.topo .esq,.topo .dir{flex:1 1 0;display:flex;align-items:center;gap:12px;min-width:0}',
-  '.topo .dir{justify-content:flex-end}',
-  '.topo .meio{flex:1 1 auto;text-align:center;min-width:0}',
-  /* o fundo da logo e exatamente --mar, entao ela encaixa sem emenda: o que
-     se ve e so o wordmark branco. Nada de borda ou raio aqui. */
-  '.topo .logo{height:26px;width:26px;display:block;flex:0 0 26px}',
-  '.topo b{font-size:19px;letter-spacing:-.4px;color:#fff}',
-  '.topo .dim{font-size:11.5px;color:rgba(255,255,255,.72)}',
-  /* botao sobre fundo escuro: contorno claro, nao a borda cinza do tema */
-  '#btn_info{display:flex;align-items:center;gap:6px;font-weight:600;',
-  'background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}',
-  '#btn_info:hover{background:rgba(255,255,255,.14);color:#fff;',
-  'border-color:rgba(255,255,255,.8)}',
-  '#btn_info svg{width:15px;height:15px}',
-  '.pg{max-width:1460px;margin:0 auto;padding:20px 24px 40px}',
-  '.tit{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}',
-  '.tit h1{font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;',
-  'margin:0;border-left:3px solid var(--ac);padding-left:10px}',
-  '.tit .via{font-size:11.5px;color:var(--dim)}',
-  '.card{background:var(--card);border:1px solid var(--line);border-radius:3px;margin-bottom:20px}',
-  '.card-h{padding:12px 18px;border-bottom:1px solid var(--line2);font-size:11.5px;',
-  'font-weight:600;text-transform:uppercase;letter-spacing:.6px;',
-  'display:flex;align-items:center;justify-content:space-between;gap:10px}',
-  '.card-h .n{font-weight:400;color:var(--dim);letter-spacing:0;text-transform:none;font-size:11.5px}',
-  '.card-b{padding:16px 18px}',
-  '.filtros{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}',
-  '.fg{display:flex;flex-direction:column;gap:4px}',
-  '.fg label{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);font-weight:600}',
-  'select,input{background:#fff;color:var(--tx);border:1px solid #d5dae1;border-radius:3px;',
-  'padding:7px 10px;font-size:12.5px;font-family:inherit;height:34px}',
-  'select:focus,input:focus{outline:none;border-color:var(--ac)}',
-  'button{background:#fff;color:var(--tx);border:1px solid #d5dae1;border-radius:3px;',
-  'padding:7px 14px;font-size:12.5px;font-family:inherit;height:34px;cursor:pointer}',
-  'button:hover{border-color:var(--ac);color:var(--ac)}',
-  '.nota{margin-top:12px;padding-top:12px;border-top:1px solid var(--line2);',
-  'font-size:11.5px;color:var(--dim);line-height:1.6}',
-  /* 5 colunas, nao 6: o KPI de correspondencias saiu a pedido, e deixar a
-     grade em 6 abriria um buraco no fim da linha. */
-  '.kpis{display:grid;grid-template-columns:repeat(5,1fr);background:#fff;',
-  'border:1px solid var(--line);border-radius:3px;margin-bottom:20px}',
+/* ══════════════════════════════════════════════════════════════════════
+   VISUAL — o modelo de painel do brain, e nao um tema so deste relatorio
+   ----------------------------------------------------------------------
+   Ate 18/09 este relatorio tinha paleta e componentes proprios: fundo
+   #f4f6f9, cartao de raio 3px, topo azul solido, cinco KPIs numa faixa
+   unica. Funcionava, e estava SOZINHO: cada relatorio novo reinventava o
+   mesmo cartao, e contraste corrigido num nao chegava no outro.
+
+   Agora a folha vem de `design/tokens/tema.css`, a mesma dos modelos em
+   `design/modelos/`. Este no roda DENTRO do n8n e nao pode ler arquivo do
+   disco, entao a folha e injetada aqui por:
+
+       node automations/n8n-sdk/rel-veiculos/_aplica-modelo.js
+
+   🔴 NAO EDITE O BLOCO TEMA A MAO. Mexa em `design/tokens/tema.css` e rode
+   o injetor. `_prova-modelo.js` confere que esta copia bate com a fonte —
+   copia que so um humano atualiza vira copia desatualizada.
+   ══════════════════════════════════════════════════════════════════════ */
+const TEMA = [
+/* TEMA:INICIO */
+  ':root{--marca-azul:       #1523A0;--marca-azul-claro: #487DEA;--marca-cinza:      #E4E6E6;',
+  '--marca-vinho:      #6F4047;--marca-vermelho:   #7F1112;--d-verde:          #0E7C55;',
+  '--d-verde-vivo:     #35C08A;--d-vermelho-vivo:  #EF5B60;--r-g: 16px;--r-m: 12px;--r-p: 10px;',
+  '--gap: 16px;--topo-h: 68px;',
+  '--fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,"Helvetica Neue", Arial, "Noto Sans", sans-serif;',
+  '}:root,[data-tema="claro"]{color-scheme: light;--fundo:          #F2F3F5;',
+  '--fundo-veu:      radial-gradient(1200px 600px at 12% -10%,rgba(72,125,234,.10), transparent 60%);',
+  '--superficie:     #FFFFFF;--superficie-2:   #F7F8FA;--borda:          var(--marca-cinza);',
+  '--borda-forte:    #CFD3D8;--texto:          #14161C;--texto-2:        #565B6B;',
+  '--texto-3:        #8A8FA0;--acento:         var(--marca-azul);',
+  '--acento-cheio:   var(--marca-azul-claro);--acento-veu:     rgba(72,125,234,.12);',
+  '--positivo:       var(--d-verde);--negativo:       var(--marca-vermelho);',
+  '--atencao:        var(--marca-vinho);--grade:          rgba(20,22,28,.08);',
+  '--sombra:         0 1px 2px rgba(16,20,40,.05), 0 8px 24px rgba(16,20,40,.06);',
+  '--cartao-borda:   1px solid var(--borda);--cartao-fundo:   var(--superficie);',
+  '--cartao-blur:    none;--brilho:         none;}[data-tema="escuro"]{color-scheme: dark;',
+  '--fundo:          #0B0D12;',
+  '--fundo-veu:      radial-gradient(900px 500px at 8% -8%,rgba(72,125,234,.20), transparent 62%),radial-gradient(800px 500px at 96% 4%,rgba(111,64,71,.16), transparent 60%);',
+  '--superficie:     #12151D;--superficie-2:   #171B25;--borda:          rgba(255,255,255,.09);',
+  '--borda-forte:    rgba(255,255,255,.16);--texto:          #EDEFF5;--texto-2:        #A4ABBF;',
+  '--texto-3:        #6E7589;--acento:         var(--marca-azul-claro);',
+  '--acento-cheio:   var(--marca-azul-claro);--acento-veu:     rgba(72,125,234,.18);',
+  '--positivo:       var(--d-verde-vivo);--negativo:       var(--d-vermelho-vivo);',
+  '--atencao:        #C98A92;--grade:          rgba(255,255,255,.07);',
+  '--sombra:         0 1px 1px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.45);',
+  '--cartao-borda:   1px solid rgba(255,255,255,.08);',
+  '--cartao-fundo:   linear-gradient(158deg, rgba(255,255,255,.075),rgba(255,255,255,.025));',
+  '--cartao-blur:    blur(16px) saturate(140%);',
+  '--brilho:         radial-gradient(420px 180px at 0% 0%,rgba(72,125,234,.16), transparent 70%);',
+  '}*,*::before,*::after{ box-sizing:border-box }html{ -webkit-text-size-adjust:100% }body{',
+  'margin:0;font-family:var(--fonte);font-size:14px;line-height:1.45;color:var(--texto);',
+  'background-color:var(--fundo);background-image:var(--fundo-veu);background-attachment:fixed;',
+  'background-repeat:no-repeat;-webkit-font-smoothing:antialiased;}h1,h2,h3{ margin:0;',
+  ' font-weight:650; letter-spacing:-.01em }p{ margin:0 }.num{',
+  ' font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1 }.topo{position:sticky;',
+  ' top:0; z-index:30;background:var(--cartao-fundo);',
+  'background-color:color-mix(in srgb, var(--superficie) 88%, transparent);',
+  'border-bottom:var(--cartao-borda);backdrop-filter:var(--cartao-blur);',
+  '-webkit-backdrop-filter:var(--cartao-blur);}.topo-in{max-width:1680px; margin:0 auto;',
+  'min-height:var(--topo-h);padding:10px 20px;display:flex; align-items:center; gap:16px;',
+  ' flex-wrap:wrap;}.logo{ height:26px; width:auto; display:block; flex:none }.topo-tit{',
+  ' margin-right:auto; min-width:200px }.topo-tit h1{ font-size:17px }.topo-tit .sub{',
+  ' font-size:12.5px; color:var(--texto-3); margin-top:1px }.topo-acoes{ display:flex;',
+  ' align-items:center; gap:8px; flex-wrap:wrap }.ctrl{font:inherit; font-size:13px;',
+  ' color:var(--texto);background:var(--superficie-2);border:1px solid var(--borda);',
+  'border-radius:var(--r-p);padding:7px 11px;cursor:pointer;',
+  'transition:border-color .15s, background .15s;}.ctrl:hover{',
+  ' border-color:var(--borda-forte) }.ctrl:focus-visible{ outline:2px solid var(--acento);',
+  ' outline-offset:1px }select.ctrl{ padding-right:26px }.ctrl.so-icone{ padding:7px;',
+  ' display:inline-flex; align-items:center }.ctrl.so-icone svg{ width:16px; height:16px;',
+  ' display:block; stroke:currentColor;fill:none; stroke-width:1.9; stroke-linecap:round;',
+  'stroke-linejoin:round }.area{max-width:1680px; margin:0 auto;padding:var(--gap) 20px 48px;',
+  'display:flex; flex-direction:column; gap:var(--gap);}.g4{ display:grid; gap:var(--gap);',
+  ' grid-template-columns:repeat(4,1fr) }.g2{ display:grid; gap:var(--gap);',
+  ' grid-template-columns:2fr 1fr }@media (max-width:1100px){.g4{',
+  ' grid-template-columns:repeat(2,1fr) }.g2{ grid-template-columns:1fr }}',
+  '@media (max-width:620px){.g4{ grid-template-columns:1fr }.area{ padding:12px 12px 40px }',
+  '.topo-in{ padding:10px 12px }}.cartao{position:relative;background:var(--cartao-fundo);',
+  'border:var(--cartao-borda);border-radius:var(--r-g);box-shadow:var(--sombra);',
+  'backdrop-filter:var(--cartao-blur);-webkit-backdrop-filter:var(--cartao-blur);padding:18px;',
+  'overflow:hidden;}.cartao::before{content:""; position:absolute; inset:0;',
+  'background:var(--brilho);pointer-events:none;}.cartao > *{ position:relative }.cartao-topo{',
+  'display:flex; align-items:center; gap:10px;margin-bottom:14px;}.cartao-topo h2{',
+  ' font-size:14.5px; font-weight:650 }.cartao-topo .dir{ margin-left:auto; display:flex;',
+  ' gap:6px; align-items:center }.chip{flex:none; width:34px; height:34px; border-radius:50%;',
+  'display:grid; place-items:center;background:var(--acento-veu);color:var(--acento);}',
+  '.chip svg{ width:17px; height:17px; stroke:currentColor; fill:none;stroke-width:1.9;',
+  ' stroke-linecap:round; stroke-linejoin:round }.g4 .cartao{ padding:13px 14px }',
+  '.g4 .cartao-topo{ margin-bottom:6px; gap:8px }.g4 .chip{ width:26px; height:26px }',
+  '.g4 .chip svg{ width:14px; height:14px }.kpi-rot{ font-size:12.5px; color:var(--texto-2);',
+  ' font-weight:500 }.kpi-val{font-size:23px; line-height:1.15; font-weight:700;',
+  ' letter-spacing:-.015em;margin:4px 0 2px;}.kpi-delta{ font-size:11.5px; font-weight:600;',
+  ' display:inline-flex; gap:4px;align-items:center }.sobe{ color:var(--positivo) } .desce{',
+  ' color:var(--negativo) }.neutro{ color:var(--texto-3) }.kpi-pe{display:flex; gap:16px;',
+  'margin-top:9px; padding-top:8px;border-top:1px solid var(--borda);}.kpi-pe div{',
+  ' min-width:0 }.kpi-pe dt{ font-size:11px; color:var(--texto-3); white-space:nowrap;',
+  'overflow:hidden; text-overflow:ellipsis }.kpi-pe dd{ margin:1px 0 0; font-size:13.5px;',
+  ' font-weight:650 }.graf{ width:100%; height:auto; display:block; overflow:visible }',
+  '.graf .eixo{ font-size:10.5px; fill:var(--texto-3) }.graf .linha-grade{ stroke:var(--grade);',
+  ' stroke-width:1 }.graf .serie{ fill:none; stroke:var(--acento-cheio); stroke-width:2.25;',
+  'stroke-linecap:round; stroke-linejoin:round }.graf .area-serie{ fill:url(#veu-serie);',
+  ' stroke:none }.graf .ponto{ fill:var(--acento-cheio) }.graf .rotulo{ font-size:11px;',
+  ' font-weight:650; fill:var(--texto);font-variant-numeric:tabular-nums }.rank{',
+  ' list-style:none; margin:0; padding:0; display:flex;flex-direction:column; gap:11px }',
+  '.rank li{ display:grid; grid-template-columns:22px 1fr auto; gap:10px;align-items:center }',
+  '.rank .pos{ font-size:12px; color:var(--texto-3); text-align:right }.rank .nome{',
+  ' display:block; font-size:13px; overflow:hidden;text-overflow:ellipsis; white-space:nowrap }',
+  '.rank .barra{ display:block; height:5px; border-radius:3px;background:var(--acento-veu);',
+  ' margin-top:5px; overflow:hidden }.rank .barra i{ display:block; height:100%;',
+  ' border-radius:3px;background:var(--acento-cheio) }.rank .val{ font-size:13px;',
+  ' font-weight:650 }.rolo{ overflow-x:auto; margin:0 -18px -18px; padding:0 18px 18px }table{',
+  ' width:100%; border-collapse:collapse; font-size:13px }thead th{position:sticky; top:0;',
+  'background:var(--superficie-2);color:var(--texto-2); font-weight:600; font-size:12px;',
+  'text-align:center; white-space:nowrap;padding:9px 10px;border-bottom:1px solid var(--borda);',
+  '}tbody td{ padding:9px 10px; text-align:center;border-bottom:1px solid var(--borda) }',
+  'tbody td:first-child, thead th:first-child{ text-align:left }tbody tr:last-child td{',
+  ' border-bottom:none }tbody tr:hover td{ background:var(--acento-veu) }.tag{',
+  'display:inline-block; font-size:11.5px; font-weight:600;padding:2px 8px;',
+  ' border-radius:999px;background:var(--acento-veu); color:var(--acento);}.tag.ok{',
+  ' background:color-mix(in srgb, var(--positivo) 16%, transparent);color:var(--positivo) }',
+  '.tag.ruim{ background:color-mix(in srgb, var(--negativo) 16%, transparent);',
+  'color:var(--negativo) }.tag.atencao{',
+  ' background:color-mix(in srgb, var(--atencao) 18%, transparent);color:var(--atencao) }',
+  '.rodape{ color:var(--texto-3); font-size:12px; padding:4px 2px 0 }.rodape a{',
+  ' color:var(--acento) }.gloss{ padding:0 }.gloss > summary{cursor:pointer; padding:18px;',
+  ' margin:0;list-style:none;border-radius:var(--r-g);}',
+  '.gloss > summary::-webkit-details-marker{ display:none }.gloss > summary:focus-visible{',
+  ' outline:2px solid var(--acento); outline-offset:-2px }.gloss .seta{ color:var(--texto-3);',
+  ' font-size:11px; transition:transform .15s }.gloss[open] > summary{',
+  ' border-radius:var(--r-g) var(--r-g) 0 0 }.gloss[open] .seta{ transform:rotate(180deg) }',
+  '.gloss dl{margin:0; padding:0 18px 18px;display:grid; grid-template-columns:auto 1fr;',
+  ' gap:9px 18px;font-size:12.5px;}.gloss dt{ font-weight:650; white-space:nowrap }.gloss dd{',
+  ' margin:0; color:var(--texto-2) }@media (max-width:620px){.gloss dl{',
+  ' grid-template-columns:1fr; gap:2px 0 }.gloss dt{ white-space:normal; margin-top:8px }',
+  '.gloss dt:first-child{ margin-top:0 }}@media print{body{ background:#fff; color:#000 }.topo{',
+  ' position:static }.topo-acoes{ display:none }.cartao{ box-shadow:none;',
+  ' border:1px solid #ccc; backdrop-filter:none;break-inside:avoid }.cartao::before{',
+  ' display:none }}@media (prefers-reduced-motion:reduce){*{ transition:none !important;',
+  ' animation:none !important }}'
+/* TEMA:FIM */
+].join('');
+
+/* ══════════════════════════════════════════════════════════════════════
+   A PONTE
+   ----------------------------------------------------------------------
+   Este relatorio usa 24 nomes de classe proprios (.pg, .card, .card-h,
+   .kpi, .wrap, .xk, .gl...) em centenas de lugares, dentro do APP e do
+   esqueleto. Renomear tudo seria mexer em 86 KB de gerador para nao mudar
+   nada na tela — e cada ponto esquecido viraria um elemento sem estilo.
+
+   Entao a ponte faz o contrario: mantem os nomes e troca o que eles
+   SIGNIFICAM. Os tokens antigos viram apelido dos novos, e o tema escuro
+   passa a funcionar de graca em tudo que ja usava var(--ac) e companhia.
+   ══════════════════════════════════════════════════════════════════════ */
+const PONTE = [
+  /* 1. tokens antigos -> tokens do modelo. `var()` dentro de custom property
+        resolve na HORA DO USO, entao o apelido acompanha a troca de tema. */
+  ':root{--bg:var(--fundo);--card:var(--superficie);--line:var(--borda);',
+  '--line2:var(--borda);--tx:var(--texto);--dim:var(--texto-3);',
+  '--ac:var(--acento);--mar:var(--acento);--gr:var(--positivo);',
+  '--or:var(--atencao);--rd:var(--negativo);--pu:#7C5CD6;--tl:#0E7F97}',
+  /* --pu e --tl rotulam CLUSTER: sao categorias, nao estado. Precisam de
+     matiz propria, e a versao clara some no fundo escuro. */
+  '[data-tema=escuro]{--pu:#A78BFA;--tl:#22D3EE}',
+
+  /* tabela densa pede corpo menor que o do modelo (14px) */
+  'body{font-size:13px}',
+
+  /* 2. topo: era barra azul solida; no modelo e superficie, e fica fixa */
+  /* `display:flex` mora AQUI porque o bloco de CSS antigo (que o tinha) foi
+     inteiro substituido. Sem ele `.esq` e `.dir` voltam a ser span inline e
+     a logo cai numa linha, o titulo noutra. */
+  '.topo{display:flex;align-items:center;gap:16px;flex-wrap:wrap;',
+  'position:sticky;top:0;z-index:30;padding:10px 20px 10px 52px;',
+  'background:var(--cartao-fundo);background-color:var(--superficie);',
+  'border-bottom:var(--cartao-borda);color:var(--texto);',
+  'backdrop-filter:var(--cartao-blur);-webkit-backdrop-filter:var(--cartao-blur)}',
+  /* o titulo deixa de ser centralizado: no modelo ele encosta na logo e as
+     acoes e que vao pra direita */
+  '.topo .esq{flex:0 0 auto}',
+  '.topo .meio{flex:1 1 auto;text-align:left;padding-left:2px}',
+  '.topo .dir{flex:0 0 auto;gap:8px}',
+  '.topo .logo{height:26px;width:auto;flex:none;display:block}',
+  '.topo b{font-size:17px;font-weight:650;letter-spacing:-.01em;color:var(--texto)}',
+  '.topo .dim{font-size:12.5px;color:var(--texto-3)}',
+  /* so o icone: quadrado, e o nome vem do aria-label */
+  '#btn_tema{background:var(--superficie-2);color:var(--texto);',
+  'border:1px solid var(--borda);border-radius:var(--r-p);padding:7px;height:auto;',
+  'display:inline-flex;align-items:center}',
+  '#btn_tema svg{width:16px;height:16px;display:block;stroke:currentColor;',
+  'fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}',
+  '#btn_tema:hover{background:var(--superficie-2);color:var(--texto);',
+  'border-color:var(--borda-forte)}',
+  /* logo e titulo colados; a acao encosta na direita */
+  '.topo .esq{display:flex;align-items:center;gap:12px;min-width:0}',
+  '.topo .dir{margin-left:auto;display:flex;align-items:center;gap:8px}',
+
+  /* ── GAVETA DE FILTROS ─────────────────────────────────────────────
+     Aba fixa na lateral esquerda, painel que desliza por cima. A aba fica
+     no meio da altura, que e onde a mao ja esta; no topo ela brigaria com
+     o cabecalho fixo. */
+  '.aba{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:41;',
+  'display:flex;flex-direction:column;align-items:center;gap:6px;',
+  'padding:14px 7px;border-radius:0 var(--r-m) var(--r-m) 0;',
+  'border:var(--cartao-borda);border-left:0;background:var(--superficie);',
+  'color:var(--texto);box-shadow:var(--sombra);cursor:pointer}',
+  '.aba:hover{color:var(--acento);border-color:var(--borda-forte)}',
+  '.aba svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9;',
+  'stroke-linecap:round}',
+  '.aba span{writing-mode:vertical-rl;font-size:11.5px;font-weight:600;',
+  'letter-spacing:.06em;text-transform:uppercase}',
+  '.gaveta{position:fixed;left:0;top:0;bottom:0;z-index:42;width:min(430px,92vw);',
+  'overflow:auto;padding:14px;transform:translateX(-102%);',
+  'transition:transform .18s ease;background:var(--fundo)}',
+  '.gaveta.aberta{transform:none}',
+  '.gaveta .card{margin-bottom:0}',
+  '.gaveta .filtros{grid-template-columns:1fr}',
+  '.veu{position:fixed;inset:0;z-index:41;background:rgba(4,6,12,.45)}',
+  '.fechar{margin-left:auto;background:none;border:0;padding:0 4px;',
+  'font-size:20px;line-height:1;color:var(--texto-3);cursor:pointer}',
+  '.fechar:hover{color:var(--texto)}',
+  /* a pagina abre espaco pra aba nao cobrir conteudo */
+  '.pg{padding-left:52px}',
+  '@media(max-width:620px){.pg{padding-left:20px}',
+  '.topo{padding-left:20px}',
+  '.aba{top:auto;bottom:16px;transform:none;flex-direction:row;',
+  'border-radius:0 var(--r-m) var(--r-m) 0}',
+  '.aba span{writing-mode:horizontal-tb}}',
+  '@media (prefers-reduced-motion:reduce){.gaveta{transition:none}}',
+
+  /* 3. pagina, cartao e titulo de secao */
+  '.pg{max-width:1680px;margin:0 auto;padding:16px 20px 48px}',
+  '.tit{display:flex;align-items:center;justify-content:space-between;',
+  'margin-bottom:16px;flex-wrap:wrap;gap:8px}',
+  '.tit h1{margin:0;font-size:15px;font-weight:650;text-transform:uppercase;',
+  'letter-spacing:.5px;border-left:3px solid var(--acento);padding-left:10px;color:var(--texto)}',
+  '.tit .via{font-size:12px;color:var(--texto-3)}',
+  '.card{position:relative;overflow:hidden;background:var(--cartao-fundo);',
+  'border:var(--cartao-borda);border-radius:var(--r-g);box-shadow:var(--sombra);',
+  'margin-bottom:16px;',
+  'backdrop-filter:var(--cartao-blur);-webkit-backdrop-filter:var(--cartao-blur)}',
+  /* a luz azul no canto superior esquerdo. `--brilho` e `none` no tema claro
+     e um degrade radial no escuro — e ela que da profundidade ao vidro. O
+     `> *` sobe o conteudo acima da luz, senao o texto fica por baixo. */
+  '.card::before,.kpi::before{content:"";position:absolute;inset:0;',
+  'background:var(--brilho);pointer-events:none}',
+  '.card>*,.kpi>*{position:relative}',
+  /* chip + titulo a esquerda, contagem empurrada pra direita. Era
+     `space-between`, que separava o chip do proprio titulo. */
+  '.card-h{padding:14px 18px;border-bottom:1px solid var(--borda);',
+  'font-size:14.5px;font-weight:650;text-transform:none;letter-spacing:-.01em;',
+  'color:var(--texto);display:flex;align-items:center;gap:10px}',
+  '.card-h .chip{flex:none}',
+  '.card-h .n{margin-left:auto;font-weight:500;color:var(--texto-3);',
+  'font-size:12px;letter-spacing:0}',
+  '.card-b{padding:18px}',
+
+  /* 4. KPI — cartoes soltos, e MENORES.
+        Decisao de 18/09: o numero grande chama o olho primeiro e e o dado
+        menos interessante da pagina. Quem explica e a tabela. */
+  '.kpis{display:grid;gap:14px;grid-template-columns:repeat(5,1fr);',
+  'background:none;border:0;border-radius:0;margin-bottom:16px}',
   '@media(max-width:1250px){.kpis{grid-template-columns:repeat(3,1fr)}}',
   '@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}',
-  '.kpi{display:flex;align-items:center;gap:11px;padding:15px 16px;',
-  'border-left:1px solid var(--line2);min-width:0}',
-  '.kpi:first-child{border-left:0}',
-  '@media(max-width:1250px){.kpi:nth-child(3n+1){border-left:0}',
-  '.kpi:nth-child(n+4){border-top:1px solid var(--line2)}}',
-  '@media(max-width:700px){.kpi:nth-child(2n+1){border-left:0}',
-  '.kpi:nth-child(n+3){border-top:1px solid var(--line2)}}',
-  '.ic{width:20px;height:20px}',
-  '.kpi .ring{width:38px;height:38px;border-radius:50%;border:1px solid currentColor;',
-  'display:flex;align-items:center;justify-content:center;flex:0 0 38px}',
+  '.kpi{position:relative;overflow:hidden;display:flex;align-items:center;',
+  'gap:10px;min-width:0;',
+  'background:var(--cartao-fundo);border:var(--cartao-borda);',
+  'border-radius:var(--r-g);box-shadow:var(--sombra);padding:13px 14px;',
+  'backdrop-filter:var(--cartao-blur);-webkit-backdrop-filter:var(--cartao-blur)}',
+  '.kpi .ring{width:30px;height:30px;flex:0 0 30px;border:0;border-radius:50%;',
+  'background:var(--acento-veu);display:flex;align-items:center;justify-content:center}',
+  '.ic{width:16px;height:16px}',
   '.kpi .tx{min-width:0}',
-  '.kpi .lb{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;',
-  'white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-  '.kpi .vl{font-size:21px;font-weight:600;letter-spacing:-.5px;color:var(--tx);',
-  'line-height:1.2;white-space:nowrap}',
-  'table{border-collapse:collapse;width:100%;font-size:12px}',
-  'th,td{padding:8px 10px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}',
-  'th{background:#fbfcfd;position:sticky;top:0;font-weight:600;color:var(--dim);',
-  'font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;z-index:1}',
-  'th.tx,td.tx{text-align:left}',
-  'tbody tr{cursor:pointer}tbody tr:hover{background:#f7f9fc}',
-  'tr.sel,tr.sel+tr.dado{background:#eaf2fe}',
-  '.wrap{overflow:auto;max-height:62vh}',
-  '.vazio{padding:26px 18px;color:var(--dim);text-align:center}',
-  /* ---- dois niveis por veiculo: contexto em cima, dados embaixo ---- */
-  'tr.ctxr td{border-bottom:0;padding:9px 10px 1px;font-size:11px;color:var(--dim)}',
-  'tr.ctxr:hover,tr.ctxr:hover+tr.dado{background:#f7f9fc}',
+  '.kpi .lb{font-size:11.5px;font-weight:500;color:var(--texto-2);',
+  'text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+  '.kpi .vl{font-size:22px;font-weight:700;letter-spacing:-.015em;color:var(--texto);',
+  'line-height:1.15;white-space:nowrap}',
+
+  /* 5. controles */
+  /* Era `flex-wrap` com largura intrinseca: cada select nascia do tamanho do
+     texto mais longo da lista, entao "Evento" ficava gigante, "UF" minusculo,
+     e a linha quebrava em lugar diferente a cada coleta. Grade de colunas
+     iguais resolve — o alinhamento deixa de depender do conteudo. */
+  '.filtros{display:grid;gap:12px 14px;align-items:end;',
+  'grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}',
+  '.fg{display:flex;flex-direction:column;gap:4px;min-width:0}',
+  '.fg select,.fg input,.fg button{width:100%}',
+  '.fg label{font-size:11px;font-weight:600;color:var(--texto-3);',
+  'text-transform:none;letter-spacing:0}',
+  'select,input,button{background:var(--superficie-2);color:var(--texto);',
+  'border:1px solid var(--borda);border-radius:var(--r-p);padding:7px 11px;',
+  'font:inherit;font-size:13px;height:auto}',
+  'button{cursor:pointer}',
+  'button:hover{border-color:var(--borda-forte);color:var(--texto)}',
+  'select:focus,input:focus,button:focus-visible{outline:2px solid var(--acento);',
+  'outline-offset:1px;border-color:var(--borda-forte)}',
+  /* ── seleção de veículos e texto pro lojista ─────────────────────── */
+  '.barra-corte{display:flex;align-items:center;gap:12px;flex-wrap:wrap;',
+  'padding-bottom:0}',
+  '.barra-corte label{font-size:11px;font-weight:600;color:var(--texto-3)}',
+  '.barra-corte input[type=range]{flex:1 1 200px;max-width:340px;accent-color:var(--acento-cheio);',
+  'padding:0;border:0;background:none;height:auto}',
+  '.barra-corte output{font-size:14px;font-weight:700;color:var(--texto);',
+  'min-width:46px;font-variant-numeric:tabular-nums}',
+  '#btn_msg{margin-left:auto}',
+  'th.sel,td.sel{width:34px;text-align:center;padding-left:12px;padding-right:0}',
+  'td.sel input,th.sel input{width:15px;height:15px;accent-color:var(--acento-cheio);',
+  'cursor:pointer;padding:0;border:0;background:none;height:auto}',
+  '#saida_msg textarea{width:100%;margin-top:6px;font-family:ui-monospace,SFMono-Regular,',
+  'Consolas,monospace;font-size:12px;line-height:1.5;resize:vertical;',
+  'background:var(--superficie-2);color:var(--texto);border:1px solid var(--borda);',
+  'border-radius:var(--r-p);padding:10px}',
+  '.msg_acoes{display:flex;align-items:center;gap:10px;margin-top:8px}',
+  '.nota{margin-top:12px;padding-top:12px;border-top:1px solid var(--borda);',
+  'font-size:12px;color:var(--texto-2);line-height:1.6}',
+
+  /* 6. tabela.
+        O alinhamento NAO segue o modelo, de proposito: o modelo centraliza
+        porque tem 6 colunas curtas; aqui sao nove, quase todas numero. Numero
+        se compara pela direita. O `thead th` do tema tem especificidade 2, e
+        por isso a regra daqui precisa dela tambem — com `th` puro o tema
+        vencia e a tabela inteira ia pro centro. */
+  'table{border-collapse:collapse;width:100%;font-size:12.5px}',
+  'thead th,tbody td{padding:9px 10px;border-bottom:1px solid var(--borda);',
+  'text-align:right;white-space:nowrap}',
+  /* o tema alinha a primeira coluna a esquerda; aqui a primeira e Aderencia,
+     que e numero */
+  'thead th:first-child,tbody td:first-child{text-align:right}',
+  'thead th.tx,tbody td.tx{text-align:left}',
+  'thead th{background:var(--superficie-2);position:sticky;top:0;z-index:1;',
+  'font-weight:600;color:var(--texto-2);font-size:11.5px;',
+  'text-transform:none;letter-spacing:0}',
+  'tbody tr{cursor:pointer}',
+  'tbody tr:hover td{background:var(--acento-veu)}',
+  'tr.sel td,tr.sel+tr.dado td{background:var(--acento-veu)}',
+  'tr.ctxr td{border-bottom:0;padding:9px 10px 1px;font-size:11.5px;color:var(--texto-3)}',
+  'tr.ctxr:hover td,tr.ctxr:hover+tr.dado td{background:var(--acento-veu)}',
   'tr.dado td{padding-top:2px;padding-bottom:9px}',
-  'tr.dado{border-bottom:1px solid var(--line2)}',
-  'tr.ctxr .uf{color:var(--tx);font-weight:600;letter-spacing:.3px}',
-  'a.lk{color:var(--ac);text-decoration:none;border-bottom:1px dotted var(--ac)}',
+  'tr.dado{border-bottom:1px solid var(--borda)}',
+  'tr.ctxr .uf{color:var(--texto);font-weight:600;letter-spacing:.3px}',
+  '.wrap{overflow:auto;max-height:62vh}',
+  '.vazio{padding:26px 18px;color:var(--texto-3);text-align:center}',
+  'td.nm{max-width:250px;overflow:hidden;text-overflow:ellipsis}',
+
+  /* 7. o resto dos componentes proprios */
+  'a.lk{color:var(--acento);text-decoration:none;border-bottom:1px dotted currentColor}',
   'a.lk:hover{border-bottom-style:solid}',
-  /* painel dos cinco campos: grade que quebra sozinha no estreito */
-  '.xg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}',
-  '.xk{flex:1 1 170px;background:var(--bg);border:1px solid var(--line);',
-  'border-left:3px solid var(--mar);border-radius:7px;padding:8px 11px}',
-  '.xk span{display:block;color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}',
-  '.xk b{display:block;font-size:17px;font-weight:600;margin-top:2px}',
-  '.xk i{display:block;color:var(--dim);font-size:10.5px;font-style:normal;margin-top:2px}',
-  '.xk a{color:var(--mar)}',
-  '.tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;',
-  'background:#eaf2fe;color:var(--ac);white-space:nowrap}',
-  '.tag.w{background:#fff3e0;color:#b25e00}',
-  '.dim{color:var(--dim)}',
-  '.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}',
-  'code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;',
-  'background:#f1f3f7;padding:1px 5px;border-radius:3px}',
-  '.bar{display:inline-block;height:6px;background:var(--ac);border-radius:99px;vertical-align:middle}',
-  '.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}',
-  /* sem isto o 1fr nao vale: item de grade nao encolhe abaixo do conteudo,
-     a tabela larga empurra a coluna vizinha e a PAGINA ganha rolagem
-     horizontal. Com min-width:0 quem rola e a tabela, dentro do cartao. */
+  '.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}',
+  /* sem min-width:0 a tabela larga empurra a coluna vizinha e a PAGINA ganha
+     rolagem horizontal; com ele quem rola e a tabela, dentro do cartao */
   '.grid>*{min-width:0}',
   '@media(max-width:1200px){.grid{grid-template-columns:1fr}}',
-  'td.nm{max-width:250px;overflow:hidden;text-overflow:ellipsis}',
-  '.aviso{border-color:#f5c6cb}',
-  '.aviso .card-h{color:var(--rd);border-bottom-color:#f5c6cb}',
-  '.aviso ul{margin:0;padding-left:18px}.aviso li{margin-bottom:5px}',
-  '.ctx{background:#eaf2fe;border:1px solid #bcd8fd;border-radius:3px;',
-  'padding:10px 14px;margin-bottom:20px;font-size:12.5px}',
-  /* ---- glossario ---- */
-  '.gl{max-width:900px}',
-  '.gl h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;',
-  'margin:0 0 4px;color:var(--ac)}',
-  '.gl .sub{color:var(--dim);font-size:12px;margin:0 0 16px}',
+  '.xg{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}',
+  '.xk{flex:1 1 170px;background:var(--superficie-2);border:1px solid var(--borda);',
+  'border-left:3px solid var(--acento);border-radius:var(--r-m);padding:9px 12px}',
+  '.xk span{display:block;color:var(--texto-3);font-size:11px;',
+  'text-transform:none;letter-spacing:0}',
+  '.xk b{display:block;font-size:16px;font-weight:650;margin-top:2px}',
+  '.xk i{display:block;color:var(--texto-3);font-size:11px;font-style:normal;margin-top:2px}',
+  '.xk a{color:var(--acento)}',
+  /* `.tag` ja vem do tema; aqui so a variante de aviso */
+  '.tag.w{background:color-mix(in srgb,var(--atencao) 20%,transparent);color:var(--atencao)}',
+  '.dim{color:var(--texto-3)}',
+  '.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px}',
+  'code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;',
+  'background:var(--superficie-2);padding:1px 5px;border-radius:6px}',
+  '.bar{display:inline-block;height:6px;background:var(--acento-cheio);',
+  'border-radius:99px;vertical-align:middle}',
+  '.aviso{border-color:var(--negativo)}',
+  '.aviso .card-h{color:var(--negativo);border-bottom-color:var(--negativo)}',
+  '.aviso ul{margin:0;padding-left:18px}',
+  '.aviso li{margin-bottom:5px}',
+  '.ctx{background:var(--acento-veu);border:1px solid var(--borda);',
+  'border-radius:var(--r-m);padding:10px 14px;margin-bottom:16px;font-size:12.5px}',
+
+  /* 8. glossario.
+        O modelo manda que ele seja bloco proprio e nunca rodape de outro
+        cartao. Aqui ele ja e uma TELA inteira, que separa mais ainda. */
+  /* O glossario acompanha a largura da pagina (ele e o fim dela agora, nao
+     uma tela a parte). Quem limita a linha e o TEXTO, nao o cartao — bloco
+     estreito debaixo de um largo pareceria desalinhado. */
+  /* ── GLOSSARIO ─────────────────────────────────────────────────────
+     Um bloco so, fechado ate clicarem. O <details> E o cartao: o cabecalho
+     inteiro e a area de clique. */
+  '.gl{padding:0}',
+  '.gl>summary{cursor:pointer;list-style:none;border-radius:var(--r-g)}',
+  '.gl>summary::-webkit-details-marker{display:none}',
+  '.gl>summary:focus-visible{outline:2px solid var(--acento);outline-offset:-2px}',
+  '.gl[open]>summary{border-radius:var(--r-g) var(--r-g) 0 0}',
+  '.gl .seta{color:var(--texto-3);font-size:12px;transition:transform .15s}',
+  '.gl[open] .seta{transform:rotate(180deg)}',
+  '.gl .n{margin-left:auto;margin-right:10px}',
+  '.gl-sub{display:flex;align-items:center;gap:10px;margin:26px 0 10px;',
+  'font-size:13.5px;font-weight:650;color:var(--texto)}',
+  '.gl-sub:first-child{margin-top:0}',
+  '.gl dd,.gl .sub{max-width:92ch}',
+  '.gl h2{font-size:13px;margin:0 0 4px;color:var(--acento);',
+  'text-transform:none;letter-spacing:0}',
+  '.gl .sub{color:var(--texto-3);font-size:12.5px;margin:0 0 16px}',
   '.gl dl{margin:0}',
-  '.gl dt{font-weight:600;margin-top:16px;font-size:13px}',
+  '.gl dt{font-weight:650;margin-top:16px;font-size:13px;color:var(--texto)}',
   '.gl dt:first-child{margin-top:0}',
-  '.gl dd{margin:3px 0 0;color:#3b4b63;line-height:1.65}',
+  '.gl dd{margin:3px 0 0;color:var(--texto-2);line-height:1.65}',
   '.gl dd+dd{margin-top:6px}',
-  '.gl .ex{color:var(--dim);font-size:12px}',
-  '.gl table{margin-top:8px;font-size:12px;border:1px solid var(--line2)}',
+  '.gl .ex{color:var(--texto-3);font-size:12.5px}',
+  '.gl table{margin-top:8px;font-size:12.5px;border:1px solid var(--borda)}',
   '.gl td,.gl th{white-space:normal}',
-  '.gl .st-in{color:var(--gr);font-weight:600}',
-  '.gl .st-out{color:var(--dim)}'
+  '.gl .st-in{color:var(--positivo);font-weight:600}',
+  '.gl .st-out{color:var(--texto-3)}'
 ].join('');
+
+const CSS = [TEMA, PONTE].join('');
+
+/* Os dois logos, em data URI. Tambem injetados por `_aplica-modelo.js` a
+   partir de design/marca/cars2you/ — o azul some no fundo escuro (1,65:1),
+   entao o tema troca o arquivo junto com as cores. */
+const LOGOS = {
+/* LOGOS:INICIO */
+  claro: 'data:image/png;base64,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',
+  escuro: 'data:image/png;base64,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'
+/* LOGOS:FIM */
+};
 
 /* O JS do cliente viaja como STRING dentro deste no, e este no viaja pro n8n
    como string JSON transcrita a mao. Barra invertida e onde este projeto
@@ -1103,10 +1407,21 @@ const APP = [
   '$("#ctx").style.display="";return;}',
   '$("#ctx").style.display="none";}',
   /* ---- extrato ---- */
-  'const LIMIAR=70;',
+  /* ---- o corte de aderencia agora e do usuario ----
+     Era `const LIMIAR=70`, escolhido por mim. 70 nao tem nada de especial:
+     numa loja com perfil apertado sobra carro demais, e numa loja de nicho
+     nao sobra nenhum. Quem conhece a loja e quem deve decidir, entao virou
+     barra deslizante. O padrao continua 70 pra ninguem ter que mexer. */
+  'var LIMIAR=70;',
+  /* Selecao de veiculos, por id — sobrevive a mover a barra e a trocar de
+     filtro. Guardar por POSICAO na lista seria mais simples e estaria errado:
+     a lista se reordena, e o usuario perderia a selecao sem entender por que. */
+  'var escolhidos={};',
+  'function idsEscolhidos(){return Object.keys(escolhidos).filter(function(k){return escolhidos[k];});}',
   'const MIN=(D.parametros&&D.parametros.corresp_min)||0;',
   'function cvDe(m,d){if(!m||d===null||d===undefined)return null;return d/m;}',
   `function leitura(cv){if(cv===null)return "<span class='dim'>sem desvio medido</span>";if(cv<0.25)return "faixa apertada: acertar este número vale muito";if(cv<0.6)return "faixa média";return "dispersão alta: este indicador quase não informa";}`,
+  `const chipLista="<span class='chip' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M9 11l3 3 8-8'/><path d='M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11'/></svg></span>";`,
   'function extrato(){',
   'if(selL===null){$("#extrato").innerHTML="";$("#extrato").style.display="none";return;}',
   'const l=D.lojas[selL];',
@@ -1158,7 +1473,10 @@ const APP = [
   'function dataBr(x){const t=Date.parse(String(x).indexOf("T")>0?String(x):String(x).split(" ").join("T")+"Z");return isNaN(t)?"—":new Date(t).toLocaleDateString("pt-BR");}',
   'const acima=todos.filter(function(x){return passaV(D.veiculos[x.o],ev2,w2,uf2);});',
   'const escondidos=todos.length-acima.length;',
-  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x){const v=D.veiculos[x.o];return "<tr>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
+  /* `onclick=event.stopPropagation()` na celula da caixa: sem isso o clique
+     sobe pra linha, que tem handler de selecao de veiculo, e marcar a caixa
+     trocaria a tela inteira. */
+  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
   `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
   `$("#extrato").innerHTML="<div class='card'><div class='card-h'>Extrato da loja — "+esc(l.loja)+" <span class='n mono'>#"+l.loja_id+"</span></div><div class='card-b'>"+`,
   `"<div style='margin-bottom:12px'>"+esc(l.uf)+" &middot; "+esc(l.whitelabel)+" &middot; <b>"+nf(l.qt_veiculos)+"</b> veículos ofertados em <b>"+nf(l.qt_ofertas)+"</b> lances nos últimos 6 meses"+(l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+" &middot; fator de confiança <b>"+nf(l.confianca,2)+"</b> &middot; elegível para <b>"+nf(l.pares)+"</b> veículo(s)</div>"+`,
@@ -1166,23 +1484,141 @@ const APP = [
   'perfilExtra(l)+',
   `"<table><thead><tr><th class='tx'>Indicador</th><th>Referência</th><th>Desvio</th><th>CV</th><th>Peso</th><th class='tx'>Leitura</th></tr></thead><tbody>"+linhas.join("")+"</tbody></table>"+`,
   `"<div class='dim' style='margin-top:10px;font-size:11.5px'>Estes números vêm do histórico de 6 meses da loja inteira e <b>não mudam</b> com o filtro. Ver o glossário para como o peso é formado.</div></div></div>"+`,
-  `"<div class='card'><div class='card-h'>Veículos com aderência acima de "+LIMIAR+"% <span class='n'>"+acima.length+" de "+nf(l.pares)+" elegíveis"+(escondidos?", "+escondidos+" fora do filtro":"")+"</span></div>"+listaV+"</div>";`,
-  '$("#extrato").style.display="";}',
+  `"<div class='card'><div class='card-h'>"+chipLista+"Veículos selecionáveis <span class='n'>"+acima.length+" de "+nf(l.pares)+" elegíveis"+(escondidos?", "+escondidos+" fora do filtro":"")+"</span></div>"+`,
+  `"<div class='card-b barra-corte'><label for='lim'>Aderência mínima</label>"+`,
+  `"<input type='range' id='lim' min='0' max='100' step='1' value='"+LIMIAR+"'>"+`,
+  `"<output id='lim_v'>"+LIMIAR+"%</output>"+`,
+  `"<button id='btn_msg' type='button'>Gerar texto para o lojista</button>"+`,
+  `"<span class='dim' id='msg_n'></span></div>"+`,
+  `listaV+"<div id='saida_msg'></div></div>";`,
+  '$("#extrato").style.display="";',
+  'ligaExtrato(l,acima);}',
+
+  /* ══ controles do extrato ═══════════════════════════════════════════
+     Ligados a cada render: o innerHTML do extrato e reescrito inteiro, e
+     handler preso no no antigo morre com ele. */
+  'function ligaExtrato(l,acima){',
+  'const bar=$("#lim");if(!bar)return;',
+  /* `oninput` e nao `onchange`: o numero tem que acompanhar o dedo. Redesenhar
+     a lista a cada pixel e barato aqui (dezenas de linhas), e a selecao
+     sobrevive porque mora em `escolhidos`, fora do HTML. */
+  'bar.oninput=function(){LIMIAR=Number(bar.value);$("#lim_v").textContent=LIMIAR+"%";extrato();};',
+  'const todosCx=$("#sel_todos");',
+  'if(todosCx){todosCx.onclick=function(e){e.stopPropagation();',
+  'const m=todosCx.checked;',
+  'acima.forEach(function(x){escolhidos[D.veiculos[x.o].vehicle_id]=m;});',
+  'extrato();};}',
+  'Array.prototype.forEach.call(document.querySelectorAll("#extrato .cx"),function(cx){',
+  'cx.onclick=function(e){e.stopPropagation();',
+  'escolhidos[cx.getAttribute("data-vid")]=cx.checked;contaEscolhidos();};});',
+  'contaEscolhidos();',
+  '$("#btn_msg").onclick=function(){montaMensagem(l);};}',
+
+  'function contaEscolhidos(){const n=idsEscolhidos().length;',
+  'const el=$("#msg_n");if(el)el.textContent=n?(n+" selecionado(s)"):"nenhum selecionado";}',
+
+  /* ══ o texto para o lojista ═════════════════════════════════════════
+     Texto PURO, sem marcacao: o mesmo bloco precisa colar limpo no corpo de
+     um e-mail e no WhatsApp. `*negrito*` ficaria certo num e errado no outro.
+     Nada e enviado daqui — isto gera e copia; quem manda e a pessoa. */
+  'function montaMensagem(l){',
+  'const ids=idsEscolhidos();',
+  'const box=$("#saida_msg");',
+  `if(!ids.length){box.innerHTML="<div class='vazio'>Selecione ao menos um veículo na lista acima.</div>";return;}`,
+  'const dentro={};ids.forEach(function(i){dentro[i]=1;});',
+  'const vs=D.veiculos.filter(function(v){return dentro[v.vehicle_id];});',
+  'const L=[];',
+  'L.push("Olá, "+l.loja+"!");L.push("");',
+  'L.push("Separamos "+vs.length+" veículo(s) que combinam com o perfil de compra da sua loja:");',
+  'L.push("");',
+  'vs.forEach(function(v,i){',
+  'const cab=(i+1)+". "+((v.marca?v.marca+" ":"")+(v.modelo||"")).trim()+(v.model_year?" "+v.model_year:"");',
+  'L.push(cab);',
+  'const d=[];',
+  'if(v.km||v.km===0)d.push(nf(v.km)+" km");',
+  'if(v.valor)d.push(money(v.valor));',
+  'if(v.categoria)d.push(v.categoria);',
+  'if(d.length)L.push("   "+d.join(" | "));',
+  'if(v.evento)L.push("   Evento: "+v.evento);',
+  /* sem link e melhor do que link quebrado — mesma regra da tabela */
+  'if(v.link)L.push("   "+v.link);',
+  'L.push("");});',
+  'L.push("Qualquer duvida, e so responder por aqui.");',
+  /* `String.fromCharCode(10)` e nao "
+": dentro desta string de JS o
+     escape seria consumido AQUI e chegaria no cliente como quebra de linha
+     de verdade no meio de um literal — foi o erro de sintaxe da primeira
+     versao. Escapar em dobro resolveria e acrescentaria barra invertida,
+     que e o que este arquivo nao pode ter. */
+  'const NL=String.fromCharCode(10);',
+  'const txt=L.join(NL);',
+  `box.innerHTML="<div class='card-b'><label for='msg_txt' class='dim'>Texto pronto — confira antes de enviar</label>"+`,
+  `"<textarea id='msg_txt' rows='12' spellcheck='false'></textarea>"+`,
+  `"<div class='msg_acoes'><button id='btn_copiar' type='button'>Copiar</button>"+`,
+  `"<span class='dim' id='copiado'></span></div></div>";`,
+  'const ta=$("#msg_txt");ta.value=txt;',
+  'const cp=$("#btn_copiar");',
+  'cp.onclick=function(){',
+  'ta.select();',
+  'let ok=false;',
+  /* `navigator.clipboard` so existe em contexto seguro (https ou localhost).
+     Este relatorio abre de arquivo local e do SharePoint, entao o caminho
+     antigo fica como alternativa em vez de o botao nao fazer nada. */
+  'try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value);ok=true;}',
+  'else{ok=document.execCommand("copy");}}catch(e){ok=false;}',
+  '$("#copiado").textContent=ok?"copiado":"não consegui copiar — use Ctrl+C";};}',
   /* ---- avisos ---- */
   'const av=[];D.falhas.forEach(f=>av.push("<li>"+esc(f)+"</li>"));',
   `D.diagnostico.filter(d=>d.veredito!=="ok").forEach(p=>av.push("<li><code>"+p.queryName+"</code>: "+esc(p.veredito)+(p.erro?" — <span class='mono'>"+esc(p.erro)+"</span>":"")+"</li>"));`,
-  `if(av.length){$("#alerta").innerHTML="<div class='card aviso'><div class='card-h'>"+av.length+" ponto(s) de atenção</div><div class='card-b'><ul>"+av.join("")+"</ul></div></div>";}`,
-  /* ---- as duas telas ---- */
-  `$("#btn_info").innerHTML=ic(ICO.info)+"<span id='btn_tx'>Glossário</span>";`,
-  'var vendoGloss=false;',
-  'function mostra(g){vendoGloss=g;',
-  '$("#pg_rel").style.display=g?"none":"";',
-  '$("#pg_gloss").style.display=g?"":"none";',
-  '$("#btn_tx").textContent=g?"Voltar ao relatório":"Glossário";',
-  'window.scrollTo(0,0);}',
-  '$("#btn_info").onclick=function(){const g=!vendoGloss;location.hash=g?"glossario":"";mostra(g);};',
-  'window.onhashchange=function(){mostra(location.hash==="#glossario");};',
-  'mostra(location.hash==="#glossario");',
+  `if(av.length){$("#alerta").innerHTML="<div class='card aviso'><div class='card-h'><span class='chip' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M12 9v4M12 17h.01'/><path d='M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z'/></svg></span>"+av.length+" ponto(s) de atenção</div><div class='card-b'><ul>"+av.join("")+"</ul></div></div>";}`,
+  /* ---- o glossario ----
+     Ate 18/09 ele era uma SEGUNDA TELA: clicar escondia o relatorio inteiro.
+     Virou o fim da MESMA pagina, como manda o modelo do brain — glossario e
+     referencia, e referencia que exige trocar de tela nao e consultada.
+     O botao agora leva ate la; o endereco proprio continua existindo. */
+  /* ---- gaveta de filtros ----
+     Sem `document.body`: o DOM de mentira do smoke so tem querySelector, e
+     amarrar o estado a uma classe no <body> tornaria o teste impossivel sem
+     motivo. O estado mora na propria gaveta. */
+  'function gaveta(abre){',
+  '$("#gaveta").className=abre?"gaveta aberta":"gaveta";',
+  '$("#veu_filtros").style.display=abre?"":"none";',
+  '$("#btn_filtros").setAttribute("aria-expanded",abre?"true":"false");}',
+  'function gavetaAberta(){return $("#gaveta").className.indexOf("aberta")>=0;}',
+  '$("#btn_filtros").onclick=function(){gaveta(!gavetaAberta());};',
+  '$("#fecha_filtros").onclick=function(){gaveta(false);};',
+  '$("#veu_filtros").onclick=function(){gaveta(false);};',
+  'gaveta(false);',
+
+  /* ── TEMA ────────────────────────────────────────────────────────────
+     O arquivo nasce no tema declarado no <html> e o botao troca ao vivo.
+     A escolha NAO e gravada: o relatorio vai por link pra muita gente e
+     precisa abrir igual pra todo mundo. Mesma regra do modelo do brain,
+     em design/modelos/ — arquivo chamado claro que abre escuro e cilada.
+     O logo troca junto, porque o azul da marca some no fundo escuro. */
+  'const LOGOS=' + JSON.stringify(LOGOS) + ';',
+  /* O icone mostra PARA ONDE o botao leva, nao onde voce esta: sol quando o
+     tema atual e escuro. SVG e nao caractere — ☀ e ☾ viram emoji colorido em
+     parte dos sistemas. Sem texto visivel, o nome vem do aria-label. */
+  /* CRASE nestas linhas, nao aspa simples com escape: a aspa simples do
+     atributo HTML entra literal dentro de template literal, sem nenhuma
+     barra invertida. E a convencao deste arquivo (ver o comentario antes do
+     APP) — a primeira versao deste trecho subiu a contagem de 4 para 9. */
+  `var ICO_TEMA={claro:"<circle cx='12' cy='12' r='4'/><path d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/>",`,
+  `escuro:"<path d='M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z'/>"};`,
+  'function aplicaTema(t){document.documentElement.dataset.tema=t;',
+  '$("#logo").src=LOGOS[t];',
+  'var alvo=(t==="escuro"?"claro":"escuro");var b=$("#btn_tema");',
+  `b.innerHTML="<svg viewBox='0 0 24 24' aria-hidden='true'>"+ICO_TEMA[alvo]+"</svg>";`,
+  'b.setAttribute("aria-label","Mudar para o tema "+alvo);',
+  'b.setAttribute("title","Tema "+alvo);}',
+  'aplicaTema(document.documentElement.dataset.tema||"claro");',
+  '$("#btn_tema").onclick=function(){',
+  'aplicaTema(document.documentElement.dataset.tema==="escuro"?"claro":"escuro");};',
+  /* quem abre o link com #pg_gloss encontra o glossario ja aberto */
+  'if(location.hash==="#pg_gloss"||location.hash==="#glossario"){',
+  'var gl=$("#pg_gloss");if(gl){gl.open=true;',
+  'if(gl.scrollIntoView)gl.scrollIntoView({block:"start"});}}',
   /* ---- orquestracao ---- */
   'function pinta(){pintaKpis();ctx();pintaV();pintaL();extrato();}',
   '$("#f_v").oninput=pintaV;$("#f_l").oninput=pintaL;',
@@ -1206,22 +1642,52 @@ const LINHAS_ST = Object.keys(ST_NOME).map(Number).sort((a, b) => a - b).map((k)
     (dentro ? 'st-in">entra' : 'st-out">fica de fora') + '</td></tr>';
 }).join('');
 
+/* Cabecalho de cartao segue a anatomia do modelo do brain: chip redondo com
+   icone no canto superior esquerdo, titulo ao lado, contagem empurrada pra
+   direita. No tema escuro o cartao ainda ganha o brilho azul no mesmo canto
+   (`--brilho`), que e o que da profundidade ao vidro. */
+function chip(d) {
+  return '<span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24">' + d + '</svg></span>';
+}
+const ICO_CARD = {
+  filtros: '<path d="M3 5h18M6 12h12M10 19h4"/>',
+  veiculos: '<path d="M3 17v-4l2-5h12l3 5v4"/><path d="M5 17h14"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  lojas: '<path d="M3 21V10l9-7 9 7v11"/><path d="M9 21v-6h6v6"/>',
+  base: '<path d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h13"/>',
+  regras: '<path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>',
+  calculo: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 12h3M8 16h3M14 12v5"/>',
+};
+
 const html = [
-  '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">',
+  '<!doctype html><html lang="pt-BR" data-tema="claro"><head><meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1">',
-  '<title>Veículos x lojas — aderência</title>',
+  '<title>Radar de Estoque — Cars2You</title>',
   '<style>' + CSS + '</style></head><body>',
+  /* O topo carrega SO identidade e a troca de tema, como no modelo: logo,
+     titulo colado nela, e a acao encostada na direita. Saíram daqui o botao
+     do glossario (ele agora e um bloco que abre no proprio lugar) e o
+     "Gerado em" (foi pro rodape, junto da descricao da base). */
   '<div class="topo"><span class="esq">' +
-  '<img class="logo" alt="Cars2You" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAACAUlEQVR42u3c223CMBgGULCyQlmg2YvVmr2YgCn6gIQqIqLUsfPb4XyPlCLHx/cEzl/fPyeJS1IFAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACAAAAgCAAAAgAAAIAAACAIAAACAAAAgAAAIAgAAAIAAACIBuMjRevvvt+t9/uYyTHhBW+4YgAQBAAHSTc+M/WbZ9Hm58UXQ+3m/Gzc1aNjAEHXQj9m7oaLMxvpR2ZSGLdLVU42IWBu7lv3Y98eS1rbRb1bfMkFF3pcqfHBsUuZzsoXU4Xr3k1cVlnF4+/H67vvuogq1tqFcv89L/fVtfZ5b1thppzzJdxunxepu1v9xiKg22af+NT8ttP6NsGy8nNdUf2591iq817IQ3NaDtrW2wHFxThsfH5m2YOwaIOlabL0lPH3tT/vBNwRwQvJQAEMyTPEsS2wn0gGCYMrck189Rj3dm3/HYv8pqr8RSvWXDfA/5fKXfYar4uDRUXTgv3xpr/9Bih4aSHAHFXmPq9xTlGI8GDzXayHLRO+0rlYpd98Gs7bfAop6Mq3Hu9ilPxvV1CGgjFjxdAQg+SgEQvFoDEHySCCB4swIg+CAdQPCG0T7g5BsyAAQAAAEAQAAAEAAABAAAAQBAAAAQAAAEAAABAEAAABAAAAQAAAEAQAAAEAAABAAAAQBAAAAQAF3lFyBct/RsBkMiAAAAAElFTkSuQmCC">' +
+  /* src vazio de proposito: quem preenche e o APP, porque o arquivo
+     muda com o tema. Ver `aplicaTema` no fim do APP. */
+  '<img class="logo" id="logo" alt="Cars2You" src="">' +
+  '<b>Radar de Estoque</b>' +
   '</span>',
-  '<span class="meio"><b>Veículos em evento &times; lojas compradoras</b></span>',
-  '<span class="dir"><button id="btn_info"></button>',
-  '<span class="dim">Gerado em <span id="ger"></span></span></span></div>',
+  '<span class="dir"><button id="btn_tema" type="button" aria-label="Mudar o tema"></button></span></div>',
   /* ═══ TELA 1: o relatorio ═══ */
   '<div class="pg" id="pg_rel">',
-  '<div class="tit"><h1>Aderência por veículo</h1>',
-  '<span class="via">' + descreveRecorte() + ' &middot; perfil de compra desde ' + (META.data_ini || '?') + '</span></div>',
-  '<div class="card"><div class="card-h">Filtros</div><div class="card-b">',
+  /* ═══ FILTROS SUSPENSOS ═══
+     Eles ocupavam a primeira dobra inteira e sao consultados poucas vezes por
+     sessao: quem abre o relatorio quer ver o dado. Viraram gaveta, com aba
+     fixa na lateral esquerda. Fecha clicando fora, no X, ou no Esc. */
+  '<button id="btn_filtros" class="aba" type="button" aria-expanded="false" aria-controls="gaveta">' +
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg>' +
+  '<span>Filtros</span></button>',
+  '<div id="veu_filtros" class="veu" style="display:none"></div>',
+  '<aside id="gaveta" class="gaveta">',
+  '<div class="card"><div class="card-h">' + chip(ICO_CARD.filtros) + 'Filtros' +
+  '<button id="fecha_filtros" class="fechar" type="button" aria-label="Fechar filtros">&times;</button>' +
+  '</div><div class="card-b">',
   '<div class="filtros">',
   '<div class="fg"><label for="f_wl">Whitelabel</label><select id="f_wl"></select></div>',
   '<div class="fg"><label for="f_uf">UF</label><select id="f_uf"></select></div>',
@@ -1233,25 +1699,33 @@ const html = [
   '<div class="nota"><b>Whitelabel</b>, <b>UF</b> e <b>evento</b> valem para a página inteira: KPIs, as duas tabelas e o extrato. As duas <b>buscas</b> só filtram a tabela em que estão.<br>',
   'O filtro <b>não</b> alcança o perfil de compra da loja nem o fator de confiança: esses vêm do histórico de <b>6 meses da loja inteira</b>. Como a aderência é calculada contra esse perfil, o <b>score de cada par também não muda</b> com o filtro &mdash; o filtro escolhe quais pares aparecem, não os recalcula.' +
   (MIN_TX ? ' Correspondência mínima de <b>' + MIN_TX + '%</b>' + (CORTADOS ? ' (' + CORTADOS.toLocaleString('pt-BR') + ' pares descartados nesta coleta)' : '') + '.' : '') +
-  ' Os termos estão no <b>glossário</b>, no botão acima.</div>',
+  ' Os termos estão no <b>glossário</b>, no fim da página.</div>',
   '</div></div>',
+  '</aside>',
   '<div class="kpis" id="kpis"></div>',
   '<div id="alerta"></div>',
   '<div id="ctx" class="ctx" style="display:none"></div>',
   '<div class="grid">',
-  '<div class="card"><div class="card-h">Veículos <span class="n" id="cv"></span></div>',
+  '<div class="card"><div class="card-h">' + chip(ICO_CARD.veiculos) + 'Veículos <span class="n" id="cv"></span></div>',
   '<div class="wrap"><table id="t_v"></table></div><div id="v_vazio"></div></div>',
-  '<div class="card"><div class="card-h">Lojas <span class="n" id="cl"></span></div>',
+  '<div class="card"><div class="card-h">' + chip(ICO_CARD.lojas) + 'Lojas <span class="n" id="cl"></span></div>',
   '<div class="wrap"><table id="t_l"></table></div><div id="l_vazio"></div></div>',
   '</div>',
   '<div id="extrato" style="display:none"></div>',
   '</div>',
-  /* ═══ TELA 2: o glossario ═══ */
-  '<div class="pg gl" id="pg_gloss" style="display:none">',
-  '<div class="tit"><h1>Glossário</h1>',
-  '<span class="via">O que entra na base, as regras de elegibilidade, e como o número é feito</span></div>',
+  /* ═══ GLOSSARIO — ultimo bloco, e FECHADO ate clicarem ═══
+     Regra do modelo (design/regras-de-layout.md): peca obrigatoria, bloco
+     proprio, fim da pagina. Fechado porque e referencia: quem precisa, abre.
+     Era uma segunda tela ate 18/09, e tela que esconde o relatorio inteiro
+     nao e consultada. */
+  '<div class="pg">',
+  '<details class="card gl" id="pg_gloss">',
+  '<summary class="card-h">' + chip(ICO_CARD.base) + 'Glossário' +
+  '<span class="n">o que entra na base, as regras, e como o número é feito</span>' +
+  '<span class="seta" aria-hidden="true">&#9662;</span></summary>',
+  '<div class="card-b">',
 
-  '<div class="card"><div class="card-h">O que entra na base</div><div class="card-b"><dl>',
+  '<h3 class="gl-sub">' + chip(ICO_CARD.base) + 'O que entra na base</h3><dl>',
   '<dt>Uma linha por veículo</dt>',
   '<dd>Não uma linha por negociação. O mesmo carro aparece em vários eventos &mdash; os feirões são diários e reciclam estoque &mdash; e contar por negociação o duplicava.</dd>',
   '<dt>Última negociação</dt>',
@@ -1260,7 +1734,7 @@ const html = [
   '<dd>Cinco dos doze estados entram. Ficam de fora os que têm <b>oferta viva na mesa</b> (9 e 13) &mdash; ranquear loja para um carro em negociação atrapalha o negócio em andamento &mdash; além da venda e do que foi suspenso ou cancelado.</dd>',
   '<dd><table><thead><tr><th>Cód.</th><th class="tx">Significado</th><th class="tx">No relatório</th></tr></thead><tbody>' + LINHAS_ST + '</tbody></table></dd>',
   '<dt>Sobra</dt>',
-  '<dd>Veículo cuja última negociação NÃO está em "Ativo": passou pelo evento e não foi vendido. É o estoque que faz sentido reofertar, e vem marcado com o nome do status na tabela.</dd>',
+  '<dd>Veículo cuja última negociação NÃO está em "Ativo": passou pelo evento e não foi vendido. Vem marcado com o nome do status na tabela. <b>Desde 18/09 a sobra aparece pouco aqui</b>: a janela passou a olhar os 7 dias à frente, então quase tudo na base ainda está em evento por encerrar.</dd>',
   '<dt>Canais que entram</dt>',
   /* o recorte de 2026-09-11. Quem le a tela tem que saber que a base NAO e
      a plataforma inteira, senao compara com outro numero e acha erro */
@@ -1274,11 +1748,14 @@ const html = [
   '<dd class="ex">Ter anúncio não é o mesmo que poder receber proposta: veículo de evento encerrado ou marcado como sobra tem link, mas o anúncio pode não aceitar mais lance. O status vem ao lado do link justamente por isso.</dd>',
   '<dt>Janela de eventos</dt>',
   /* o glossario descreve o recorte DESTA coleta, nao um recorte de exemplo */
-  '<dd>Nesta coleta: ' + descreveRecorte() + '. Datas em <b>hora de Brasília</b> &mdash; o banco responde em UTC, então o recorte é calculado fora do SQL e vai como literal; evento que já encerrou continua na base de propósito, porque é justamente onde está a sobra.</dd>',
+  '<dd>Nesta coleta: ' + descreveRecorte() + '. Datas em <b>hora de Brasília</b> &mdash; o banco responde em UTC, então o recorte é calculado fora do SQL e vai como literal.</dd>',
+  /* o piso na meia-noite nao e detalhe: sem ele o mesmo relatorio encolhe
+     conforme a hora em que roda, e ninguem entende por que */
+  '<dd class="ex">⚠️ <b>Mudou em 18/09/2026.</b> Antes a janela era aberta para trás (tudo que encerrou desde 09/09, mais o que não encerrou) e o relatório mostrava sobretudo a <b>sobra</b>. Agora ele olha para a frente: <b>os eventos que encerram nos próximos 7 dias</b>. Comparar a contagem com um relatório anterior a essa data não faz sentido &mdash; é outra pergunta, não a mesma base menor. O piso é a <b>meia-noite de hoje</b>, não o instante da coleta: evento que encerrou mais cedo no mesmo dia continua aqui até o dia virar.</dd>',
   '<dd>Quando não há teto, tudo o que ainda não encerrou entra, inclusive evento de fim distante. O filtro de <b>evento</b> acima é a forma de isolar uma edição. O recorte também pode ser uma lista fixa de ids, modo usado para reanalisar edições específicas.</dd>',
-  '</dl></div></div>',
+  '</dl>',
 
-  '<div class="card"><div class="card-h">Regras de elegibilidade</div><div class="card-b"><dl>',
+  '<h3 class="gl-sub">' + chip(ICO_CARD.regras) + 'Regras de elegibilidade</h3><dl>',
   '<dt>Elegibilidade</dt>',
   '<dd>Um par (veículo, loja) <b>só existe</b> se a loja pertence a um dos <b>whitelabels que o evento alveja</b>. O canal é a única condição obrigatória.</dd>',
   '<dd class="ex">⚠️ <b>Mudou em 11/09/2026.</b> Até então a <b>mesma UF</b> também era obrigatória: carro de São Paulo nunca aparecia para loja de Minas. Agora a UF <b>pesa</b> em vez de excluir (ver <i>UF como preferência</i> abaixo), então o ranking de cada veículo ficou bem mais longo e comparar o número de correspondências com o de um relatório anterior a essa data não faz sentido.</dd>',
@@ -1289,10 +1766,12 @@ const html = [
      leitor procura culpa na aderencia ou no corte */
   '<dd>Alguns eventos alvejam <b>canais de pessoa física</b> &mdash; colaborador, associado, clube. Ali não existe loja compradora como categoria, então o veículo <b>nunca</b> pode ter par: não é aderência baixa, é ausência de contraparte. Esses carros vêm marcados com a etiqueta <b>canal sem loja</b> e têm KPI próprio, separado de <b>Sem correspondência</b>.</dd>',
   '<dt>Correspondência mínima</dt>',
-  '<dd>Par com score abaixo de <b>' + (MIN_TX || 0) + '%</b> não existe em lugar nenhum do relatório: não entra nas tabelas, não conta nos KPIs, não aparece em nenhuma das duas direções. O KPI <b>Sem correspondência</b> conta só quem <b>podia</b> ter par: tinha loja elegível e nenhuma alcançou o piso. São esses, e só esses, que mudariam se o corte baixasse.</dd>',
-  '</dl></div></div>',
+  (MIN_TX
+    ? '<dd>Par com score abaixo de <b>' + MIN_TX + '%</b> não existe em lugar nenhum do relatório: não entra nas tabelas, não conta nos KPIs, não aparece em nenhuma das duas direções. O KPI <b>Sem correspondência</b> conta só quem <b>podia</b> ter par: tinha loja elegível e nenhuma alcançou o piso. São esses, e só esses, que mudariam se o corte baixasse.</dd>'
+    : '<dd><b>Não há piso nesta coleta</b> (mudou em 18/09/2026): todo par elegível entra, inclusive score baixo. Quem filtra é você, na <b>barra deslizante</b> do extrato da loja, que nasce em 70%. O que ainda corta é o <b>teto de lojas por veículo</b> — ele guarda as melhores de cada carro, não as melhores no geral. Por isso o KPI <b>Sem correspondência</b> tende a zero: sobra só quem não tem contraparte possível.</dd>'),
+  '</dl>',
 
-  '<div class="card"><div class="card-h">Como o número é feito</div><div class="card-b"><dl>',
+  '<h3 class="gl-sub">' + chip(ICO_CARD.calculo) + 'Como o número é feito</h3><dl>',
   '<dt>A ideia</dt>',
   '<dd>Cada loja tem um <b>perfil de compra</b> tirado dos últimos ' + (META.meses_historico || 6) + ' meses de lances dela: em que faixa de preço compra, de que idade, de que quilometragem, e qual modelo e categoria mais oferta. A aderência mede o quanto um veículo cai dentro desse perfil.</dd>',
   '<dt>Aderência de um indicador</dt>',
@@ -1338,8 +1817,21 @@ const html = [
   '<dd>O perfil de compra e o fator de confiança saem do histórico da <b>loja inteira</b>, sem recorte por whitelabel, UF ou evento. Como a aderência é calculada contra esse perfil, <b>o score de cada par não muda</b> com o filtro. O filtro escolhe quais pares aparecem; não os recalcula.</dd>',
   '<dt>Volume de ofertas</dt>',
   '<dd>Não entra no score. "Veículos ofertados 6m" está na tabela como leitura de porte da loja, não como critério de ranking.</dd>',
-  '</dl></div></div>',
-  '</div>',
+  '</dl>',
+  '</div></details></div>',
+
+  /* ═══ RODAPE ═══
+     Fica so o que o modelo pede: quando foi atualizado, e qual base esta na
+     tela. Os dois moraram no topo ate 18/09 — data de geracao competindo com
+     o titulo, e o recorte como subtitulo de uma secao que nem existe mais. */
+  '<div class="pg"><p class="rodape">',
+  'Atualizado em <span id="ger"></span>',
+  /* O topo passou a levar so o nome do projeto. O que ele dizia antes
+     — "veículos em evento × lojas compradoras" — descreve a BASE, entao
+     e aqui que ele pertence, junto do recorte. */
+  ' &middot; veículos em evento &times; lojas compradoras',
+  ' &middot; ' + descreveRecorte() + ' &middot; perfil de compra desde ' + (META.data_ini || '?'),
+  '</p></div>',
   '<script>const D=' + DADOS_JSON + ';</' + 'script>',
   '<script>' + APP + '</' + 'script>',
   '</body></html>'

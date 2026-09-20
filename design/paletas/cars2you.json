@@ -1,0 +1,40 @@
+{
+  "produto": "cars2you",
+  "rotulo": "Cars2You",
+  "atualizado": "2026-09-18",
+  "origem": "paleta entregue pelo Thomas em 18/09 (Adobe Color), em design/referencias/paleta-cars2you-original.jpeg",
+  "pensada_para": "painel de fundo claro",
+
+  "marca": {
+    "azul":       { "hex": "#1523A0", "rgb": [21, 35, 160],  "papel": "primária — texto de acento, ícone, link no tema claro" },
+    "azul_claro": { "hex": "#487DEA", "rgb": [72, 125, 234], "papel": "acento de preenchimento — barra, linha de gráfico, acento do tema escuro" },
+    "cinza":      { "hex": "#E4E6E6", "rgb": [228, 230, 230],"papel": "divisória e borda no tema claro" },
+    "vinho":      { "hex": "#6F4047", "rgb": [111, 64, 71],  "papel": "atenção / estado intermediário" },
+    "vermelho":   { "hex": "#7F1112", "rgb": [127, 17, 18],  "papel": "negativo / erro no tema claro" }
+  },
+
+  "derivados": {
+    "_nota": "NÃO estão na paleta oficial. Existem porque um painel precisa de 'subiu/desceu' e a paleta não tem verde, e porque as cores escuras somem no tema escuro. Levar à equipe antes de tratar como marca.",
+    "verde":         { "hex": "#0E7C55", "papel": "positivo no tema claro",  "contraste_sobre_branco": 5.21 },
+    "verde_vivo":    { "hex": "#35C08A", "papel": "positivo no tema escuro", "contraste_sobre_0B0D12": 8.38 },
+    "vermelho_vivo": { "hex": "#EF5B60", "papel": "negativo no tema escuro", "contraste_sobre_0B0D12": 5.86 }
+  },
+
+  "contraste_medido": {
+    "_metodo": "WCAG 2.1, conferido por design/_prova_modelos.js em cada execução",
+    "1523A0_sobre_branco": 11.80,
+    "487DEA_sobre_branco": 3.89,
+    "487DEA_sobre_0B0D12": 4.99,
+    "1523A0_sobre_0B0D12": 1.65,
+    "7F1112_sobre_branco": 10.55,
+    "_leitura": "#487DEA reprova como TEXTO no claro (AA pede 4,5) e #1523A0 some no escuro. Por isso o papel do azul troca entre os temas."
+  },
+
+  "logo": {
+    "pasta": "design/marca/cars2you/",
+    "claro": "logo-azul.png",
+    "escuro": "logo-branca.png",
+    "tinta_do_arquivo_azul": "#1E289B",
+    "_nota_tinta": "O PNG azul veio com #1E289B, não com o #1523A0 da paleta. Diferença pequena e real. O logo fica como está; a interface usa o valor da paleta."
+  }
+}

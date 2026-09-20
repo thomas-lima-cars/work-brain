@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelo de painel — tema claro</title>
+<!--
+  ============================================================================
+  MODELO DE PAINEL — Cars2You                       tema: claro
+  ----------------------------------------------------------------------------
+  ⚠️ NÃO EDITE ESTE ARQUIVO SE ELE ESTIVER EM design/modelos/.
+     Os dois modelos são GERADOS de design/modelos/_fonte/dashboard.html
+     + design/tokens/tema.css. Edite lá e rode:
+
+         node design/modelos/monta-modelos.js
+
+  Para começar um painel novo: copie um dos dois para a pasta do projeto,
+  troque o conteúdo de <main>, e deixe topo/rodapé como estão.
+
+  Autossuficiente de propósito: CSS embutido, logos em data URI, zero rede.
+  Abre de um anexo, de um pendrive, do SharePoint e de dentro da VPN.
+  ============================================================================
+-->
+<style>/* ==========================================================================
+   Tema dos painéis — Cars2You
+   --------------------------------------------------------------------------
+   FONTE ÚNICA do visual. Mexeu aqui, regera os modelos:
+       node design/modelos/monta-modelos.js
+
+   Nunca escreva cor solta dentro do HTML de um painel. Se a cor não existe
+   aqui, ou ela vira token, ou não deveria estar sendo usada.
+
+   Dois temas no mesmo arquivo, de propósito: dois arquivos separados ficam
+   livres pra divergir, e o claro vira o "de verdade" enquanto o escuro
+   apodrece.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Paleta da marca — valores oficiais, não inventar
+   -------------------------------------------------------------------------- */
+:root{
+  --marca-azul:       #1523A0;  /* primária   */
+  --marca-azul-claro: #487DEA;  /* acento     */
+  --marca-cinza:      #E4E6E6;  /* divisória  */
+  --marca-vinho:      #6F4047;  /* atenção    */
+  --marca-vermelho:   #7F1112;  /* negativo   */
+
+  /* Derivados — NÃO estão na paleta oficial. A paleta não tem verde, e um
+     painel precisa de "subiu / desceu". Ver design/paletas/README.md. */
+  --d-verde:          #0E7C55;
+  --d-verde-vivo:     #35C08A;
+  --d-vermelho-vivo:  #EF5B60;
+
+  /* --- forma e ritmo --- */
+  --r-g: 16px;   /* raio do cartão    */
+  --r-m: 12px;   /* raio de bloco     */
+  --r-p: 10px;   /* raio de controle  */
+  --gap: 16px;
+  --topo-h: 68px;
+
+  --fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+           "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. Tema CLARO — é o padrão. A paleta foi pensada pra ele.
+   -------------------------------------------------------------------------- */
+:root,
+[data-tema="claro"]{
+  /* Sem isto, <select>, scrollbar e afins seguem o modo do SISTEMA, nao o da
+     pagina: o tema claro abre com os controles pretos em quem usa o SO no
+     escuro. Aconteceu no primeiro print. */
+  color-scheme: light;
+
+  --fundo:          #F2F3F5;
+  --fundo-veu:      radial-gradient(1200px 600px at 12% -10%,
+                      rgba(72,125,234,.10), transparent 60%);
+
+  --superficie:     #FFFFFF;
+  --superficie-2:   #F7F8FA;
+  --borda:          var(--marca-cinza);
+  --borda-forte:    #CFD3D8;
+
+  --texto:          #14161C;
+  --texto-2:        #565B6B;
+  --texto-3:        #8A8FA0;
+
+  /* #487DEA sobre branco dá 3,9:1 — reprova em texto normal (AA pede 4,5).
+     Por isso texto e link usam o azul escuro (11,8:1) e o claro fica pro
+     preenchimento, que só precisa de 3:1. */
+  --acento:         var(--marca-azul);
+  --acento-cheio:   var(--marca-azul-claro);
+  --acento-veu:     rgba(72,125,234,.12);
+
+  --positivo:       var(--d-verde);
+  --negativo:       var(--marca-vermelho);
+  --atencao:        var(--marca-vinho);
+
+  --grade:          rgba(20,22,28,.08);
+  --sombra:         0 1px 2px rgba(16,20,40,.05), 0 8px 24px rgba(16,20,40,.06);
+  --cartao-borda:   1px solid var(--borda);
+  --cartao-fundo:   var(--superficie);
+  --cartao-blur:    none;
+  --brilho:         none;
+}
+
+/* --------------------------------------------------------------------------
+   3. Tema ESCURO — vidro, na linha da referência
+   -------------------------------------------------------------------------- */
+[data-tema="escuro"]{
+  color-scheme: dark;
+
+  --fundo:          #0B0D12;
+  --fundo-veu:      radial-gradient(900px 500px at 8% -8%,
+                      rgba(72,125,234,.20), transparent 62%),
+                    radial-gradient(800px 500px at 96% 4%,
+                      rgba(111,64,71,.16), transparent 60%);
+
+  --superficie:     #12151D;
+  --superficie-2:   #171B25;
+  --borda:          rgba(255,255,255,.09);
+  --borda-forte:    rgba(255,255,255,.16);
+
+  --texto:          #EDEFF5;
+  --texto-2:        #A4ABBF;
+  --texto-3:        #6E7589;
+
+  /* No escuro o azul da marca some (1,65:1). Quem assume é o azul claro,
+     que dá 4,99:1 sobre o fundo. Mesma lógica pro vermelho. */
+  --acento:         var(--marca-azul-claro);
+  --acento-cheio:   var(--marca-azul-claro);
+  --acento-veu:     rgba(72,125,234,.18);
+
+  --positivo:       var(--d-verde-vivo);
+  --negativo:       var(--d-vermelho-vivo);
+  --atencao:        #C98A92;
+
+  --grade:          rgba(255,255,255,.07);
+  --sombra:         0 1px 1px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.45);
+  --cartao-borda:   1px solid rgba(255,255,255,.08);
+  --cartao-fundo:   linear-gradient(158deg, rgba(255,255,255,.075),
+                                            rgba(255,255,255,.025));
+  --cartao-blur:    blur(16px) saturate(140%);
+  --brilho:         radial-gradient(420px 180px at 0% 0%,
+                      rgba(72,125,234,.16), transparent 70%);
+}
+
+/* --------------------------------------------------------------------------
+   4. Base
+   -------------------------------------------------------------------------- */
+*,*::before,*::after{ box-sizing:border-box }
+
+html{ -webkit-text-size-adjust:100% }
+
+body{
+  margin:0;
+  font-family:var(--fonte);
+  font-size:14px;
+  line-height:1.45;
+  color:var(--texto);
+  background-color:var(--fundo);
+  background-image:var(--fundo-veu);
+  background-attachment:fixed;
+  background-repeat:no-repeat;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3{ margin:0; font-weight:650; letter-spacing:-.01em }
+p{ margin:0 }
+
+.num{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1 }
+
+/* --------------------------------------------------------------------------
+   5. Topo — fixo, com o filtro dentro
+   -------------------------------------------------------------------------- */
+.topo{
+  position:sticky; top:0; z-index:30;
+  background:var(--cartao-fundo);
+  background-color:color-mix(in srgb, var(--superficie) 88%, transparent);
+  border-bottom:var(--cartao-borda);
+  backdrop-filter:var(--cartao-blur);
+  -webkit-backdrop-filter:var(--cartao-blur);
+}
+.topo-in{
+  max-width:1680px; margin:0 auto;
+  min-height:var(--topo-h);
+  padding:10px 20px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.logo{ height:26px; width:auto; display:block; flex:none }
+.topo-tit{ margin-right:auto; min-width:200px }
+.topo-tit h1{ font-size:17px }
+.topo-tit .sub{ font-size:12.5px; color:var(--texto-3); margin-top:1px }
+.topo-acoes{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+
+.ctrl{
+  font:inherit; font-size:13px; color:var(--texto);
+  background:var(--superficie-2);
+  border:1px solid var(--borda);
+  border-radius:var(--r-p);
+  padding:7px 11px;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.ctrl:hover{ border-color:var(--borda-forte) }
+.ctrl:focus-visible{ outline:2px solid var(--acento); outline-offset:1px }
+select.ctrl{ padding-right:26px }
+
+/* Botão só de ícone. O nome acessível vem do `aria-label` — sem texto
+   visível e sem label, o leitor de tela anuncia apenas "botão".
+   Ícone em SVG e não em caractere: ☀ e ☾ viram emoji colorido em parte
+   dos sistemas, e aí o botão fica com a cara de outro produto. */
+.ctrl.so-icone{ padding:7px; display:inline-flex; align-items:center }
+.ctrl.so-icone svg{ width:16px; height:16px; display:block; stroke:currentColor;
+                    fill:none; stroke-width:1.9; stroke-linecap:round;
+                    stroke-linejoin:round }
+
+/* --------------------------------------------------------------------------
+   6. Área e grades
+   -------------------------------------------------------------------------- */
+.area{
+  max-width:1680px; margin:0 auto;
+  padding:var(--gap) 20px 48px;
+  display:flex; flex-direction:column; gap:var(--gap);
+}
+.g4{ display:grid; gap:var(--gap); grid-template-columns:repeat(4,1fr) }
+.g2{ display:grid; gap:var(--gap); grid-template-columns:2fr 1fr }
+
+@media (max-width:1100px){
+  .g4{ grid-template-columns:repeat(2,1fr) }
+  .g2{ grid-template-columns:1fr }
+}
+@media (max-width:620px){
+  .g4{ grid-template-columns:1fr }
+  .area{ padding:12px 12px 40px }
+  .topo-in{ padding:10px 12px }
+}
+
+/* --------------------------------------------------------------------------
+   7. Cartão
+   -------------------------------------------------------------------------- */
+.cartao{
+  position:relative;
+  background:var(--cartao-fundo);
+  border:var(--cartao-borda);
+  border-radius:var(--r-g);
+  box-shadow:var(--sombra);
+  backdrop-filter:var(--cartao-blur);
+  -webkit-backdrop-filter:var(--cartao-blur);
+  padding:18px;
+  overflow:hidden;
+}
+/* o brilho do canto, que no claro é `none` */
+.cartao::before{
+  content:""; position:absolute; inset:0;
+  background:var(--brilho);
+  pointer-events:none;
+}
+.cartao > *{ position:relative }
+
+.cartao-topo{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:14px;
+}
+.cartao-topo h2{ font-size:14.5px; font-weight:650 }
+.cartao-topo .dir{ margin-left:auto; display:flex; gap:6px; align-items:center }
+
+.chip{
+  flex:none; width:34px; height:34px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--acento-veu);
+  color:var(--acento);
+}
+.chip svg{ width:17px; height:17px; stroke:currentColor; fill:none;
+           stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round }
+
+/* --------------------------------------------------------------------------
+   8. KPI
+   -------------------------------------------------------------------------- */
+/* KPI é resumo, não manchete.
+   ---------------------------------------------------------------------------
+   O número grande chama o olho primeiro, e ele é o dado MENOS interessante da
+   página: um total sem recorte. Quem explica é o gráfico e a tabela. Por isso
+   a faixa de KPI é deliberadamente contida — o realce aqui é o peso da fonte
+   e a tabulação, não o tamanho.
+
+   O aperto é ESCOPADO em `.g4` de propósito: cartão de gráfico, ranking e
+   tabela seguem com o respiro de 18px. Mexer no `.cartao` global encolheria
+   a página inteira, que não é o pedido. */
+.g4 .cartao{ padding:13px 14px }
+.g4 .cartao-topo{ margin-bottom:6px; gap:8px }
+.g4 .chip{ width:26px; height:26px }
+.g4 .chip svg{ width:14px; height:14px }
+
+.kpi-rot{ font-size:12.5px; color:var(--texto-2); font-weight:500 }
+.kpi-val{
+  font-size:23px; line-height:1.15; font-weight:700; letter-spacing:-.015em;
+  margin:4px 0 2px;
+}
+.kpi-delta{ font-size:11.5px; font-weight:600; display:inline-flex; gap:4px;
+            align-items:center }
+.sobe{ color:var(--positivo) } .desce{ color:var(--negativo) }
+.neutro{ color:var(--texto-3) }
+
+.kpi-pe{
+  display:flex; gap:16px;
+  margin-top:9px; padding-top:8px;
+  border-top:1px solid var(--borda);
+}
+.kpi-pe div{ min-width:0 }
+.kpi-pe dt{ font-size:11px; color:var(--texto-3); white-space:nowrap;
+            overflow:hidden; text-overflow:ellipsis }
+.kpi-pe dd{ margin:1px 0 0; font-size:13.5px; font-weight:650 }
+
+/* --------------------------------------------------------------------------
+   9. Gráfico
+   -------------------------------------------------------------------------- */
+.graf{ width:100%; height:auto; display:block; overflow:visible }
+.graf .eixo{ font-size:10.5px; fill:var(--texto-3) }
+.graf .linha-grade{ stroke:var(--grade); stroke-width:1 }
+.graf .serie{ fill:none; stroke:var(--acento-cheio); stroke-width:2.25;
+              stroke-linecap:round; stroke-linejoin:round }
+.graf .area-serie{ fill:url(#veu-serie); stroke:none }
+.graf .ponto{ fill:var(--acento-cheio) }
+
+/* Rótulo de dados — o padrão da casa. Quando ele aparece, o eixo Y sai
+   inteiro: os dois dizem a mesma coisa e juntos viram ruído. Ver a regra
+   no `desenhaLinha` do molde. Cor de texto normal, não de eixo: ele é
+   conteúdo, não referência. */
+.graf .rotulo{ font-size:11px; font-weight:650; fill:var(--texto);
+               font-variant-numeric:tabular-nums }
+
+/* --------------------------------------------------------------------------
+   10. Ranking com barra
+   -------------------------------------------------------------------------- */
+.rank{ list-style:none; margin:0; padding:0; display:flex;
+       flex-direction:column; gap:11px }
+.rank li{ display:grid; grid-template-columns:22px 1fr auto; gap:10px;
+          align-items:center }
+.rank .pos{ font-size:12px; color:var(--texto-3); text-align:right }
+
+/* `display:block` nos dois não é enfeite: são <span>, e em caixa inline
+   `height` não vale (a barra saiu com 0px de altura, invisível) e
+   `text-overflow:ellipsis` não corta. Só apareceu medindo no navegador —
+   o smoke conta <li>, não mede pixel. */
+.rank .nome{ display:block; font-size:13px; overflow:hidden;
+             text-overflow:ellipsis; white-space:nowrap }
+.rank .barra{ display:block; height:5px; border-radius:3px;
+              background:var(--acento-veu); margin-top:5px; overflow:hidden }
+.rank .barra i{ display:block; height:100%; border-radius:3px;
+                background:var(--acento-cheio) }
+.rank .val{ font-size:13px; font-weight:650 }
+
+/* --------------------------------------------------------------------------
+   11. Tabela
+   -------------------------------------------------------------------------- */
+.rolo{ overflow-x:auto; margin:0 -18px -18px; padding:0 18px 18px }
+table{ width:100%; border-collapse:collapse; font-size:13px }
+thead th{
+  position:sticky; top:0;
+  background:var(--superficie-2);
+  color:var(--texto-2); font-weight:600; font-size:12px;
+  text-align:center; white-space:nowrap;
+  padding:9px 10px;
+  border-bottom:1px solid var(--borda);
+}
+tbody td{ padding:9px 10px; text-align:center;
+          border-bottom:1px solid var(--borda) }
+tbody td:first-child, thead th:first-child{ text-align:left }
+tbody tr:last-child td{ border-bottom:none }
+tbody tr:hover td{ background:var(--acento-veu) }
+
+.tag{
+  display:inline-block; font-size:11.5px; font-weight:600;
+  padding:2px 8px; border-radius:999px;
+  background:var(--acento-veu); color:var(--acento);
+}
+.tag.ok{ background:color-mix(in srgb, var(--positivo) 16%, transparent);
+         color:var(--positivo) }
+.tag.ruim{ background:color-mix(in srgb, var(--negativo) 16%, transparent);
+           color:var(--negativo) }
+.tag.atencao{ background:color-mix(in srgb, var(--atencao) 18%, transparent);
+              color:var(--atencao) }
+
+/* --------------------------------------------------------------------------
+   12. Rodapé e glossário
+   -------------------------------------------------------------------------- */
+.rodape{ color:var(--texto-3); font-size:12px; padding:4px 2px 0 }
+.rodape a{ color:var(--acento) }
+
+/* Glossário — cartão próprio, não rodapé da tabela.
+   ---------------------------------------------------------------------------
+   Ele vivia DENTRO do cartão da tabela, e essa posição dizia "isto explica a
+   tabela". Não explica: explica a página inteira. Agora é bloco irmão dos
+   outros, e o <details> é o cartão em si — clicar no cabeçalho abre. */
+.gloss{ padding:0 }
+.gloss > summary{
+  cursor:pointer; padding:18px; margin:0;
+  list-style:none;               /* Firefox */
+  border-radius:var(--r-g);
+}
+.gloss > summary::-webkit-details-marker{ display:none }
+.gloss > summary:focus-visible{ outline:2px solid var(--acento); outline-offset:-2px }
+.gloss .seta{ color:var(--texto-3); font-size:11px; transition:transform .15s }
+.gloss[open] > summary{ border-radius:var(--r-g) var(--r-g) 0 0 }
+.gloss[open] .seta{ transform:rotate(180deg) }
+
+.gloss dl{
+  margin:0; padding:0 18px 18px;
+  display:grid; grid-template-columns:auto 1fr; gap:9px 18px;
+  font-size:12.5px;
+}
+.gloss dt{ font-weight:650; white-space:nowrap }
+.gloss dd{ margin:0; color:var(--texto-2) }
+
+@media (max-width:620px){
+  /* Em tela estreita o termo e a definição empilham: duas colunas com termo
+     longo espremem a definição em duas letras por linha. */
+  .gloss dl{ grid-template-columns:1fr; gap:2px 0 }
+  .gloss dt{ white-space:normal; margin-top:8px }
+  .gloss dt:first-child{ margin-top:0 }
+}
+
+/* --------------------------------------------------------------------------
+   13. Impressão — o painel vira PDF com alguma frequência
+   -------------------------------------------------------------------------- */
+@media print{
+  body{ background:#fff; color:#000 }
+  .topo{ position:static }
+  .topo-acoes{ display:none }
+  .cartao{ box-shadow:none; border:1px solid #ccc; backdrop-filter:none;
+           break-inside:avoid }
+  .cartao::before{ display:none }
+}
+
+/* Quem desliga animação no sistema não deve ganhar nenhuma aqui. */
+@media (prefers-reduced-motion:reduce){
+  *{ transition:none !important; animation:none !important }
+}
+</style>
+</head>
+<body>
+
+<!-- ╔══ TOPO ════════════════════════════════════════════════════════════╗ -->
+<header class="topo">
+  <div class="topo-in">
+    <img class="logo" id="logo" src="" alt="Cars2You">
+    <div class="topo-tit">
+      <h1>Título do painel</h1>
+      <p class="sub">Recorte dos dados · janela · fonte</p>
+    </div>
+    <div class="topo-acoes">
+      <select class="ctrl" id="f-base" aria-label="Base">
+        <option value="todas">Todas as bases</option>
+        <option value="cars2you">Cars2You</option>
+        <option value="dealers">Dealers</option>
+      </select>
+      <select class="ctrl" id="f-janela" aria-label="Janela">
+        <option>Últimos 6 meses</option>
+        <option>Últimos 12 meses</option>
+      </select>
+      <button class="ctrl so-icone" id="b-tema" type="button" aria-label="Mudar o tema"></button>
+    </div>
+  </div>
+</header>
+
+<main class="area">
+
+  <!-- ╔══ 1. FAIXA DE KPI ═══════════════════════════════════════════════╗ -->
+  <section class="g4" aria-label="Indicadores">
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/></svg></span>
+        <span class="kpi-rot">Veículos na janela</span>
+      </div>
+      <p class="kpi-val num" data-kpi="veiculos">—</p>
+      <p class="kpi-delta sobe"><span aria-hidden="true">▲</span> 4,2% vs. período anterior</p>
+      <dl class="kpi-pe">
+        <div><dt>Disponíveis</dt><dd class="num">1.412</dd></div>
+        <div><dt>Vendidos</dt><dd class="num">467</dd></div>
+      </dl>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21V10l9-7 9 7v11"/><path d="M9 21v-6h6v6"/></svg></span>
+        <span class="kpi-rot">Lojas ativas</span>
+      </div>
+      <p class="kpi-val num" data-kpi="lojas">—</p>
+      <p class="kpi-delta desce"><span aria-hidden="true">▼</span> 1,8% vs. período anterior</p>
+      <dl class="kpi-pe">
+        <div><dt>Deram lance</dt><dd class="num">318</dd></div>
+        <div><dt>Compraram</dt><dd class="num">96</dd></div>
+      </dl>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
+        <span class="kpi-rot">Deságio médio</span>
+      </div>
+      <p class="kpi-val num" data-kpi="desagio">—</p>
+      <p class="kpi-delta neutro">estável vs. período anterior</p>
+      <dl class="kpi-pe">
+        <div><dt>Menor decil</dt><dd class="num">12,1%</dd></div>
+        <div><dt>Maior decil</dt><dd class="num">48,7%</dd></div>
+      </dl>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <span class="kpi-rot">Tempo até a venda</span>
+      </div>
+      <p class="kpi-val num" data-kpi="tempo">—</p>
+      <p class="kpi-delta sobe"><span aria-hidden="true">▲</span> 2 dias mais rápido</p>
+      <dl class="kpi-pe">
+        <div><dt>Mediana</dt><dd class="num">9 d</dd></div>
+        <div><dt>P90</dt><dd class="num">31 d</dd></div>
+      </dl>
+    </article>
+
+  </section>
+
+  <!-- ╔══ 2. GRÁFICO + RANKING ══════════════════════════════════════════╗ -->
+  <section class="g2">
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span>
+        <h2>Vendas por mês</h2>
+        <span class="dir"><span class="tag">12 meses</span></span>
+      </div>
+      <svg class="graf" id="graf-linha" viewBox="0 0 800 260" role="img"
+           aria-label="Série mensal de vendas"></svg>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h11"/><path d="M4 18h6"/></svg></span>
+        <h2>Lojas mais aderentes</h2>
+      </div>
+      <ol class="rank" id="rank"></ol>
+    </article>
+
+  </section>
+
+  <!-- ╔══ 3. TABELA ═════════════════════════════════════════════════════╗ -->
+  <section class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg></span>
+      <h2>Detalhe</h2>
+      <span class="dir"><span class="tag">6 linhas de exemplo</span></span>
+    </div>
+    <div class="rolo">
+      <table>
+        <thead>
+          <tr><th>Modelo</th><th>Vendas</th><th>FIPE média</th>
+              <th>Venda média</th><th>Deságio</th><th>Situação</th></tr>
+        </thead>
+        <tbody id="tab"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ╔══ 4. GLOSSÁRIO ══════════════════════════════════════════════════╗
+       Peça FIXA do modelo: todo painel tem um, e ele é o último bloco.
+       Vivia dentro do cartão da tabela, o que dizia "isto explica a tabela".
+       Não é: ele explica a PÁGINA. Separado, e alimentado por DADOS.glossario
+       como todo o resto — quem monta um painel novo só preenche a lista. -->
+  <details class="cartao gloss" id="gloss">
+    <summary class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h13"/></svg></span>
+      <h2>Glossário</h2>
+      <span class="dir"><span class="tag" id="gloss-n">—</span><span class="seta" aria-hidden="true">▾</span></span>
+    </summary>
+    <dl id="gloss-lista"></dl>
+  </details>
+
+  <p class="rodape">
+    Gerado em <span id="gerado">—</span> · dados de <strong>exemplo</strong>, não usar como número real ·
+    modelo em <code>design/modelos/</code>
+  </p>
+
+</main>
+
+<script>
+/* ============================================================================
+   DADOS — troque este bloco pelo seu. Nada abaixo dele precisa mudar.
+   Em painel de verdade, o gerador injeta aqui o JSON já agregado.
+   ========================================================================== */
+const DADOS = {
+  kpi: { veiculos:"1.879", lojas:"414", desagio:"30,4%", tempo:"11 d" },
+  serie: [
+    {rot:"out", v:312},{rot:"nov", v:298},{rot:"dez", v:341},
+    {rot:"jan", v:365},{rot:"fev", v:330},{rot:"mar", v:398},
+    {rot:"abr", v:412},{rot:"mai", v:377},{rot:"jun", v:455},
+    {rot:"jul", v:501},{rot:"ago", v:478},{rot:"set", v:523}
+  ],
+  ranking: [
+    {nome:"Loja exemplo A", v:128},{nome:"Loja exemplo B", v:114},
+    {nome:"Loja exemplo C", v: 97},{nome:"Loja exemplo D", v: 83},
+    {nome:"Loja exemplo E", v: 71},{nome:"Loja exemplo F", v: 64}
+  ],
+  tabela: [
+    ["Modelo A","412","R$ 58.900","R$ 41.100","28,7%",["ok","saudável"]],
+    ["Modelo B","388","R$ 72.400","R$ 46.500","35,7%",["ruim","deságio alto"]],
+    ["Modelo C","301","R$ 45.200","R$ 33.800","25,2%",["ok","saudável"]],
+    ["Modelo D","254","R$ 91.800","R$ 66.000","28,1%",["ok","saudável"]],
+    ["Modelo E","199","R$ 38.700","R$ 25.100","35,1%",["atencao","checar"]],
+    ["Modelo F","147","R$ 64.300","R$ 47.900","25,5%",["ok","saudável"]]
+  ],
+
+  /* Glossário — obrigatório em todo painel. Quem recebe não estava na
+     conversa em que o termo foi definido, e "deságio" não quer dizer a mesma
+     coisa pra todo mundo. Termo que aparece na tela e não está aqui é uma
+     pergunta que vai chegar por mensagem depois. */
+  glossario: [
+    ["Deságio", "1 − (valor de venda ÷ FIPE do anúncio). Positivo = vendeu abaixo da FIPE."],
+    ["Venda", "Veículo cuja última negociação válida está em status de venda."],
+    ["Janela", "Recorte de data aplicado, sempre calculado fora do SQL — o banco responde em UTC."]
+  ]
+};
+
+/* ============================================================================
+   RENDERIZAÇÃO — sem biblioteca. O painel tem que abrir offline.
+   ========================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* --- KPI --- */
+for (const [k,v] of Object.entries(DADOS.kpi)) {
+  const el = document.querySelector('[data-kpi="'+k+'"]');
+  if (el) el.textContent = v;
+}
+
+/* ============================================================================
+   GRÁFICO DE ÁREA — sem biblioteca, montado na mão
+
+   ── A REGRA DE LEITURA (padrão da casa) ───────────────────────────────────
+   Valor no ponto E escala no eixo dizem a MESMA coisa. Mostrar os dois é
+   ruído, e o ruído come a atenção de quem lê. Então:
+
+     • PADRÃO: rótulo em cada ponto, e o eixo Y sai inteiro — número, linha
+       de grade e tudo. Quem lê pega o valor exato direto, sem mirar régua.
+
+     • EXCEÇÃO: série contínua, densa, sem níveis bem definidos. Aí não cabe
+       rótulo em todo ponto (eles colidem) e o que importa é a FORMA, não o
+       valor pontual. Volta o eixo Y com grade, e os rótulos somem.
+
+   `rotulos:'auto'` decide por medição, não por palpite: estima a largura do
+   texto e compara com o espaço por ponto. Não coube, é série contínua.
+   Dá pra forçar com `rotulos:true` ou `rotulos:false`.
+   ========================================================================== */
+const fmt = n => n.toLocaleString('pt-BR');
+
+function cabeRotulo(serie, iw){
+  // ~6,2px por caractere a 11px. Mais 10px de folga entre um rótulo e o
+  // vizinho — encostado também conta como colidido.
+  const maior = Math.max(...serie.map(d => fmt(d.v).length));
+  return (maior * 6.2 + 10) <= iw / Math.max(1, serie.length - 1);
+}
+
+function desenhaLinha(svg, serie, opcoes){
+  const o = opcoes || {};
+  const rotulos = o.rotulos === undefined || o.rotulos === 'auto'
+    ? cabeRotulo(serie, 800 - 12 - 12)
+    : !!o.rotulos;
+
+  // Sem eixo Y não há número à esquerda pra reservar espaço. Com rótulo em
+  // cima do ponto, o topo precisa de folga pra ele não sair do quadro.
+  const L = rotulos ? 12 : 48, R = 12;
+  const T = rotulos ? 26 : 14, B = 30, W = 800, H = 260;
+  const iw = W-L-R, ih = H-T-B;
+  const vs = serie.map(p=>p.v);
+  const max = Math.max(...vs), min = Math.min(...vs);
+  const topo = max + (max-min || max)*0.15;
+  const base = Math.max(0, min - (max-min || max)*0.35);
+  const x = i => L + (serie.length<2 ? iw/2 : iw*i/(serie.length-1));
+  const y = v => T + ih - ih*(v-base)/((topo-base)||1);
+
+  const p = [];
+  if (!rotulos) {
+    // Só no caso contínuo: 4 linhas de grade com o valor de cada uma.
+    for (let i=0;i<=3;i++){
+      const val = base + (topo-base)*i/3, yy = y(val);
+      p.push('<line class="linha-grade" x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy.toFixed(1)+'"/>');
+      p.push('<text class="eixo" x="'+(L-8)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end">'+fmt(Math.round(val))+'</text>');
+    }
+  }
+  const pts = serie.map((d,i)=>[x(i), y(d.v)]);
+  const linha = pts.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+' '+c[1].toFixed(1)).join(' ');
+  p.push('<path class="area-serie" d="'+linha+' L'+pts[pts.length-1][0].toFixed(1)+' '+(T+ih)+' L'+pts[0][0].toFixed(1)+' '+(T+ih)+' Z"/>');
+  p.push('<path class="serie" d="'+linha+'"/>');
+  pts.forEach(c=>p.push('<circle class="ponto" cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="3"/>'));
+
+  if (rotulos) {
+    serie.forEach((d,i)=>{
+      // 11px acima do ponto; no ponto mais alto o T de 26px segura.
+      p.push('<text class="rotulo" x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-11).toFixed(1)+
+             '" text-anchor="middle">'+esc(fmt(d.v))+'</text>');
+    });
+  }
+  // O eixo X fica nos dois casos: ele diz QUANDO, não quanto.
+  serie.forEach((d,i)=>p.push('<text class="eixo" x="'+x(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle">'+esc(d.rot)+'</text>'));
+
+  svg.innerHTML =
+    '<defs><linearGradient id="veu-serie" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="var(--acento-cheio)" stop-opacity=".30"/>'+
+    '<stop offset="100%" stop-color="var(--acento-cheio)" stop-opacity="0"/>'+
+    '</linearGradient></defs>' + p.join('');
+  return rotulos;
+}
+desenhaLinha($('#graf-linha'), DADOS.serie);
+
+/* --- ranking --- */
+(function(){
+  const topo = Math.max(...DADOS.ranking.map(r=>r.v)) || 1;
+  $('#rank').innerHTML = DADOS.ranking.map((r,i)=>
+    '<li><span class="pos num">'+(i+1)+'</span>'+
+    '<span><span class="nome">'+esc(r.nome)+'</span>'+
+    '<span class="barra"><i style="width:'+(100*r.v/topo).toFixed(1)+'%"></i></span></span>'+
+    '<span class="val num">'+r.v+'</span></li>').join('');
+})();
+
+/* --- tabela --- */
+$('#tab').innerHTML = DADOS.tabela.map(l=>
+  '<tr>'+l.map(c=>Array.isArray(c)
+    ? '<td><span class="tag '+esc(c[0])+'">'+esc(c[1])+'</span></td>'
+    : '<td class="num">'+esc(c)+'</td>').join('')+'</tr>').join('');
+
+/* --- glossário: peça fixa, mesmo caminho de dados do resto --- */
+$('#gloss-lista').innerHTML = DADOS.glossario.map(
+  ([termo, def]) => '<dt>'+esc(termo)+'</dt><dd>'+esc(def)+'</dd>').join('');
+$('#gloss-n').textContent = DADOS.glossario.length + ' termos';
+
+/* --- data de geração --- */
+$('#gerado').textContent = new Date().toLocaleString('pt-BR',
+  {dateStyle:'short', timeStyle:'short'});
+
+/* ============================================================================
+   TEMA — o arquivo nasce no tema declarado no <html> e o botão troca ao vivo.
+   O logo troca junto: o azul da marca some no fundo escuro.
+
+   ⚠️ DE PROPÓSITO: a troca NÃO é salva em localStorage.
+   A primeira versão salvava, e aí `dashboard-claro.html` abria ESCURO pra
+   quem já tinha alternado numa outra página — arquivo chamado "claro"
+   abrindo escuro. Painel que vai por link pra muita gente precisa abrir
+   igual pra todo mundo, sempre. A troca vale pra sessão e acabou.
+
+   Um projeto que QUEIRA lembrar a escolha do leitor põe o localStorage
+   aqui — e assume que o nome do arquivo deixa de valer como promessa.
+   ========================================================================== */
+const LOGO = { claro:"data:image/png;base64,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", escuro:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAA4CAYAAABHTcVMAAAPnklEQVR4nO2dCbRVVRnH/+8+BASRfDJIjiCBihMCOUBhmkMhmGYqoaa2LOfQErU0pQw0G9QcE7UyyAFQnHIgMTXBHCgTRZzAAQcUARV58uBrfYv/1ef17uGcs8999/L2b627Fqzz7j777Hv2t7/9TbtORBCJpGQAgMdzHr3LAJyY8z0iNUKhpTsQiUQivkSBFYlEaoYosCKRSM0QBVYkEqkZosCKRCI1QxRYkUikZogCKxKJ1Ax1GeKwOvCzDoBVAD4C8AEAqaCw7QSgoz4H77+UfalG6gGsD6Adx6iR49UUaCw6sG0di9UAVnBM8vw9NgCwO/LlSwB2slx/E8DonPsQqUGB1QPACABfA7ALgI0AtOUEEU68JQBmAXgAwC0AXg7c300AfBvAXgB2BvAFAG14TQXVh7z/nQAmAXin5Pu7s8+l6ASf7tkHFZCDDdfeAvDfkr89BMC3AAyhwKov6e8TAO5mgKT+3wdtYyiAfQDsCmA73qu+mcAqtj8XwNMAHuPv8jxqixMAXGq5rs/Tp4L9qVY6A9gCQAPnhC5WbwNYwMWx1Qis3QCcDmBYs8nmg06a+wCcz4mShR0BnM2J77uNXU4h8AtqMnX8AbuU+duVzTQfFzo5njNcUyF9IMfpGN67q0ebjeyX9tOGalHHU6PYGOnQvt8E4LocFpRaElijAGxo+T2u5jscgs0B7G+5fnuK32I9zsnhAL4CYDPD3zVxwZoBYCqAmYF2IVsB2Ntw7akMc17n9w8MigWgAsvw6SIiN4rIasmGfv8GEWmw3Mv0WVdELhaRpgz3f0lEthcRFc6LDH/zMa/79KmP5V5TRaStiNycsI+Pedy3v4jMk3DomF4vIj1T/C6V/JzgeI55ObU7MuAzTLbcZ4GItE/QVoOIjBORpZKO50TkcBGpz/hMh1nucVmGdtcRkSWmhgsWrUql5MHUTLJQx22Rbkm2SfC9TQE8DODkhJpdKT25ugxE/mg/JwI4KOH3HnRc1234Q7TnhOzrYRzj8qvZ2o1qUPMs18cBaB/gPl+m1m3ibNobXRQAHEmN8kyaF9Kg2uhfOB9ttsGqpJzAUrvI/bRZhaQXgH96qu+bcRKHGlDd19/BLVWefD2FsAKFkW07cQttVHlwCYCP0frQZz7Ncl3tQT8KsFj/2rLoPwngeo921qVN9jq+yyHoT3vvD1HDAku1kCm05+TBCo/J0ZlGaH1hQtKtAgIrTfurKMhtAkXHxHd8P0wggOYDuBitlzsci8XpFjuXD/vQOVIOYfsuu6l6wv/OXUpo1MN/BYCzAuykKkLRwwZOiimeK/kiGtXm0lCsg9qXxj/1HpZDPXb7cpKY0EG7EsDWnhN9FlepN/jdL7LkyaCM28iQLKe2OI//3oDb1IFcLdUI/p7hu1vTqGrjbqr4eo93aSiupxF/e25J9qA3sXRMzvHcjqyt6Fj9GMCjhgmrv9W5AE5K0XY9HU4m7vHwTOv8nGwReiGoa+aYugg1JLDGWTwNRebyJZ9qiB/SH+mbAH5eYjN6H8B+AOY42h/msZKsoPfv9wBet4Q/jGYdpby0RRfqVj6PHq5lhrEa7Bjz/S0rnwrs7wP4s+H6q/zcyd+sO4CR3AKoh+c/tLflSR23yFkClNVWc6MjDisLasv5G4DvGq6rx+oPDntXOfQ93sFwrcmxHS3yK4snrjnLKPxm0tvYSAVElYg9uWg1n+vlfqcLufi77KktCy3zW4nISod34U8JvBkFETmNnqiPRGR3j++ol+5pRx9eEZEdE3gcdhKRV8VNKC9hEfVy7Jyzd2lSyjb1txklIkMDesFMH/VErZBsXFqBfm4hIo2WPtySsL12IvKipb1rPdrYRURWOcbmfRE5U0TWc7S1pYhM9BjrFxPM8Rb1Eo52SOBrARyVYPuwmhL7G1y5fGIyVLvqZ7n+OjUS1Qx8eZLqtG4ZK4XaJA7nNiMrtlgrm93L9dtMzPD9tZH5ju2QarpfTdDeMXQylWM5bUZwaDy/cWimz9BwPt4jfu9Fxp0d5AhO7lXtWQMFBqDpBDMxh8GKaVI87qOHywdVvWHZ/oziFicpLwE4ooIpQ/cwEDAEthfWJyA14s/4MpkRSQRIkU7cgptQU8ZCRxtDLdkUYGiD2otfQDKmMFvFlg52aqBwjlwoMF3F5N3SSX5KBUL7Ozn26pMyagTTaXerBJcHbEsj802c6OmciPixhMZnE4M8PXWnGrIpivY2myG+iC3UoJGa0mKk437GcdkWwu+gygWWTe30zbHLwkCLcby4vcyKrmx5s4JaZSg0z9CEGtFnA5jAVdPknY3480dun2xaWFtH6MxPHEZ0n/Qrm2f4GgZ1Z50L6kAzofm6VSuwdB9sYlqFtlIaimBiHnOhsjKzArasVwOHCdzsGP929BRO47MtYuS6vtRj+OL3rKIQj2qn0eG925walImf0cRieo+v8ly8O1pMI79FdlY58jO/4rBpt6jA6m25/kiF+mEyUIITMITQXM24rTxRgRGSORRavnSh7eNoABcAuI0aw+sUYhrIGIWXnVsdwaRjDMGkWwI4zvE9TbLPsnj/jzbZUM9pSu5uYGhQVQos034bDvU4JKpKm0hqWEQLPk8eKS7Hp4gBKjUYd6cQu5tbgVGBijcWnTa2z7KMn0oHthYj0E2TuRhMWspYRo6X4yEuHj6o4DMxC+FYyHJIJqrSPtrGkU6ihshKoLlSJsoFXaZFA1hrjXcZ/Hc7y+xkRTXqv9IzPNISZe/Djtxq27YeXTM6bVripN+Z1GxNRvZjS4JJd+BYmvp/WoLnsHl/FyAcwiwLU86wLnJVR8Hh4qxUlLhNVQ5ZScC0AlY7rzG1ZiyrqoZgHzpU0mb9F7W3to5PU8ZPS1WQ/alF0Lbhlrs4BhdYNNbJCWPybO/7hwiLzQFQlaENBccKqyVeKoFNk9P8wFCEbKvSrOBWZAuGmswKMJl3ChyGsTbxElPATIygcXqoJSSnkdvLUIt3B4TFlje8oloF1iuW6yG2ID7YVF2bFzMpptyuWmIJo7J3pf1xb7rSr2DQ6ryEW9+Ra8m45ME4S7xTgR678ZZ8zytTVBJd5PBShqLOUeopiwMpRA0946A/7dg2VAJbH3YLVAuqawUFcCWF132cOMezGkZferH6ssqAy9NbcGQ6tGbUfvhLRzCpnm+QJhA1jWNoZ4Sjh8V+JYzBtGErH51lvhYs29HVBccLvXeFtoWzLAPQkZUxszKqFbn0V1LTupRhDgcxh82EadJF1miuaUIJxqeMRtf8VxM7BKwTN9xid1tKu6mN93PSBLtZ7HjLCtxGmIRF25SrRFJ0cJ61XD8r4/5dT9c5A62XKQ5NIe2BFq2BNHaoBSy8mIbHLfajetovs1LP1C4T//KIGXvNYcZJG3iqpXBMLCxwcG1a1vcAHJDy5u24NXEhrAhhYhNqC2n2xnV8earSTVtBbGk+ETtTE8ZA+dZpN3nutBKqrUhAP2Q/iWhby3WfYOUXLEJtfR7FlwZbHuOc4jFfI5jeYWI5j9hKkie3MQuj9aEdyqVWN7DMhyZCmzif7mbfmJYCXc62/K6Qx3w9wAMjQrIty5WcwaKAaRltyaecRSN+UgZQIzAhDJgMdVxWOd7gBMyb3Zh1UeexMAzKGD+mk/1ey/VneM5lmhi6IQxnMYUsLaaC4POuzbbYhR/hvZKMQz+e62ky3YxuXtRNj5qyoQX+zvUoFtZBRE4WkcUlRwt18yjedY5HkbE7WZDM1VZvEblL/AhVwG9GDgXwHmbbL4jIoSLSJkU7OhZvW/p9Scr+DZCWJ+0xX2k+UzyOtNszwH30XXzUca/ZLDyYpN1hHseDnZWgvbMdbY1NMK/0+LKnHPJns+ZfGOR5/t87InKhiOzLM+26c0IM5xmCprP/ZvGcQZew04npYiVfniNEZDsR6cGPViM9SkSmeVRQrQWBpc9S7pxFFewDPc6W21hETheRZY7nH5Kyf61NYPV2vFd3BbzXYI+Ko0tE5CSPebWpiEzwaG8+56BvHzd3yIzVrK66oUd11WcdfbtX/7b05OcxzSJ48+B2ntFmi64fxLrSlYy0rcYt4YbM++vi2Ko/zyoRS2ggbs/v9mGlhjqPNJTBKbcwri1hJajkUfWDuS00vUP9Pc4tSMLvPI3sizm3ZjKu8iM6mvryfdzTwwjexLCYf6QoyaMmCzgi9G+lMX8B7Xsb8GyBfTmutvdUWAbrwVJJpwLsaskPlbh7eUjuQz1WgzT3bqohDesayZ8PRGSbDH1sTRpWvWObdk0O99T65vdXaBzHpOxjVxF5K+e+fVIDv1BGkh1Lr1ropNMmGn59DPc3MJgxZHrAeRkTfStJu8CnPJejkfX2XQGCkTUcbHG5f+BRpz0NK1lM7985/gjC8s9pi2RqRPyhOR7GO7v5MWvlAsdW8cTbwwNWa3iHXsYksSmTqAYmTW0o94OcaygJUq008tlPstQZz8Jr3Cb4ljxp7XTgCc4mLsqxOOR7PFdyWk4CcXTCahLlmMHKFqHzD59i8PonSd+2mkgTWRPnqgzu9Ebucbfh+XhJeZSHgY5LWWbmFYZsjG2hMiVZWM3Ys1487FNtNVlZytCQfrQnRPw4xVLQ7o2c7b7ghD2QC9jSgOlwQzMEuJZyK08WCvGeCuXPkNIFu9TobguXP5KDNtCR4iIcjMmsN+46IcSXBhahO4TG3jrL/TW94Trev1gipI4CoJNBq9S2fQZjI8tqO5fCNQ8KrK5wAF+0AZ6OiSV0YugKfZNHTfEk9MrxeX15M+ejqXowzclU+viECle86M5SzEenzNl7me/vBIfzKy3tGfc42lCZ1cXjfL6ycWi+Aqs5OuG3Y2XEbrS3NDFRdD4Dv/LYxpQKr/70gjVwMi/j/Z8McBpwLdCGAqMnhWgn/hYfcxV+k6vdgpwDN9d2JrBufjme41zwKX0cms7MEd2PQb9dDTumjzkvZjBif3qF3oeONAPtT02pu6F/jXxPp/OEb2tGQRqBFYm0FvpzxTeZTkYEPIMyCwWGCfSm4GrDkJeFzDBZXgX960wlpyhYGxmOUwxz8CIKrEjEMDe46qvBuxwP0jESV/wKEuIggkhkbWS4RVglrdMeCUQUWJHI52nH2CRbNYM8Y6MiBqLAikQ+z3GWwN009bEigYgCKxL5LA2sZ2XicnrdIi1AFFiRyGc5h0LLFHWuKV6RFiIKrEjkU7ZyHDeftk57JBAxrCES+ZTb6B0sx3wKtCynWEcyEjWsSGQNe1iEFWjXisKqhYkaViSyJjL8CSba51WnPRKAqGFFIsARFmEVg0SriKhhRVo76zOJWRPIy3EXgGEV7lME5fk/0RBFYbb9hVYAAAAASUVORK5CYII=" };
+
+/* O ícone mostra PARA ONDE o botão leva, não onde você está: sol quando o
+   tema atual é escuro. É a convenção que as pessoas já esperam. */
+const ICO_TEMA = {
+  claro:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4'
+      + 'M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  escuro:'<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>'
+};
+
+function aplicaTema(t){
+  document.documentElement.dataset.tema = t;
+  $('#logo').src = LOGO[t];
+  const alvo = t === 'escuro' ? 'claro' : 'escuro';
+  const b = $('#b-tema');
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO_TEMA[alvo] + '</svg>';
+  b.setAttribute('aria-label', 'Mudar para o tema ' + alvo);
+  b.setAttribute('title', 'Tema ' + alvo);
+}
+aplicaTema(document.documentElement.dataset.tema);
+
+$('#b-tema').addEventListener('click', () =>
+  aplicaTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro'));
+</script>
+</body>
+</html>

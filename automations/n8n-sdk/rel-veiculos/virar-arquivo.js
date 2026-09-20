@@ -40,8 +40,22 @@ const FUSO_MIN = -180;          /* America/Sao_Paulo, sem horário de verão */
    cada trecho passa por encodeURIComponent, que produz percent-encoding
    UTF-8: "Relatórios" vira "Relat%C3%B3rios". O SharePoint decodifica e
    guarda o nome acentuado -- o `name` que a API devolve confirma. */
-const PASTA = 'Relatórios Aderência Veículos';
-const PREFIXO = 'relatório-aderência-veículos';
+/* ── O NOME DA PUBLICACAO ──────────────────────────────────────────────
+   Este e o TERCEIRO nome. Os dois anteriores viraram pasta orfa no
+   SharePoint, e o motivo e o mesmo das duas vezes: o upload e por PATH, e
+   path CRIA a pasta. Trocar a constante nao move nada — abre pasta nova e
+   deixa a antiga parada com o que ja estava publicado.
+
+     1. `Relatorios Aderencia Veiculos`  (ASCII, 11/09 — eu escrevi sem
+        acento por habito de nome de arquivo)
+     2. `Relatórios Aderência Veículos`  (acentuado, a partir de 15/09)
+     3. `Radar de Estoque`               (o nome do projeto, 18/09)
+
+   As duas primeiras foram marcadas para exclusao pelo Thomas em 18/09. Se
+   este nome mudar de novo, o acervo se reparte outra vez: a troca so fica
+   completa quando o conteudo antigo for movido e a pasta velha, removida. */
+const PASTA = 'Radar de Estoque';
+const PREFIXO = 'radar-de-estoque';
 const MIN_BYTES = 100 * 1024;   /* piso de sanidade: o menor run real deu 662 KB */
 
 const fonte = $input.first().json;

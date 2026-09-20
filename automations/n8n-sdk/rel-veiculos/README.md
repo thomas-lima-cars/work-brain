@@ -1,12 +1,135 @@
-# Relatório de aderência — veículos em evento × lojas compradoras
+# Radar de Estoque
 
-Workflow n8n **`8fiTFsjWG9RQinz8`** — "RELATORIO Veiculos em evento - lojas mais aderentes".
+> Veículos em evento × lojas compradoras.
+>
+> **O projeto se chama Radar de Estoque desde 18/09/2026.** "Aderência"
+> continua sendo o nome do **indicador** — a coluna da tabela, o score de cada
+> par, o corte da barra. Projeto e métrica são coisas diferentes, e há prova
+> em `prova-local.js` conferindo as duas separadamente.
+
+Workflow n8n **`8fiTFsjWG9RQinz8`** — **"Radar de Estoque"**, renomeado pelo Thomas na
+interface em 18/09/2026. Chamava-se "RELATORIO Veiculos em evento - lojas mais aderentes".
+O **id não muda ao renomear**, então nada que aponte para ele quebrou.
 Projeto **Cars2You** (`yAo7DiqDfz6XfXyv`, time) desde 2026-09-11 — nasceu no projeto
 pessoal do Thomas e foi movido pela interface. O id não muda ao mover.
 
 Para cada veículo em evento, ordena as lojas por **chance de comprar aquele carro**, a
 partir do perfil de compra dos últimos 6 meses. E o inverso: clicando numa loja, ordena
 os veículos. Saída é um HTML único, com os dados embutidos e um glossário embarcado.
+
+## 🎨 O visual vem do modelo do brain, não daqui
+
+Desde 18/09/2026 a folha de estilo deste relatório é
+[`design/tokens/tema.css`](../../../design/tokens/tema.css) — a mesma dos
+modelos em `design/modelos/`. Antes ele tinha paleta e componentes só dele
+(fundo `#f4f6f9`, cartão de raio 3px, topo azul sólido, cinco KPIs numa faixa
+única). Funcionava, e estava sozinho: cada relatório novo reinventava o mesmo
+cartão, e contraste corrigido num não chegava no outro.
+
+**Este nó roda dentro do n8n**, onde não existe `require`, `fs` nem pasta do
+repo. Então a folha e os dois logos viajam como literal, injetados por:
+
+```bash
+node automations/n8n-sdk/rel-veiculos/_aplica-modelo.js
+node automations/n8n-sdk/rel-veiculos/_prova-modelo.js   # 46 provas
+```
+
+🔴 **Não edite o bloco entre `TEMA:INICIO` e `TEMA:FIM` à mão.** Mexa em
+`design/tokens/tema.css` e rode o injetor. Cópia que só um humano atualiza
+vira cópia desatualizada — normalmente descoberta quando alguém pergunta por
+que o relatório ficou com a cor antiga. A prova falha alto se divergirem.
+
+### A ponte, e por que não renomeei nada
+
+O relatório usa 24 classes próprias (`.pg`, `.card`, `.card-h`, `.kpi`,
+`.wrap`, `.xk`, `.gl`…) em centenas de lugares, dentro do APP e do esqueleto.
+Renomear tudo seria mexer em 86 KB de gerador para não mudar nada na tela — e
+cada ponto esquecido viraria um elemento sem estilo.
+
+A `PONTE` faz o contrário: **mantém os nomes e troca o que eles significam.**
+Os tokens antigos viram apelido dos novos (`--ac` → `var(--acento)`), e como
+`var()` dentro de custom property resolve na hora do uso, o tema escuro passou
+a funcionar de graça em tudo que já usava eles.
+
+As regras que esse visual segue (anatomia do cartão, tamanho do KPI, rótulo de
+gráfico, lugar do glossário) estão em
+[`design/regras-de-layout.md`](../../../design/regras-de-layout.md) — consulte
+lá antes de ajustar qualquer coisa de visual aqui.
+
+### O que mudou na tela
+
+| | antes | agora |
+|---|---|---|
+| Topo | barra azul sólida, título centralizado | superfície **fixa**, título à esquerda |
+| Cartão | raio 3px, sem sombra | raio 16px, sombra, vidro no tema escuro |
+| KPIs | faixa única com 5 células divididas | 5 cartões soltos, e **menores** |
+| Tema | só claro | **claro e escuro**, com botão no topo |
+| Logo | ícone 26×26 branco | wordmark, trocado pelo tema |
+| Cabeçalho do cartão | só texto | **chip com ícone** à esquerda, contagem à direita |
+| Brilho | — | **luz azul no canto** superior esquerdo, no tema escuro |
+| Filtros | `flex-wrap`, largura pelo conteúdo | **grade de colunas iguais** |
+| Glossário | segunda tela, escondia o relatório | **fim da mesma página**; o botão rola até ele |
+
+**Duas coisas NÃO seguem o modelo, de propósito:**
+
+- **Alinhamento da tabela.** O modelo centraliza porque tem 6 colunas curtas;
+  aqui são nove, quase todas número. Número se compara pela direita.
+- **Corpo de 13px** em vez de 14px — tabela densa pede mais linha na tela.
+
+O glossário já era uma **tela inteira** aqui, o que é ainda mais separado do
+que o modelo pede (cartão próprio, último bloco).
+
+## 🎯 O extrato da loja: escolher e mandar
+
+Clicar numa loja abre o extrato. Desde 18/09 ele deixou de ser só leitura:
+
+**1. O corte de aderência é do usuário.** Era `LIMIAR = 70`, escolhido por
+mim. 70 não tem nada de especial — numa loja de perfil apertado sobra carro
+demais, numa de nicho não sobra nenhum. Virou **barra deslizante** de 0 a
+100%, ainda nascendo em 70 para ninguém precisar mexer. A lista se redesenha
+enquanto arrasta.
+
+**2. Caixa de seleção por veículo**, mais "selecionar todos os visíveis".
+
+A seleção é guardada **por `vehicle_id`**, não por posição na lista — ela
+sobrevive a mover a barra e a trocar de filtro. Guardar por posição seria mais
+simples e estaria errado: a lista se reordena, e a pessoa perderia a seleção
+sem entender por quê.
+
+**3. Botão que gera o texto para o lojista**, com os veículos marcados:
+
+```
+Olá, LOCADORA TRIANGULO!
+
+Separamos 2 veículo(s) que combinam com o perfil de compra da sua loja:
+
+1. Volkswagen 9-180 2024
+   60.819 km | R$ 251.500 | Caminhao
+   Evento: Feirão de oportunidades LM Pesados - 14/09/26
+   https://cars2you.com.br/anuncio/veiculo/volkswagen/9-180/...
+```
+
+**Texto puro, sem marcação.** O mesmo bloco precisa colar limpo no corpo de um
+e-mail e no WhatsApp — `*negrito*` ficaria certo num e errado no outro.
+
+⚠️ **Nada é enviado daqui.** O botão gera e copia; quem manda é a pessoa. O
+texto aparece numa caixa editável justamente para ser conferido antes.
+
+O link do anúncio segue a mesma regra dura da tabela: **faltando um pedaço, o
+link não entra** — melhor sem link que link que cai em lugar nenhum.
+
+### Detalhes que custaram erro
+
+- A célula da caixa tem `event.stopPropagation()`: sem isso o clique sobe para
+  a linha, que tem handler de seleção, e marcar a caixa trocaria a tela.
+- O texto usa `String.fromCharCode(10)` para quebrar linha, e não `
+`: dentro
+  da string de JS do nó o escape seria consumido ali e chegaria ao cliente como
+  quebra de linha de verdade no meio de um literal. Escapar em dobro resolveria
+  e acrescentaria barra invertida, que é o que este arquivo não pode ter.
+- `navigator.clipboard` só existe em contexto seguro. Este relatório abre de
+  arquivo local e do SharePoint, então há caminho alternativo — e, falhando os
+  dois, a mensagem manda usar Ctrl+C em vez de o botão não fazer nada.
 
 ## O que entra na base
 
@@ -55,19 +178,55 @@ não lista de compra — e por isso o status aparece ao lado do link.
 
 ## A janela de eventos, e a armadilha do fuso
 
-Hoje o recorte é **aberto** (pedido em 2026-09-10): piso fixo em `PISO_FIXO = '2026-09-09'`
-e **teto nenhum** (`HORAS_ADIANTE = 0`). Isso cobre "tudo que finalizou a partir do dia 09
-mais o que não finalizou" numa condição só — encerrado recente tem fim no passado próximo,
-não encerrado tem fim no futuro, e os dois satisfazem `finish_date_event >= piso`.
+Desde **2026-09-18** o recorte olha para a frente: `PISO_FIXO = ''` (piso na **meia-noite de
+hoje**, em Brasília), `HORAS_ADIANTE = 168` e `TETO_FIM_DO_DIA = true` — **os eventos que
+encerram nos próximos 7 dias**, do começo de hoje ao fim do sétimo dia. Continua **sem
+filtro de `e.status`**.
 
-Medido antes de valer (sonda 50068): **47 eventos, 1.060 veículos**, contra 735 do run
-49984. Sem teto entra uma cauda longa — Mega Feirão da Virada (fim 12/12), Banco GM, OMNI,
-VWFS, Apeop, Clube FMP, e um "Em preparação Net Carros" que termina em **2027**. Entram de
-propósito: "não finalizados" não tem teto. O filtro de **evento** na página é a saída para
-isolar uma edição.
+**Os dois lados fecham em limite de dia, e é pelo mesmo motivo.** Piso às `00:00:00`, teto
+às `23:59:59`. Com o teto no relógio da coleta (`agora + 168h`), evento que encerra no
+sétimo dia às 20h ficaria de fora hoje e entraria amanhã — o recorte passaria a depender da
+hora em que o run roda, que é exatamente o defeito que o piso à meia-noite evita do outro
+lado.
 
-Os outros dois modos continuam de pé e provados: `PISO_FIXO = ''` volta o piso para a
-meia-noite de hoje; `HORAS_ADIANTE > 0` faz o teto voltar a existir. E preenchendo
+🚨 **O eixo do relatório mudou aqui, não é a mesma base menor.** Até 17/09 a janela era
+aberta para trás (piso fixo em 09/09, sem teto) e a pergunta era *"o que passou pelo evento
+e não vendeu"* — a sobra. Agora é *"o que vai encerrar e ainda dá pra empurrar"*. Medido
+sobre o run 50406 **antes** de valer:
+
+| | janela aberta | janela de 7 dias |
+|---|---|---|
+| eventos | 50 | **18** |
+| veículos | 1.221 | **493** |
+| pares | 33.503 | **13.195** |
+| HTML | 4,98 MB | ~2,2 MB |
+
+Saem os **726 veículos de evento já encerrado, dos quais 723 eram sobra** (717 em *Sem
+Ofertas*). Comparar contagem com run anterior a 18/09 não faz sentido.
+
+**Piso na meia-noite, não no instante — e isso vale 51% da base.** No run 50406, às 17:24,
+nove eventos tinham encerrado entre 14h e 16h do **mesmo dia**, com **625 veículos**. Com o
+piso no relógio, o relatório encolheria conforme a hora em que roda. Quem faz isso é
+`INCLUI_ENCERRADOS_HOJE = true`.
+
+**Por que não entrou filtro de `e.status = 1`** (decidido junto, em 18/09): ele não remove
+nada que a janela já não remova — **zero** eventos com `status ≠ 1` têm fim no futuro,
+medido no 50406 — e o status **atrasa**: aqueles mesmos nove eventos ainda estavam com
+`status = 1` horas depois de encerrados. Seria um jeito silencioso de perder evento.
+
+**A cauda longa saiu junto**, e era o efeito colateral da janela sem teto: Mega Feirão da
+Virada (fim 12/12), Banco GM, OMNI, VWFS, Apeop, Clube FMP, e um "Em preparação Net Carros"
+que terminava em **2027**. Com teto de 7 dias eles não entram mais.
+
+⚠️ **`q_eventos` truncava calada, e ninguém via.** Ela rodava com uma página só, e o teto de
+50 linhas do MCP cortava a lista. Na janela aberta havia mais de 50 eventos: o **21746** ("Em
+preparação Net Carros") tinha veículo no relatório e **não estava na lista** — some do filtro
+de evento da página e do cabeçalho, sem erro nenhum. Corrigido em 18/09: `q_ev_total` virou
+gabarito, `q_eventos` ganhou 4 páginas e a fase 2 **mata o run** se faltar página. A janela de
+7 dias esconde o sintoma (são ~18 eventos), não a causa.
+
+Os outros modos continuam de pé e provados: `PISO_FIXO = 'AAAA-MM-DD'` prega o piso num dia
+e ignora hoje; `HORAS_ADIANTE = 0` faz o teto sumir e volta a janela aberta. E preenchendo
 `EVENTOS_IDS` o recorte vira uma lista fixa, as datas não valem, e o cabeçalho passa a
 dizer isso em vez de anunciar uma janela que não vale.
 
@@ -150,10 +309,18 @@ previsível**, então acertar o número dela vale muito; loja que compra de tudo
 e o peso cai sozinho.
 
 **`confiança = min(1, veículos / 5)`** é adição minha, não estava no pedido — evita que
-loja com 1 carro de histórico lidere por sorte. **`CORRESP_MIN = 50`** corta o par abaixo
-de 50: ele não entra no HTML, não conta nos KPIs, não aparece em nenhuma direção. O corte
-é sobre o **score**, não sobre a aderência bruta, senão passaria justamente a loja que a
-confiança existe para segurar.
+loja com 1 carro de histórico lidere por sorte. **`CORRESP_MIN = 0` desde 18/09 — o corte está desligado.** Era 50. Desligar mexe menos do
+que o nome sugere, e medir antes evitou a surpresa: no run 50406 o mínimo zerava apenas
+**10 veículos dos 1.221**, e os pares iam de 33.503 para no máximo **36.409 (+8,7%)**. Quem
+corta de verdade é o **`TETO_LOJAS = 30`**: 110.006 pares por run. Se um dia o pedido for
+"ver mais loja por veículo", a alavanca é o teto, não este número.
+
+Em troca, o piso passa a ser de quem lê — a **barra deslizante** do extrato, que nasce em
+70% — e a cauda dos veículos com poucas lojas boas passa a exibir par de score baixo. O KPI
+**Sem correspondência** tende a zero: sobra só quem não tem contraparte possível.
+
+Se voltar a valer: o corte é sobre o **score**, não sobre a aderência bruta, senão passaria
+justamente a loja que a confiança existe para segurar.
 
 ## As duas fases, e por que existem
 
@@ -254,13 +421,51 @@ Os arquivos `_*.py` são os patches aplicados, um por mudança. Ficam versionado
 cada um explica **por que** a mudança foi feita — é o registro do raciocínio, não código
 que roda de novo.
 
-## A publicação no SharePoint (2026-09-11)
+## A publicação no SharePoint
 
 Dois nós no fim da cadeia: `Montar HTML` → **`Virar Arquivo`** → **`Subir no SharePoint`**.
 
 ```
-Relatorios Aderencia Veiculos/relatorio-aderencia-veiculos-AAAA-MM-DD.html
+Radar de Estoque/radar-de-estoque-AAAA-MM-DD.html
 ```
+
+### 🔴 Já foram três nomes — e trocar o nome NÃO move nada
+
+O upload é por **path**, e path **cria** a pasta. Trocar `PASTA`/`PREFIXO` abre
+pasta nova e deixa a antiga parada, com tudo que já estava publicado:
+
+| # | pasta | período |
+|---|---|---|
+| 1 | `Relatorios Aderencia Veiculos` | 11/09 até a correção de acento — eu escrevi em ASCII por hábito de nome de arquivo |
+| 2 | `Relatórios Aderência Veículos` | 15/09 em diante |
+| 3 | **`Radar de Estoque`** | 🔜 ainda não existe — ver abaixo |
+
+### 🔜 PENDENTE (segunda, 21/09/2026): a pasta nova ainda não nasceu
+
+A execução **52212** (18/09) publicou na pasta **#2**, não na #3:
+`Relatórios Aderência Veículos/relatório-aderência-veículos-2026-09-18.html`.
+
+**Causa:** os `PASTA`/`PREFIXO` novos moram no `virar-arquivo.js`, e esse nó
+**não foi transcrito** para o n8n — a lista de nós a transcrever saiu errada,
+dizendo que ele não tinha mudado. Os três nós de cálculo foram, o de publicação
+não. O run inteiro está correto; só o destino do arquivo está errado.
+
+**O que falta, nesta ordem:**
+
+1. Transcrever o **`Virar Arquivo`** para o n8n (`-Encoding UTF8` no clipboard,
+   senão os acentos viram mojibake — medido em 18/09).
+2. Rodar de novo. Aí a pasta `Radar de Estoque` nasce.
+3. Apagar as **duas pastas antigas** e o arquivo de 18/09 que caiu na #2.
+
+⚠️ Conferir com `python _confere_transcricao.py <json-do-workflow>` **antes** de
+rodar: ele compara os quatro nós byte a byte, e é o que teria pego isto.
+
+As duas primeiras pastas foram marcadas para **exclusão** pelo Thomas em 18/09 —
+o acervo recomeça do zero na pasta nova, e não fica repartido em três.
+
+⚠️ **Se este nome mudar de novo, o problema volta.** A troca só fica completa
+quando o conteúdo antigo é movido e a pasta velha, removida — e isso é
+operação no SharePoint do time, não coisa que o workflow faça.
 
 Site **N8N**, drive `b!WIoPIE-…`, credencial `AOTm9J6pFcF0DS6g`
 (Conta PowerBI/Automações) — a mesma do IGA, do C6 e da Lista LM.

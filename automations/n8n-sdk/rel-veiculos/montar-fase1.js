@@ -9,20 +9,34 @@
      EVENTOS_IDS = [23860, 23861]   -> analisa exatamente esses
      EVENTOS_IDS = []               -> vale a janela de datas abaixo
 
-   O padrão hoje é a janela ABERTA pedida em 2026-09-10: piso fixo em
-   09/09/2026 e teto nenhum, o que cobre "tudo que finalizou a partir do dia
-   09 mais o que não finalizou" numa condição só — encerrado recente tem fim
-   no passado próximo, não encerrado tem fim no futuro, e os dois satisfazem
-   `finish_date_event >= piso`.
+   O padrão hoje é a JANELA DE 7 DIAS pedida em 2026-09-18: piso na
+   meia-noite de hoje e teto em +168h — "os eventos que encerram em até 7
+   dias a partir da data de atualização".
 
-   Medido antes de valer (sonda 50068): 47 eventos, 1.060 veículos, 1.740
-   negociações — contra 735 veículos do run 49984. Sem teto entra uma cauda
-   longa de eventos distantes, incluindo um que termina em 2027; entram de
-   propósito, e o filtro de evento na página é a saída para isolar.
+   ⚠️ O EIXO DO RELATÓRIO MUDOU AQUI. Até 17/09 a janela era aberta (piso
+   fixo em 09/09, teto nenhum) e o relatório respondia "o que passou pelo
+   evento e não vendeu" — a sobra. Agora ele responde "o que vai encerrar e
+   ainda dá pra empurrar". Medido sobre o run 50406 antes de valer: dos
+   1.221 veículos ficam 493, porque saem os 726 de evento já encerrado, dos
+   quais 723 eram sobra. Comparar contagem com run anterior a 18/09 não faz
+   sentido — é outra pergunta, não a mesma base menor.
 
-   Os outros dois modos continuam de pé e provados:
-     PISO_FIXO = ''      -> piso volta a ser a meia-noite de hoje (Brasília)
-     HORAS_ADIANTE > 0   -> volta a existir teto, agora + N horas
+   PISO NA MEIA-NOITE e TETO NO FIM DO DIA, não no relógio da coleta. No run 50406, às 17:24, nove
+   eventos tinham encerrado entre 14h e 16h do MESMO dia, com 625 veículos
+   — 51% da base. Com piso no relógio, o relatório encolheria conforme a
+   hora em que roda. Quem faz isso é INCLUI_ENCERRADOS_HOJE de um lado e
+   TETO_FIM_DO_DIA do outro — sem ele, evento que encerra no sétimo dia às
+   20h fica de fora hoje e entra amanhã, pelo mesmo motivo invertido.
+
+   SEM FILTRO DE e.status, decidido em 18/09 junto com a janela. Ele não
+   removeria nada que a janela já não remova (zero eventos com status != 1
+   têm fim no futuro, medido no 50406) e o status ATRASA: os mesmos nove
+   eventos acima ainda estavam com status 1 horas depois de encerrados.
+   Confiar nele seria um jeito silencioso de perder evento.
+
+   Os outros modos continuam de pé e provados:
+     PISO_FIXO = 'AAAA-MM-DD'  -> piso fixo naquele dia, ignora hoje
+     HORAS_ADIANTE = 0         -> teto some, volta a janela aberta
 
    ⚠️ FUSO: o banco responde NOW() em UTC, mas grava as datas dos eventos em
    hora de Brasília — medido na sonda 49954. Por isso o recorte é calculado
@@ -44,13 +58,19 @@
    uma edicao especifica. Ficou pregada nos nove eventos de 09/09 por um
    tempo, o que fazia todo run devolver aquele recorte em vez da regra. */
 const EVENTOS_IDS = [];
-/* piso fixo do recorte, em hora de Brasilia (pedido de 2026-09-10:
-   "todos os eventos finalizados a partir do dia 09/09 e nao finalizados").
-   Vazio => volta a valer a meia-noite de hoje. */
-const PISO_FIXO = '2026-09-09';
-/* 0 = SEM TETO. Com teto, evento que ainda nao encerrou mas termina depois
-   da janela ficaria de fora -- e "nao finalizados" nao tem teto. */
-const HORAS_ADIANTE = 0;
+/* Piso fixo em hora de Brasilia. VAZIO desde 18/09: o piso passou a ser a
+   meia-noite de HOJE, que anda com a data de atualizacao. Preencher aqui
+   prega o recorte num dia e o relatorio para de acompanhar o calendario --
+   foi o que aconteceu entre 10 e 18/09 com '2026-09-09'. */
+const PISO_FIXO = '';
+/* Teto do recorte: 7 dias x 24h (pedido de 18/09). 0 = SEM TETO, que era o
+   modo anterior e trazia a cauda longa (evento terminando em 2027). */
+const HORAS_ADIANTE = 168;
+/* O teto fecha no FIM DO DIA alcancado, nao no relogio da coleta.
+   Simetrico ao piso, e pelo mesmo motivo: com o teto em "agora + 168h", um
+   evento que encerra no setimo dia as 20h fica de fora hoje e entra amanha,
+   e o relatorio passa a depender da hora em que roda. */
+const TETO_FIM_DO_DIA = true;
 const INCLUI_ENCERRADOS_HOJE = true;  /* pedido em 2026-09-09 - ver nota abaixo */
 
 /* ─── OS CANAIS QUE CONTAM (pedido de 2026-09-11) ────────────────────
@@ -120,8 +140,9 @@ const PISO = PISO_FIXO
   ? (PISO_FIXO + ' 00:00:00')
   : (INCLUI_ENCERRADOS_HOJE ? (HOJE_BR + ' 00:00:00') : AGORA_BR);
 /* string vazia = sem teto, e a clausula nem entra no SQL */
+const ALVO_TETO = new Date(now.getTime() + HORAS_ADIANTE * 3600000);
 const TETO = HORAS_ADIANTE > 0
-  ? horaDe(new Date(now.getTime() + HORAS_ADIANTE * 3600000))
+  ? (TETO_FIM_DO_DIA ? (dataDe(ALVO_TETO) + ' 23:59:59') : horaDe(ALVO_TETO))
   : '';
 
 /* o filtro de evento, montado uma vez e reusado na fase 2.
@@ -198,12 +219,24 @@ function push(nome, sql, pages) {
   }
 }
 
-/* quais eventos o recorte pegou */
+/* quantos eventos o recorte pegou -- gabarito da paginacao da q_eventos.
+   Existe desde 18/09: a q_eventos rodava com uma pagina so, e o teto de 50
+   linhas do MCP cortava em silencio. No run 50406 a janela aberta tinha
+   mais de 50 eventos, e o 21746 ("Em preparacao Net Carros", fim em 2027)
+   tinha veiculo no relatorio e NAO estava na lista -- some do filtro da
+   pagina e do cabecalho, sem erro nenhum. */
+push('q_ev_total',
+  "SELECT COUNT(*) AS eventos FROM events e WHERE" + SELECAO);
+
+/* quais eventos o recorte pegou.
+   4 paginas = 200 eventos. Numero escolhido, mas VERIFICADO: a fase 2
+   confere contra q_ev_total e mata o run se faltar pagina. Com a janela de
+   7 dias sao ~18; com a janela aberta passavam de 50. */
 push('q_eventos',
   "SELECT e.id AS evento_id, e.name AS evento, e.status AS ev_status," +
   " DATE_FORMAT(e.start_date_display, '%Y-%m-%d %H:%i') AS ini_display," +
   " DATE_FORMAT(e.finish_date_event, '%Y-%m-%d %H:%i') AS fim_evento" +
-  " FROM events e WHERE" + SELECAO + " ORDER BY e.finish_date_event");
+  " FROM events e WHERE" + SELECAO + " ORDER BY e.finish_date_event", 4);
 
 /* quantos veículos disponíveis — dimensiona a paginação da fase 2 */
 push('q_veic_total',

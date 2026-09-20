@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="__TEMA__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITULO__</title>
+<!--
+  ============================================================================
+  MODELO DE PAINEL — Cars2You                       tema: __TEMA__
+  ----------------------------------------------------------------------------
+  ⚠️ NÃO EDITE ESTE ARQUIVO SE ELE ESTIVER EM design/modelos/.
+     Os dois modelos são GERADOS de design/modelos/_fonte/dashboard.html
+     + design/tokens/tema.css. Edite lá e rode:
+
+         node design/modelos/monta-modelos.js
+
+  Para começar um painel novo: copie um dos dois para a pasta do projeto,
+  troque o conteúdo de <main>, e deixe topo/rodapé como estão.
+
+  Autossuficiente de propósito: CSS embutido, logos em data URI, zero rede.
+  Abre de um anexo, de um pendrive, do SharePoint e de dentro da VPN.
+  ============================================================================
+-->
+<style>/*__CSS__*/</style>
+</head>
+<body>
+
+<!-- ╔══ TOPO ════════════════════════════════════════════════════════════╗ -->
+<header class="topo">
+  <div class="topo-in">
+    <img class="logo" id="logo" src="" alt="Cars2You">
+    <div class="topo-tit">
+      <h1>Título do painel</h1>
+      <p class="sub">Recorte dos dados · janela · fonte</p>
+    </div>
+    <div class="topo-acoes">
+      <select class="ctrl" id="f-base" aria-label="Base">
+        <option value="todas">Todas as bases</option>
+        <option value="cars2you">Cars2You</option>
+        <option value="dealers">Dealers</option>
+      </select>
+      <select class="ctrl" id="f-janela" aria-label="Janela">
+        <option>Últimos 6 meses</option>
+        <option>Últimos 12 meses</option>
+      </select>
+      <button class="ctrl so-icone" id="b-tema" type="button" aria-label="Mudar o tema"></button>
+    </div>
+  </div>
+</header>
+
+<main class="area">
+
+  <!-- ╔══ 1. FAIXA DE KPI ═══════════════════════════════════════════════╗ -->
+  <section class="g4" aria-label="Indicadores">
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/></svg></span>
+        <span class="kpi-rot">Veículos na janela</span>
+      </div>
+      <p class="kpi-val num" data-kpi="veiculos">—</p>
+      <p class="kpi-delta sobe"><span aria-hidden="true">▲</span> 4,2% vs. período anterior</p>
+      <dl class="kpi-pe">
+        <div><dt>Disponíveis</dt><dd class="num">1.412</dd></div>
+        <div><dt>Vendidos</dt><dd class="num">467</dd></div>
+      </dl>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21V10l9-7 9 7v11"/><path d="M9 21v-6h6v6"/></svg></span>
+        <span class="kpi-rot">Lojas ativas</span>
+      </div>
+      <p class="kpi-val num" data-kpi="lojas">—</p>
+      <p class="kpi-delta desce"><span aria-hidden="true">▼</span> 1,8% vs. período anterior</p>
+      <dl class="kpi-pe">
+        <div><dt>Deram lance</dt><dd class="num">318</dd></div>
+        <div><dt>Compraram</dt><dd class="num">96</dd></div>
+      </dl>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
+        <span class="kpi-rot">Deságio médio</span>
+      </div>
+      <p class="kpi-val num" data-kpi="desagio">—</p>
+      <p class="kpi-delta neutro">estável vs. período anterior</p>
+      <dl class="kpi-pe">
+        <div><dt>Menor decil</dt><dd class="num">12,1%</dd></div>
+        <div><dt>Maior decil</dt><dd class="num">48,7%</dd></div>
+      </dl>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <span class="kpi-rot">Tempo até a venda</span>
+      </div>
+      <p class="kpi-val num" data-kpi="tempo">—</p>
+      <p class="kpi-delta sobe"><span aria-hidden="true">▲</span> 2 dias mais rápido</p>
+      <dl class="kpi-pe">
+        <div><dt>Mediana</dt><dd class="num">9 d</dd></div>
+        <div><dt>P90</dt><dd class="num">31 d</dd></div>
+      </dl>
+    </article>
+
+  </section>
+
+  <!-- ╔══ 2. GRÁFICO + RANKING ══════════════════════════════════════════╗ -->
+  <section class="g2">
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span>
+        <h2>Vendas por mês</h2>
+        <span class="dir"><span class="tag">12 meses</span></span>
+      </div>
+      <svg class="graf" id="graf-linha" viewBox="0 0 800 260" role="img"
+           aria-label="Série mensal de vendas"></svg>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao-topo">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h11"/><path d="M4 18h6"/></svg></span>
+        <h2>Lojas mais aderentes</h2>
+      </div>
+      <ol class="rank" id="rank"></ol>
+    </article>
+
+  </section>
+
+  <!-- ╔══ 3. TABELA ═════════════════════════════════════════════════════╗ -->
+  <section class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg></span>
+      <h2>Detalhe</h2>
+      <span class="dir"><span class="tag">6 linhas de exemplo</span></span>
+    </div>
+    <div class="rolo">
+      <table>
+        <thead>
+          <tr><th>Modelo</th><th>Vendas</th><th>FIPE média</th>
+              <th>Venda média</th><th>Deságio</th><th>Situação</th></tr>
+        </thead>
+        <tbody id="tab"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ╔══ 4. GLOSSÁRIO ══════════════════════════════════════════════════╗
+       Peça FIXA do modelo: todo painel tem um, e ele é o último bloco.
+       Vivia dentro do cartão da tabela, o que dizia "isto explica a tabela".
+       Não é: ele explica a PÁGINA. Separado, e alimentado por DADOS.glossario
+       como todo o resto — quem monta um painel novo só preenche a lista. -->
+  <details class="cartao gloss" id="gloss">
+    <summary class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h13"/></svg></span>
+      <h2>Glossário</h2>
+      <span class="dir"><span class="tag" id="gloss-n">—</span><span class="seta" aria-hidden="true">▾</span></span>
+    </summary>
+    <dl id="gloss-lista"></dl>
+  </details>
+
+  <p class="rodape">
+    Gerado em <span id="gerado">—</span> · dados de <strong>exemplo</strong>, não usar como número real ·
+    modelo em <code>design/modelos/</code>
+  </p>
+
+</main>
+
+<script>
+/* ============================================================================
+   DADOS — troque este bloco pelo seu. Nada abaixo dele precisa mudar.
+   Em painel de verdade, o gerador injeta aqui o JSON já agregado.
+   ========================================================================== */
+const DADOS = {
+  kpi: { veiculos:"1.879", lojas:"414", desagio:"30,4%", tempo:"11 d" },
+  serie: [
+    {rot:"out", v:312},{rot:"nov", v:298},{rot:"dez", v:341},
+    {rot:"jan", v:365},{rot:"fev", v:330},{rot:"mar", v:398},
+    {rot:"abr", v:412},{rot:"mai", v:377},{rot:"jun", v:455},
+    {rot:"jul", v:501},{rot:"ago", v:478},{rot:"set", v:523}
+  ],
+  ranking: [
+    {nome:"Loja exemplo A", v:128},{nome:"Loja exemplo B", v:114},
+    {nome:"Loja exemplo C", v: 97},{nome:"Loja exemplo D", v: 83},
+    {nome:"Loja exemplo E", v: 71},{nome:"Loja exemplo F", v: 64}
+  ],
+  tabela: [
+    ["Modelo A","412","R$ 58.900","R$ 41.100","28,7%",["ok","saudável"]],
+    ["Modelo B","388","R$ 72.400","R$ 46.500","35,7%",["ruim","deságio alto"]],
+    ["Modelo C","301","R$ 45.200","R$ 33.800","25,2%",["ok","saudável"]],
+    ["Modelo D","254","R$ 91.800","R$ 66.000","28,1%",["ok","saudável"]],
+    ["Modelo E","199","R$ 38.700","R$ 25.100","35,1%",["atencao","checar"]],
+    ["Modelo F","147","R$ 64.300","R$ 47.900","25,5%",["ok","saudável"]]
+  ],
+
+  /* Glossário — obrigatório em todo painel. Quem recebe não estava na
+     conversa em que o termo foi definido, e "deságio" não quer dizer a mesma
+     coisa pra todo mundo. Termo que aparece na tela e não está aqui é uma
+     pergunta que vai chegar por mensagem depois. */
+  glossario: [
+    ["Deságio", "1 − (valor de venda ÷ FIPE do anúncio). Positivo = vendeu abaixo da FIPE."],
+    ["Venda", "Veículo cuja última negociação válida está em status de venda."],
+    ["Janela", "Recorte de data aplicado, sempre calculado fora do SQL — o banco responde em UTC."]
+  ]
+};
+
+/* ============================================================================
+   RENDERIZAÇÃO — sem biblioteca. O painel tem que abrir offline.
+   ========================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* --- KPI --- */
+for (const [k,v] of Object.entries(DADOS.kpi)) {
+  const el = document.querySelector('[data-kpi="'+k+'"]');
+  if (el) el.textContent = v;
+}
+
+/* ============================================================================
+   GRÁFICO DE ÁREA — sem biblioteca, montado na mão
+
+   ── A REGRA DE LEITURA (padrão da casa) ───────────────────────────────────
+   Valor no ponto E escala no eixo dizem a MESMA coisa. Mostrar os dois é
+   ruído, e o ruído come a atenção de quem lê. Então:
+
+     • PADRÃO: rótulo em cada ponto, e o eixo Y sai inteiro — número, linha
+       de grade e tudo. Quem lê pega o valor exato direto, sem mirar régua.
+
+     • EXCEÇÃO: série contínua, densa, sem níveis bem definidos. Aí não cabe
+       rótulo em todo ponto (eles colidem) e o que importa é a FORMA, não o
+       valor pontual. Volta o eixo Y com grade, e os rótulos somem.
+
+   `rotulos:'auto'` decide por medição, não por palpite: estima a largura do
+   texto e compara com o espaço por ponto. Não coube, é série contínua.
+   Dá pra forçar com `rotulos:true` ou `rotulos:false`.
+   ========================================================================== */
+const fmt = n => n.toLocaleString('pt-BR');
+
+function cabeRotulo(serie, iw){
+  // ~6,2px por caractere a 11px. Mais 10px de folga entre um rótulo e o
+  // vizinho — encostado também conta como colidido.
+  const maior = Math.max(...serie.map(d => fmt(d.v).length));
+  return (maior * 6.2 + 10) <= iw / Math.max(1, serie.length - 1);
+}
+
+function desenhaLinha(svg, serie, opcoes){
+  const o = opcoes || {};
+  const rotulos = o.rotulos === undefined || o.rotulos === 'auto'
+    ? cabeRotulo(serie, 800 - 12 - 12)
+    : !!o.rotulos;
+
+  // Sem eixo Y não há número à esquerda pra reservar espaço. Com rótulo em
+  // cima do ponto, o topo precisa de folga pra ele não sair do quadro.
+  const L = rotulos ? 12 : 48, R = 12;
+  const T = rotulos ? 26 : 14, B = 30, W = 800, H = 260;
+  const iw = W-L-R, ih = H-T-B;
+  const vs = serie.map(p=>p.v);
+  const max = Math.max(...vs), min = Math.min(...vs);
+  const topo = max + (max-min || max)*0.15;
+  const base = Math.max(0, min - (max-min || max)*0.35);
+  const x = i => L + (serie.length<2 ? iw/2 : iw*i/(serie.length-1));
+  const y = v => T + ih - ih*(v-base)/((topo-base)||1);
+
+  const p = [];
+  if (!rotulos) {
+    // Só no caso contínuo: 4 linhas de grade com o valor de cada uma.
+    for (let i=0;i<=3;i++){
+      const val = base + (topo-base)*i/3, yy = y(val);
+      p.push('<line class="linha-grade" x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy.toFixed(1)+'"/>');
+      p.push('<text class="eixo" x="'+(L-8)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end">'+fmt(Math.round(val))+'</text>');
+    }
+  }
+  const pts = serie.map((d,i)=>[x(i), y(d.v)]);
+  const linha = pts.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+' '+c[1].toFixed(1)).join(' ');
+  p.push('<path class="area-serie" d="'+linha+' L'+pts[pts.length-1][0].toFixed(1)+' '+(T+ih)+' L'+pts[0][0].toFixed(1)+' '+(T+ih)+' Z"/>');
+  p.push('<path class="serie" d="'+linha+'"/>');
+  pts.forEach(c=>p.push('<circle class="ponto" cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="3"/>'));
+
+  if (rotulos) {
+    serie.forEach((d,i)=>{
+      // 11px acima do ponto; no ponto mais alto o T de 26px segura.
+      p.push('<text class="rotulo" x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-11).toFixed(1)+
+             '" text-anchor="middle">'+esc(fmt(d.v))+'</text>');
+    });
+  }
+  // O eixo X fica nos dois casos: ele diz QUANDO, não quanto.
+  serie.forEach((d,i)=>p.push('<text class="eixo" x="'+x(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle">'+esc(d.rot)+'</text>'));
+
+  svg.innerHTML =
+    '<defs><linearGradient id="veu-serie" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="var(--acento-cheio)" stop-opacity=".30"/>'+
+    '<stop offset="100%" stop-color="var(--acento-cheio)" stop-opacity="0"/>'+
+    '</linearGradient></defs>' + p.join('');
+  return rotulos;
+}
+desenhaLinha($('#graf-linha'), DADOS.serie);
+
+/* --- ranking --- */
+(function(){
+  const topo = Math.max(...DADOS.ranking.map(r=>r.v)) || 1;
+  $('#rank').innerHTML = DADOS.ranking.map((r,i)=>
+    '<li><span class="pos num">'+(i+1)+'</span>'+
+    '<span><span class="nome">'+esc(r.nome)+'</span>'+
+    '<span class="barra"><i style="width:'+(100*r.v/topo).toFixed(1)+'%"></i></span></span>'+
+    '<span class="val num">'+r.v+'</span></li>').join('');
+})();
+
+/* --- tabela --- */
+$('#tab').innerHTML = DADOS.tabela.map(l=>
+  '<tr>'+l.map(c=>Array.isArray(c)
+    ? '<td><span class="tag '+esc(c[0])+'">'+esc(c[1])+'</span></td>'
+    : '<td class="num">'+esc(c)+'</td>').join('')+'</tr>').join('');
+
+/* --- glossário: peça fixa, mesmo caminho de dados do resto --- */
+$('#gloss-lista').innerHTML = DADOS.glossario.map(
+  ([termo, def]) => '<dt>'+esc(termo)+'</dt><dd>'+esc(def)+'</dd>').join('');
+$('#gloss-n').textContent = DADOS.glossario.length + ' termos';
+
+/* --- data de geração --- */
+$('#gerado').textContent = new Date().toLocaleString('pt-BR',
+  {dateStyle:'short', timeStyle:'short'});
+
+/* ============================================================================
+   TEMA — o arquivo nasce no tema declarado no <html> e o botão troca ao vivo.
+   O logo troca junto: o azul da marca some no fundo escuro.
+
+   ⚠️ DE PROPÓSITO: a troca NÃO é salva em localStorage.
+   A primeira versão salvava, e aí `dashboard-claro.html` abria ESCURO pra
+   quem já tinha alternado numa outra página — arquivo chamado "claro"
+   abrindo escuro. Painel que vai por link pra muita gente precisa abrir
+   igual pra todo mundo, sempre. A troca vale pra sessão e acabou.
+
+   Um projeto que QUEIRA lembrar a escolha do leitor põe o localStorage
+   aqui — e assume que o nome do arquivo deixa de valer como promessa.
+   ========================================================================== */
+const LOGO = { claro:"__LOGO_CLARO__", escuro:"__LOGO_ESCURO__" };
+
+/* O ícone mostra PARA ONDE o botão leva, não onde você está: sol quando o
+   tema atual é escuro. É a convenção que as pessoas já esperam. */
+const ICO_TEMA = {
+  claro:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4'
+      + 'M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  escuro:'<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>'
+};
+
+function aplicaTema(t){
+  document.documentElement.dataset.tema = t;
+  $('#logo').src = LOGO[t];
+  const alvo = t === 'escuro' ? 'claro' : 'escuro';
+  const b = $('#b-tema');
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO_TEMA[alvo] + '</svg>';
+  b.setAttribute('aria-label', 'Mudar para o tema ' + alvo);
+  b.setAttribute('title', 'Tema ' + alvo);
+}
+aplicaTema(document.documentElement.dataset.tema);
+
+$('#b-tema').addEventListener('click', () =>
+  aplicaTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro'));
+</script>
+</body>
+</html>

@@ -226,3 +226,29 @@ Pendência nova: **o modelo multivariado só pode usar o que se sabe ANTES da
 venda.** O fator isolado mais forte medido é quem compra — e isso só se conhece
 depois. Um modelo que use o comprador acerta no histórico e é inútil para
 precificar.
+
+## 2026-09-18 (noite)
+- **O Radar de Estoque mudou de pergunta.** A janela de eventos deixou de olhar para trás
+  ("tudo que encerrou desde 09/09, mais o que não encerrou" — o assunto era a **sobra**) e
+  passou a olhar para a frente: **os eventos que encerram nos próximos 7 dias**, com piso
+  à meia-noite de hoje e teto às 23:59:59 do sétimo dia. **Não é a mesma base menor: é
+  outra pergunta** — comparar contagem com run anterior a 18/09 não faz sentido.
+  Medido antes de executar, sobre o run 50406: saem 726 dos 1.221 veículos, 723 deles sobra.
+- **A correspondência mínima foi desligada** (`CORRESP_MIN` de 50 para 0). Efeito pequeno e
+  medido: o mínimo zerava só 10 veículos de 1.221. **Quem corta é o `TETO_LOJAS = 30`** —
+  986.559 pares ficaram fora dele na execução 52212. O piso passou a ser do usuário, na
+  barra deslizante do extrato.
+- **Sem filtro de `e.status`**, decidido junto: ele não remove nada que a janela já não
+  remova, e o status **atrasa** — nove eventos do 50406 seguiam com `status = 1` horas
+  depois de encerrados. Confiar nele seria perder evento em silêncio.
+- **Workflow `8fiTFsjWG9RQinz8` renomeado para "Radar de Estoque"** na interface do n8n.
+  O id não muda ao renomear. A pasta do repo segue `automations/n8n-sdk/rel-veiculos/`.
+- **Execução 52212** ✅ 11min39s — 25 eventos, 1.096 veículos, 32.880 pares, 4,89 MB.
+  Seis dos 25 eventos já tinham encerrado no próprio dia e continuaram na base graças ao
+  piso à meia-noite: é a decisão se pagando no primeiro run.
+- 🔴 **Bloqueio aberto:** a execução publicou na pasta **antiga**
+  (`Relatórios Aderência Veículos`) porque o nó `Virar Arquivo` não foi transcrito — a
+  lista de nós que passei estava errada. A pasta `Radar de Estoque` ainda não existe.
+  Thomas corrige na **segunda, 21/09**.
+- Defeito corrigido de passagem: `q_eventos` truncava em 50 linhas sem avisar, e um evento
+  com veículo no relatório não aparecia no filtro da página.

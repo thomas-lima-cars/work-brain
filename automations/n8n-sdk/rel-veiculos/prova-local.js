@@ -51,7 +51,9 @@ console.log('\n[1] Fase 1 — dimensionamento');
 const f1 = rodaNo('montar-fase1.js', ctxDe({}));
 const p1 = f1.map((i) => i.json);
 const nomes1 = Array.from(new Set(p1.map((p) => p.queryName)));
-ok(nomes1.length === 9, '9 queries: ' + nomes1.join(', '));
+ok(nomes1.length === 10, '10 queries: ' + nomes1.join(', '));
+ok(nomes1.indexOf('q_ev_total') >= 0,
+   'q_ev_total presente — e o que impede q_eventos de truncar calada (18/09)');
 ok(nomes1.indexOf('q_wl_nomes') >= 0,
    'q_wl_nomes presente — e o que impede id de canal errado de encolher a base calado');
 ok(nomes1.indexOf('q_evwl_total') >= 0,
@@ -94,6 +96,16 @@ if (ids1.length) {
     const hIni = Date.parse(p1[0].meta.janela_ini.replace(' ', 'T') + 'Z');
     const hFim = Date.parse(p1[0].meta.janela_fim.replace(' ', 'T') + 'Z');
     ok(hFim > hIni, 'com teto: o teto vem depois do piso');
+    /* Simetria com o piso (18/09): os dois lados fecham em limite de DIA, ou
+       o recorte passa a depender da hora em que a coleta roda -- evento que
+       encerra no ultimo dia as 20h entraria ou nao conforme o relogio. */
+    const fonteF1 = fs.readFileSync(path.join(AQUI, 'montar-fase1.js'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ');   /* comentario nao e codigo -- erro ja cometido 3x */
+    if (/TETO_FIM_DO_DIA\s*=\s*true/.test(fonteF1)) {
+      ok(p1[0].meta.janela_fim.slice(11) === '23:59:59',
+         'com teto: o teto fecha no fim do dia, simetrico ao piso — tem ' +
+         p1[0].meta.janela_fim.slice(11));
+    }
   }
 }
 /* A ordem e o que importa aqui, e e facil inverter sem perceber. A
@@ -536,6 +548,9 @@ function respostaDe(p) {
 const respostas = f2b.map((i) => i.json).map(respostaDe);
 const S = rodaNo('montar-html.js', ctxDe({ 'Montar Fase 2': f2b, 'MCP Fase 2': respostas }))[0].json;
 const D = S.DADOS;
+/* O modo do corte governa assertivas de tres secoes diferentes, entao mora
+   aqui em cima. Desligado (0) desde 18/09 -- ver o bloco da secao 3. */
+const MIN = D.parametros.corresp_min;
 
 ok(D.veiculos.length === 6, '6 veiculos unicos (a duplicata do v0 foi descartada)');
 ok(S.falhas.some((f) => /1 veiculo\(s\) vieram mais de uma vez/.test(f)),
@@ -621,7 +636,8 @@ ok(l13 && l13.p_uf === 0, 'a loja 13 nao oferta nada na propria UF — peso zero
 ok(s13mg !== null && s13sp !== null && s13mg === s13sp,
   'e por isso fica INDIFERENTE a UF: ' + s13mg + ' nos dois casos — ' +
   'a preferencia e proporcional, nao um bonus fixo');
-ok(D.lojas.length === 4, 'as 4 lojas com par entram; a 15 nao — tem ' + D.lojas.length);
+ok(D.lojas.length === (MIN > 0 ? 4 : 5),
+  'as lojas com par entram; a 15 so quando nao ha corte — tem ' + D.lojas.length);
 
 /* ── desagio e laudo como indicadores ──────────────────────────────────
    Os dois entram na decomposicao do par (`det`), que e o que a tela mostra
@@ -671,16 +687,33 @@ ok(D.resumo.teto_lojas === 30, 'o teto viaja no resumo — tem ' + D.resumo.teto
 ok(D.resumo.cortados_pelo_teto === 0,
   'com 5 lojas o teto nao corta nada — tem ' + D.resumo.cortados_pelo_teto);
 
-/* O CORTE DE 50%. A loja 15 e elegivel (mesma UF, mesmo whitelabel) e sem o
-   corte apareceria com score ~32. Com ele, nao pode existir em lugar
-   nenhum: nem par, nem linha na lista de lojas. */
-ok(D.parametros.corresp_min === 50, 'a correspondencia minima viaja no DADOS');
-ok(D.parametros.pares_descartados >= 3,
-   'o corte derrubou os pares da loja 15 — ' + D.parametros.pares_descartados + ' descartados');
-ok(D.lojas.every((l) => l.loja_id !== 15), 'a loja abaixo do corte nao e publicada');
+/* A CORRESPONDENCIA MINIMA, nos dois modos.
+   Desligada em 18/09 (CORRESP_MIN = 0). A prova NAO crava mais o 50: ela le
+   o valor que viajou e cobra o comportamento correspondente. Cravar o numero
+   faria a prova falhar por ter mudado de ideia, que nao e defeito -- e, pior,
+   deixaria de cobrar qualquer coisa no modo novo.
+
+   A loja 15 e elegivel (mesmo whitelabel) e da score ~32. Com corte ela nao
+   pode existir em lugar nenhum; sem corte ela TEM que aparecer -- e esse o
+   ponto da mudanca, e sem esta assertiva ninguem perceberia se o corte
+   voltasse sozinho. */
+ok(typeof MIN === 'number' && MIN >= 0 && MIN <= 100,
+   'a correspondencia minima viaja no DADOS — tem ' + MIN);
+const temLoja15 = D.lojas.some((l) => l.loja_id === 15);
 var abaixo = 0;
-for (let i = 0; i < P.length; i += 3) if (P[i + 2] / 10 < 50) abaixo++;
-ok(abaixo === 0, 'nenhum par publicado esta abaixo do corte — tem ' + abaixo);
+for (let i = 0; i < P.length; i += 3) if (P[i + 2] / 10 < MIN) abaixo++;
+if (MIN > 0) {
+  ok(D.parametros.pares_descartados >= 3,
+     'o corte derrubou os pares da loja 15 — ' + D.parametros.pares_descartados + ' descartados');
+  ok(!temLoja15, 'a loja abaixo do corte nao e publicada');
+  ok(abaixo === 0, 'nenhum par publicado esta abaixo do corte — tem ' + abaixo);
+} else {
+  ok(D.parametros.pares_descartados === 0,
+     'sem corte, o minimo nao descarta par nenhum — tem ' + D.parametros.pares_descartados);
+  ok(temLoja15, 'sem corte, a loja 15 (score ~32) e publicada');
+  ok(D.resumo.cortados_pelo_min === 0,
+     'sem corte, nenhum veiculo fica sem par por causa do minimo');
+}
 
 /* ═══ 4. A ARITMÉTICA, de novo ══════════════════════════════════════ */
 console.log('\n[4] A formula, conferida no papel');
@@ -734,7 +767,7 @@ const li11 = D.lojas.findIndex((l) => l.loja_id === 11);
 ok(porL[li11].length === 5,
   'a loja 11 agora alcanca os 5 veiculos do canal, nao so os de SP — tem ' + porL[li11].length);
 const li13 = D.lojas.findIndex((l) => l.loja_id === 13);
-ok(porL[li13].length === 4,
+ok(porL[li13].length === (MIN > 0 ? 4 : 5),
   'a loja 13 (MG) tambem sai da propria praca — tem ' + porL[li13].length);
 ok(D.lojas[li11].pares === porL[li11].length && D.lojas[li13].pares === porL[li13].length,
   'a contagem de pares por loja bate com o indice');
@@ -767,10 +800,13 @@ ok(h.indexOf('id="t_v"') > 0 && h.indexOf('id="t_l"') > 0, 'as duas tabelas exis
 ok(h.indexOf('id="limpar"') > 0, 'botao de limpar selecao');
 const m = h.match(/<script>const D=([\s\S]*?);<\/script>/);
 const rep = JSON.parse(m[1].split('<\\/').join('</'));
-/* 15 pares agora, nao 8: a UF parou de excluir. O numero exato importa --
-   se mudar sem alguem mexer na regra, alguma coisa se moveu sozinha. */
-ok(rep.pares.length === 45, 'JSON embarcado: 15 pares x 3 numeros = 45 — tem ' + rep.pares.length);
-ok(rep.det.length === 15, 'uma decomposicao por par');
+/* 21 pares sem corte (eram 15 com o corte de 50, e 8 quando a UF ainda
+   excluia). O numero exato importa -- se mudar sem alguem mexer na regra,
+   alguma coisa se moveu sozinha. */
+const PARES_ESPERADOS = MIN > 0 ? 15 : 21;
+ok(rep.pares.length === PARES_ESPERADOS * 3,
+   'JSON embarcado: ' + PARES_ESPERADOS + ' pares x 3 numeros — tem ' + rep.pares.length);
+ok(rep.det.length === PARES_ESPERADOS, 'uma decomposicao por par');
 
 /* erro de query continua legivel */
 const respE = f2b.map((i) => i.json).map((p, i) =>
@@ -789,10 +825,29 @@ const lj = D.lojas[0];
 });
 ok(h.indexOf('id="extrato"') > 0, 'o container do extrato existe no HTML');
 ok(h.indexOf('function extrato()') > 0, 'a funcao do extrato existe');
-ok(h.indexOf('LIMIAR=70') > 0, 'o limiar de 70% esta no codigo');
+ok(h.indexOf('LIMIAR=70') > 0, 'o corte NASCE em 70% (o usuario muda dali)');
 ok(h.indexOf('extrato();}') > 0, 'o extrato e repintado junto com as tabelas');
 ok(h.indexOf('Extrato da loja') > 0, 'o titulo do extrato aparece');
-ok(h.indexOf('Veículos com aderência acima de') > 0, 'a lista acima do limiar existe');
+/* ── o nome do PROJETO e o nome da METRICA sao coisas diferentes ──────────
+   Em 18/09 o projeto passou a se chamar "Radar de Estoque". A palavra
+   "aderência" continua valendo — ela e o INDICADOR: a coluna da tabela, o
+   score de cada par, o corte da barra deslizante. Uma troca em massa levaria
+   as duas juntas e deixaria o relatorio sem o nome do numero que ele calcula.
+   Por isso as duas coisas sao provadas em separado. */
+ok(h.indexOf('<title>Radar de Estoque') > 0, 'o titulo da aba tem o nome do projeto');
+ok(h.indexOf('<b>Radar de Estoque</b>') > 0, 'o topo mostra o nome do projeto');
+ok(h.indexOf('veículos em evento &times; lojas compradoras') > 0,
+   'o descritivo que saiu do topo continua na pagina, no rodape');
+ok(h.indexOf('>Aderência<') > 0, 'a METRICA aderência segue nomeada na tabela');
+ok(h.indexOf('Aderência mínima') > 0, 'e no rotulo da barra de corte');
+
+/* O titulo era "Veículos com aderência acima de 70%". O corte deixou de ser
+   fixo em 18/09 — virou barra deslizante — entao o titulo nao pode mais citar
+   um numero, e a lista passou a ser selecionavel. */
+ok(h.indexOf('Veículos selecionáveis') > 0, 'a lista de veiculos do extrato existe');
+ok(h.indexOf("id='lim'") > 0, 'o corte de aderencia e uma barra deslizante');
+ok(h.indexOf("class='cx'") > 0, 'cada veiculo tem caixa de selecao');
+ok(h.indexOf("id='btn_msg'") > 0, 'existe o botao que gera o texto pro lojista');
 /* o peso tem que bater com 1/(1+desvio/media) */
 const espPreco = 1 / (1 + (lj.preco_desvio / lj.preco_medio));
 ok(perto(lj.p_preco, Math.round(espPreco * 1000) / 1000, 0.002),
@@ -1126,10 +1181,20 @@ ok(semComent.indexOf('${') < 0,
 /* sem teto, a frase antiga imprimia "entre <piso> e <b>?</b>" -- detalhe que
    faz o leitor desconfiar do relatorio inteiro, com razao */
 ok(h.indexOf('e <b>?</b>') < 0, 'o cabecalho nao anuncia teto inexistente');
-ok(h.indexOf('mais os que ainda não encerraram') > 0,
-   'o cabecalho diz que os nao encerrados entram');
-ok(h.indexOf('a partir de <b>' + (D.meta.janela_ini || '')) > 0,
-   'o cabecalho publica o piso real do recorte');
+/* A frase muda com o modo, e cobrar a frase errada e o mesmo que nao
+   cobrar nada: com teto (a janela de 7 dias de 18/09) o cabecalho anuncia
+   um intervalo; sem teto, anuncia piso e diz que os nao encerrados entram. */
+if (D.meta.janela_fim) {
+  ok(h.indexOf('entre <b>' + D.meta.janela_ini + '</b> e <b>' + D.meta.janela_fim + '</b>') > 0,
+     'com teto: o cabecalho publica o intervalo real do recorte');
+  ok(h.indexOf('mais os que ainda não encerraram') < 0,
+     'com teto: o cabecalho NAO promete os nao encerrados, que agora ficam de fora');
+} else {
+  ok(h.indexOf('mais os que ainda não encerraram') > 0,
+     'sem teto: o cabecalho diz que os nao encerrados entram');
+  ok(h.indexOf('a partir de <b>' + (D.meta.janela_ini || '')) > 0,
+     'sem teto: o cabecalho publica o piso real do recorte');
+}
 ok(h.indexOf('event.stopPropagation()') > 0,
    'o clique no link nao mexe na selecao da linha');
 ok(h.indexOf("rel=\'noopener\'") > 0 || h.indexOf('noopener') > 0,

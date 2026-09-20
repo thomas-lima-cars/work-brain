@@ -1,0 +1,37 @@
+{
+  "_como_usar": [
+    "Copie este arquivo para <produto>.json e preencha.",
+    "Um arquivo por produto: cars2you, c6, itau, lm, bradesco, dealers.",
+    "Mede o contraste antes de fixar a cor: node design/_contraste.js '#RRGGBB' '#RRGGBB'",
+    "Hoje só a cars2you tem tema implementado em design/tokens/tema.css. Um segundo",
+    "produto com cara própria vira uma decisão: bloco de override no tema.css ou",
+    "gerar CSS a partir destes JSON. Ainda não foi preciso — não invente antes."
+  ],
+
+  "produto": "",
+  "rotulo": "",
+  "atualizado": "AAAA-MM-DD",
+  "origem": "quem entregou a paleta, quando, e onde está o arquivo original",
+  "pensada_para": "painel claro | painel escuro | os dois",
+
+  "marca": {
+    "_": "Uma entrada por cor oficial. O papel é o que importa — é ele que vira token.",
+    "exemplo": { "hex": "#000000", "rgb": [0, 0, 0], "papel": "descreva onde essa cor entra" }
+  },
+
+  "derivados": {
+    "_nota": "Cor que VOCÊ inventou porque a paleta não cobria o caso. Separada de propósito: derivado não é marca, e vira pergunta pra equipe, não decisão sua.",
+    "exemplo": { "hex": "#000000", "papel": "", "contraste_sobre_branco": 0 }
+  },
+
+  "contraste_medido": {
+    "_metodo": "WCAG 2.1. Texto normal pede 4,5:1; texto grande e traço de UI, 3,0:1.",
+    "_leitura": "Escreva aqui o que a medição obrigou a mudar. É essa frase que evita refazer a conta."
+  },
+
+  "logo": {
+    "pasta": "design/marca/<produto>/",
+    "claro": "arquivo usado em fundo claro",
+    "escuro": "arquivo usado em fundo escuro"
+  }
+}

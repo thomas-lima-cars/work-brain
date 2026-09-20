@@ -13,6 +13,9 @@
 | `automations/` | Automações reais: flows n8n documentados, scripts, estado (JSON), crons | Mexer/debugar uma automação, entender o que roda sozinho |
 | `automations/bancos/` | **Acesso direto aos bancos** (Cars2You e Dealers): conexão, runner somente-leitura, gerador de schema | Consultar banco fora do n8n |
 | `automations/precificacao/` | O estudo de precificação sobre as duas bases | Mexer no estudo |
+| `automations/n8n-sdk/rel-veiculos/` | **Radar de Estoque** — o relatório de veículos em evento × lojas compradoras. A pasta ainda tem o nome antigo | Mexer no Radar |
+| `design/regras-de-layout.md` | 📐 **O que já foi decidido sobre layout** — anatomia do cartão, KPI, gráfico, glossário, tema, tabela | **Antes de ajustar visual de qualquer painel** — a decisão já pode estar tomada |
+| `design/` | **Identidade e modelos de painel** — marca por produto, paleta por produto, `tema.css` e os dois modelos de dashboard (claro e escuro) | **Antes de montar qualquer HTML** — copiar o modelo, não inventar layout |
 | `memory/decisions/` | Decisões grandes, com opções consideradas e consequências | Entender por que algo é do jeito que é |
 | `.claude/skills/` | Skills (slash commands) | Invocadas via `/<nome>` |
 
@@ -79,6 +82,9 @@ Onde mora cada coisa:
 | O que é venda, deságio, FIPE | `context/banco-de-dados/projetos/precificacao/definicoes.md` |
 | Estado do dia | `estado-atual.md` |
 | O que roda sozinho | `automations/crons.md` |
+| Cor, fonte, forma de painel | `design/tokens/tema.css` |
+| Regra de layout já decidida | `design/regras-de-layout.md` |
+| Paleta e logo de um produto | `design/paletas/<produto>.json` e `design/marca/<produto>/` |
 
 **Todo número traz data e como foi medido.** Número sem data não serve — a base
 se move.

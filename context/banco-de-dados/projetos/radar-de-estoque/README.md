@@ -1,4 +1,4 @@
-# rel-veiculos — conhecimento de banco
+# Radar de Estoque — conhecimento de banco
 
 > 🚧 **A preencher.** Hoje está em
 > `automations/n8n-sdk/rel-veiculos/README.md` e nos cabeçalhos dos scripts.

@@ -94,6 +94,19 @@ if (VEICULOS === 0) {
 }
 if (LOJAS === 0) throw new Error('nenhuma loja com oferta na janela de historico');
 
+/* Mesma historia da q_evento_wl, e com um agravante: truncar a lista de
+   eventos nao some so do cabecalho -- some do FILTRO de evento da pagina,
+   entao o usuario deixa de conseguir isolar uma edicao que esta ali no
+   meio dos veiculos. Achado em 18/09 no run 50406: 51+ eventos, uma
+   pagina so, e o evento 21746 tinha veiculo e nao tinha linha. */
+const EV_ESPERADO = Number((leitura('q_ev_total')[0] || {}).eventos);
+if (Number.isFinite(EV_ESPERADO) && eventos.length !== EV_ESPERADO) {
+  throw new Error('q_eventos veio incompleta: ' + eventos.length +
+    ' eventos de ' + EV_ESPERADO +
+    '. Aumente as paginas dela na fase 1 (evento faltando some do filtro ' +
+    'da pagina sem dar erro).');
+}
+
 /* q_evento_wl e paginada por numero escolhido na fase 1. Truncar ali nao da
    erro: o veiculo perde whitelabel e vira "sem loja elegivel", que na tela
    fica igual a um carro sem loja compativel de verdade. Entao confere. */

@@ -30,6 +30,13 @@ function elemento(id) {
     onchange: null,
     oninput: null,
     _attrs: {},
+    /* Registrado desde 18/09: o glossario deixou de ser uma segunda tela e
+       virou o fim da pagina, entao o botao ROLA ate ele em vez de trocar
+       `display`. Sem isto aqui, o clique estoura no DOM de mentira. */
+    _rolou: 0,
+    scrollIntoView: function () { el._rolou += 1; },
+    /* a <textarea> do texto pro lojista chama `select()` antes de copiar */
+    select: function () { el._selecionou = (el._selecionou || 0) + 1; },
     getAttribute: function (k) { return el._attrs[k]; },
     setAttribute: function (k, v) { el._attrs[k] = v; },
     /* Devolve linhas de verdade, lidas do proprio innerHTML.
@@ -130,10 +137,43 @@ function smoke(html) {
      tela com endereco proprio (#glossario). */
   const cache = {};
   const doc = {
+    /* `documentElement.dataset` entrou quando o relatorio adotou o modelo do
+       brain (18/09): o tema vive num `data-tema` no <html>, e sem isto aqui o
+       APP estoura no primeiro `aplicaTema`. O smoke pegou na hora — que e
+       exatamente o que ele existe pra fazer. */
+    documentElement: { dataset: { tema: 'claro' } },
     querySelector: function (sel) {
       const id = String(sel).replace('#', '');
       if (!cache[id]) cache[id] = elemento(id);
       return cache[id];
+    },
+    /* Entrou com a selecao de veiculos (18/09). Devolver [] seria mais facil
+       e faria o smoke "passar" sem nunca clicar numa caixa — foi exatamente
+       assim que o clique em linha ficou anos fora do teste (ver o comentario
+       do `querySelectorAll` do elemento). Entao aqui as caixas sao LIDAS do
+       innerHTML do extrato, como as linhas de tabela ja sao. */
+    querySelectorAll: function (sel) {
+      const ext = cache['extrato'];
+      if (!ext || String(sel).indexOf('.cx') < 0) return [];
+      /* MEMOIZA enquanto o innerHTML nao muda — mesma armadilha do
+         `querySelectorAll` do elemento, e eu caí nela de novo: sem isto,
+         cada chamada cria objetos novos, o `cx.onclick=...` do app cai em
+         objetos descartados, e quem consultar depois recebe caixas sem
+         handler. O smoke acusou na primeira execucao. */
+      if (doc._cxHtml === ext.innerHTML && doc._cx) return doc._cx;
+      const tags = ext.innerHTML.match(/<input[^>]*class='cx'[^>]*>/g) || [];
+      doc._cxHtml = ext.innerHTML;
+      doc._cx = tags.map(function (t) {
+        const m = t.match(/data-vid='([^']*)'/);
+        return {
+          onclick: null,
+          checked: /checked/.test(t),
+          getAttribute: function (k) {
+            return k === 'data-vid' ? (m ? m[1] : null) : null;
+          }
+        };
+      });
+      return doc._cx;
     }
   };
   const loc = { hash: '' };
@@ -292,26 +332,152 @@ function smoke(html) {
     cache['f_wl'].onchange();
   }
 
-  /* 7. o glossario abre e volta */
-  const bt = cache['btn_info'];
-  if (!bt || typeof bt.onclick !== 'function') {
-    erros.push('o botao do glossario nao tem handler');
+  /* 7. o glossario: ultimo bloco da pagina, FECHADO ate clicarem.
+     Foi segunda tela (ate 18/09), depois bloco sempre aberto com botao no
+     cabecalho, e agora e um <details> — regra do modelo. Cada mudanca dessas
+     quebra este bloco de proposito: e ele que impede a anterior de voltar. */
+  if (!/<details[^>]*id="pg_gloss"/.test(html)) {
+    erros.push('o glossario nao e um <details> — deveria abrir so no clique');
+  }
+  const abreGloss = html.match(/<details[^>]*id="pg_gloss"[^>]*>/);
+  if (abreGloss && /\bopen\b/.test(abreGloss[0])) {
+    erros.push('o glossario nasce aberto — deveria estar fechado');
+  }
+  if (html.indexOf('id="btn_info"') >= 0) {
+    erros.push('o botao do glossario voltou pro cabecalho');
+  }
+
+  /* 7a. a gaveta de filtros abre, fecha pelo X e fecha pelo veu */
+  const abaF = cache['btn_filtros'];
+  if (!abaF || typeof abaF.onclick !== 'function') {
+    erros.push('a aba de filtros nao tem handler');
   } else {
     try {
-      bt.onclick();
-      if (cache['pg_gloss'].style.display !== '' || cache['pg_rel'].style.display !== 'none') {
-        erros.push('clicar no botao nao trocou para o glossario');
+      if (cache['gaveta'].className.indexOf('aberta') >= 0) {
+        erros.push('a gaveta de filtros nasce aberta');
       }
-      if (loc.hash !== 'glossario' && loc.hash !== '#glossario') {
-        erros.push('o glossario nao registrou endereco proprio — tem "' + loc.hash + '"');
+      abaF.onclick();
+      if (cache['gaveta'].className.indexOf('aberta') < 0) {
+        erros.push('clicar na aba nao abriu a gaveta');
       }
-      bt.onclick();
-      if (cache['pg_rel'].style.display !== '' || cache['pg_gloss'].style.display !== 'none') {
-        erros.push('clicar de novo nao voltou para o relatorio');
+      if (cache['veu_filtros'].style.display === 'none') {
+        erros.push('a gaveta abriu sem o veu que fecha ao clicar fora');
+      }
+      if (abaF._attrs['aria-expanded'] !== 'true') {
+        erros.push('a aba nao anuncia aria-expanded ao abrir');
+      }
+      cache['fecha_filtros'].onclick();
+      if (cache['gaveta'].className.indexOf('aberta') >= 0) {
+        erros.push('o X nao fechou a gaveta');
+      }
+      abaF.onclick();
+      cache['veu_filtros'].onclick();
+      if (cache['gaveta'].className.indexOf('aberta') >= 0) {
+        erros.push('clicar fora nao fechou a gaveta');
       }
     } catch (e) {
-      erros.push('erro ao abrir o glossario: ' + e.message);
+      erros.push('erro na gaveta de filtros: ' + e.message);
     }
+  }
+
+  /* 7c. o extrato: corte pelo usuario, selecao, e o texto pro lojista.
+     Estas tres coisas so existem DEPOIS de clicar numa loja, entao nada
+     aqui e alcancado pelo teste de carga da pagina. */
+  const lojas = cache['t_l'] && cache['t_l'].querySelectorAll('tbody tr');
+  if (lojas && lojas.length) {
+    try {
+      lojas[0].onclick();
+      const ext = cache['extrato'];
+      const h = ext.innerHTML || '';
+
+      if (h.indexOf("type='range'") < 0 || h.indexOf("id='lim'") < 0) {
+        erros.push('o corte de aderencia nao virou barra deslizante');
+      }
+      if (!/id='lim'[^>]*value='70'/.test(h)) {
+        erros.push('a barra nao nasce em 70%');
+      }
+      if (h.indexOf("class='cx'") < 0) {
+        erros.push('a lista nao tem caixa de selecao por veiculo');
+      }
+      if (h.indexOf("id='sel_todos'") < 0) {
+        erros.push('falta a caixa de selecionar todos');
+      }
+      /* a caixa nao pode disparar o clique da linha, que troca a tela */
+      if (h.indexOf('stopPropagation') < 0) {
+        erros.push('a celula da caixa nao barra o clique da linha');
+      }
+
+      /* mover a barra tem que REDESENHAR a lista */
+      const bar = cache['lim'];
+      if (!bar || typeof bar.oninput !== 'function') {
+        erros.push('a barra de corte nao tem handler');
+      } else {
+        const antes = (ext.innerHTML.match(/class='cx'/g) || []).length;
+        bar.value = '0';
+        bar.oninput();
+        const depois = (ext.innerHTML.match(/class='cx'/g) || []).length;
+        if (depois < antes) {
+          erros.push('baixar o corte para 0% devolveu MENOS veiculos (' +
+                     antes + ' -> ' + depois + ')');
+        }
+        bar.value = '100';
+        bar.oninput();
+        const cem = (ext.innerHTML.match(/class='cx'/g) || []).length;
+        if (cem > depois) {
+          erros.push('subir o corte para 100% devolveu MAIS veiculos');
+        }
+        bar.value = '70';
+        bar.oninput();
+      }
+
+      /* sem selecao, o botao avisa em vez de gerar texto vazio */
+      const bmsg = cache['btn_msg'];
+      if (!bmsg || typeof bmsg.onclick !== 'function') {
+        erros.push('o botao de gerar texto nao tem handler');
+      } else {
+        bmsg.onclick();
+        if ((cache['saida_msg'].innerHTML || '').indexOf('Selecione ao menos') < 0) {
+          erros.push('sem veiculo marcado, o botao deveria pedir uma selecao');
+        }
+
+        /* marca o primeiro e gera de novo */
+        const caixas = doc.querySelectorAll('#extrato .cx');
+        if (!caixas.length) {
+          erros.push('o DOM de mentira nao enxergou as caixas');
+        } else {
+          caixas[0].checked = true;
+          caixas[0].onclick({ stopPropagation: function () {} });
+          bmsg.onclick();
+          const txt = cache['msg_txt'].value || '';
+          if (!txt) erros.push('o texto pro lojista saiu vazio');
+          if (txt.indexOf('Ol') !== 0) erros.push('o texto nao comeca saudando a loja');
+          if (txt.indexOf('http') < 0) {
+            erros.push('o texto nao traz o link do anuncio');
+          }
+          if (txt.indexOf('<') >= 0 || txt.indexOf('&middot;') >= 0) {
+            erros.push('o texto tem marcacao HTML — ele vai pro WhatsApp e pro e-mail');
+          }
+          if (typeof cache['btn_copiar'].onclick !== 'function') {
+            erros.push('o botao de copiar nao tem handler');
+          }
+        }
+      }
+      /* A linha da loja e um ALTERNADOR: clicar de novo desmarca. Sem
+         devolver ao estado anterior, o bloco 7b clica na mesma linha, ela
+         desliga, e o extrato chega vazio la — a falha aparece no teste
+         seguinte e nao neste, que e o pior jeito de descobrir. */
+      lojas[0].onclick();
+    } catch (e) {
+      erros.push('erro no extrato da loja: ' + e.message);
+    }
+  }
+
+  /* 7a-2. o rodape carrega o que saiu do topo */
+  if (html.indexOf('Atualizado em') < 0) {
+    erros.push('o rodape nao diz quando foi atualizado');
+  }
+  if (html.indexOf('perfil de compra desde') < 0) {
+    erros.push('o rodape nao descreve a base');
   }
 
   /* 7b. clicar numa LOJA abre o extrato, e o extrato desenha o painel

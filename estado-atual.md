@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-18 (manhã) — cérebro reorganizado, espaço de banco por projeto
+> **Última atualização:** 2026-09-18 (noite) — Radar de Estoque mudou de eixo: janela de 7 dias à frente
 
 ## 🔹 Frentes quentes agora
 - **bancos (cars2you + dealers)** — 🔥 **Acesso direto ao banco das DUAS operações.**
@@ -25,8 +25,15 @@
   Ranking das colunas: comprador 41,6% · km 18,1% · cluster 18,1% · versão 13,1%.
   Workflow das sondas: `a6fNNTUYYayehNIn` (leitura, inativo, sem e-mail).
   Ver `automations/n8n-sdk/precificacao/README.md`.
-  Pendente antigo: **`rel-veiculos`** (`8fiTFsjWG9RQinz8`) — conferir o run **50327**;
-  e o Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
+  Pendente antigo: Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
+- **Radar de Estoque** — 🔥 **Mudou de eixo em 18/09.** wf `8fiTFsjWG9RQinz8` (renomeado
+  no n8n), pasta ainda `automations/n8n-sdk/rel-veiculos/`. A janela olha **para a
+  frente** (eventos encerrando em 7 dias, piso à meia-noite e teto às 23:59:59) em vez
+  de para trás — antes o assunto era a **sobra**, é outra pergunta. Correspondência
+  mínima **desligada**: o piso agora é a barra do extrato, que nasce em 70%.
+  Execução **52212** ✅ — 25 eventos, 1.096 veículos, 32.880 pares, 4,89 MB.
+  🔴 **Publicou na pasta ERRADA**: o `Virar Arquivo` não foi transcrito. Ver "PENDENTE
+  (segunda, 21/09)" no README do projeto.
 - **c6** — 🔥 **Parado há 13 dias no mesmo ponto: falta um run que termine.**
   Lote 2 pronto e provado, gerador novo em `automations/n8n-sdk/gerador/`.
   ⚠️ Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas eram do Raio-X, oculto.
@@ -55,8 +62,10 @@
 - 🔴 **O que são as 39 vendas do Agile (004362-1)?** `km NULL`, `ano_modelo 2010`, VMV
   igual ao preço de venda, até R$ 503 mil para FIPE de R$ 28 mil, em poucos compradores.
   Lote? Teste? Lançamento manual? Não é ruído estatístico.
-- **O corte de 50% do `rel-veiculos` deve baixar?** 133 veículos mudam.
-- **Distribuição dos relatórios** — o HTML do `rel-veiculos` foi a ~4 MB; o analítico da
+- 🔵 **`TETO_LOJAS = 30` deve subir?** Agora é ele quem corta: **986.559 pares** fora dele
+  na 52212, contra zero pelo mínimo. Sem teto, 20 MB e o navegador trava — a pergunta é
+  qual teto, não se existe.
+- **Distribuição dos relatórios** — o HTML do Radar de Estoque foi a **4,89 MB** (52212); o analítico da
   precificação, a 1,7 MB. Anexo diário desse tamanho é arriscado; SharePoint + link é o
   que o IGA já faz.
 - **As 4 lojas "internas" contam no ranking?** Porto Seguro, Itaú Unibanco e duas "Teste".
@@ -72,10 +81,12 @@
 - [ ] 🔥 **Fazer o run do C6 terminar** — (1) tirar as 8 queries `rx_*`; (2) desligar
       `onError: continueRegularOutput` no nó MCP; (3) rodar `QImk2D4HdzIqHZe9`;
       (4) montar com `node monta_html_de_dados.js`.
-- [ ] Conferir o run **50327** do `rel-veiculos`
+- [ ] 🔥 **Radar de Estoque, segunda 21/09:** transcrever o `Virar Arquivo`, rodar de
+      novo (aí a pasta `Radar de Estoque` nasce) e apagar as 2 pastas antigas + o
+      arquivo de 18/09 que caiu na pasta #2
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
-- [ ] Preencher `context/banco-de-dados/projetos/c6/` e `.../rel-veiculos/` — medindo, não copiando
+- [ ] Preencher `context/banco-de-dados/projetos/c6/` e `.../radar-de-estoque/` — medindo, não copiando
 - [ ] Modelo multivariado: só com o que se sabe ANTES da venda (o comprador não vale)
 - [ ] Incluir `laudo` na sonda 10 da Cars2You — rendeu 11,3% na Dealers e aqui não é extraída
 - [ ] Alinhar o controle dos dois analisadores do estudo (`no-analisar.js` usa `grupo`,
@@ -98,7 +109,7 @@
 
 ## ⏳ Esperando outros
 - **Thomas** — objetivo do acesso à Dealers? · REPASSE/TRADICIONAL vira coluna? · o que são as vendas do Agile? ·
-  as 4 lojas do ranking são contas internas? · o corte de 50% baixa?
+  as 4 lojas do ranking são contas internas?
 - **Gui** — aprovação pra readicionar `fernando.tuunelis` no e-mail do IGA
 - **Caio / Gui / Daniel** — avaliação do Skip/Adapta
 - **Doni** — alinhamento do formato do Pulso de Eventos
@@ -128,6 +139,13 @@
 - 🚨 **A entrega do C6 não saiu, e já são 13 dias.** É avaliação de skill (ata 2026-09-02).
 - 🕐 **O banco responde em UTC; as datas dos eventos estão em hora de Brasília.** Recorte
   de evento por data tem que ser calculado fora do SQL e ir como literal.
+- 📋 **A lista de nós a transcrever para o n8n sai do `git diff`, NUNCA da memória** — e
+  confira com `_confere_transcricao.py` ANTES de rodar (compara os 4 nós byte a byte).
+  Em 18/09 afirmei que o `Virar Arquivo` não mudara; mudara, e publicou na pasta antiga.
+- 🔤 **`Get-Content` sem `-Encoding UTF8` lê UTF-8 como ANSI:** "veículos" vira
+  "veÃ­culos", sem erro nenhum, e o glossário sai corrompido. Medido em 18/09.
+- 🔒 **Microsoft 365 conecta mas cai em Conditional Access** (`AADSTS53003`) — admin do
+  tenant acha pelo trace. SharePoint, por ora, só pela interface ou pelo n8n.
 - 📏 **Duas sondas que alimentam páginas da mesma amostra precisam do MESMO `WHERE`.**
   Cada uma tem o próprio gabarito, e os dois batem — cada um com o seu número errado.
   Aconteceu em 15/09: 4.127 contra 4.582.

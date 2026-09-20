@@ -34,11 +34,26 @@ function igual(a, b, rot) {
 
 /* Roda o nó com um `$input` de mentira. `Buffer` e `Date` entram por
  * parâmetro para as provas poderem sabotá-los. */
-function roda(json, opcoes) {
+function rodaFonte(fonte, json, opcoes) {
   const o = opcoes || {};
   const $input = { first: () => ({ json: json }) };
-  const corpo = new Function('$input', 'Buffer', 'Date', FONTE);
+  const corpo = new Function('$input', 'Buffer', 'Date', fonte);
   return corpo($input, o.Buffer || Buffer, o.Date || Date);
+}
+
+function roda(json, opcoes) {
+  return rodaFonte(FONTE, json, opcoes);
+}
+
+/* Roda o MESMO no com outro nome de publicacao, trocando as constantes na
+   fonte. Serve pra provar o encoder com acento mesmo quando o nome real nao
+   tem nenhum — ver a prova do percent-encoding mais abaixo. */
+function rodaCom(pasta, prefixo, json, opcoes) {
+  const fonte = FONTE
+    .replace(/const PASTA = '[^']*'/, "const PASTA = '" + pasta + "'")
+    .replace(/const PREFIXO = '[^']*'/, "const PREFIXO = '" + prefixo + "'");
+  if (fonte === FONTE) throw new Error('nao consegui trocar PASTA/PREFIXO na fonte');
+  return rodaFonte(fonte, json, opcoes);
 }
 
 function htmlDe(bytes) {
@@ -138,29 +153,40 @@ function comRelogio(iso) {
 prova('23h de Brasília ainda é o dia de hoje, não o de amanhã', () => {
   /* 2026-09-12T02:00Z = 2026-09-11 23:00 em Brasília */
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-12T02:00:00Z') });
-  igual(r[0].json.nomeArquivo, 'relatório-aderência-veículos-2026-09-11.html', 'nome do arquivo');
+  igual(r[0].json.nomeArquivo, 'radar-de-estoque-2026-09-11.html', 'nome do arquivo');
 });
 
 prova('00h30 de Brasília já é o dia novo', () => {
   /* 2026-09-12T03:30Z = 2026-09-12 00:30 em Brasília */
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-12T03:30:00Z') });
-  igual(r[0].json.nomeArquivo, 'relatório-aderência-veículos-2026-09-12.html', 'nome do arquivo');
+  igual(r[0].json.nomeArquivo, 'radar-de-estoque-2026-09-12.html', 'nome do arquivo');
 });
 
 prova('meio-dia UTC e meio-dia de Brasília caem no mesmo dia', () => {
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-11T12:00:00Z') });
-  igual(r[0].json.nomeArquivo, 'relatório-aderência-veículos-2026-09-11.html', 'nome do arquivo');
+  igual(r[0].json.nomeArquivo, 'radar-de-estoque-2026-09-11.html', 'nome do arquivo');
 });
 
 /* ── 6. o caminho ─────────────────────────────────────────────────────── */
 prova('o espaço da pasta vai codificado, e a barra NÃO', () => {
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-11T12:00:00Z') });
-  igual(r[0].json.caminho, 'Relat%C3%B3rios%20Ader%C3%AAncia%20Ve%C3%ADculos/relat%C3%B3rio-ader%C3%AAncia-ve%C3%ADculos-2026-09-11.html', 'caminho');
+  igual(r[0].json.caminho, 'Radar%20de%20Estoque/radar-de-estoque-2026-09-11.html', 'caminho');
   igual((r[0].json.caminho.match(/\//g) || []).length, 1, 'exatamente uma barra separadora');
 });
 
+/* ── o encoder ainda tem que aguentar acento ──────────────────────────────
+   O nome de hoje ("Radar de Estoque") e ASCII puro, e isso quase apagou esta
+   prova: sem acento no nome, a ida-e-volta passaria comparando dois ASCII
+   iguais sem testar nada — a propria prova avisava isso, e o aviso disparou
+   quando o nome mudou.
+
+   A capacidade continua importando: o proximo nome pode ter acento, e a
+   correcao de 15/09 (charset + percent-encoding) custou uma investigacao
+   inteira. Entao a prova passa a FORCAR um nome acentuado no lugar das
+   constantes, em vez de depender de o nome real ter acento por sorte. */
 prova('o acento SOBREVIVE à codificação: o caminho decodifica de volta', () => {
-  const r = roda({ html: htmlDe(200 * 1024) });
+  const r = rodaCom('Pasta Acentuada Ação', 'relatório-acentuação',
+                    { html: htmlDe(200 * 1024) });
   const partes = r[0].json.caminho.split('/');
   /* Conferir que a string "mudou de forma" nao prova nada -- percent-encoding
      errado tambem muda a forma. O que prova e a VOLTA: decodificado, o

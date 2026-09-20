@@ -1,0 +1,416 @@
+/* ==========================================================================
+   Tema dos painéis — Cars2You
+   --------------------------------------------------------------------------
+   FONTE ÚNICA do visual. Mexeu aqui, regera os modelos:
+       node design/modelos/monta-modelos.js
+
+   Nunca escreva cor solta dentro do HTML de um painel. Se a cor não existe
+   aqui, ou ela vira token, ou não deveria estar sendo usada.
+
+   Dois temas no mesmo arquivo, de propósito: dois arquivos separados ficam
+   livres pra divergir, e o claro vira o "de verdade" enquanto o escuro
+   apodrece.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Paleta da marca — valores oficiais, não inventar
+   -------------------------------------------------------------------------- */
+:root{
+  --marca-azul:       #1523A0;  /* primária   */
+  --marca-azul-claro: #487DEA;  /* acento     */
+  --marca-cinza:      #E4E6E6;  /* divisória  */
+  --marca-vinho:      #6F4047;  /* atenção    */
+  --marca-vermelho:   #7F1112;  /* negativo   */
+
+  /* Derivados — NÃO estão na paleta oficial. A paleta não tem verde, e um
+     painel precisa de "subiu / desceu". Ver design/paletas/README.md. */
+  --d-verde:          #0E7C55;
+  --d-verde-vivo:     #35C08A;
+  --d-vermelho-vivo:  #EF5B60;
+
+  /* --- forma e ritmo --- */
+  --r-g: 16px;   /* raio do cartão    */
+  --r-m: 12px;   /* raio de bloco     */
+  --r-p: 10px;   /* raio de controle  */
+  --gap: 16px;
+  --topo-h: 68px;
+
+  --fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+           "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. Tema CLARO — é o padrão. A paleta foi pensada pra ele.
+   -------------------------------------------------------------------------- */
+:root,
+[data-tema="claro"]{
+  /* Sem isto, <select>, scrollbar e afins seguem o modo do SISTEMA, nao o da
+     pagina: o tema claro abre com os controles pretos em quem usa o SO no
+     escuro. Aconteceu no primeiro print. */
+  color-scheme: light;
+
+  --fundo:          #F2F3F5;
+  --fundo-veu:      radial-gradient(1200px 600px at 12% -10%,
+                      rgba(72,125,234,.10), transparent 60%);
+
+  --superficie:     #FFFFFF;
+  --superficie-2:   #F7F8FA;
+  --borda:          var(--marca-cinza);
+  --borda-forte:    #CFD3D8;
+
+  --texto:          #14161C;
+  --texto-2:        #565B6B;
+  --texto-3:        #8A8FA0;
+
+  /* #487DEA sobre branco dá 3,9:1 — reprova em texto normal (AA pede 4,5).
+     Por isso texto e link usam o azul escuro (11,8:1) e o claro fica pro
+     preenchimento, que só precisa de 3:1. */
+  --acento:         var(--marca-azul);
+  --acento-cheio:   var(--marca-azul-claro);
+  --acento-veu:     rgba(72,125,234,.12);
+
+  --positivo:       var(--d-verde);
+  --negativo:       var(--marca-vermelho);
+  --atencao:        var(--marca-vinho);
+
+  --grade:          rgba(20,22,28,.08);
+  --sombra:         0 1px 2px rgba(16,20,40,.05), 0 8px 24px rgba(16,20,40,.06);
+  --cartao-borda:   1px solid var(--borda);
+  --cartao-fundo:   var(--superficie);
+  --cartao-blur:    none;
+  --brilho:         none;
+}
+
+/* --------------------------------------------------------------------------
+   3. Tema ESCURO — vidro, na linha da referência
+   -------------------------------------------------------------------------- */
+[data-tema="escuro"]{
+  color-scheme: dark;
+
+  --fundo:          #0B0D12;
+  --fundo-veu:      radial-gradient(900px 500px at 8% -8%,
+                      rgba(72,125,234,.20), transparent 62%),
+                    radial-gradient(800px 500px at 96% 4%,
+                      rgba(111,64,71,.16), transparent 60%);
+
+  --superficie:     #12151D;
+  --superficie-2:   #171B25;
+  --borda:          rgba(255,255,255,.09);
+  --borda-forte:    rgba(255,255,255,.16);
+
+  --texto:          #EDEFF5;
+  --texto-2:        #A4ABBF;
+  --texto-3:        #6E7589;
+
+  /* No escuro o azul da marca some (1,65:1). Quem assume é o azul claro,
+     que dá 4,99:1 sobre o fundo. Mesma lógica pro vermelho. */
+  --acento:         var(--marca-azul-claro);
+  --acento-cheio:   var(--marca-azul-claro);
+  --acento-veu:     rgba(72,125,234,.18);
+
+  --positivo:       var(--d-verde-vivo);
+  --negativo:       var(--d-vermelho-vivo);
+  --atencao:        #C98A92;
+
+  --grade:          rgba(255,255,255,.07);
+  --sombra:         0 1px 1px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.45);
+  --cartao-borda:   1px solid rgba(255,255,255,.08);
+  --cartao-fundo:   linear-gradient(158deg, rgba(255,255,255,.075),
+                                            rgba(255,255,255,.025));
+  --cartao-blur:    blur(16px) saturate(140%);
+  --brilho:         radial-gradient(420px 180px at 0% 0%,
+                      rgba(72,125,234,.16), transparent 70%);
+}
+
+/* --------------------------------------------------------------------------
+   4. Base
+   -------------------------------------------------------------------------- */
+*,*::before,*::after{ box-sizing:border-box }
+
+html{ -webkit-text-size-adjust:100% }
+
+body{
+  margin:0;
+  font-family:var(--fonte);
+  font-size:14px;
+  line-height:1.45;
+  color:var(--texto);
+  background-color:var(--fundo);
+  background-image:var(--fundo-veu);
+  background-attachment:fixed;
+  background-repeat:no-repeat;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3{ margin:0; font-weight:650; letter-spacing:-.01em }
+p{ margin:0 }
+
+.num{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1 }
+
+/* --------------------------------------------------------------------------
+   5. Topo — fixo, com o filtro dentro
+   -------------------------------------------------------------------------- */
+.topo{
+  position:sticky; top:0; z-index:30;
+  background:var(--cartao-fundo);
+  background-color:color-mix(in srgb, var(--superficie) 88%, transparent);
+  border-bottom:var(--cartao-borda);
+  backdrop-filter:var(--cartao-blur);
+  -webkit-backdrop-filter:var(--cartao-blur);
+}
+.topo-in{
+  max-width:1680px; margin:0 auto;
+  min-height:var(--topo-h);
+  padding:10px 20px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.logo{ height:26px; width:auto; display:block; flex:none }
+.topo-tit{ margin-right:auto; min-width:200px }
+.topo-tit h1{ font-size:17px }
+.topo-tit .sub{ font-size:12.5px; color:var(--texto-3); margin-top:1px }
+.topo-acoes{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+
+.ctrl{
+  font:inherit; font-size:13px; color:var(--texto);
+  background:var(--superficie-2);
+  border:1px solid var(--borda);
+  border-radius:var(--r-p);
+  padding:7px 11px;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.ctrl:hover{ border-color:var(--borda-forte) }
+.ctrl:focus-visible{ outline:2px solid var(--acento); outline-offset:1px }
+select.ctrl{ padding-right:26px }
+
+/* Botão só de ícone. O nome acessível vem do `aria-label` — sem texto
+   visível e sem label, o leitor de tela anuncia apenas "botão".
+   Ícone em SVG e não em caractere: ☀ e ☾ viram emoji colorido em parte
+   dos sistemas, e aí o botão fica com a cara de outro produto. */
+.ctrl.so-icone{ padding:7px; display:inline-flex; align-items:center }
+.ctrl.so-icone svg{ width:16px; height:16px; display:block; stroke:currentColor;
+                    fill:none; stroke-width:1.9; stroke-linecap:round;
+                    stroke-linejoin:round }
+
+/* --------------------------------------------------------------------------
+   6. Área e grades
+   -------------------------------------------------------------------------- */
+.area{
+  max-width:1680px; margin:0 auto;
+  padding:var(--gap) 20px 48px;
+  display:flex; flex-direction:column; gap:var(--gap);
+}
+.g4{ display:grid; gap:var(--gap); grid-template-columns:repeat(4,1fr) }
+.g2{ display:grid; gap:var(--gap); grid-template-columns:2fr 1fr }
+
+@media (max-width:1100px){
+  .g4{ grid-template-columns:repeat(2,1fr) }
+  .g2{ grid-template-columns:1fr }
+}
+@media (max-width:620px){
+  .g4{ grid-template-columns:1fr }
+  .area{ padding:12px 12px 40px }
+  .topo-in{ padding:10px 12px }
+}
+
+/* --------------------------------------------------------------------------
+   7. Cartão
+   -------------------------------------------------------------------------- */
+.cartao{
+  position:relative;
+  background:var(--cartao-fundo);
+  border:var(--cartao-borda);
+  border-radius:var(--r-g);
+  box-shadow:var(--sombra);
+  backdrop-filter:var(--cartao-blur);
+  -webkit-backdrop-filter:var(--cartao-blur);
+  padding:18px;
+  overflow:hidden;
+}
+/* o brilho do canto, que no claro é `none` */
+.cartao::before{
+  content:""; position:absolute; inset:0;
+  background:var(--brilho);
+  pointer-events:none;
+}
+.cartao > *{ position:relative }
+
+.cartao-topo{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:14px;
+}
+.cartao-topo h2{ font-size:14.5px; font-weight:650 }
+.cartao-topo .dir{ margin-left:auto; display:flex; gap:6px; align-items:center }
+
+.chip{
+  flex:none; width:34px; height:34px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--acento-veu);
+  color:var(--acento);
+}
+.chip svg{ width:17px; height:17px; stroke:currentColor; fill:none;
+           stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round }
+
+/* --------------------------------------------------------------------------
+   8. KPI
+   -------------------------------------------------------------------------- */
+/* KPI é resumo, não manchete.
+   ---------------------------------------------------------------------------
+   O número grande chama o olho primeiro, e ele é o dado MENOS interessante da
+   página: um total sem recorte. Quem explica é o gráfico e a tabela. Por isso
+   a faixa de KPI é deliberadamente contida — o realce aqui é o peso da fonte
+   e a tabulação, não o tamanho.
+
+   O aperto é ESCOPADO em `.g4` de propósito: cartão de gráfico, ranking e
+   tabela seguem com o respiro de 18px. Mexer no `.cartao` global encolheria
+   a página inteira, que não é o pedido. */
+.g4 .cartao{ padding:13px 14px }
+.g4 .cartao-topo{ margin-bottom:6px; gap:8px }
+.g4 .chip{ width:26px; height:26px }
+.g4 .chip svg{ width:14px; height:14px }
+
+.kpi-rot{ font-size:12.5px; color:var(--texto-2); font-weight:500 }
+.kpi-val{
+  font-size:23px; line-height:1.15; font-weight:700; letter-spacing:-.015em;
+  margin:4px 0 2px;
+}
+.kpi-delta{ font-size:11.5px; font-weight:600; display:inline-flex; gap:4px;
+            align-items:center }
+.sobe{ color:var(--positivo) } .desce{ color:var(--negativo) }
+.neutro{ color:var(--texto-3) }
+
+.kpi-pe{
+  display:flex; gap:16px;
+  margin-top:9px; padding-top:8px;
+  border-top:1px solid var(--borda);
+}
+.kpi-pe div{ min-width:0 }
+.kpi-pe dt{ font-size:11px; color:var(--texto-3); white-space:nowrap;
+            overflow:hidden; text-overflow:ellipsis }
+.kpi-pe dd{ margin:1px 0 0; font-size:13.5px; font-weight:650 }
+
+/* --------------------------------------------------------------------------
+   9. Gráfico
+   -------------------------------------------------------------------------- */
+.graf{ width:100%; height:auto; display:block; overflow:visible }
+.graf .eixo{ font-size:10.5px; fill:var(--texto-3) }
+.graf .linha-grade{ stroke:var(--grade); stroke-width:1 }
+.graf .serie{ fill:none; stroke:var(--acento-cheio); stroke-width:2.25;
+              stroke-linecap:round; stroke-linejoin:round }
+.graf .area-serie{ fill:url(#veu-serie); stroke:none }
+.graf .ponto{ fill:var(--acento-cheio) }
+
+/* Rótulo de dados — o padrão da casa. Quando ele aparece, o eixo Y sai
+   inteiro: os dois dizem a mesma coisa e juntos viram ruído. Ver a regra
+   no `desenhaLinha` do molde. Cor de texto normal, não de eixo: ele é
+   conteúdo, não referência. */
+.graf .rotulo{ font-size:11px; font-weight:650; fill:var(--texto);
+               font-variant-numeric:tabular-nums }
+
+/* --------------------------------------------------------------------------
+   10. Ranking com barra
+   -------------------------------------------------------------------------- */
+.rank{ list-style:none; margin:0; padding:0; display:flex;
+       flex-direction:column; gap:11px }
+.rank li{ display:grid; grid-template-columns:22px 1fr auto; gap:10px;
+          align-items:center }
+.rank .pos{ font-size:12px; color:var(--texto-3); text-align:right }
+
+/* `display:block` nos dois não é enfeite: são <span>, e em caixa inline
+   `height` não vale (a barra saiu com 0px de altura, invisível) e
+   `text-overflow:ellipsis` não corta. Só apareceu medindo no navegador —
+   o smoke conta <li>, não mede pixel. */
+.rank .nome{ display:block; font-size:13px; overflow:hidden;
+             text-overflow:ellipsis; white-space:nowrap }
+.rank .barra{ display:block; height:5px; border-radius:3px;
+              background:var(--acento-veu); margin-top:5px; overflow:hidden }
+.rank .barra i{ display:block; height:100%; border-radius:3px;
+                background:var(--acento-cheio) }
+.rank .val{ font-size:13px; font-weight:650 }
+
+/* --------------------------------------------------------------------------
+   11. Tabela
+   -------------------------------------------------------------------------- */
+.rolo{ overflow-x:auto; margin:0 -18px -18px; padding:0 18px 18px }
+table{ width:100%; border-collapse:collapse; font-size:13px }
+thead th{
+  position:sticky; top:0;
+  background:var(--superficie-2);
+  color:var(--texto-2); font-weight:600; font-size:12px;
+  text-align:center; white-space:nowrap;
+  padding:9px 10px;
+  border-bottom:1px solid var(--borda);
+}
+tbody td{ padding:9px 10px; text-align:center;
+          border-bottom:1px solid var(--borda) }
+tbody td:first-child, thead th:first-child{ text-align:left }
+tbody tr:last-child td{ border-bottom:none }
+tbody tr:hover td{ background:var(--acento-veu) }
+
+.tag{
+  display:inline-block; font-size:11.5px; font-weight:600;
+  padding:2px 8px; border-radius:999px;
+  background:var(--acento-veu); color:var(--acento);
+}
+.tag.ok{ background:color-mix(in srgb, var(--positivo) 16%, transparent);
+         color:var(--positivo) }
+.tag.ruim{ background:color-mix(in srgb, var(--negativo) 16%, transparent);
+           color:var(--negativo) }
+.tag.atencao{ background:color-mix(in srgb, var(--atencao) 18%, transparent);
+              color:var(--atencao) }
+
+/* --------------------------------------------------------------------------
+   12. Rodapé e glossário
+   -------------------------------------------------------------------------- */
+.rodape{ color:var(--texto-3); font-size:12px; padding:4px 2px 0 }
+.rodape a{ color:var(--acento) }
+
+/* Glossário — cartão próprio, não rodapé da tabela.
+   ---------------------------------------------------------------------------
+   Ele vivia DENTRO do cartão da tabela, e essa posição dizia "isto explica a
+   tabela". Não explica: explica a página inteira. Agora é bloco irmão dos
+   outros, e o <details> é o cartão em si — clicar no cabeçalho abre. */
+.gloss{ padding:0 }
+.gloss > summary{
+  cursor:pointer; padding:18px; margin:0;
+  list-style:none;               /* Firefox */
+  border-radius:var(--r-g);
+}
+.gloss > summary::-webkit-details-marker{ display:none }
+.gloss > summary:focus-visible{ outline:2px solid var(--acento); outline-offset:-2px }
+.gloss .seta{ color:var(--texto-3); font-size:11px; transition:transform .15s }
+.gloss[open] > summary{ border-radius:var(--r-g) var(--r-g) 0 0 }
+.gloss[open] .seta{ transform:rotate(180deg) }
+
+.gloss dl{
+  margin:0; padding:0 18px 18px;
+  display:grid; grid-template-columns:auto 1fr; gap:9px 18px;
+  font-size:12.5px;
+}
+.gloss dt{ font-weight:650; white-space:nowrap }
+.gloss dd{ margin:0; color:var(--texto-2) }
+
+@media (max-width:620px){
+  /* Em tela estreita o termo e a definição empilham: duas colunas com termo
+     longo espremem a definição em duas letras por linha. */
+  .gloss dl{ grid-template-columns:1fr; gap:2px 0 }
+  .gloss dt{ white-space:normal; margin-top:8px }
+  .gloss dt:first-child{ margin-top:0 }
+}
+
+/* --------------------------------------------------------------------------
+   13. Impressão — o painel vira PDF com alguma frequência
+   -------------------------------------------------------------------------- */
+@media print{
+  body{ background:#fff; color:#000 }
+  .topo{ position:static }
+  .topo-acoes{ display:none }
+  .cartao{ box-shadow:none; border:1px solid #ccc; backdrop-filter:none;
+           break-inside:avoid }
+  .cartao::before{ display:none }
+}
+
+/* Quem desliga animação no sistema não deve ganhar nenhuma aqui. */
+@media (prefers-reduced-motion:reduce){
+  *{ transition:none !important; animation:none !important }
+}

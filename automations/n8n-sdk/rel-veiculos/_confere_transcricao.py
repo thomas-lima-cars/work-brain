@@ -29,7 +29,15 @@ PARES = [
 ]
 
 d = json.load(io.open(sys.argv[1], encoding="utf-8"))
-wf = d["workflow"]
+# Duas origens, mesmo conteudo: o get_workflow_details do MCP embrulha em
+# {"workflow": {...}}, e o "Download" da interface do n8n entrega o objeto
+# cru. Sem aceitar os dois, quem nao tem o MCP fica sem poder conferir --
+# que e justamente quando a transcricao e manual e o risco e maior.
+wf = d["workflow"] if "workflow" in d else d
+if "nodes" not in wf:
+    print("nao achei 'nodes' no arquivo. Esperado: o JSON do workflow, do "
+          "get_workflow_details do MCP ou do Download da interface.")
+    sys.exit(2)
 nos = {n["name"]: n for n in wf.get("nodes", [])}
 
 falhou = 0

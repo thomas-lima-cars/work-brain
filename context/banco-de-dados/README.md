@@ -51,7 +51,7 @@ O que vale para as duas bases e para qualquer projeto.
 |---|---|
 | [`precificacao/`](projetos/precificacao/) | Definições de venda e deságio, indicadores medidos, dicionário do texto livre |
 | [`c6/`](projetos/c6/) | _(a preencher — hoje o conhecimento está em `subjects/c6/` e `automations/n8n-sdk/`)_ |
-| [`rel-veiculos/`](projetos/rel-veiculos/) | _(a preencher — hoje em `automations/n8n-sdk/rel-veiculos/README.md`)_ |
+| [`radar-de-estoque/`](projetos/radar-de-estoque/) | _(a preencher — hoje em `automations/n8n-sdk/rel-veiculos/README.md` — o projeto se chama **Radar de Estoque**)_ |
 
 ## ⚠️ O estado da documentação
 
