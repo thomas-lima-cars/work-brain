@@ -28,12 +28,18 @@ const ok = (cond, msg) => {
 
 const fonte = fs.readFileSync(injetor.alvo, 'utf8');
 
+/* Tira o `\r` antes de comparar. O injetor escreve com \n, mas qualquer
+   ferramenta que reescreva o arquivo inteiro no Windows o devolve em CRLF,
+   e a prova passava a acusar divergencia de CONTEUDO por causa de fim de
+   linha — mandando rodar o `_aplica-modelo.js`, que nao conserta isso.
+   Corrigido em 21/09, junto com a prova da carteira, que caiu na mesma. */
 function extrai(marca) {
   const ini = '/* ' + marca + ':INICIO */';
   const fim = '/* ' + marca + ':FIM */';
   const a = fonte.indexOf(ini), b = fonte.indexOf(fim);
   if (a < 0 || b < 0) return null;
-  return fonte.slice(a + ini.length, b).replace(/^\n/, '').replace(/\n$/, '');
+  return fonte.slice(a + ini.length, b)
+    .replace(/\r/g, '').replace(/^\n/, '').replace(/\n$/, '');
 }
 
 console.log('\n■ A copia bate com a fonte?');

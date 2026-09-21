@@ -1,0 +1,7196 @@
+{
+ "gerado_em": "2026-09-21",
+ "origem": "carteiras-cars2you-2026-09.xlsx",
+ "aba": "Todos os Clientes",
+ "consultores": [
+  "Bianca",
+  "Gabriela",
+  "Isabella",
+  "Larissa",
+  "Patricia",
+  "Renata",
+  "Rodrigo Azevedo"
+ ],
+ "clientes": [
+  {
+   "cnpj": "64625111000176",
+   "razao": "(sem razao social cadastrada)",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60511206000108",
+   "razao": "...",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "49646108000145",
+   "razao": "21 COMERCIO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37201171000199",
+   "razao": "2J COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "11170197000123",
+   "razao": "2JAPAO - CAMINHOES E CARRETAS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "15402024000144",
+   "razao": "33 AUTOMOVEIS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "39893731000149",
+   "razao": "39.893.731 NATALIENE SIEBRA SILVA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41817822000147",
+   "razao": "41.817.822 WEDSON NEVES DA SILVA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "43110356000190",
+   "razao": "43.110.356/0001-90",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "48730744000198",
+   "razao": "467 MULTIMARCAS.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "53161802000140",
+   "razao": "53.161.802 MARCIO NICOLAU",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54068098000148",
+   "razao": "54.068.098 LAIS GOMES SEIXAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54627404000139",
+   "razao": "54.627.404 FERNANDO AUGUSTO DOS SANTOS FARIA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "57400663000110",
+   "razao": "57.400.663 SORAIA MANIRA SLEIMAN RANGEL",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "59917981000189",
+   "razao": "59.917.981 ARTUR CEZAR SOUSA COSTA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60257541000121",
+   "razao": "60.257.541 ANDRE GILVAN FERNANDES FILHO",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "62831275000124",
+   "razao": "62.831.275 WILSON CICCA NETO",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "62996824000110",
+   "razao": "62.996.824 INOVA SIMPLES (I.S.)",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "63976879000121",
+   "razao": "63.976.879 SILVIO JUNIOR COSTICHE NICOLAU",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "64954006000180",
+   "razao": "64.954.006 STEFANNE CAROLINY MULLER DA SILVA CORTES",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "65613933000108",
+   "razao": "65.613.933 KAMILA FERNANDES DA SILVA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "67198134000130",
+   "razao": "67.198.134 Athila Gouveia Melo",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44095218000142",
+   "razao": "A & M Transportes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44849345000190",
+   "razao": "A & S VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51060244000109",
+   "razao": "A C Empreendimentos.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "61847438000102",
+   "razao": "A FERREIRA DE PAULA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54231242000115",
+   "razao": "A G RODRIGUES COMERCIAL",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "22799552000144",
+   "razao": "A J MARTINS COMERCIO DE AUTOMOVEIS EIRELI",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "51866837000159",
+   "razao": "A L V MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "41801381000195",
+   "razao": "A NESPOLI COMERCIO DE VEICULOS E PECAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "50980269000150",
+   "razao": "A V DA FONSECA AUTOMOVEIS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "50989269000150",
+   "razao": "A v da Fonseca automóveis me",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "25346656000191",
+   "razao": "A'granel Transportes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "03315740000105",
+   "razao": "A. C. ZEPSON COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "19908606000158",
+   "razao": "A. T. A. Transportes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "12796021000144",
+   "razao": "A.M.S. MOTORS COMERCIO DE VEICULOS EIRELI",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07751239000142",
+   "razao": "A.S. OLAWUNI AUTOMOVEIS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "49539400000169",
+   "razao": "A2 COMERCIO DE AUTOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45860800000110",
+   "razao": "AA 22 VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "52271799000154",
+   "razao": "AAGV SERVICOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "31306830000175",
+   "razao": "ABOLICAO CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "54590449000186",
+   "razao": "Ac caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "56387775000116",
+   "razao": "Acar",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "67596337000184",
+   "razao": "ACBN INOVA SIMPLES (I.S.)",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "59892388000125",
+   "razao": "ACEDO VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "07367765000103",
+   "razao": "ACELERIZ MOTOS COMERCIO DE MOTOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "12829954000190",
+   "razao": "ADEL VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "39341744000105",
+   "razao": "aek veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "06207059000131",
+   "razao": "Aerotrafic Transportes Logistica e Armazens Gerais",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "39726044000139",
+   "razao": "AF MOTORS - INTERMEDIACAO DE VEICULOS E CAMIONETAS EIRELI",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "39900011000163",
+   "razao": "AG SEMINOVOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07430585000129",
+   "razao": "Agcar Multimarcas",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "13765686000153",
+   "razao": "AGILE DISTRIBUIDORA DE MATERIAIS DESCARTAVEIS S&M LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "30551602000106",
+   "razao": "AGILIZA ALUGUEL DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "46083352000159",
+   "razao": "AGILLI VEICULOS, INTERMEDIACOES, RASTREAME",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "65043400000120",
+   "razao": "AGS MOTOCAR",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "10680672000149",
+   "razao": "AGUAS COMERCIO E CONSIGNACAO DE VEICULOS L",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "28403639000137",
+   "razao": "AL MOTORS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "67226384000136",
+   "razao": "Ala Rubra",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "20972342000180",
+   "razao": "Alberico Caminhões",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "32909242000199",
+   "razao": "ALBERTO BENTO DA SILVA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "26319260000118",
+   "razao": "ALENCAR VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "49339733000144",
+   "razao": "Alencar VeÍculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "47981462000109",
+   "razao": "ALEREPASSE AUTOMOTIVO SOCIEDADE UNIPESSOAL",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "06246317000199",
+   "razao": "Alex de mello ferreira",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "03513476000114",
+   "razao": "ALEX GALDINO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "48251274000180",
+   "razao": "ALEXANDER DOS SANTOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "11117331000122",
+   "razao": "ALEXANDRE E GUSTAVO VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "49273119000127",
+   "razao": "ALEXANDRE JAWORSKI DE SOUZA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33254746000180",
+   "razao": "ALEXANDRE VIEIRA CONSULTORIA E GESTAO EMPRESA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "38597780000171",
+   "razao": "ALEXSANDER ROMAN PIRES LOCACAO E PRESTACAO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43997780000107",
+   "razao": "ALFA MULTIMARCAS COMERCIO DE VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "52177688000183",
+   "razao": "ALFA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15114883000138",
+   "razao": "alfamultmarcas",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "46640241000104",
+   "razao": "ALIANCA MOTORS COMERCIO DE VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "05663874000142",
+   "razao": "ALL CAR VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "27768307000193",
+   "razao": "ALLMA JEEP",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "65415990000174",
+   "razao": "Allyson Guimarães Bueno",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "14356204000174",
+   "razao": "ALPINA COMERCIO DE VEICULOS NOVOS E USADOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "00212499000109",
+   "razao": "althoff veiculos",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "63300831000107",
+   "razao": "AM TRADE & TRAVEL LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "08398523000140",
+   "razao": "AM VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "11331218000145",
+   "razao": "AM VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "28103451000173",
+   "razao": "amaral motos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "47457388000118",
+   "razao": "AMARAL TRANSPORTES LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "66592265000134",
+   "razao": "AMDL VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "42346327000160",
+   "razao": "AMERICA MOTORS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "58521648000193",
+   "razao": "AMERICA MOTORS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41052166000139",
+   "razao": "AMF COMERCIO DE AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "24659290000148",
+   "razao": "AMIL-CAR VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "55052832000143",
+   "razao": "AMORIM COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42633672000184",
+   "razao": "AMP MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "22792856000180",
+   "razao": "AMR CAMINHÕES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "32899392000169",
+   "razao": "Ana Caroline Silva",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "33978444000155",
+   "razao": "ANA CLAUDIA SILVERIO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "12474977000120",
+   "razao": "ANA JULIA TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "09519267000164",
+   "razao": "ANA LARISSA BIJUTERIAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54750777000100",
+   "razao": "ANA PAULA GONCALVES DE PAULA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "34515917000140",
+   "razao": "ANDERSON DA S. ALBUQUERQUE",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "28317889000154",
+   "razao": "ANDERSON S LIMA MARKETING DIGITAL",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29304021000182",
+   "razao": "Andrade e Rocha Veiculos Ltda",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "47253098000152",
+   "razao": "Andre",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "22217877000171",
+   "razao": "ANDRE AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "62962468000114",
+   "razao": "Andre de Souza Carvalho",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "49279315000109",
+   "razao": "Andre Luiz Silva",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54222498000166",
+   "razao": "ANGELO INTERMEDIACOES E NEGOCIOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "10617344000106",
+   "razao": "anhanguera caminhoes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "41875618000182",
+   "razao": "ANTONIO BRAGA BICALHO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "17295927000107",
+   "razao": "ANTONIO DE ASSUNÇÃO REIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "25289114000124",
+   "razao": "ANTONIO JOSE CHITTERO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "27784878000111",
+   "razao": "ANTONIO MARCOS CORTEZ",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "26655306000170",
+   "razao": "ANTONIO PEREIRA LEITE JUNIOR",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "18073051000109",
+   "razao": "ANTUNES MULTIMARCAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "28372017000199",
+   "razao": "Antônio Elano de Lima Sousa (Auto Facil.)",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "31307455000188",
+   "razao": "AproveWeb Auto",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "18139562000186",
+   "razao": "AQUI VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05856279000123",
+   "razao": "AREIAO COMERCIO DE AREIA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "52433235000170",
+   "razao": "ARENA NEGOCIOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "39313083000104",
+   "razao": "ARIANE MARIA CERQUEIRA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "52722932000141",
+   "razao": "ARIZONA COMERCIO DE VEICULOS NOVOS E USADOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "54366266000181",
+   "razao": "Arlindoscar",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "60059699000197",
+   "razao": "ARS Motors",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "13233654000107",
+   "razao": "ATLAS VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "17337534000100",
+   "razao": "AUGUIVEIRA MARKETING LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "50679806000126",
+   "razao": "AUTENTICA MULTIMARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "50147967000179",
+   "razao": "AUTO BLESS VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "09328950000203",
+   "razao": "Auto Bom Multimarcas",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "24603899000103",
+   "razao": "Auto Boos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "41029801000167",
+   "razao": "AUTO BRUNO TRUCKS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "46853967000117",
+   "razao": "AUTO CAR LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "61470406000122",
+   "razao": "AUTO CAR SEMINOVOS E MOBILIDADE LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "31281129000149",
+   "razao": "AUTO ELEVEN MULTIMARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "66189340000110",
+   "razao": "AUTO FLASH PRIME LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "49945461000126",
+   "razao": "AUTO FORT MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "65019166000103",
+   "razao": "AUTO HUB INTERMEDIACOES DE NEGOCIOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "30379946000171",
+   "razao": "AUTO JOTA VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "53666377000140",
+   "razao": "Auto Link Sistemas",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27129488000108",
+   "razao": "Auto M veículos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "01856266000101",
+   "razao": "AUTO MECANICA PONTUAL LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07704945000133",
+   "razao": "AUTO MINAS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "50198588000108",
+   "razao": "AUTO MINAS CAMINHOES E IMPLEMENTOS RODOVIARIO LTDA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "08777173000122",
+   "razao": "Auto Nacional",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "32015899000102",
+   "razao": "AUTO NORTE COMERCIO DE AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "08911602000102",
+   "razao": "AUTO PARREIRAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45056079000100",
+   "razao": "AUTO PLAY MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "20837116000197",
+   "razao": "AUTO PLAY VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "06279925000108",
+   "razao": "Auto Posto Nicolodi",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "28479980000176",
+   "razao": "AUTO PRIME MULTIMARCAS VARGINHA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "44917878000161",
+   "razao": "AUTO RED MARCAS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "39473687000118",
+   "razao": "AUTO REPASSE",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "45670073000129",
+   "razao": "AUTO REPASSE GOIANO LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52655995000122",
+   "razao": "AUTO REPASSE MOSSORO",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "00348629000127",
+   "razao": "Auto Socorro Mantiqueira",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "61187651000127",
+   "razao": "Auto62 Motors LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42176631000106",
+   "razao": "AUTOCAR",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54314575000108",
+   "razao": "AUTOCELLIS COMERCIO E LOCACAO DE VEICULOS LTD",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "07736296000152",
+   "razao": "AUTOCLICK COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "54949331000100",
+   "razao": "Autodrigo",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "77307650000109",
+   "razao": "AUTOFOZ VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29054935000132",
+   "razao": "AUTOLIDER VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07548650000115",
+   "razao": "AUTOMARCAS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08492413000142",
+   "razao": "AUTOMOBILI AUTOMOVEIS MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "61127110000103",
+   "razao": "AUTOMOVE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17895893000183",
+   "razao": "AUTOPLUS SC DISTRIBUIDORA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "06328026000140",
+   "razao": "AUTOREBOCK",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "55292222000117",
+   "razao": "AUTOSHOW COMERCIO DE VEICULOS MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "21839595000143",
+   "razao": "AUTOSIMPLES",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "31240086000153",
+   "razao": "AVALIAR E VENDER TECNOLOGIA E SERVICOS VEICUL",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "54361649000167",
+   "razao": "Avenida Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "42416563000105",
+   "razao": "AZ MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "63585984000130",
+   "razao": "B. R. FERRACIN DOMINGUES VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59981666000110",
+   "razao": "B22 MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "13364034000107",
+   "razao": "BALANKAR",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "24264758000103",
+   "razao": "balbisan comercio e representações ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37295224000188",
+   "razao": "BALDEZ SOLUCOES EMPRESARIAIS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "72624521000120",
+   "razao": "BALI BRASILIA AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59274605000113",
+   "razao": "Banco GM S.A.",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "03017677000120",
+   "razao": "BANCO J SAFRA S.A.",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "31264770000175",
+   "razao": "BANCO TOYOTA DO BRASIL S.A.",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59109165000149",
+   "razao": "Banco Volkswagen S.A.",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59711204000183",
+   "razao": "BARATÃO DAS TINTAS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "09075819000192",
+   "razao": "Barbacena Container",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "63471339000196",
+   "razao": "Barbara Luize Araujo e Silva",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "32936020000165",
+   "razao": "BARUC AUTOCAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54343119000196",
+   "razao": "BARUK CAR VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08102475000109",
+   "razao": "BAU & MORGADO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "35148770000160",
+   "razao": "BAUMANN REPASSES PREMIUM",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "64608665000165",
+   "razao": "BBM CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "18450909000107",
+   "razao": "BD AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "23567358000104",
+   "razao": "BD MULTICAR EIRELI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "39416801000178",
+   "razao": "BECAR MULTIMARCAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "54705334000190",
+   "razao": "Bella Motors",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "11026211000110",
+   "razao": "BENILTON SOUZA DOS SANTOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "22007073000148",
+   "razao": "BERKE MOTORS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08630847000161",
+   "razao": "BERNADINO MADEIRAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "49584579000176",
+   "razao": "BEST CAR LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "45961733000120",
+   "razao": "Best Informatica",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "39361958000143",
+   "razao": "BETHEL IMPORTS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "26830368000170",
+   "razao": "BETIM CAR SEMINOVOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15601210000102",
+   "razao": "BIESK MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "73909400000198",
+   "razao": "Big Lar",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "10782171000173",
+   "razao": "BigCar",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "53572005000155",
+   "razao": "BILU",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "48765000000109",
+   "razao": "bim transportes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "53698715000126",
+   "razao": "Blv Automoveis",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "56195170000123",
+   "razao": "BLX MULTIMARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10863639000154",
+   "razao": "BM Brasil Veiculos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "36188862000137",
+   "razao": "BMB",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "39903938000157",
+   "razao": "BMC MULTIMARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "25217178000110",
+   "razao": "BNORDESTE TRANSPORTES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "29321034000160",
+   "razao": "BOA FAMA DA CONSTRUCAO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "27611849000158",
+   "razao": "BOLA COMERCIO VAREJISTA DE VEICULOS USADOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "09258386000100",
+   "razao": "BOLOGNA SILVA MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "48017204000161",
+   "razao": "BORBA VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52519945000118",
+   "razao": "Borges Veiculos",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "11331590000151",
+   "razao": "BORTOLOCI & BORTOLOCI LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "57622291000177",
+   "razao": "BOSS AUTO REPASSE",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "26093359000144",
+   "razao": "BR MULTIMARCAS COMERCIO DE VEICULOS E PECAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "00485803000183",
+   "razao": "BR-CAR COMERCIO DE VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08952900000140",
+   "razao": "Brascar Veiculos Bernardo Comercio de Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "36349531000131",
+   "razao": "BRASIL 500 COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "00251951000133",
+   "razao": "BRAVO CAMINHÕES E ÔNIBUS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "60331887000122",
+   "razao": "BRAZCAR RV MULTIMARCAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46699090000151",
+   "razao": "BRIAN CLASS CAR LTDA (cadastro: BM CLASS CAR)",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "61775744000172",
+   "razao": "Brick Car",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "33332986000156",
+   "razao": "Bruno Biasi Melo",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27951009000134",
+   "razao": "Bruno Luiz de Freitas",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "32897366000100",
+   "razao": "BRUNO TEBET",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "49939915000156",
+   "razao": "BW VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "48745018000149",
+   "razao": "C A GONCALVES VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "01971883000140",
+   "razao": "C A S LOCACAO E SERVICO LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "22652439000131",
+   "razao": "C RODRIGUES DE SOUSA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "35602926000131",
+   "razao": "C. A. PINHEIRO SERVICOS ADMINISTRATIVOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "21217863000195",
+   "razao": "C. H. PANCAN - VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "04718231000196",
+   "razao": "CABRAL MULTIMARCAS COMERCIO DE AUTOMOVEIS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45656566000104",
+   "razao": "CADMAN CAR COMERCIO E SERVICOS DE VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "93085975000140",
+   "razao": "Caio Automoveis",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "26764380000124",
+   "razao": "CAIXETA VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "51026580000127",
+   "razao": "CAMARGO MOTORS COMERCIO DE VEICULOS LTDA - CNPJ",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "58424123000130",
+   "razao": "CANAA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08688333000167",
+   "razao": "CANELLO TRANSPORTES & COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41778785000105",
+   "razao": "Cantarelli Veículos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09345932000140",
+   "razao": "CAPITAL VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41465571000189",
+   "razao": "CAR FENIX MULTIMARCAS COMERCIO DE VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "32620862000103",
+   "razao": "CAR MAIS VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "34125947000140",
+   "razao": "Car Shop",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "30879210000162",
+   "razao": "CAR SHOP AUTOMOVEIS E COMERCIO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "04743359000100",
+   "razao": "CARBEL PARIS VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "33981917000173",
+   "razao": "Carga Pesada",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "03694474000179",
+   "razao": "Cargus Caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "32604994000141",
+   "razao": "CARLOS ALEXANDRE ZEPSON - SEMINOVOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "38729702000183",
+   "razao": "CARLOS DANIEL NUNES LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "17861624000104",
+   "razao": "Carlos Jacobi",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "40402685000117",
+   "razao": "CARPIX AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "39471430000127",
+   "razao": "CARRITZ VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "05222145000150",
+   "razao": "CARRO NA MAO SEMI NOVOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "48236195000108",
+   "razao": "Carros.com",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "38180917000198",
+   "razao": "CARS2YOU INTERMEDIACOES E NEGOCIOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "49479883000153",
+   "razao": "CARVAK MULTIMARCAS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "12393494000109",
+   "razao": "CARVALHAL TRANSP",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "14070670000199",
+   "razao": "CARVALHO AUTOMOVEIS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "41355118000110",
+   "razao": "CARVALHO CONSTRUCAO E VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "56990063000197",
+   "razao": "Carvel",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "20809171000173",
+   "razao": "CASAGRANDE VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "19716247000137",
+   "razao": "Cat Trucks",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "47980835000119",
+   "razao": "CATER COMERCIO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "49148647000154",
+   "razao": "Catira Mult Veiculos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "33923717000164",
+   "razao": "CC DOS SANTOS COMERCIO DE AUTOMOVEIS E CAM",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46299099000175",
+   "razao": "CCM CONSULTORIA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "38831777000170",
+   "razao": "CDS INTERMEDIACOES LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "47275305000170",
+   "razao": "CEBER COMERCIO E LOCACAO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "74255282000104",
+   "razao": "CECATO & HAMADA VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07467634000106",
+   "razao": "CELI APARECIDA DO NASCIMENTO - THIAGO",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "26226585000156",
+   "razao": "CELIO DA SILVA OLIVEIRA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "14128875000188",
+   "razao": "CELIO HORACIO VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "07258889000150",
+   "razao": "CENTER MOTOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "31143905000144",
+   "razao": "CENTRAL MAIS MULTIMARCAS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "45162814000160",
+   "razao": "Cg Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "07673889000117",
+   "razao": "CHARLES WAGNO BERGAMI VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "43119748000110",
+   "razao": "Chaves Motos Chaves Comercio de Veiculos LTD",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "27629445000191",
+   "razao": "Chede Veiculos.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44661896000125",
+   "razao": "CHICAR'S VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "76484161000160",
+   "razao": "Cia de Automoveis Slaviero",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "09405419000106",
+   "razao": "CIMADON INFORMATICA.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "39609613000166",
+   "razao": "CJ TRANSPORTES E MATERIAIS DE CONSTRUCA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "30442424000177",
+   "razao": "CL TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "29011761000120",
+   "razao": "CLASSIVEL PREMIUM",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "52671675000166",
+   "razao": "CLAUDIO FERREIRA DE CARVALHO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "11857886000100",
+   "razao": "Clede Junior P Gomes Transportes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "51694998000102",
+   "razao": "CLEVERTON VARGAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "50275462000190",
+   "razao": "CLIMA CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "62760422000112",
+   "razao": "CNF LOCADORA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "38213850000140",
+   "razao": "Colombo Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "32956727000133",
+   "razao": "COMARELLA & FLORES COMERCIO DE VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "06787901000151",
+   "razao": "COMERCIAL DE VEICULOS DILCEU & LEONARDO LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "53119296000120",
+   "razao": "COMERCIO DE VEICULOS KING LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "14492646000148",
+   "razao": "COMMANDER MULTIMARCAS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10640121000151",
+   "razao": "COMOVEL - COMERCIAL MONTEALTENSE DE VEICULOS LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "07203512000102",
+   "razao": "COMPANNY CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "68024194000107",
+   "razao": "COMPRAS CAR INOVA SIMPLES (I.S.)",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "14886801000100",
+   "razao": "CONCEPT CAR",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "19949949000160",
+   "razao": "CONEXAO VEICULOS JUIZ DE FORA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "05161145000198",
+   "razao": "CONFIDENCE",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "10812341000115",
+   "razao": "CONQUISTA CAR.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08474688000153",
+   "razao": "CONQUISTACAR VEICULOS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "39617934000102",
+   "razao": "CONSIGA CAR AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "29191524000199",
+   "razao": "CONSTRUTORA GUTIERREZ",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "32617649000132",
+   "razao": "Conti comércio de veículos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "54363511000105",
+   "razao": "CONTI E GONCALVES COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45322753000151",
+   "razao": "CPD VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "19726565000189",
+   "razao": "Cristiane Contieri Alberti",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "57237841000134",
+   "razao": "CRISTIANO AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "20955769000170",
+   "razao": "Cross Car Pecas Novas e Usadas",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "02161243000137",
+   "razao": "Croti terraplenagem",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "59982303000108",
+   "razao": "CRP CLEBIM VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "46861244000160",
+   "razao": "CRW COMERCIO DE VEICULOS USADOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "05742397000100",
+   "razao": "CSN COMERCIO DE MATERIAL HOSPITALAR E LOCACAO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "37822377000136",
+   "razao": "CTR CARDOSO VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "02692394000111",
+   "razao": "CURINGA VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "38071431000111",
+   "razao": "D SANTOS VIEIRA REPRESETANCOES LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "54979503000180",
+   "razao": "D&B VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "27594369000126",
+   "razao": "D.I MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "49644724000167",
+   "razao": "DABLIUKA MOTORS LTDA.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15791280000170",
+   "razao": "Dacar Multimarcas",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "13384687000158",
+   "razao": "DACAR VEICULOS RIO PRETO LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "29918837000104",
+   "razao": "DALAVA & LURAGO LTDA - CNPJ",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52621543000120",
+   "razao": "DANIEL DA SILVA FERREIRA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "51903504000152",
+   "razao": "Daniel Veiculos.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "48583742000113",
+   "razao": "DANIELE LEMOS DE FARIAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "80786775000173",
+   "razao": "DANTAS MULTIMARCAS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "67630524000137",
+   "razao": "DAYANE FERNANDES NOBRE INOVA SIMPLES (I.S.)",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "57770717000130",
+   "razao": "DAYANE RODRIGUES LARROYED",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "14019901000130",
+   "razao": "DAYMON COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "49106009000170",
+   "razao": "DC MULTIMARCAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "53403114000149",
+   "razao": "DCAR SEMINOVOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "47170415000177",
+   "razao": "DDS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "54130581000105",
+   "razao": "De Lima automóveis",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "29116534000160",
+   "razao": "DEIVYS CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "64478184000182",
+   "razao": "DEPAULA SERVICE LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "38470162000166",
+   "razao": "Depaula Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44324145000113",
+   "razao": "DESTAK MOTORS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "26932017000170",
+   "razao": "DETILIO MOTORS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "52368551000106",
+   "razao": "DETROIT MOTORS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "39844926000107",
+   "razao": "DIAMANTE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "04542610000178",
+   "razao": "DIAMANTINA VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45291151000184",
+   "razao": "DIAS AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "51922942000168",
+   "razao": "DIAS MULTIMARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33157368000117",
+   "razao": "Dicarro",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "49593051000163",
+   "razao": "DIEBE & DIEBE CONSULTORIA INTERMEDIACAO",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "37740675000187",
+   "razao": "DIEGO DE OLIVEIRA VEICULOS SLU LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "35818302000156",
+   "razao": "Diego Ferreira",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "15472271000117",
+   "razao": "Diel Construcoes e Comercio",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "45432447000178",
+   "razao": "Digao Tintas",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "83262923000220",
+   "razao": "DIMAS COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "83262923000491",
+   "razao": "DIMASAUTO - BR101",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "55836914000189",
+   "razao": "DINAMICA AUTOMOVEIS E PROMOTORA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "58884123000112",
+   "razao": "DINO AUTOMOVEIS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "39595406000108",
+   "razao": "DISPOSTO LOCACAO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "32800735000196",
+   "razao": "DISUVEL DISTRIBUIDORA DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "12942420000176",
+   "razao": "Diversos Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "65147598000191",
+   "razao": "DIVINO ACAI E LANCHES LTDA (cadastro: Divino Acai)",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42957729000109",
+   "razao": "DIVINO DA ROCA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "20142097000265",
+   "razao": "DIVISA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "34800430000100",
+   "razao": "Dj Caminhoes e Transportes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "64673836000130",
+   "razao": "DLV distribuidora de veículos Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44318406000192",
+   "razao": "DO VELHO AO NOVO VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "06207307000144",
+   "razao": "DOMVEL",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42311398000127",
+   "razao": "DORAL WIRELESS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42143901000182",
+   "razao": "douglas Ap. F. Tavares",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "36481676000191",
+   "razao": "DOUGLAS ARAUJO GOMES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "19277732000151",
+   "razao": "DRIFFT CAR MULTIMARCAS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "12331616000124",
+   "razao": "DROGARIA J. L. BARNABES LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "54283813000165",
+   "razao": "Drumond Motors",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "34061517000102",
+   "razao": "DRZ MOTORS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "44821035000167",
+   "razao": "DS6 MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "00620835000144",
+   "razao": "Dtatos Multimarcas",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "17648039000112",
+   "razao": "DUALL VEICULOS EIRELI",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "29631504000191",
+   "razao": "DUNORTE DISTRIBUIDORA DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "17819486000197",
+   "razao": "DUTRA CAMINHOES INTERMEDIACOES DE NEGOCIOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "41974332000154",
+   "razao": "DÉBORA CRISTINA DA COSTA CAMPOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "62946945000158",
+   "razao": "D’Paula locações",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "11270649000149",
+   "razao": "E s arias e Cia ltda",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "45087358000131",
+   "razao": "E.p caminhoes & implementos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "37893441000170",
+   "razao": "EA MOTORS -",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "58963216000132",
+   "razao": "ECO DESMONTE AUTO PARTS E RECICLAGEM LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "00256796000148",
+   "razao": "ED GRUP COMERCIO DE INFORMATICA E TRANSPORTE",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "39886407000101",
+   "razao": "Edgar veículos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "62667439000120",
+   "razao": "EDIMILSON MARTINS CUNHA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "04023869000102",
+   "razao": "Edivan Automoveis",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "21461093000121",
+   "razao": "EDSON JOSE PAULINO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "37821235000154",
+   "razao": "EDSON TADEU RODRIGUES CARDOSO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "41945735000175",
+   "razao": "Eduardo Caminhoes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "53552207000135",
+   "razao": "EDUARDO DIAS FERREIRA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "09222996000154",
+   "razao": "Eduardo Renato Gomes",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "48587549000150",
+   "razao": "EDUARDO SCHULZ DUARTE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08383759000102",
+   "razao": "EFRAIM BACCARO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "55846361000145",
+   "razao": "El Brit",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "96820261000127",
+   "razao": "ELADIO AUTOMÓVEIS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "34263178000147",
+   "razao": "Eladio Seminovos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "41138056000194",
+   "razao": "ELCIO INTERMEDIAÇÃO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "65253807000181",
+   "razao": "ELEMENTAR VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "46565519000118",
+   "razao": "ELITE AUTO CENTER",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "11264336000188",
+   "razao": "ELITE CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08745552000130",
+   "razao": "Elite Veiculos",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "54128263000100",
+   "razao": "ELLO LOCADORA DE VEICULOS E EQUIPAMENTOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "59585928000128",
+   "razao": "EMILIA ALVES LINHARES DA COSTA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "39857353000148",
+   "razao": "EMPORIUM VEICULOS E LOCACOES LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "06250473000123",
+   "razao": "ENDRIO VEÍCULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "20104304000106",
+   "razao": "ENERGYTECH",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "07054824000193",
+   "razao": "ENZO COMERCIO DE VEICULOS SEMINOVOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59748859000126",
+   "razao": "Epo Assessoria",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "46511467000105",
+   "razao": "EPPICA AUTOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "62679172000190",
+   "razao": "ERNESTO NOGUES BICHET",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "74159971000115",
+   "razao": "ERVAL MERCEZ DA SILVA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "04106448000145",
+   "razao": "Esplacar Veiculos.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "14530122000102",
+   "razao": "Estacionamento Avenida",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "10415513000117",
+   "razao": "ESTRADA REAL VEICULOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "03698442000141",
+   "razao": "ETESA COMERCIO E TECNOLOGIA LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15124760000188",
+   "razao": "EUROPA VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "48262169000146",
+   "razao": "EVB CONSULTORIA E SOLUCOES",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "31932149000132",
+   "razao": "explosao batidos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "51845319000310",
+   "razao": "expolog parking e rental ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "39905934000108",
+   "razao": "Exporcarros_abb",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "11812942000190",
+   "razao": "Extensao Sanauto",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05144438000167",
+   "razao": "F & J COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "04544958000102",
+   "razao": "F BIANI UTILITARIOS LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "39708688000102",
+   "razao": "F DE S BALBY JUNIOR COMERCIO E SERVICOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "08106297000186",
+   "razao": "F W COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "09312007000113",
+   "razao": "F. C. FACANALI VEICULOS ME",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "37198354000100",
+   "razao": "F1 COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "13295887000134",
+   "razao": "FABIANO VEICULOS DE BARRETOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "61912988000150",
+   "razao": "Fabio",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "54767830000178",
+   "razao": "Fabio Palermo Veiculos.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51680591000126",
+   "razao": "FABIO SOLA DE ALMEIDA BLISS CAR PREMIUM",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "05531088000191",
+   "razao": "FABRICIO ZIMMERMANN",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "34188674000183",
+   "razao": "Fadel Multimarcas",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "31280008000182",
+   "razao": "Faria Motors",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "11517866000190",
+   "razao": "fasi",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "41019726000153",
+   "razao": "FAST MULTIMARCAS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "13400324000169",
+   "razao": "Fastmetal",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "47130622000106",
+   "razao": "FB2M.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "52306951000197",
+   "razao": "Fcar Multimarcas Ltda",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54209525000160",
+   "razao": "FDR SERVICOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60574098000112",
+   "razao": "FECS NEGOCIOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "04691717000188",
+   "razao": "FEIERTAG COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48251287000159",
+   "razao": "FELIPE MARTINS TAVARES 04284743147",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "06199934000180",
+   "razao": "FENICE MULTIMARCAS COMERCIO DE VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "35503348000186",
+   "razao": "FERNANDA WOLGA SILVA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "49644668000160",
+   "razao": "FERNANDES MULTIMARCAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "34197753000150",
+   "razao": "FERNANDO ZANUTTO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "06153315000155",
+   "razao": "FERNIC MOVEIS COM E SERVIÇOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "97547099000188",
+   "razao": "FERREIRA AUTOMOVEIS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "45196413000121",
+   "razao": "FF MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51065301000134",
+   "razao": "FF VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "42691004000103",
+   "razao": "Fg Comercio de Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "25310091000192",
+   "razao": "FHC",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "49247624000105",
+   "razao": "Finance Car Intermediacoes e gesora de vendas Ltda 49.247.624/0001-05",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "34308586000178",
+   "razao": "Flamar",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "24014051000130",
+   "razao": "FLAVIO ALESSANDRO NASCIMENTO MAIA HOLANDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "36886906000100",
+   "razao": "FLCP - COMERCIO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "04102928000138",
+   "razao": "FLINSTON CAR AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "66536735000142",
+   "razao": "FLUXO CARS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "62876913000123",
+   "razao": "FMattei",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "17058576000102",
+   "razao": "FMOTORS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "61225352000130",
+   "razao": "FMP SOLUCOES EMPRESARIAIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "64437761000198",
+   "razao": "FN COMERCIO E INTERMEDIACAO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "24591230000130",
+   "razao": "FOFAO MULTI MARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "57066218000166",
+   "razao": "FOFAO SEMINOVOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "07914587000193",
+   "razao": "FOLLE AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "34792417000156",
+   "razao": "FORT AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "34714823000109",
+   "razao": "Fort caminhões",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "06127362000124",
+   "razao": "Fox Car Veículos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "61582175000149",
+   "razao": "FOX SP LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "13001793000105",
+   "razao": "Fox Veículos Guaxupé",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "14360175000114",
+   "razao": "FR DA S MOREIRA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "20168550000121",
+   "razao": "FRADERA VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43214687000170",
+   "razao": "FRAICAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52422378000187",
+   "razao": "FRANCISCO FABIANO DO NASCIMENTO PEREIRA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "02291359000190",
+   "razao": "FRANCISCO JOSE DE MEDEIROS JUNIOR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43853611000195",
+   "razao": "FRANDANI ADMINISTRADORA LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "36177448000122",
+   "razao": "FRANKAR MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "58748690000141",
+   "razao": "FUSCO & KOPSCH LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "41912667000148",
+   "razao": "G EQUIPAMENTOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "15047447000193",
+   "razao": "G S LIMA MOTORS E TRANSPORTES LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "61903687000160",
+   "razao": "G-Car",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "34629019000113",
+   "razao": "G. BASILICHI MEYTRE LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "50717202000127",
+   "razao": "G4 ARTCAR",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42842670000103",
+   "razao": "GABEN ADMINISTRADORA DE BENS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "57424024000195",
+   "razao": "GABRIEL FONSECA SANTOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "68065018000105",
+   "razao": "Gabriel Mendonca Pinto da Mota",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "52577008000119",
+   "razao": "GABRIEL THEYLOR M. SILVA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "21893409000154",
+   "razao": "GALIA VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "40401633000126",
+   "razao": "Galvao comercio de veículos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44225862000198",
+   "razao": "GARAGE 313 LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48915629000198",
+   "razao": "GARAGE D-CAR LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "50363897000196",
+   "razao": "GARAGE MOTORS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44746283000190",
+   "razao": "GARAGE MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "63496938000164",
+   "razao": "GARAGE ONE",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "53769060000130",
+   "razao": "Garage895",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "19296153000156",
+   "razao": "GARAGECAR VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "53699482000186",
+   "razao": "GARAGEM UP REPASSE LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "07328515000164",
+   "razao": "GARAJAO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08184538000105",
+   "razao": "GARCIA MULTIMARCAS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "20498088000120",
+   "razao": "GARCIA MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "11517037000108",
+   "razao": "GARCIQ VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33636677000170",
+   "razao": "Gauchinho Multimarcas",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "47264090000191",
+   "razao": "Gauchinho Utilitarios Multimarcas",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "30709049000189",
+   "razao": "GB VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52203192000137",
+   "razao": "GBM COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05086147000160",
+   "razao": "GEBARA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "02212918000120",
+   "razao": "GEDA AUTOMOVEIS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "23278809000185",
+   "razao": "Geferson higienizacoes",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "58544068000111",
+   "razao": "Gelcar",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "36015804000101",
+   "razao": "GENESIS AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41229637000131",
+   "razao": "GENOVACAR COMERCIO DE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "59588724000140",
+   "razao": "GERMAN PASS INTERMEDIACAO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "47787234000194",
+   "razao": "GERSON RODRIGUES DE PAULA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "17187458000102",
+   "razao": "Gessyca Lany da Silveira Vital",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "13738306000191",
+   "razao": "GESTAUTO BRASIL",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "23727437000127",
+   "razao": "GIACOMOTORS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "00095229000157",
+   "razao": "Gil Comércio de Veículos ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "19139236000131",
+   "razao": "GILMAR SILVA MACHADO JUNIOR TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "31263400000113",
+   "razao": "GILMAR VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "03049120000171",
+   "razao": "Gilmar Veículos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54467377000184",
+   "razao": "GL MULTIMARCAS RJ LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "40283177000167",
+   "razao": "Glauko Samuel Wosniak Magalhaes Bioni",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "31889714000126",
+   "razao": "GLOBAL MOTORS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "36778375000124",
+   "razao": "global multimarcas",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "10524960000104",
+   "razao": "GLOBO TRANSPORTES E LOCACOES",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "03057588000108",
+   "razao": "GM CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "43002362000124",
+   "razao": "GNB",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "11012122000114",
+   "razao": "GOBBE COMERCIO DE VEICULOS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "00262372000196",
+   "razao": "GODIVEL",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60067010000176",
+   "razao": "GODS INTERMEDIACOES E LOCACOES LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "41831142000188",
+   "razao": "GOLD MOTORS.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "03621547000364",
+   "razao": "GOLDEN MOTORS VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "39906105000140",
+   "razao": "GOLDS BRASIL",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "39267516000132",
+   "razao": "GOMES & ADOLFO COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "80251499000149",
+   "razao": "GONCALVES VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "61319076000179",
+   "razao": "GOTRUCK",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "46596071000108",
+   "razao": "Gp Multimarcas",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "01680956000144",
+   "razao": "GRANVEL - GRANVILLE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "25140925000169",
+   "razao": "Grasel Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "58306068000183",
+   "razao": "GRLOJAVEICULOS_SCS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "79433918000184",
+   "razao": "Grupo Focus",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "05624778000195",
+   "razao": "Grupo Luzitex",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "25168487000147",
+   "razao": "Grupo Polera",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "19690641000143",
+   "razao": "GT COMERCIO E INTERMEDIACAO VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48247144000173",
+   "razao": "GT LUB VENDAS E SERVICOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "03094076000111",
+   "razao": "Guia Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "49489385000191",
+   "razao": "GUILHERME ALEXANDRE DE LIMA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "07366758000197",
+   "razao": "GUILHERME LOBO COMERCIO DE VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "47429219000174",
+   "razao": "GUILHERME PEREIRA VITERI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07511038000178",
+   "razao": "Guinchos Valente",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "22655855000193",
+   "razao": "GUIRADO E FUSTAINI REPRESENTACAO COMERCIAL",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "38285823000183",
+   "razao": "GUIVER CAR VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "10313142000162",
+   "razao": "GUSE AUTOMOVEIS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "47682909000130",
+   "razao": "GUSTAVO DA SILVA RIOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "14791262000126",
+   "razao": "GUSTAVO TANGANELI SAVO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17712285000196",
+   "razao": "GUTIERREZ E SANTOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "65676014000175",
+   "razao": "GUTOS CAR LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59633122000168",
+   "razao": "GX AUTOCAR",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "31229179000187",
+   "razao": "H.R. COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "56915094000183",
+   "razao": "H3 Motors",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "14946960000153",
+   "razao": "H77 VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "55100013000124",
+   "razao": "HABIBI LOCADORA DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "64535183000122",
+   "razao": "HAE MOTORS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "12836831000187",
+   "razao": "HAVAN BRASIL SEMINOVOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "02913365000132",
+   "razao": "HAYASA COM. E SERV. DE AUTOMOTORES LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "02913365000213",
+   "razao": "HAYASA COMERCIO E SERVICOS DE AUTOMOTORES",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "51536163000124",
+   "razao": "Hcar Pecas e Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "31507441000108",
+   "razao": "HELFEN MOTORS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "23738056000143",
+   "razao": "HELITCAR ESTETICA AUTOMOTIVA EIRELI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51708900000129",
+   "razao": "HELLO CACAMBAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15522470000192",
+   "razao": "Henrique Motos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "04850539000190",
+   "razao": "HERMINIO COMERCIO E LOCACAO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54864406000141",
+   "razao": "Hg Imoveis e Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "32839965000169",
+   "razao": "HINDI AUTOMOVEIS E CAMINHOES",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "37728522000114",
+   "razao": "HLE SILOS E REPRESENTACOES AGRICOLAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "26285571000103",
+   "razao": "Hm veículos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "68459638000129",
+   "razao": "Hoff Motors",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "39488229000152",
+   "razao": "Holanda Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "56077335000162",
+   "razao": "HOLDING INCORPORADORA, LOCADORA E PARTICIPACOES HINDI",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "13248518000190",
+   "razao": "HOSS MULTIMARCAS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "53190030000174",
+   "razao": "HR Concept Car Ltda",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "62470753000118",
+   "razao": "HRX MULTIMARCAS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "52893389000145",
+   "razao": "HUGO LEONARDO MELO CORDEIRO",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "42308529000117",
+   "razao": "HURACAM MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "47653620000193",
+   "razao": "Hv Motors",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37588551000128",
+   "razao": "HYGOR BRUNO SILVA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "60161173000113",
+   "razao": "I Car",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "84938430000220",
+   "razao": "ICAVEL",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "25168622000154",
+   "razao": "IDUS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "45969861000110",
+   "razao": "Ifiscar Automoveis LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "04238150000199",
+   "razao": "IGA PARTICIPACOES S.A",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "59304620000167",
+   "razao": "IGOR DE SOUSA ROCHA ALVES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "56072183000105",
+   "razao": "IGOR MOTORS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "17833209000139",
+   "razao": "IMAGINE ASSESSORIA E CONSULTORIA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "18966111000112",
+   "razao": "IMPERIA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46636898000190",
+   "razao": "IMPERIO INTERMEDIACAO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "15654093000145",
+   "razao": "INAMAR MULTIMARCAS COMERCIO DE VEICULOS LT",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "51320920000128",
+   "razao": "INFINITY CONTROLE DE ACESSO LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "20444262000152",
+   "razao": "INOVA EMPREENDIMENTOS E PARTICIPACOES LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "49883412000106",
+   "razao": "INOVARCAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "10500834000110",
+   "razao": "INTEGRACAO AUTO CENTER LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "65522955000154",
+   "razao": "Inter Monza Automoveis",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "36237318000138",
+   "razao": "INTERATIVA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "49055156000169",
+   "razao": "Intermediar Soluções Automotivas",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "07699541000107",
+   "razao": "Invicta",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "38249605000193",
+   "razao": "INVICTUS AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "55980356000120",
+   "razao": "IR COMERCIO DE VEÍCULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "76356427000199",
+   "razao": "ISIDORO AUTOMOVEIS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "01656038000180",
+   "razao": "ITAIMBE AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "60701190000104",
+   "razao": "Itau Unibanco S/A",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07756690000152",
+   "razao": "ITAVEL MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09245165000106",
+   "razao": "IVAN CHOMA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59568573000169",
+   "razao": "Izaias Magiezi - MEI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "13124713000109",
+   "razao": "IZAUTO AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "23478611000145",
+   "razao": "IZIQUIEL MACIEL",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "07483129000147",
+   "razao": "J ABRANTES COM. E AGENCIA DE VEICULOS ME",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "48018974000129",
+   "razao": "J J COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "46534864000194",
+   "razao": "J L ANDRADE JUNIOR VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "32492493000110",
+   "razao": "J L DA ROCHA VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "39983969000165",
+   "razao": "J L FIGUEREDO COELHO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "33676522000167",
+   "razao": "J M Comércio e Locação de veículos Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "27024291000104",
+   "razao": "J N CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "19044404000105",
+   "razao": "J RAMON ALVES PADILHA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "10776485000163",
+   "razao": "J S M construções Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "72850126000166",
+   "razao": "J&P",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "55855957000101",
+   "razao": "J-CAR VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33618734000198",
+   "razao": "J. A DE SOUZA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "15145402000151",
+   "razao": "J. L. M. MAQUINAS E EQUIPAMENTOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "00748869000119",
+   "razao": "J. O. ALVARENGA VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "52797342000188",
+   "razao": "J. ORSO LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "13303400000118",
+   "razao": "J.A MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "59221345000118",
+   "razao": "J.B.Z. MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "09183515000149",
+   "razao": "J.P COMERCIO DE VEICULOS DE VOTORANTIM",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "15739649000104",
+   "razao": "JACARE MOTORS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29664833000139",
+   "razao": "Jackson",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "48196215000156",
+   "razao": "JARAGUA SOLUCOES LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "37837065000104",
+   "razao": "JAU GUINHOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "15749516000100",
+   "razao": "JAZZ",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "14420642000154",
+   "razao": "Jb Veiculos",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "60054250000136",
+   "razao": "JB Veículos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29082506000179",
+   "razao": "JC ADMINISTRACAO DE BENS PROPRIOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "16759722000164",
+   "razao": "JCL TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "40836212000128",
+   "razao": "JEAN CARLOS PASQUALI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "35589454000124",
+   "razao": "JEAN LUCIO FELIPE DOS REIS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "38294081000152",
+   "razao": "JEAN MOTORS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48484309000120",
+   "razao": "JEAN VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "57537868000142",
+   "razao": "JEFERSON BORAKA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "32910561000114",
+   "razao": "Jefferson Transportes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "42043008000185",
+   "razao": "JEFTE TOLLE GOMES",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "31486313000125",
+   "razao": "JET BALBEK VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "16757978000132",
+   "razao": "JETA ELEVADORES LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "55631464000198",
+   "razao": "JG Motors",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43401542000189",
+   "razao": "JH Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "36050348000130",
+   "razao": "JHONATAN DOS SANTOS REVENDA DE VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46529717000126",
+   "razao": "JHONNY VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "23982403000189",
+   "razao": "JI FROTAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "40694566000185",
+   "razao": "JK VEICULOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "16973199000174",
+   "razao": "JM VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "23954635000123",
+   "razao": "JMARQUES REPASSE",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "45580381000163",
+   "razao": "JN VEICULOS.",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "24718861000178",
+   "razao": "Jneto Transportes e Pneus",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "07290191000112",
+   "razao": "JOAO CARLOS PANTALEAO VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "35646540000121",
+   "razao": "JOAO FRANCISCO AUTO VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "01966739000115",
+   "razao": "JOAO GUILHERME VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "22870477000160",
+   "razao": "JOAO NUMERO 01 DO CHASSI",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "36246263000122",
+   "razao": "JOAO PEREIRA DE SIQUEIRA NETO 07264549666",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "00851410000146",
+   "razao": "JOAO RAIMUNDO DA SILVA MIRANDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "26354083000100",
+   "razao": "Joca veículos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "44047156000101",
+   "razao": "JOHN VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "04128287000190",
+   "razao": "JOILSON DE JESUS SANTOS & CIA LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05045128000195",
+   "razao": "JOM AUTO SOCORRO LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "14675913000112",
+   "razao": "JORJAO AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41464070000188",
+   "razao": "JOSE ADILSON MOURA VILELA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "66188236000101",
+   "razao": "JOSE CARLOS SILVA DA TRINDADE CALHAS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "08933976000129",
+   "razao": "JOSE CICERO BEZERRA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54176617000191",
+   "razao": "Jose Duarte",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "00000602773865",
+   "razao": "JOSE FRANCISCO DE SOUZA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "45556218000165",
+   "razao": "JOSE ROBERTO CESNIK",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17536682000154",
+   "razao": "JOTACAR",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "17141023000119",
+   "razao": "JPA COMERCIO DE VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "58876744000154",
+   "razao": "JR CONSULTORIA AUTOMOTIVA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "53784176000148",
+   "razao": "JR GALESKI COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "19550747000141",
+   "razao": "JR SAN COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "29017115000170",
+   "razao": "JRM CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "32911571000174",
+   "razao": "JRSM SERVIÇOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "26069584000145",
+   "razao": "JSIM VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "03255096000127",
+   "razao": "JULE COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51603129000125",
+   "razao": "JULIANA APARECIDA COSTA SARAIVA AUTOMOVEIS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "65483097000186",
+   "razao": "JUNIOR AUTOMOVEIS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "17268769000198",
+   "razao": "K & F Assessoria",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "12451775000162",
+   "razao": "K.paulino Transportes",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "20635037000101",
+   "razao": "KAIZEN MULTIMARCAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "38336115000124",
+   "razao": "KAMFORYOU NEGOCIOS E SERVICOS EIRELI",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "43557519000188",
+   "razao": "KANTAM SUL VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "43767051000156",
+   "razao": "Karangos Multimarcas",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15838676000126",
+   "razao": "KARRAO MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "16800253000180",
+   "razao": "KARRo MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05471879000416",
+   "razao": "KASA MOTORS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "05471879000173",
+   "razao": "KASA MOTORS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "05471879000254",
+   "razao": "KASA MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "15444617000173",
+   "razao": "KAUMARC COMERCIO DE CAMINHOES LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "36740390000183",
+   "razao": "KAVAK TECNOLOGIA E COMERCIO DE VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "13393309000130",
+   "razao": "KD AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "30254014000100",
+   "razao": "KICK COMERCIO E LOCACOES",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "68574170000113",
+   "razao": "KN MOTORS COMERCIO DE VEICULOS INOVA SIMPLES (I.S.)",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "23009857000178",
+   "razao": "KRM VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "57919613000144",
+   "razao": "Ks",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "03868038000179",
+   "razao": "Kuka Veículos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "00827783000181",
+   "razao": "KURUMA VEICULOS S.A.",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "53988800000129",
+   "razao": "kz",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42210608000190",
+   "razao": "L B DO PRADO REPRESENTACAO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "10812876000196",
+   "razao": "L C M SILVA VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "04852872000139",
+   "razao": "L J COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07096768000150",
+   "razao": "L P SANTANA & CIA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "39653823000151",
+   "razao": "L W R GUTIERREZ LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "19366683000123",
+   "razao": "L&C AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "63931526000105",
+   "razao": "L&T ZUN INTERMEDIAÇÕES LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37994660000145",
+   "razao": "L. M. DE OLIVEIRA MULTIMARCAS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10966296000153",
+   "razao": "L.A. MOTORS - COMERCIO E INTERMEDIACAO DE VEI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "06002016000110",
+   "razao": "L.C. ASSESSORIA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "12106695000170",
+   "razao": "L.D.M. COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "42405342000131",
+   "razao": "L.R. COMEX IMPORTACAO E EXPORTACAO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "36432456000178",
+   "razao": "LA SENA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "20502847000181",
+   "razao": "LACERDA VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "14749549000198",
+   "razao": "LAGE E SCARABELI COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "22506197000178",
+   "razao": "LAM BOUTIQUE",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37526654000163",
+   "razao": "LATINA LOCACOES E SERVICOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17576287000103",
+   "razao": "Lauren Automóveis",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "46782562000135",
+   "razao": "LAVSTAR LAVANDERIA E CONFECCAO LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "43185124000100",
+   "razao": "Layla tem de tudo",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "64592964000159",
+   "razao": "LB DANTAS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "59475704000163",
+   "razao": "LC",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "45206062000192",
+   "razao": "LEANDRO ANTUNES TRANSPORTES LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "52386382000137",
+   "razao": "Leandro Augusto Gonçalves de Paula",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "11345142000107",
+   "razao": "LEANDRO DOS SANTOS FAVORETTO - NF MOTORS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45008852000163",
+   "razao": "LEANDRO GOMES DE ALMEIDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "61653854000161",
+   "razao": "Leandro Oliveira Francisco",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "26454149000304",
+   "razao": "Leauto Milano FIAT",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "63715410000139",
+   "razao": "LEGATUM HOLDING LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "43804147000147",
+   "razao": "LELAUTO AUTOMOVEIS COMERCIO DE VEICULOS LT",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "33209217000165",
+   "razao": "LEMAC",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "49906462000161",
+   "razao": "LEMOS AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "62155751000134",
+   "razao": "LENZI CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09097235000118",
+   "razao": "leo car multimarcas",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "22423419000199",
+   "razao": "LEONARDO CRUZ DA SILVA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43509182000133",
+   "razao": "LEONARDO DE MESQUITA GOMES",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "62917206000138",
+   "razao": "LEONARDO MAGALHAES CARNEIRO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "64204686000115",
+   "razao": "LF2 MOTORS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "05872183000159",
+   "razao": "LIFE CAR",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "37331355000173",
+   "razao": "LIKE MOTORS COMERCIO DE VEICULOS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "45220744000150",
+   "razao": "LL CARROS MULTIMARCAS VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "40076059000188",
+   "razao": "LM CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "39478095000199",
+   "razao": "LM DE OLIVEIRA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "00389481001060",
+   "razao": "LM TRANSPORTES INTERESTADUAIS SERVICOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "28972331000102",
+   "razao": "LM VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "57356630000110",
+   "razao": "LMP VEICULOS AUTOMOTORES LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07033758000197",
+   "razao": "LOBCAR",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "03866873000170",
+   "razao": "LOCADORA TRIANGULO",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "62126069000113",
+   "razao": "LOCAMEGA LOCADORA DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "18386253000100",
+   "razao": "LOGAN MULTIMODAL TRANSPORTES E SERVICOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "04913040000185",
+   "razao": "LOGICAR COMERCIO DE VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "05983624000190",
+   "razao": "Longhini e Braga",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60336714000105",
+   "razao": "Looser Serviços Transporte e Locações",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "04632041000151",
+   "razao": "Lord",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "31282209000119",
+   "razao": "LORDCAR MULTIMARCAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "44938536000128",
+   "razao": "LOUBACH VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "25046643000105",
+   "razao": "LSOUZA EMPREENDIMENTOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "56282095000138",
+   "razao": "LT COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "23073171000146",
+   "razao": "Ltcar.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "48154757000166",
+   "razao": "LUANA CEZIMBRA DA SILVA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10630712000148",
+   "razao": "Lucas",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "47831039000114",
+   "razao": "LUCAS DE OLIVEIRA PIRES",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "16813972000135",
+   "razao": "LUCAS DOS SANTOS CUNHA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "23260475000112",
+   "razao": "LUCAS MEIRELLES DA SILVA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "41101818000188",
+   "razao": "LUCAS PERUSSI SUYAMA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "18986881000127",
+   "razao": "Luccar Autocenter",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37848370000193",
+   "razao": "LUCI CAR COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "24805356000160",
+   "razao": "Luciano Barbin",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "49591356000136",
+   "razao": "Luciano Sanches",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "20721317000124",
+   "razao": "Luciano silvano Fernandes",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43456363000149",
+   "razao": "LUCIANO VITORIO CODOGNO ASSESSORIA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "40442690000153",
+   "razao": "LUNGATTO VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "61023083000129",
+   "razao": "LUPE COMERCIO DE VEICULOS PESADOS LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "30006185000102",
+   "razao": "Lux car",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "63832846000108",
+   "razao": "LV VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "24427412000170",
+   "razao": "M & B GOMES",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "23815778000154",
+   "razao": "M & F AUTO CAR LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "59267721000105",
+   "razao": "M & M Comercio",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "33518036000110",
+   "razao": "M & M Transporte E Logistica",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "11221471000146",
+   "razao": "M A G REVENDA DE VEICULOS LOCACAO E SERVICOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "48648217000139",
+   "razao": "M M Caminhoes e Carretas",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "58816728000176",
+   "razao": "M MOURA VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "45780113000195",
+   "razao": "M V EMPREENDIMENTOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "65628160000125",
+   "razao": "M Z VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "24512728000160",
+   "razao": "M. A. DE GODOY VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "30102721000173",
+   "razao": "M. C. DUARTE MAGALHAES AUTOMOVEIS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07272007000101",
+   "razao": "M.M. CORREIA COMERCIO",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "08902682000130",
+   "razao": "M1motos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "17911206000176",
+   "razao": "M36 COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37829801000174",
+   "razao": "M3E COMERCIO E LOCADORA DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "26429418000102",
+   "razao": "MA DELLA COMERCIO DE AUTOMOVEIS EIRELI",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "32992683000105",
+   "razao": "MACEDO CAR SE LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "14620216000164",
+   "razao": "MACHADO VEICULOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "22848869000123",
+   "razao": "MACORA +",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "58014191000120",
+   "razao": "Madale Gelato Artesanal LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "61424783000125",
+   "razao": "MAESTRI MOTORS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "82096140000170",
+   "razao": "MAGALHA VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "02186407000180",
+   "razao": "MAGGI CAMINHOES",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "03703339000223",
+   "razao": "MAGGI MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "50486225000178",
+   "razao": "MAGI VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "19396102000104",
+   "razao": "MAGNO E OLIVEIRA VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "19741547000176",
+   "razao": "MAICON PERIN CEDRAN VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "02718697000166",
+   "razao": "MALABAR COMERCIAL DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "38320709000147",
+   "razao": "Mania Car",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "18909247000190",
+   "razao": "MARANATA VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "36680110000199",
+   "razao": "MARANATHA MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "71336754000165",
+   "razao": "Marcelo Alexandre dos Reis",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "17039840000160",
+   "razao": "MARCELO NOGUES BICHET",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33962492000155",
+   "razao": "MARCELO VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "62229942000101",
+   "razao": "MARCIO ANTONIO NUNES JUNIOR LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "17769204000194",
+   "razao": "Marcio da Silva Renha",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "17209294000169",
+   "razao": "MARCIO FURTADO DA SILVA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05285222000111",
+   "razao": "Marcio motos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "29013670000124",
+   "razao": "MARCIO PAVAO & CIA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "04453788000142",
+   "razao": "MARCO A. DE LIMA TRANSPORTES",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "61354773000160",
+   "razao": "MARCOS ANDRE ALMEIDA AGUIAR",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "59253208000165",
+   "razao": "MARCOS ANDRE ALMEIDA AGUIAR.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "03744872000152",
+   "razao": "MARCOS ANDRE L. NUNES",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "38218295000140",
+   "razao": "MARCOS CIGLIONI JUNIOR AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "34662720000134",
+   "razao": "MARCOS VINICIUS FERREIRA AZEVEDO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "40298830000161",
+   "razao": "Marechal Motors.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "76818038000138",
+   "razao": "MARFISO COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "35807764000178",
+   "razao": "MARGON BLACK LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "40001559000150",
+   "razao": "Maria da Conceição Queiroz Almeida",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "24896785000190",
+   "razao": "Maria de Lourdes Moreira de Melo",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "47604794000166",
+   "razao": "MARILENA DO AMARAL",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "50676737000105",
+   "razao": "MARIO CELIO CARDOSO VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "40481352000120",
+   "razao": "Mario Tonhim Samblas - Sm Intermediacoes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "53165106000535",
+   "razao": "MARKA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "55629449000105",
+   "razao": "MARQUES TEIXEIRA VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "62242194000199",
+   "razao": "MARTINS LOCACOES E SERVICOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10287479000142",
+   "razao": "Martins Veiculos",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "30904036000160",
+   "razao": "MARVI INVESTIMENTOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37787221000161",
+   "razao": "MASETTI AUTOMOVEIS VEICULOS EIRELI",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "30886864000113",
+   "razao": "MASTER AUTO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "82445564000100",
+   "razao": "Master Cars2You",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48975567000100",
+   "razao": "MATHEUS CASSIMIRO MONTE FARIA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "53174761000126",
+   "razao": "MATHEUS MORAIS OLIVEIRA LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42971118000107",
+   "razao": "MATHEUS NASCIMENTO MENDES SOLUCOES EM ENGENHARIA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "26296199000130",
+   "razao": "MATUTO VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "63632361000170",
+   "razao": "MAULONI CAMINHOES",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "12422714000177",
+   "razao": "MAULONI VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "03645526000117",
+   "razao": "MAX REPRESENTACOES LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "94901576000173",
+   "razao": "MAXTRI SUL LOCACAO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07659631000166",
+   "razao": "MAXXI-VEL MULTIMARCAS COMERCIO VAREJISTA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "25102356000167",
+   "razao": "Mazinho Comercio de Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "50650541000133",
+   "razao": "Mc Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "43633397000161",
+   "razao": "MCAR ATACADO E VAREJO DE VEICULOS EIRELI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "30499203000135",
+   "razao": "MD MOTOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "40462697000137",
+   "razao": "Mega Carros Multimarcas Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37378477000115",
+   "razao": "MEGA STORE AUTOS E NEGOCIOS COMERCIO DE VE",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "19389111000160",
+   "razao": "MEGA VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "43328945000140",
+   "razao": "MEGHA VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "63310191000108",
+   "razao": "MEGHA VEICULOS SERVICOS TERCEIRIZADOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "42492293000111",
+   "razao": "MEIA PRAIA REPASSES LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "08513395000138",
+   "razao": "Meneghim Encomendas Express",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "26400389000156",
+   "razao": "MENEZES COMERCIO DE VEICULOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "31921319000183",
+   "razao": "MERCAUTO veículos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "67084553000140",
+   "razao": "Mf caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "32617849000103",
+   "razao": "MF VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44874240000190",
+   "razao": "MFC VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "26319120000140",
+   "razao": "MG IMPORTS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "68562102000134",
+   "razao": "MIALLI VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "29659478000100",
+   "razao": "MIL MOTOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "23122350000126",
+   "razao": "MINAS GERAIS AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29436956000112",
+   "razao": "MIX VEICULOS BARRETOS EIRELI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "19268827000109",
+   "razao": "MIXCAR COMERCIO E LOCACAO DE VEICULOS EIRE",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "17474713000190",
+   "razao": "Mk Supritech Supritech Suprimentos Tecnicos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "57067427000124",
+   "razao": "Ml Autos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "26571189000166",
+   "razao": "MM LOCACOES VEICULARES",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08008897000101",
+   "razao": "MMV MULTIMARCAS VEICULOS.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "48759459000108",
+   "razao": "MOISES SANTA ROSA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "54592073000149",
+   "razao": "MOKI MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "05024583000104",
+   "razao": "MONACO DIESEL",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "53987917000198",
+   "razao": "MONTAN VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "30340362000192",
+   "razao": "Montini Veiculos Montini e Hubaide Comercio de Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "35045156000173",
+   "razao": "Montk Veiculos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "45709834000109",
+   "razao": "Moove Veiculos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "61249456000184",
+   "razao": "MOOVING MOTORS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "27984112000180",
+   "razao": "MOVCAR COMERCIO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48876133000152",
+   "razao": "MOZART COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "18564446000104",
+   "razao": "MPC EMPREENDIMENTOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "39631061000192",
+   "razao": "MQUATTRO VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "34789637000120",
+   "razao": "MR. WOOD",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27146370000198",
+   "razao": "MRC COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "28130998000168",
+   "razao": "MS PECAS E LOCACAO DE AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "28209299000108",
+   "razao": "MS SEMINOVOS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "08871526000159",
+   "razao": "Mult Car Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "48525603000133",
+   "razao": "MULTI-CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51446113000156",
+   "razao": "MULTI-CAR",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "06064829000134",
+   "razao": "MULTICAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "05743482000193",
+   "razao": "MUNDIAL AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "20037675000112",
+   "razao": "Mundial Couros",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "28696222000100",
+   "razao": "MUNDIAL VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "45625263000124",
+   "razao": "MUNDIM VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "26312580000146",
+   "razao": "Mundo dos Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "39881968000100",
+   "razao": "MV VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "25073595000136",
+   "razao": "MW COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37994256000171",
+   "razao": "MW Motors",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "12122927000183",
+   "razao": "mz",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "51490781000180",
+   "razao": "NAVES VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "40726817000166",
+   "razao": "NAZARIO AUTO CAR 2",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "67780303000145",
+   "razao": "NBX MULTIMARCAS E SERVICOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "47893810000188",
+   "razao": "NEGOCIOS.COM E INTERMEDIACAO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "03301669000101",
+   "razao": "Nei Motos Nei Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "48760509000169",
+   "razao": "NELIO LOPES VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "38153688000112",
+   "razao": "NERES SERVICOS TERCEIRIZADOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "19091096000179",
+   "razao": "NETO VEICULOS BURITAMA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "08693883000174",
+   "razao": "NEW CAR VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "36341112000153",
+   "razao": "NEW CONCEPT",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "03107022000143",
+   "razao": "NICAM COMERCIO DE CAMINHOES E CARRETAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "23873542000174",
+   "razao": "NICK COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15121317000153",
+   "razao": "NICK MULTIMARCAS VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "14637062000113",
+   "razao": "NIL COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "57323983000114",
+   "razao": "Nilmar Rocha.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27184856000110",
+   "razao": "Nilson Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "65597296000115",
+   "razao": "NILSON TUR",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "14440611000165",
+   "razao": "NILTON FABIO DE SOUZA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "20009016000172",
+   "razao": "NISA MULTIMARCAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "65332441000136",
+   "razao": "NKA ENGENHARIA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "13181780000165",
+   "razao": "NO RISK",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "12522119000103",
+   "razao": "NOBRE CARGO TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "28225657000176",
+   "razao": "NOGUEIRA E REIS COMERCIO DE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "29526851000154",
+   "razao": "NOLLA & FERAAZ",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08601973000198",
+   "razao": "NORDESTE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "35667705000141",
+   "razao": "NORONHA CAR VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "28011938000126",
+   "razao": "NORONHA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "48641534000123",
+   "razao": "Nosso Posto",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "24466710000170",
+   "razao": "NOTA 10 MULTIMARCAS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07235637000106",
+   "razao": "Nova Alianca Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "46286615000127",
+   "razao": "Nova Hd Locadora de Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "52213182000182",
+   "razao": "NOVA JK VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "10445684000199",
+   "razao": "NOVA PILAR AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07267614000183",
+   "razao": "NOVO MILENIUM COMERCIO DE LIVROS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "11840303000139",
+   "razao": "Novo Mundo Cams.E Equip.Rodoviarios Ltda",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "11398214000184",
+   "razao": "Nr Guindastes Nordeste",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "55333282000130",
+   "razao": "NSA AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "42742923000169",
+   "razao": "NUNES SANTANA COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "07180002000159",
+   "razao": "O F I C a R",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "04496053000104",
+   "razao": "OESTE EXPRESSO LTDA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "42293707000183",
+   "razao": "Oferta Comercio e Locacoes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60529002000102",
+   "razao": "OFERTA EMPREENDIMENTOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "35392378000162",
+   "razao": "Oficina Nacional Servicos e Manutencao LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "18256526000100",
+   "razao": "OHARA & NAGATA VEICULOS E TRANSPORTE LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "41509362000190",
+   "razao": "OI VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "13183995000115",
+   "razao": "OLIVEIRA & VITULLI VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "35294723000125",
+   "razao": "OLIVEIRA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42519091000116",
+   "razao": "OLIVEIRA E CASTRO LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "17027413000162",
+   "razao": "OLIVEIRA E GONCALVES LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "45409623000150",
+   "razao": "OLIVEIRAS CAR AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "09275136000189",
+   "razao": "OLIVER VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "04736612000106",
+   "razao": "Omega Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "32703212000121",
+   "razao": "ONE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "24896001000477",
+   "razao": "ONTAKE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "04675147000132",
+   "razao": "OPEN VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "63708328000187",
+   "razao": "ORA PESADOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "03277094000139",
+   "razao": "OSVALDO VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "46931403000155",
+   "razao": "Otica Mais Visao",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46685521000120",
+   "razao": "OTIMA LOCACOES E SERVICOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "18621432000185",
+   "razao": "OURO VERDE REVENDA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "51694361000116",
+   "razao": "OUTLET DO CARRO ITAJUBA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "34350715000196",
+   "razao": "Outlet Netcarros",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "68348987000173",
+   "razao": "OVERALL MOTORS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "62886657000155",
+   "razao": "P & L CONSTRUCOES E SERVICOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "27477979000140",
+   "razao": "Palermo Veiculos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "57251017000139",
+   "razao": "Palmas Repasses",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "54473731000183",
+   "razao": "PAPAPIZZA LANCHES E ROTISSERIE EIRELI",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "58522974000115",
+   "razao": "Parceria Netcarros",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "57527117000145",
+   "razao": "Paris Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "68364111000110",
+   "razao": "PASCHOALS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "39941225000188",
+   "razao": "PASKE IMPORTS MULTIMARCAS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "49883475000162",
+   "razao": "Passos Veículos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "07681845000139",
+   "razao": "PAULO AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37157573000133",
+   "razao": "PAULO PRUDENCIO ALENCAR AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09622342000118",
+   "razao": "Paulo Rogério limieri automóveis",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "48533529000105",
+   "razao": "PAULO VICTOR CARDOSO PEREIRA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "51119643000190",
+   "razao": "PAYCOIN",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "25178859000116",
+   "razao": "PB HOTEL E LOCADORA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "40383501000119",
+   "razao": "PECCI COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "65118065000181",
+   "razao": "Pedrinhomotors LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42206249000106",
+   "razao": "PEDRO HENRIQUE ARAUJO DA SILVA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42026415000184",
+   "razao": "PEREGRINO CAMINHOES LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "20685524000170",
+   "razao": "PEROLA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "74285594000160",
+   "razao": "Peternelli Caminhoes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "01378741000173",
+   "razao": "PHD AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "04948474000110",
+   "razao": "Piracicaba Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54245408000152",
+   "razao": "PIRACICABA VEICULOS UNIDADE RIBAS DO RIO PARDO/MS -",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "31250891000168",
+   "razao": "PLANETA VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "21105692000102",
+   "razao": "PLATINA MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08753267000161",
+   "razao": "POINT DO AUTOMOVEL COMERCIO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07054332000106",
+   "razao": "Polo norte transportes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "52067802000112",
+   "razao": "PONTO CERTO VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09182721000134",
+   "razao": "PONTO DA CESTA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "21411348000141",
+   "razao": "PONTO NORTE MULTIMARCAS COMERCIO DE VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "52591100000133",
+   "razao": "Pontual Seminovos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "40679321000189",
+   "razao": "PORANGABA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "12799850000180",
+   "razao": "PORFIRIO CAMIINHÕES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "30931520000189",
+   "razao": "portal veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "50677144000155",
+   "razao": "Portal Veiculos - Seminovos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "19354230000187",
+   "razao": "Porto Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "19091996000116",
+   "razao": "Porto Seguro Locadora de Veiculo LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "34200790000170",
+   "razao": "PORTO SEGURO VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "14051021000140",
+   "razao": "POSSOLI MULTIMARCAS LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "15636643000101",
+   "razao": "Posto Simon",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "45499641000170",
+   "razao": "Prado Ferraz comércio de veículos Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "63110622000192",
+   "razao": "PRAINHA MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "01264440000119",
+   "razao": "pravida",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "22774307000182",
+   "razao": "PREMIER CAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33402055000187",
+   "razao": "PREMIUM COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "54091125000101",
+   "razao": "PREMIUM PNEUS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "59042955000154",
+   "razao": "Premium Repasse Ltda",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "04849699000110",
+   "razao": "Presence Veiculos Comercio de Veiculos Ltda",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "15397496000156",
+   "razao": "Presidente Veículos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "67730164000145",
+   "razao": "PRESTIGE CAR LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "18759667000138",
+   "razao": "PRIME",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "50269320000381",
+   "razao": "Prime Autos.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "18144571000165",
+   "razao": "Prime Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "67109857000115",
+   "razao": "Prime Car",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "10418348000157",
+   "razao": "PRIME LOCADORA DE VEICULOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "35288889000139",
+   "razao": "Prime Multimarcas",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "21100226000134",
+   "razao": "PRIME MULTIMARCAS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "40143295000170",
+   "razao": "PRIME MULTIMARCAS.",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "26156685000153",
+   "razao": "PRIME SEMI NOVOS VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "49977124000110",
+   "razao": "PRIME TRUCK'S CAMINHOES E PRESTACAO DE SERVICO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "20161638000111",
+   "razao": "primos caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "66331842000134",
+   "razao": "PRIMOS CAR MULTIMARCAS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "33916864000107",
+   "razao": "PRINCE MOTORS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "51820104000183",
+   "razao": "PRISCILA MARIA FERREIRA MOURA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "08850577000102",
+   "razao": "PROCAR ARAXA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "12520761000153",
+   "razao": "PROENCA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "38050128000132",
+   "razao": "PROMOSEG ADMINISTRADORA E CORRETORA DE SEGURO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07778397000196",
+   "razao": "ProspereCar",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "48715772000136",
+   "razao": "PROSPERECAR SERVICOS TERCEIRIZADOS LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "57435799000166",
+   "razao": "PRS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "63826743000135",
+   "razao": "PRUDENCIO VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "46299091000109",
+   "razao": "PURO AUTOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "19749869000161",
+   "razao": "PUZIA E MATOS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "53279248000108",
+   "razao": "PVEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "37803570000120",
+   "razao": "QMV COMERCIO ELETRONICO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "62086467000153",
+   "razao": "QUARTA PARADA CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "29618319000167",
+   "razao": "QUARTO EIXO CAMINHÕES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "61128698000110",
+   "razao": "QUEIROZ VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "05490441000132",
+   "razao": "QUEST MULTIMARCAS EIRELI",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52285588000170",
+   "razao": "Quintal dos Caminhoes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "53641347000180",
+   "razao": "R & M CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "50424279000109",
+   "razao": "R de J Silva Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "45414089000170",
+   "razao": "R e M veículos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "58053520000142",
+   "razao": "R GARAGE MULTIMARCAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "32925878000124",
+   "razao": "R M Car Ltda",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "09625553000104",
+   "razao": "R N AUTOMOVEIS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "57590706000178",
+   "razao": "R R NEGOCIOS & SERVICOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "45946061000184",
+   "razao": "R R Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "33474573000106",
+   "razao": "R-29 Veiculos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "54901378000195",
+   "razao": "R. D. GIUBILATO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "54477661000131",
+   "razao": "R. DE OLIVEIRA FILHO",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "51631990000105",
+   "razao": "R. FERNANDES INTERMEDIACOES & REPRESENTACOES",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "57957168000107",
+   "razao": "R.R REPASSE E COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "32739308000140",
+   "razao": "R2 AUTOMOVEIS CONCEITO COMERCIO E SERVICOS LT",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "28409960000129",
+   "razao": "R2M MULTIMARCAS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "28655261000169",
+   "razao": "RAC VEICULOS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "06206022000199",
+   "razao": "Radar Comercio de Veiculos.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08917933000150",
+   "razao": "Radar Veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "30008877000190",
+   "razao": "RAFAEL DE ALCANTARA LIMA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "31993997000151",
+   "razao": "RAFAEL JOSE LOURENCON AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "33674978000198",
+   "razao": "RAFAEL LUCAS LEAO TR REPASSE",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "42901105000161",
+   "razao": "RAFAEL PINHEIRO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "50033533000148",
+   "razao": "RAFAEL VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "35801987000128",
+   "razao": "Rafael Veículos.",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46746564000179",
+   "razao": "RAFAH EMPORIO DA CARNE.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "47009186000103",
+   "razao": "RAFINHAS SERVICOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "08178292000169",
+   "razao": "RAMOS GAS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "39928045000166",
+   "razao": "Ramos Multimarcas",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37548082000113",
+   "razao": "RAUL LOURENCO TERCEIRO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "44169920000103",
+   "razao": "RAVI CAR",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "49890068000182",
+   "razao": "RBMOTORS E INVESTIMENTOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "46299068000114",
+   "razao": "RBP VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "43876489000172",
+   "razao": "RC LOCACAO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "29403453000140",
+   "razao": "RD Autos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "49831056000187",
+   "razao": "RD COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "49894476000102",
+   "razao": "RE9 NEGOCIOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "09474962000157",
+   "razao": "REAL CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "29827282000187",
+   "razao": "REALIZA SEMINOVOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "19443518000128",
+   "razao": "REALIZA VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37780965000154",
+   "razao": "REATTI VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "07880696000137",
+   "razao": "REBOCKS COMERCIO DE CAMINHOES E CARRETAS LTDA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "54727743000197",
+   "razao": "REBRAUT",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "23352354000109",
+   "razao": "Reciclaz",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "15167902000194",
+   "razao": "RED CAR VEICULOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "43647953000159",
+   "razao": "REDE REPASSE COMERCIO DE AUTOMOVEIS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10626167000116",
+   "razao": "REDE SÃO MARCOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "47314436000119",
+   "razao": "REGINALDO VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "53559974000176",
+   "razao": "Rei do Gole",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "51909065000195",
+   "razao": "Rei dos Automoveis Rei Car LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "46961459000152",
+   "razao": "Reinaldo Guimarães",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "49848876000181",
+   "razao": "Reis",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "29348746000172",
+   "razao": "REISECAR COMERCIO DE VEICULOS E PECAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "39283528000150",
+   "razao": "RELVA VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "08829424000175",
+   "razao": "REMO TOMASI NETO",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59803234000110",
+   "razao": "RENALDY",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "49498713000116",
+   "razao": "RENAN RENT A CAR LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "41313321000123",
+   "razao": "Renan Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "67707072000144",
+   "razao": "RENATO ANDERSON FRAZAO",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "59569333000189",
+   "razao": "Renato Dorneles Filho",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "59909617000177",
+   "razao": "Renovo Auto",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "07570802000186",
+   "razao": "RENTAL COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "53088015000110",
+   "razao": "RENTALTRUCK",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "63725348000166",
+   "razao": "REPASSAMAIS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "54430450000143",
+   "razao": "REPASSE CARROS SR INOVA SIMPLES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17298092000130",
+   "razao": "Repasse Itaú",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "79913802000142",
+   "razao": "REPECON VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "25226592000195",
+   "razao": "RESERV A CAR",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "65127271000158",
+   "razao": "RESERV A CAR REVENDA LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "09091830000146",
+   "razao": "RESTAURANTE E PETISCARIA BELOTTI LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27596275000196",
+   "razao": "REURY AFONSO DE BARROS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37750091000192",
+   "razao": "Revita",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "67682979000104",
+   "razao": "RF GROUP LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "33208667000133",
+   "razao": "RF REPASSE DE VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "30217842000160",
+   "razao": "Rh Motors",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "21875054000170",
+   "razao": "RIBEIRO CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "50886585000167",
+   "razao": "Riberloc veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "56103891000166",
+   "razao": "RICARDO AUGUSTO FLORENCIO SILVA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "08772288000124",
+   "razao": "RICARDO BRANDAO VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "43014923000105",
+   "razao": "RICARDO GONCALVES ROSA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "65360997000165",
+   "razao": "Ricardo Lopes",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "39945502000120",
+   "razao": "RIO AZUL COMERCIO DE VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "13426763000140",
+   "razao": "RIO DOCE COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "63220136000127",
+   "razao": "rio preto caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "01715073000122",
+   "razao": "RIOPRECAR COM DE VEICULOS ME",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "37665975000149",
+   "razao": "RIVASUL CAMINHOES",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "54669400000113",
+   "razao": "RJ MULTIMARCAS.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "44984595000132",
+   "razao": "Rk Comerco de Veiculos Automotivos e Nauticos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "49803888000190",
+   "razao": "RL 46 MOTORS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "37762905000109",
+   "razao": "Rm repasses",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "32196427000101",
+   "razao": "RM VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37771918000144",
+   "razao": "RM VEICULOS E NEGOCIOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "21170267000105",
+   "razao": "RML veículos Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42477401000187",
+   "razao": "RN MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "12345678000195",
+   "razao": "ROBERIO JOSE DOS SANTOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "06255485000140",
+   "razao": "ROBERTO CAMINHOES",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "61428350000148",
+   "razao": "Rocar veiculos",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09134505000113",
+   "razao": "ROCHA VEICULOS EIRELI",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "52697870000165",
+   "razao": "ROCK N CAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "33583847000103",
+   "razao": "RODACAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "39911638000110",
+   "razao": "RODERA TRANSPORTES LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "18288637000190",
+   "razao": "Rodo Gaino Transportes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "48009509000121",
+   "razao": "Rodobriza",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "35383297000104",
+   "razao": "Rodolfo Bovolenta Adorno",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "42652284000140",
+   "razao": "RODRIGO ALMEIDA DOS REIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "22616496000165",
+   "razao": "RODRIGO AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "21754294000117",
+   "razao": "RODRIGO MANDRO",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "36009042000130",
+   "razao": "RODRIGO MULTIMARCAS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07894687000103",
+   "razao": "Rodrigues caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "11713571000190",
+   "razao": "ROGERIO AUGUSTO SARDINH ME",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "56879235000150",
+   "razao": "ROGERIO LIANDRO VEIGA DE OLIVEIRA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "11736732000160",
+   "razao": "ROGERIO MULTIMARCAS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "04410728000142",
+   "razao": "Rondon Caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "21972671000194",
+   "razao": "RONILDO GERVAZIO MOREIRA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "42085732000171",
+   "razao": "Rooger dos Santos Barcelos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "26571189000165",
+   "razao": "ROSSO",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42381040000170",
+   "razao": "Rota 101",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "45704557000141",
+   "razao": "ROTA 66 BH LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "46031915000165",
+   "razao": "ROTA 86 COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "10499109000179",
+   "razao": "ROTACAR IPATINGA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "07771943000167",
+   "razao": "ROTTA 8",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "30228614000196",
+   "razao": "RR MULTIMARCAS COMERCIO DE veiculos ltda ME ltda",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "62777327000121",
+   "razao": "RS REPASSE DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "68310681000128",
+   "razao": "RTL COMERCIO E NEGOCIOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "15264186000163",
+   "razao": "RUBENS APARECIDO DE SOUZA JUNIOR LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "25225687000194",
+   "razao": "RUBENS FARIA MACHADO JUNIOR",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "24693363000118",
+   "razao": "RUI DE NORONHA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "35673119000100",
+   "razao": "RVCARS VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "05149710000100",
+   "razao": "RX COMERCIO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "58224522000157",
+   "razao": "RX Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "42026814000145",
+   "razao": "Rz Motors Comercio de Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "21797639000110",
+   "razao": "RZERO",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "11242406000105",
+   "razao": "S D TRANSPORTES E LOCACAO DE MAQUINAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "13372105000113",
+   "razao": "S&S COMERCIO DE VEICULOS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "65360977000165",
+   "razao": "SABRINA MATOS SILVA MAIA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37491824000111",
+   "razao": "SAGA MOTORS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "03474143000123",
+   "razao": "Samambaia Automoveis",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "66807060000129",
+   "razao": "SAMUEL SANTOS MORAES LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "48930205000100",
+   "razao": "SANAUTO",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "50223347000171",
+   "razao": "SANCARS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08263853000128",
+   "razao": "SANDRO GUEDES MAIA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "42258653000115",
+   "razao": "Sanjoanense Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "54921580000189",
+   "razao": "SANTA EMILIA CAMINHOES E ONIBUS LTDA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "52622062000139",
+   "razao": "SANTACAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "38419252000122",
+   "razao": "SANTANA VICENTE COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "53539181000195",
+   "razao": "Santi Automóveis",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "43870893000139",
+   "razao": "Santiago",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "20751059000129",
+   "razao": "SANTIAGO COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "04424443000160",
+   "razao": "Sao Cristovao Caminhoes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "01372124000160",
+   "razao": "Sao Pedro Veiculos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "18415766000100",
+   "razao": "SARTORI VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "01746129000106",
+   "razao": "Sb Veiculos",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "36187366000169",
+   "razao": "Sc Auto Multimarcas",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "19708255000131",
+   "razao": "SC AVALIACOES E APOIO ADMINISTRATIVO LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17284351000174",
+   "razao": "SCM Santana Comercio e Servicos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "53002261000107",
+   "razao": "Scx Motors",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54864795000105",
+   "razao": "SELLECT REPASSE LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "03636981000156",
+   "razao": "Senador Veculos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "09056200000130",
+   "razao": "Setelik & Filhos",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "33765127000150",
+   "razao": "Seven Car",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "63536350000197",
+   "razao": "SEVEN CARS LOCACAO DE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "30582149000197",
+   "razao": "SEVERO SUSPENSAO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "63741513000173",
+   "razao": "SGL MOTORS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "03005130000105",
+   "razao": "SHOGUN VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "09612553000170",
+   "razao": "SICCS CARS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "15659446000108",
+   "razao": "SIGA BEM CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "11625731000149",
+   "razao": "Sigma Caminhoes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "35828419000110",
+   "razao": "SILTEX ARTIGOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "63445883000163",
+   "razao": "SILVA COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "14038133000161",
+   "razao": "SILVERTHAL TRANSPORTES DE CARGAS E LOGISTICA LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "33228128000166",
+   "razao": "SILVESTRE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "61991205000170",
+   "razao": "SILVIA APARECIDA MARTINS DA SILVA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "14771009000100",
+   "razao": "SIMAR JOSE DE FARIA 04533057683",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "05760989000155",
+   "razao": "Siqueira caminhões",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "30790584000107",
+   "razao": "SIQUEIRA E SILVA CENTRO AUTOMOTIVO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "12621459000191",
+   "razao": "SIX COMERCIAL DE MODA LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "04113944000126",
+   "razao": "Skina Veiculos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "22575952000176",
+   "razao": "SOAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "32652348000150",
+   "razao": "SORDI MULTIMARCAS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "07035217000186",
+   "razao": "SOUZA CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "23065362000166",
+   "razao": "SOUZA VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "53945003000164",
+   "razao": "SOUZA VEICULOS.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "01272628000109",
+   "razao": "SOUZAUTOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "27270306000114",
+   "razao": "SOVEL",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "37013181000109",
+   "razao": "SP AUTOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "64896997000192",
+   "razao": "SP FROTAS RENT A CAR LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08716130000137",
+   "razao": "Speed RD Motors Ltda",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "48951531000196",
+   "razao": "Sr agilidade consultoria",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "24745100000105",
+   "razao": "SRV AUTOMARCAS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "59645367000105",
+   "razao": "STAR MOTORS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "50766126000140",
+   "razao": "Star VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27889829000143",
+   "razao": "STEN TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "46769701000190",
+   "razao": "STILLO AUTOMOVEIS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "07807114000197",
+   "razao": "STILLO LOCADORA DE VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "40632347000171",
+   "razao": "STRATA MOTORS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "51815969000151",
+   "razao": "SUDESTE VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "33473461000130",
+   "razao": "SULLATO & CIA SEMINOVOS VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "22110040000129",
+   "razao": "SULLATO CHERY",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "30310835000109",
+   "razao": "SUNDFELD VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "18979244000123",
+   "razao": "SUPER AUTO MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27993432000105",
+   "razao": "SÓ IVECO EURO",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "56915637000162",
+   "razao": "T - Car Auto Repasse",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "17599590000113",
+   "razao": "T DA S T N RODRIGUES",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29671190000150",
+   "razao": "T MENEZES JESUS VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "17852474000164",
+   "razao": "T. P. MARTINS CONSULTORIA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "37232038000108",
+   "razao": "T.S.R. 7 MILHAS MULTIMARCAS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "25326380000180",
+   "razao": "Tadeulogistics",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "21050205000151",
+   "razao": "TAINA DE ANDRADES LAMEIRAO",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "10867002000136",
+   "razao": "talisma veiculos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "09064308000175",
+   "razao": "TALITA RODRIGUES DOMINGOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "40117484000178",
+   "razao": "TAMBORE MOTORS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "32661185000171",
+   "razao": "TAMIRIS SOUSA VIEIRA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "27636348000126",
+   "razao": "TCV Transporte Rod de Cargas Ltda",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "54121733000103",
+   "razao": "TECH EDUCATION HUB LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "65939760000104",
+   "razao": "Teixeira Automoveis",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "21427330000138",
+   "razao": "Teste Assinatura",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "11884974000100",
+   "razao": "Teste Cars2you",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "53594210000111",
+   "razao": "Teste Cars2You V5",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "14417297000108",
+   "razao": "Teste Concessionaria A",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "27515375000140",
+   "razao": "Teste Concessionaria C",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "34376334000186",
+   "razao": "Teste Concessionaria D",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "29944189000152",
+   "razao": "TETI CAR",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "42299993000194",
+   "razao": "TH",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "59654950000182",
+   "razao": "TH AUTOREPASSE LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "30880027000187",
+   "razao": "THAMIRIS CARVALHO DE CAMPOS LOPES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "40910174000106",
+   "razao": "THE KINGDOM OF GOD MOTORS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "56072886000133",
+   "razao": "Thiago Veiculos Ltda",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "50411335000170",
+   "razao": "TI TECH SOLUCOES EM TECNOLOGIA LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "50651935000106",
+   "razao": "Tiago Carniel",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "21877993000154",
+   "razao": "TIAGO VALENTE VEÍCULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "68857085000405",
+   "razao": "Tiete Veículos S.A.",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "13795870000146",
+   "razao": "TIM COMERCIO DE CARRETAS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "37738645000136",
+   "razao": "Tonello Veiculos",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "95562419000143",
+   "razao": "TONINHO REPRESENTACOES",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "45011828000183",
+   "razao": "tony transportes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "58388140000169",
+   "razao": "TOP DRIVE SERVICOS DE VEICULOS AUTOMOTORES LT",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "09174901000174",
+   "razao": "TOP USADAO AUTO PECAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "52284109000100",
+   "razao": "TOP VEICULOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "24679329000199",
+   "razao": "TOPCAR",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "35581401000167",
+   "razao": "Torres & Viana Sorvete Artesanal Ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08283083000185",
+   "razao": "TORTATO E TORTATO - TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "11210375000100",
+   "razao": "TOTAL ALUGUEL DE VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "08306603000128",
+   "razao": "TOTALFLEX COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "03777642000190",
+   "razao": "Toto Automoveis",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "01643145000173",
+   "razao": "TOYOPABRA VEICULOS E PECAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "08953073000100",
+   "razao": "Tr ialury",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "18760189000186",
+   "razao": "TR NEGRELLI",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "46241810000130",
+   "razao": "TRACTZ VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "26810728000172",
+   "razao": "TRADICAO AUTOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "04221091000146",
+   "razao": "TRANS PONTUAL",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "49547375000165",
+   "razao": "TRANSPORTADORA ANGATUBA",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "12275916000133",
+   "razao": "TRANSPORTADORA CAFELANDIA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "23187231000151",
+   "razao": "TRANSPORTES LV DACAMPO.",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "14099635000100",
+   "razao": "Trevisan comercio e logistica",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "34696155000126",
+   "razao": "Troca Frota",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "35503521000146",
+   "razao": "Tropical Salineira",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "04924314000131",
+   "razao": "TROPICAL VEÍCULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "54607095000135",
+   "razao": "Truck Comercio e Transporte de Caminhoes Ltda",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "35187610000120",
+   "razao": "Truck Service",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "62600432000190",
+   "razao": "Truckecia",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "36110901000183",
+   "razao": "Trucks",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "38351809000130",
+   "razao": "TRUKAO CAMINHOES",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "45823684000160",
+   "razao": "Tsm Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "38110692000101",
+   "razao": "Tuane Silva de Freitas",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "59034117000139",
+   "razao": "TUCA VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "08062322000177",
+   "razao": "TUTTO VEÍCULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "30465987000180",
+   "razao": "UDI FAST CAR VEICULOS E CONSTRUCOES LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "08225191000100",
+   "razao": "UNIAO CAMINHOES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "06111528000114",
+   "razao": "UNIAO VEICULOS DO EDEN LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "41002027000109",
+   "razao": "URV MECANICA E ACESSORIOS AUTOMOTIVOS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "05902461000173",
+   "razao": "V & M LOCADORA LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "29413357000183",
+   "razao": "V C PASCOALATO",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "36732023000138",
+   "razao": "V F Cantolini",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "45456313000197",
+   "razao": "V MAIS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "67297300000155",
+   "razao": "V. HADAN LEITE ANHOLETO AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "11556972000183",
+   "razao": "V. R. BRASIL CONSTRUCAO E CONSERVACAO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "30302621000190",
+   "razao": "V8 AUTOMOVEIS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "24118517000148",
+   "razao": "V8 GARAGE",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "37356117000112",
+   "razao": "VALDENE APARECIDA PEREIRA DA SILVA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "27110814000135",
+   "razao": "VALDIR DOS SANTOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "63032487000104",
+   "razao": "VALDIR DOS SANTOS JUNIOR",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "61808955000164",
+   "razao": "Valen comercio de veiculos ltda",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "27479241000111",
+   "razao": "VALENTINA VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "37147833000190",
+   "razao": "VALGLEISON ANDRADE DOS SANTOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "29657559000170",
+   "razao": "VALVERDE DISTRIBUIDORA DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "43621395000152",
+   "razao": "Vanessa Fernandes Macedo",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "62518121000187",
+   "razao": "VANLEX COMERCIO DE VEICULOS E TRANSPORTES LTDA",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "23795353000120",
+   "razao": "VARELA REPASSE DE VEICULOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51861431000183",
+   "razao": "Vasconcelos Transportes",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "63776971000148",
+   "razao": "VCAR COMPANY LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "51127246000160",
+   "razao": "VEICULOS ALIANCA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "07748051000145",
+   "razao": "VEICULOS AVENIDA DE BARROSO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "67029633000101",
+   "razao": "VEICULOS BATIDOS SUPREMO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "00946902000115",
+   "razao": "VEICULOS GIOVANELI.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "60898041000179",
+   "razao": "VELOZ RENT CAR COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "71304349000165",
+   "razao": "Vemig Automóveis",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "17190264000158",
+   "razao": "VENDRAMINI TRANSPORTES",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "65864345000139",
+   "razao": "venturini caminhoes",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "30430377000141",
+   "razao": "Verbo Veiculos Verbo Administradora LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "63199605000173",
+   "razao": "VERONEZI MOTORS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "33053574000187",
+   "razao": "VERSIANI ALUGUEL DE CARROS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "05992256000146",
+   "razao": "VIA BELLA AUTOMARCAS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "65989318000192",
+   "razao": "vic repasses",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "09350243000124",
+   "razao": "VIDEIRA REPASSES COMERCIO DE VEICULOS.",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "51595979000129",
+   "razao": "VIDEIRA REPRESENTACAO E DISTRIBUICAO LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "46378216000196",
+   "razao": "VIEIRA & CIA INTERMEDIACOES NEGOCIOS",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "37228711000128",
+   "razao": "VIEIRA VEICULOS FRUTAL LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "53594844000174",
+   "razao": "VIGUI MOTORS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "54938246000138",
+   "razao": "VILAGE AUTOMOVEIS.",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "47194276000111",
+   "razao": "Vilanova e Macedo Seminovos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "03322445000186",
+   "razao": "VIMARA AUTOMOVEIS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "23774765000184",
+   "razao": "VINEX VISTORIA VEICULAR",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "53293450000186",
+   "razao": "VINICAR VEICULOS LTDA",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "27539693000141",
+   "razao": "VIP 8 VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "02475297000177",
+   "razao": "VIP BUS",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "37780519000140",
+   "razao": "VIP CAR",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "21943781000128",
+   "razao": "VIP CAR FREGUESIA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "55804580000161",
+   "razao": "Vipcar Veiculos e Repasse Rpss Veiculos LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "35042158000109",
+   "razao": "VIRTUS MULTIMARCAS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "33626844000100",
+   "razao": "VISION COMERCIO DE VEICULOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "10590122000139",
+   "razao": "VISION VEICULOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "16538034000174",
+   "razao": "Visão Multimarcas",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "28683454000123",
+   "razao": "VITERI COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "44056183000132",
+   "razao": "VITORIA SPILLERE DOS SANTOS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "59145830000150",
+   "razao": "Vitoria Veiculos",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "55769009000153",
+   "razao": "Vitorioso Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "27695757000101",
+   "razao": "VK AUTOMOVEIS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "16569138000146",
+   "razao": "Vl sul multimarcas",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "51978984000110",
+   "razao": "VM AUTOMOVEIS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "29845754000124",
+   "razao": "VM TRANSPORTES",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "37718031000192",
+   "razao": "Vmar multimarcas ltda",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "31204252000166",
+   "razao": "Vns locações",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "36886099000118",
+   "razao": "Voltterli",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "61847413000109",
+   "razao": "VRB",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "54291112000178",
+   "razao": "VREPASSES COMERCIO LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "52791347000101",
+   "razao": "VS AMARO VEICULOS",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "35054989000109",
+   "razao": "VS transportes",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "34948706000100",
+   "razao": "W A PEREIRA LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "59509391000117",
+   "razao": "W G MOTORS",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "49906921000107",
+   "razao": "W G VEICULOS E DISTRIBUIDORA DE PNEUS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "29797881000103",
+   "razao": "W L MULTIMARCAS EIRELI",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "41108632000150",
+   "razao": "Wa box",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "20231243000148",
+   "razao": "WA ELETRO LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "22054007000129",
+   "razao": "WAGNER ZAMPIERI SILVA INTERMEDICAO DE NEGOCIOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "17555481000102",
+   "razao": "WAGUINEY TURISMO",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "36122650000157",
+   "razao": "WASHINGTON LUIS BOTELHO SOUZA 56327528520",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "61338108000183",
+   "razao": "WASHINGTON LUIS GOMES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "39361006000120",
+   "razao": "WB COMERCIO DE AUTOMOVEIS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "25434164000158",
+   "razao": "WB VEÍCULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "58229625000100",
+   "razao": "WC VEICULOS LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "52648427000102",
+   "razao": "WEB CAR",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "30769892000150",
+   "razao": "WELLINGTON PALACIO DA SILVA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "73332744000187",
+   "razao": "WEMACASE MATERIAIS DE CONSTRUCAO",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "64732115000153",
+   "razao": "WENDELL VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "07503282000199",
+   "razao": "Wepal Automoveis",
+   "consultor": "Rodrigo Azevedo"
+  },
+  {
+   "cnpj": "46908895000168",
+   "razao": "WEST TRUCK GERSON",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "06114192000143",
+   "razao": "WGY COMERCIO DE VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "12968878000102",
+   "razao": "WILLIAM MATERIAIS PARA CONSTRUCAO",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "44481202000178",
+   "razao": "WILLIAN DOS SANTOS MARTINS COMERCIO LOCACAO E",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "44942317000112",
+   "razao": "Winter veículos",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "36229470000179",
+   "razao": "WL COMERCIO DE VEICULOS.",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "12900846000167",
+   "razao": "Wlsp Log",
+   "consultor": "Patricia"
+  },
+  {
+   "cnpj": "50506941000170",
+   "razao": "WN Veiculos",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "50307835000167",
+   "razao": "wolney rodrigues gomes filho",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "25215488000103",
+   "razao": "WPJ INVESTIMENTOS LTDA",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "40613624000107",
+   "razao": "WS VEICULOS AUTOMOTORES E SERVICOS",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "03857486000177",
+   "razao": "WW PADUA VEICULOS E PECAS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "50249115000192",
+   "razao": "X CAR VEICULOS",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "68292580000171",
+   "razao": "XAVIER AUTOMOVEIS COMERCIO DE VEICULOS LTDA",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "38309090000170",
+   "razao": "XAVIER INTERMEDIACOES",
+   "consultor": "Isabella"
+  },
+  {
+   "cnpj": "08041365000176",
+   "razao": "Xmotors Multimarcas Xmotors Multimarcas LTDA",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "63814876000191",
+   "razao": "Yago Ricardo Santos Araujo",
+   "consultor": "Gabriela"
+  },
+  {
+   "cnpj": "32772263000105",
+   "razao": "YAHWEH VEICULOS LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "47737888000103",
+   "razao": "ZANPIERI VEICULOS",
+   "consultor": "Larissa"
+  },
+  {
+   "cnpj": "06047358000156",
+   "razao": "Zanpieri Veiculos LTDA",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "19438510000173",
+   "razao": "ZAPCAR COMERCIO DE VEICULOS EIRELI",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "43982478000177",
+   "razao": "Zcar Veiculos",
+   "consultor": "Renata"
+  },
+  {
+   "cnpj": "21376098000237",
+   "razao": "ZS AUTOS FILIAL",
+   "consultor": "Bianca"
+  },
+  {
+   "cnpj": "10906757000100",
+   "razao": "Zupt Car",
+   "consultor": "Bianca"
+  }
+ ]
+}

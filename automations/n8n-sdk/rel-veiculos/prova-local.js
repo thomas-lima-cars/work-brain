@@ -431,14 +431,20 @@ ok(/nenhum veiculo disponivel/.test(morreu), 'evento sem veiculo morre alto');
 console.log('\n[3] Elegibilidade — o CANAL e porta; a UF virou peso (11/09)');
 const ANO = new Date().getFullYear();
 /* lojas: (id, nome, whitelabel_id, whitelabel, uf) */
+/* a 2a coluna e o CNPJ, que so existe pra cruzar com a carteira comercial:
+     11 -> CNPJ que ESTA na planilha (casa por CNPJ)
+     12 -> CNPJ fora da planilha, mas a razao social esta la (casa por nome)
+     13 -> CNPJ fora da planilha e nome fora tambem -> Nao Distribuido
+     14 -> CNPJ nulo no banco, nome fora -> Nao Distribuido
+     15 -> CNPJ com mascara, pra provar que a pontuacao nao atrapalha  */
 const LOJAS = [
-  [11, 'Apertada SP wl7', 7, 'Marketplace', 'SP'],
-  [12, 'Generalista SP wl7', 7, 'Marketplace', 'SP'],
-  [13, 'Novata MG wl7', 7, 'Marketplace', 'MG'],
-  [14, 'Trucks SP wl4', 4, 'Trucks2you', 'SP'],
+  [11, '37.848.370/0001-93', 'Apertada SP wl7', 7, 'Marketplace', 'SP'],
+  [12, '00.000.000/0001-00', 'IZAUTO AUTOMOVEIS LTDA', 7, 'Marketplace', 'SP'],
+  [13, '00.000.000/0002-00', 'Novata MG wl7', 7, 'Marketplace', 'MG'],
+  [14, null, 'Trucks SP wl4', 4, 'Trucks2you', 'SP'],
   /* mesma UF e mesmo whitelabel dos veiculos de SP, entao ELEGIVEL --
      mas com faixa longe demais: score ~32, abaixo do corte de 50. */
-  [15, 'Fora de faixa SP wl7', 7, 'Marketplace', 'SP']
+  [15, '13124713/0001-09', 'Fora de faixa SP wl7', 7, 'Marketplace', 'SP']
 ];
 const OFERTAS = [[11, 100], [12, 100], [13, 100], [14, 100], [15, 100]];
 /* as tres ultimas colunas sao desagio_n, desagio_medio e desagio_desvio.
@@ -536,7 +542,7 @@ const f2b = fase2Com(6, 5);
 /* nomeado pra ser reusado pela prova negativa de cobertura das modas */
 function respostaDe(p) {
   if (p.queryName === 'q_veiculos') return resp(COLV, VEIC, p.pagina);
-  if (p.queryName === 'q_lojas') return resp(['shop_id', 'loja', 'whitelabel_id', 'whitelabel', 'uf'], LOJAS, p.pagina);
+  if (p.queryName === 'q_lojas') return resp(['shop_id', 'cnpj', 'loja', 'whitelabel_id', 'whitelabel', 'uf'], LOJAS, p.pagina);
   if (p.queryName === 'q_ofertas') return resp(['shop_id', 'qt_ofertas'], OFERTAS, p.pagina);
   if (p.queryName === 'q_perfil') return resp(['shop_id', 'qt_veiculos', 'preco_medio', 'preco_desvio', 'idade_media', 'idade_desvio', 'km_medio', 'km_desvio', 'desagio_n', 'desagio_medio', 'desagio_desvio'], PERFIL, p.pagina);
   if (p.queryName === 'q_modelo') return resp(['shop_id', 'item_id', 'nome', 'n'], MODELO, p.pagina);
@@ -1162,6 +1168,37 @@ ok(semComent.indexOf('${') < 0,
   ok(porId[13] && porId[13].email === null, 'loja sem usuario fica com e-mail nulo');
   ok(porId[11] && porId[11].tel_privativo === '(11) 98888-0000',
     'o telefone privativo entra, a pedido de 11/09');
+
+  /* ── carteira comercial: quem responde por cada loja ────────────────
+     O mapa vem do `carteiras.json` injetado no no. As lojas da prova usam
+     CNPJ e razao social REAIS da planilha de 2026-09 justamente para que
+     estas quatro linhas provem o cruzamento, e nao um mapa de mentira. */
+  ok(porId[11] && porId[11].responsavel === 'Gabriela',
+    'loja com CNPJ na planilha recebe o consultor dela');
+  ok(porId[11] && porId[11].responsavel_via === 'cnpj',
+    'e o caminho declarado e o CNPJ');
+  ok(porId[12] && porId[12].responsavel === 'Larissa',
+    'CNPJ fora da planilha cai pra razao social, que casa');
+  ok(porId[12] && porId[12].responsavel_via === 'nome',
+    'e o caminho declarado e o nome — a diferenca precisa aparecer');
+  ok(porId[13] && porId[13].responsavel === 'Não Distribuído',
+    'loja fora da planilha nao e atribuida a ninguem');
+  ok(porId[13] && porId[13].responsavel_via === null,
+    'e ela nao finge ter casado');
+  ok(porId[14] && porId[14].responsavel === 'Não Distribuído',
+    'CNPJ nulo no banco nao quebra o cruzamento');
+  /* a 15 tem o mesmo CNPJ da 12, escrito sem mascara: a pontuacao do CNPJ
+     e da planilha e do banco nao precisa combinar, so os digitos. */
+  ok(porId[15] && porId[15].responsavel === 'Larissa',
+    'CNPJ com pontuacao diferente casa igual — compara digito, nao texto');
+
+  const cart = D.resumo && D.resumo.carteira;
+  ok(cart && cart.por_cnpj + cart.por_nome + cart.nao_distribuidas === D.lojas.length,
+    'a contagem da carteira fecha com o total de lojas publicadas');
+  ok(cart && cart.lojas_sem_cnpj_no_banco >= 1,
+    'loja sem CNPJ no banco e contada — e o que denuncia SQL antigo');
+  ok(cart && cart.sem_dono === 'Não Distribuído',
+    'o rotulo viaja nos DADOS, senao o regenerador nao o enxerga');
 
   /* ── NEGATIVA: baldes de laudo que nao somam viram falha declarada ──
      Fan-out de juncao ja mordeu duas vezes aqui, as duas silenciosamente.

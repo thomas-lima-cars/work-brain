@@ -359,6 +359,101 @@ fator de confiança vêm do histórico de 6 meses da loja inteira. Como a aderê
 calculada contra esse perfil, o score de cada par também não muda com o filtro — o filtro
 escolhe quais pares aparecem, não os recalcula.
 
+### 👤 O filtro de responsável (2026-09-21)
+
+Um quarto dropdown: o **consultor dono da loja na carteira comercial**. Ele responde
+"destas lojas que o carro alcança, quais são minhas?" — a pergunta que transforma o
+relatório inteiro numa lista de trabalho de uma pessoa só.
+
+**É o único filtro que age só sobre as lojas.** Whitelabel, UF e evento existem dos dois
+lados e entram no `passaV` e no `passaL`. Carteira não: um veículo não tem responsável.
+Então ele filtra as lojas e, por consequência, os pares — **a lista de veículos continua
+inteira**. Botar o responsável no `passaV` esconderia carro do evento porque nenhuma loja
+da carteira o quer, que é o contrário do que o relatório serve. O smoke test prova isso:
+a soma dos veículos ao longo das opções tem que ser o total multiplicado pelo número de
+opções, e não o total.
+
+Por isso também a contagem ao lado de cada nome conta **lojas**, e não veículos como nos
+três de cima. Não há escolha honesta: contar quantos carros "são da Gabriela" só faria
+sentido somando os pares dela — número que mudaria com o corte de aderência e não caberia
+num rótulo.
+
+#### A carteira não está no banco
+
+Ela é uma **planilha que a área comercial mantém** (`carteiras-cars2you-2026-09.xlsx`:
+uma aba por consultor mais a aba `Todos os Clientes`, 1.436 clientes em 7 carteiras). Do
+banco vem só o CNPJ da loja. Então a planilha viaja para dentro do nó como literal, igual
+ao tema e aos logos:
+
+```bash
+python automations/n8n-sdk/rel-veiculos/gera-carteiras.py <planilha.xlsx>
+node   automations/n8n-sdk/rel-veiculos/_aplica-carteiras.js
+node   automations/n8n-sdk/rel-veiculos/_prova-carteiras.js   # 24 provas
+```
+
+🔴 **Não edite o bloco entre `CARTEIRAS:INICIO` e `CARTEIRAS:FIM` à mão.** É cópia, e
+cópia que só um humano atualiza desatualiza — aqui de um jeito **mudo**: o consultor que
+trocou de carteira continua respondendo pela loja antiga e a tela não tem como saber. Não
+dá erro, não dá vazio: dá o nome errado. A prova falha alto se divergirem.
+
+O `gera-carteiras.py` **confere as abas por consultor contra a consolidada** e se recusa a
+gerar se não baterem. Divergência entre as duas visões colocaria loja na carteira errada.
+
+#### A chave é o CNPJ, e o nome é só o segundo recurso
+
+`shops.cnpj` casa exato e não discute — por isso o `q_lojas` ganhou `MAX(s.cnpj)`.
+
+O **nome casa 65,2%** (medido em 2026-09-21, com a `normNome` que foi pro nó, contra as
+715 lojas do run 50406) e erra dos dois lados: `R2 AUTOMOVEIS CONCEITO` no banco contra
+`R2 AUTOMOVEIS CONCEITO COMERCIO E SERVICOS LT` na planilha — que corta a razão social em
+45 caracteres, e o "LTDA" chega pela metade. Por isso o nome só vale quando é
+**inequívoco**: nome normalizado que na planilha leva a dois consultores fica de fora do
+mapa (10 casos). Atribuir a loja ao consultor errado é pior que deixar em
+**Não Distribuído** — a mesma regra do link do anúncio, que não entra quando falta um
+pedaço.
+
+A normalização é **uma implementação só**: ela mora no `montar-html.js` (bloco
+`NORMNOME`), e o `_aplica-carteiras.js` **lê a função de lá** para normalizar as chaves do
+mapa. Reimplementá-la no injetor criaria duas versões escritas juntas, que erram juntas — e
+a divergência só apareceria como loja sem responsável, sem erro nenhum.
+
+#### O que declara que deu errado
+
+`resumo.carteira` publica `por_cnpj`, `por_nome`, `nao_distribuidas` e
+`lojas_sem_cnpj_no_banco`. Sem isso, duas situações muito diferentes dão a mesma tela:
+"a planilha não tem essa loja" e "**o `Montar Fase 2` não foi transcrito e não veio CNPJ
+nenhum**" — nesta segunda, a coluna inteira cai em Não Distribuído e o filtro parece só
+estar vazio.
+
+#### Medido: o CNPJ casa 93,8% (run 52794, 2026-09-21)
+
+O primeiro run com o SQL novo respondeu a pergunta que estava aberta:
+
+| | lojas | |
+|---|---:|---|
+| casaram por **CNPJ** | 675 | 93,8% |
+| casaram por **nome** | 1 | 0,1% |
+| **Não Distribuído** | 44 | 6,1% |
+| total de lojas elegíveis | **720** | |
+
+E `lojas_sem_cnpj_no_banco` veio **0**: toda loja do relatório tem CNPJ em `shops`, então
+o cruzamento não perde ninguém por falta da chave. Contra os **65,2%** que o nome sozinho
+alcançaria, o CNPJ vale 28,6 pontos — foi a decisão certa.
+
+O nome resgatou **uma** loja. Ele fica porque o custo é zero e o caso existe (CNPJ trocado
+entre matriz e filial), mas não é ele que sustenta o filtro, e não se deve confiar nele
+como se fosse rede de segurança.
+
+Distribuição das 720: Isabella 138 · Gabriela 134 · Larissa 125 · Patricia 107 · Renata 84
+· Bianca 76 · Rodrigo Azevedo 12 · Não Distribuído 44.
+
+⚠️ **As 44 "Não Distribuído" não são erro do cruzamento** — são lojas que ofertaram nos
+últimos 6 meses e não estão na planilha de carteiras. Quem decide se elas deviam estar é a
+área comercial, não este relatório.
+
+⚠️ **O CNPJ não entra no array publicado.** Ele é chave de cruzamento, não dado de tela, e
+o HTML sobe para o SharePoint. Há prova conferindo isso.
+
 ## As ferramentas, e o buraco que cada uma tapa
 
 | script | existe porque |
@@ -372,6 +467,9 @@ escolhe quais pares aparecem, não os recalcula.
 | `monta_html_de_dados.js` | ⚠️ Tudo o que a tela usa tem que morar **dentro** de `RENDER:INICIO`/`RENDER:FIM`. Em 2026-09-11 a `descreveRecorte()` nasceu fora e quebrou a regeneração — o trecho extraído não a enxergava. Se algo estourar aqui, é quase sempre isso |
 | `_confere_transcricao.py` | compara **byte a byte** o que está no n8n com o arquivo local. Existe porque em 2026-09-10 as 248 sequências de escape de aspa do `montar-html.js` foram **dobradas em duas transcrições seguidas** — 568 barras invertidas em vez de 320, JS do cliente sem compilar, mesma classe de erro que derrubou a execução 49963. Achar isso depois de um run de nove minutos é caro; achar antes custa uma chamada |
 | `build_wf.py` | gera o `.wf.ts` a partir dos `.js` |
+| `gera-carteiras.py` | lê a planilha de carteiras da área comercial e escreve `carteiras.json` — só CNPJ, razão social e consultor. Confere as abas por consultor contra a consolidada e **se recusa a gerar** se não baterem |
+| `_aplica-carteiras.js` | injeta o mapa no bloco `CARTEIRAS` do nó. Lê a `normNome` **de dentro do próprio alvo**, pra não haver duas normalizações |
+| `_prova-carteiras.js` | 24 provas: a cópia bate com a fonte, o mapa tem forma de mapa, a normalização é a mesma dos dois lados, o CNPJ vem antes do nome, e o CNPJ **não** vaza pro HTML |
 
 Ciclo depois de mexer:
 
@@ -440,7 +538,19 @@ pasta nova e deixa a antiga parada, com tudo que já estava publicado:
 | 2 | `Relatórios Aderência Veículos` | 15/09 em diante |
 | 3 | **`Radar de Estoque`** | 🔜 ainda não existe — ver abaixo |
 
-### 🔜 PENDENTE (segunda, 21/09/2026): a pasta nova ainda não nasceu
+### ✅ RESOLVIDO em 2026-09-21: a pasta nova nasceu (run 52794)
+
+O `Virar Arquivo` foi transcrito e a execução **52794** publicou em
+`Radar de Estoque/radar-de-estoque-2026-09-21.html` — 4.544.250 bytes, 11min45,
+pela conta `powerbi@cars2you.com.br`. 1.001 veículos, 720 lojas elegíveis,
+30.030 pares, 25 eventos.
+
+🔜 **Ainda falta, e é operação no SharePoint do time, não do workflow:** apagar as
+**duas pastas antigas** e o arquivo de 18/09 que caiu na pasta #2.
+
+O registro do que deu errado fica abaixo, porque a causa vale mais que o conserto.
+
+### O que tinha acontecido (18/09)
 
 A execução **52212** (18/09) publicou na pasta **#2**, não na #3:
 `Relatórios Aderência Veículos/relatório-aderência-veículos-2026-09-18.html`.
@@ -456,6 +566,13 @@ não. O run inteiro está correto; só o destino do arquivo está errado.
    senão os acentos viram mojibake — medido em 18/09).
 2. Rodar de novo. Aí a pasta `Radar de Estoque` nasce.
 3. Apagar as **duas pastas antigas** e o arquivo de 18/09 que caiu na #2.
+
+🔴 **O filtro de responsável (21/09) somou dois nós a essa lista:** o
+**`Montar Fase 2`** (ganhou `MAX(s.cnpj)` no `q_lojas`) e o **`Montar HTML`**
+(o cruzamento, o filtro e o literal da carteira). São três nós no total, e a
+ordem importa: sem o Fase 2, o Montar HTML roda sem CNPJ nenhum e a coluna
+inteira cai em "Não Distribuído" **sem dar erro** — `resumo.carteira
+.lojas_sem_cnpj_no_banco` é o número que denuncia.
 
 ⚠️ Conferir com `python _confere_transcricao.py <json-do-workflow>` **antes** de
 rodar: ele compara os quatro nós byte a byte, e é o que teria pego isto.

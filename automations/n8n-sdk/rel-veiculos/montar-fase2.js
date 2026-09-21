@@ -229,6 +229,10 @@ push('q_veiculos',
 /* ── B) perfil de compra das lojas (mesmas queries do LZL3mxfbMIz4avyx) ── */
 push('q_lojas',
   "SELECT s.id AS shop_id, MAX(s.name) AS loja," +
+  /* o CNPJ e a chave do cruzamento com a carteira comercial (filtro de
+     responsavel, no Montar HTML). MAX porque o GROUP BY e por s.id e o
+     resto da linha ja vem assim -- nao ha dois CNPJ pra mesma loja. */
+  " MAX(s.cnpj) AS cnpj," +
   " MAX(s.whitelabel_id) AS whitelabel_id, MAX(w.name) AS whitelabel," +
   " COALESCE(MAX(" + UF_CASE + "), 'Não identificada') AS uf" +
   " FROM shops s" +

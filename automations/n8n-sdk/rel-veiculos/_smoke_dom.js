@@ -190,7 +190,8 @@ function smoke(html) {
   /* 3. pintou? */
   [['t_v', 'tabela de veiculos'], ['t_l', 'tabela de lojas'],
    ['kpis', 'painel de KPIs'], ['f_ev', 'filtro de evento'],
-   ['f_wl', 'filtro de whitelabel'], ['f_uf', 'filtro de UF']].forEach(function (p) {
+   ['f_wl', 'filtro de whitelabel'], ['f_uf', 'filtro de UF'],
+   ['f_rp', 'filtro de responsável']].forEach(function (p) {
     const el = cache[p[0]];
     if (!el || !el.innerHTML || el.innerHTML.length < 20) erros.push(p[1] + ' saiu vazia');
   });
@@ -309,6 +310,21 @@ function smoke(html) {
   exercita('f_wl', 'filtro de whitelabel', function (sv, sl) {
     if (sv < totalV) erros.push('a soma dos whitelabels (' + sv + ') ficou ABAIXO do total (' + totalV + '); o fan-out so pode inflar');
     if (sl !== totalL) erros.push('a soma dos whitelabels (' + sl + ') nao fecha com o total de lojas (' + totalL + ')');
+  });
+
+  /* Responsavel particiona as LOJAS — cada loja tem um dono so, e quem
+     nao esta na carteira cai em "Nao Distribuido", que tambem e uma opcao.
+     Do lado dos veiculos ele nao faz nada: por isso a soma dos veiculos e
+     o total REPETIDO uma vez por opcao, e nao o total. Se um dia a soma
+     dos veiculos deixar de ser um multiplo exato do total, o filtro passou
+     a esconder carro — que e exatamente o que ele nao deve fazer. */
+  const rpVals = opcoes(cache['f_rp'].innerHTML).filter(function (v) { return v !== ''; });
+  exercita('f_rp', 'filtro de responsável', function (sv, sl) {
+    if (sl !== totalL) erros.push('a soma dos responsáveis (' + sl + ') nao fecha com o total de lojas (' + totalL + ')');
+    if (sv !== totalV * rpVals.length) {
+      erros.push('o filtro de responsável mexeu na lista de veículos: somou ' + sv +
+        ', esperado ' + (totalV * rpVals.length) + ' (' + totalV + ' × ' + rpVals.length + ' opções)');
+    }
   });
 
   /* 6. dois filtros ao mesmo tempo nao podem se anular sem motivo */
