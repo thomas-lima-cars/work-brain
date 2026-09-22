@@ -63,21 +63,56 @@ function htmlDe(bytes) {
 console.log('\nVirar Arquivo\n');
 
 /* ── 1. caminho feliz ─────────────────────────────────────────────────── */
-prova('relatório de 4 MB vira binário com os mesmos bytes', () => {
+const BOM = String.fromCharCode(0xFEFF);
+const COM_BOM = (h) => Buffer.byteLength(BOM + h, 'utf8');
+
+prova('relatório de 4 MB vira binário com os mesmos bytes, mais o BOM', () => {
   const html = htmlDe(4 * 1024 * 1024);
   const r = roda({ html: html, resumo: { veiculos: 1199 }, problemas: 2 });
   igual(r.length, 1, 'um item de saída');
-  igual(r[0].json.bytes, Buffer.byteLength(html, 'utf8'), 'bytes declarados');
-  igual(Buffer.from(r[0].binary.data.data, 'base64').length, Buffer.byteLength(html, 'utf8'), 'bytes do binário');
+  igual(r[0].json.bytes, COM_BOM(html), 'bytes declarados');
+  igual(Buffer.from(r[0].binary.data.data, 'base64').length, COM_BOM(html), 'bytes do binário');
+  igual(COM_BOM(html) - Buffer.byteLength(html, 'utf8'), 3, 'o BOM custa exatamente 3 bytes');
   /* com charset, sempre: sem ele o cabecalho HTTP vence o <meta charset>
-     do documento e o portugues inteiro sai corrompido no navegador */
+     do documento e o portugues inteiro sai corrompido no navegador.
+     Ele NAO basta sozinho -- o SharePoint descarta o charset ao guardar
+     (medido em 21/09, a resposta do upload volta "text/html" pelado), e
+     por isso o BOM existe. Os dois juntos, nao um ou outro. */
   igual(r[0].binary.data.mimeType, 'text/html; charset=utf-8', 'mimeType com charset');
 });
 
-prova('o binário decodifica de volta no MESMO html', () => {
+/* ── o BOM: a correcao do "Radar de Estoque â€” Cars2You" de 21/09 ──────
+   O arquivo publicado estava com os bytes CERTOS e mesmo assim abria
+   corrompido: alguem lia UTF-8 como CP1252. O BOM esta acima do header
+   HTTP e do <meta charset> na ordem de deteccao do HTML, entao ele vale
+   por todos os caminhos -- servido, baixado, aberto no editor, anexado. */
+prova('o binário começa com o BOM de UTF-8', () => {
+  const r = roda({ html: htmlDe(200 * 1024) });
+  const b = Buffer.from(r[0].binary.data.data, 'base64');
+  igual(b[0], 0xEF, 'primeiro byte');
+  igual(b[1], 0xBB, 'segundo byte');
+  igual(b[2], 0xBF, 'terceiro byte');
+  igual(b.slice(3, 12).toString('utf8'), '<!doctype', 'o documento começa logo depois');
+});
+
+prova('o BOM não é duplicado se o html já vier com ele', () => {
+  const html = BOM + htmlDe(200 * 1024);
+  const r = roda({ html: html });
+  const b = Buffer.from(r[0].binary.data.data, 'base64');
+  igual(b.slice(0, 3).toString('hex'), 'efbbbf', 'um BOM só');
+  igual(b.slice(3, 6).toString('hex') === 'efbbbf', false, 'e não dois');
+  igual(r[0].json.bytes, Buffer.byteLength(html, 'utf8'), 'bytes não crescem de novo');
+});
+
+prova('o binário decodifica de volta no MESMO html, tirado o BOM', () => {
   const html = htmlDe(200 * 1024) + ' acentuação çãõ — ↗';
   const r = roda({ html: html });
-  igual(Buffer.from(r[0].binary.data.data, 'base64').toString('utf8'), html, 'ida e volta');
+  const volta = Buffer.from(r[0].binary.data.data, 'base64').toString('utf8');
+  igual(volta.charCodeAt(0), 0xFEFF, 'o BOM está lá');
+  igual(volta.slice(1), html, 'ida e volta');
+  /* o travessao e o que aparecia como "â€”" no arquivo de 21/09: e o
+     caractere mais caro do titulo, tres bytes em UTF-8 */
+  igual(volta.indexOf(' acentuação çãõ — ↗') > 0, true, 'o acento sobrevive inteiro');
 });
 
 prova('carrega resumo, falhas e problemas adiante', () => {
@@ -109,10 +144,14 @@ prova('recusa o arquivo de 14 bytes (o defeito da Lista LM)', () => {
   if (!bateu) throw new Error('deixou passar um arquivo de 14 bytes');
 });
 
-prova('aceita exatamente no piso de 100 KB', () => {
+/* O piso mede o HTML; o `bytes` publicado mede o ARQUIVO. Um html de
+   exatamente 100 KB passa (não é o BOM que o salva) e o arquivo sai com
+   100 KB + 3. Se um dia estes dois números voltarem a ser o mesmo, ou o
+   BOM sumiu ou o piso ficou 3 bytes frouxo. */
+prova('aceita exatamente no piso de 100 KB, e o arquivo sai com BOM', () => {
   const html = 'x'.repeat(100 * 1024);
   const r = roda({ html: html });
-  igual(r[0].json.bytes, 100 * 1024, 'bytes');
+  igual(r[0].json.bytes, 100 * 1024 + 3, 'bytes do arquivo');
 });
 
 prova('recusa um byte abaixo do piso', () => {
@@ -150,27 +189,45 @@ function comRelogio(iso) {
   return DateFalso;
 }
 
+/* ── o nome do arquivo NAO tem data (decisao de 21/09) ────────────────
+   Um arquivo so, sobrescrito a cada run, para o link ser estavel e a pasta
+   nao virar acervo que ninguem poda. A prova trava as duas metades: o nome
+   e fixo, e a data continua sendo calculada -- agora no `gerado_em`. */
+prova('o nome do arquivo é fixo, sem data', () => {
+  const a = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-11T12:00:00Z') });
+  const b = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-11-30T12:00:00Z') });
+  igual(a[0].json.nomeArquivo, 'radar-de-estoque.html', 'nome do arquivo');
+  igual(b[0].json.nomeArquivo, a[0].json.nomeArquivo, 'dois meses depois, o MESMO nome');
+  igual(a[0].json.caminho, b[0].json.caminho, 'e o mesmo caminho, entao o PUT sobrescreve');
+  if (/[0-9]{4}-[0-9]{2}-[0-9]{2}/.test(a[0].json.nomeArquivo)) {
+    throw new Error('voltou data no nome do arquivo: a pasta vai acumular de novo');
+  }
+});
+
+/* O fuso continua valendo, so que no `gerado_em`. Se estas tres sumissem
+   junto com a data do nome, a licao de que `new Date()` responde em UTC
+   ficaria sem guarda -- e ela ja mordeu a janela de eventos antes. */
 prova('23h de Brasília ainda é o dia de hoje, não o de amanhã', () => {
   /* 2026-09-12T02:00Z = 2026-09-11 23:00 em Brasília */
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-12T02:00:00Z') });
-  igual(r[0].json.nomeArquivo, 'radar-de-estoque-2026-09-11.html', 'nome do arquivo');
+  igual(r[0].json.gerado_em, '2026-09-11', 'data de geração');
 });
 
 prova('00h30 de Brasília já é o dia novo', () => {
   /* 2026-09-12T03:30Z = 2026-09-12 00:30 em Brasília */
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-12T03:30:00Z') });
-  igual(r[0].json.nomeArquivo, 'radar-de-estoque-2026-09-12.html', 'nome do arquivo');
+  igual(r[0].json.gerado_em, '2026-09-12', 'data de geração');
 });
 
 prova('meio-dia UTC e meio-dia de Brasília caem no mesmo dia', () => {
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-11T12:00:00Z') });
-  igual(r[0].json.nomeArquivo, 'radar-de-estoque-2026-09-11.html', 'nome do arquivo');
+  igual(r[0].json.gerado_em, '2026-09-11', 'data de geração');
 });
 
 /* ── 6. o caminho ─────────────────────────────────────────────────────── */
 prova('o espaço da pasta vai codificado, e a barra NÃO', () => {
   const r = roda({ html: htmlDe(200 * 1024) }, { Date: comRelogio('2026-09-11T12:00:00Z') });
-  igual(r[0].json.caminho, 'Radar%20de%20Estoque/radar-de-estoque-2026-09-11.html', 'caminho');
+  igual(r[0].json.caminho, 'Radar%20de%20Estoque/radar-de-estoque.html', 'caminho');
   igual((r[0].json.caminho.match(/\//g) || []).length, 1, 'exatamente uma barra separadora');
 });
 

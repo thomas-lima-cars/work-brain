@@ -107,9 +107,29 @@ ok(norm(null) === '' && norm(undefined) === '',
 /* --------------------------------------------------------------------- */
 console.log('\n■ A regra do cruzamento esta escrita no no');
 ok(/responsavelDe/.test(fonte), 'o no tem a funcao que resolve o responsavel');
-ok(/CARTEIRAS\.cnpj\[cnpj\]/.test(fonte), 'ele tenta o CNPJ');
-ok(fonte.indexOf('CARTEIRAS.cnpj[cnpj]') < fonte.indexOf('CARTEIRAS.nome[n]'),
+ok(/CARTEIRA\.cnpj\[cnpj\]/.test(fonte), 'ele tenta o CNPJ');
+ok(fonte.indexOf('CARTEIRA.cnpj[cnpj]') < fonte.indexOf('CARTEIRA.nome[n]'),
    'e tenta o CNPJ ANTES do nome — a ordem e a regra');
+
+/* ── a leitura ao vivo (21/09) ────────────────────────────────────────
+   O literal deixou de ser a fonte e virou RESERVA. Estas provas travam a
+   distincao: que existe uma tentativa ao vivo, que o literal continua
+   embutido, e que a escolha entre os dois e PUBLICADA -- sem isso,
+   "a planilha nao respondeu" fica com a mesma cara de "estas lojas nao
+   estao na planilha". */
+ok(/function carteiraViva/.test(fonte), 'existe a leitura ao vivo do no Ler Carteira');
+ok(/CART_TENTATIVA\.mapa \|\| CARTEIRAS/.test(fonte),
+   'o literal e a reserva quando a leitura ao vivo nao serve');
+ok(/ao_vivo: !!CART_TENTATIVA\.mapa/.test(fonte),
+   'o resumo publica QUAL das duas origens foi usada');
+ok(/gerado_em_utc/.test(fonte),
+   'a idade e contada do instante em UTC, nao do texto em hora de Brasilia');
+ok(/VELHA_DIAS/.test(fonte),
+   'ha limite de idade — carteira parada e o modo de falha deste desenho');
+ok(fonte.indexOf('agendador pode ter morrido') > 0,
+   'e a origem diz o que suspeitar quando ela passa do limite');
+ok(!/Todos os Clientes/.test(fonte),
+   'o Radar NAO conhece mais aba de planilha: quem trata e o Carteira Comercial');
 ok(/Não Distribuído/.test(fonte), 'quem nao casa recebe o rotulo, e nao um vazio');
 ok(/sem_dono: SEM_CARTEIRA/.test(fonte),
    'o rotulo e publicado nos DADOS, pro bloco RENDER regerado enxergar');

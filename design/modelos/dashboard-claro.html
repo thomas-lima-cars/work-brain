@@ -51,10 +51,14 @@
   --d-verde-vivo:     #35C08A;
   --d-vermelho-vivo:  #EF5B60;
 
-  /* --- forma e ritmo --- */
-  --r-g: 16px;   /* raio do cartão    */
-  --r-m: 12px;   /* raio de bloco     */
-  --r-p: 10px;   /* raio de controle  */
+  /* --- forma e ritmo ---
+     Arredondado em 22/09, junto com o tema claro novo: 16/12/10 → 22/14/11.
+     Fica aqui, no bloco COMUM, e não só no claro: dois raios diferentes nos
+     dois temas do mesmo sistema é a divergência que ninguém percebe até ver
+     os dois lado a lado. Forma é uma só; cor é que muda com o tema. */
+  --r-g: 22px;   /* raio do cartão    */
+  --r-m: 14px;   /* raio de bloco     */
+  --r-p: 11px;   /* raio de controle  */
   --gap: 16px;
   --topo-h: 68px;
 
@@ -63,7 +67,50 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. Tema CLARO — é o padrão. A paleta foi pensada pra ele.
+   2. Tema CLARO — é o padrão. Vidro, desde 2026-09-22.
+   --------------------------------------------------------------------------
+   Era branco chapado sobre cinza quase neutro, com borda de 1px separando
+   cartão de página. Virou vidro, na mesma família do escuro: quem tem cor é o
+   FUNDO, o cartão é quase branco e translúcido, e quem o separa é a SOMBRA.
+
+   ── AS QUATRO DECISÕES, E O QUE CADA UMA CUSTOU ───────────────────────────
+
+   1. O acento saiu do azul da marca. `--acento` era #1523A0 e é #3A4552 — o
+      mesmo cinza escuro do texto. É o que dá a cara da referência, e é
+      também o que tira o azul do link, do chip e da barra de título.
+      O azul da marca não sumiu: `--acento-cheio` continua sendo ele, e é
+      quem pinta linha de gráfico, ponto e barra de ranking. Uma cor só na
+      página, e justamente na parte que é dado.
+      ⚠️ Link deixou de se distinguir do texto pela cor. Ver regra 10.
+
+   2. O texto clareou de #14161C para #3A4552. Preto de verdade sobre cartão
+      claro dá 13:1 — contraste de tinta em papel, que numa tela endurece a
+      página inteira. 7,9:1 no pior caso continua acima do 7:1 do AAA.
+
+   3. O cartão ganhou DEGRADÊ, mais escuro no canto superior esquerdo. Isso
+      move o piso de contraste: o pior caso deixou de ser "sobre branco" e
+      passou a ser "sobre o canto escuro do cartão". Duas cores desceram um
+      tom por causa disso — `--texto-3` e `--positivo`, anotadas abaixo.
+
+   4. O campo escureceu para #D8E1E9, e aí texto SOBRE A PÁGINA (fora de
+      cartão) fica abaixo de AA. Virou regra escrita — ver regra 10 em
+      design/regras-de-layout.md: texto só sobre superfície.
+
+   ── CONTRASTE MEDIDO (node design/_contraste.js) ──────────────────────────
+   Os três planos onde o texto cai, com o branco translúcido já resolvido
+   sobre o fundo:
+
+                            canto esc.  canto claro    campo
+                             #E3E8EC      #FDFEFE      #D8E1E9
+       texto      #3A4552      7,91         9,65        7,37   ✓ AAA
+       texto-2    #55626F      5,06         6,18        4,72   ✓ AA
+       acento     #3A4552      7,91         9,65        7,37   ✓ AAA
+       positivo   #0C6E4B      5,08         6,21        4,74   ✓ AA
+       negativo   #7F1112      8,55        10,44        7,97   ✓ AA
+       atenção    #6F4047      6,81         8,31        6,35   ✓ AA
+       texto-3    #6F7D89      3,42         4,18        3,19   — de-ênfase
+
+   Branco sobre o acento (ícone vazado dentro do chip): 9,75:1.
    -------------------------------------------------------------------------- */
 :root,
 [data-tema="claro"]{
@@ -72,36 +119,78 @@
      escuro. Aconteceu no primeiro print. */
   color-scheme: light;
 
-  --fundo:          #F2F3F5;
-  --fundo-veu:      radial-gradient(1200px 600px at 12% -10%,
-                      rgba(72,125,234,.10), transparent 60%);
+  /* Quem tem cor é o fundo. O clarão branco no canto superior esquerdo e o
+     cinza mais frio descendo para a direita são o que dá volume à página —
+     sem eles o cartão translúcido não tem de que se destacar.
+     ⚠️ O clarão tem que ser MENOR que a tela: 760px de branco a 95% num
+     viewport de 800 lavavam a página inteira e invertiam o efeito — página
+     branca com cartão acinzentado por cima. */
+  --fundo:          #D8E1E9;
+  --fundo-veu:      radial-gradient(420px 300px at 0% -14%,
+                      rgba(255,255,255,.72), transparent 70%),
+                    radial-gradient(1200px 900px at 100% 100%,
+                      rgba(128,155,178,.50), transparent 66%);
 
-  --superficie:     #FFFFFF;
-  --superficie-2:   #F7F8FA;
-  --borda:          var(--marca-cinza);
-  --borda-forte:    #CFD3D8;
+  --superficie:     #FAFCFD;
+  --superficie-2:   #EDF1F5;
+  --borda:          #E3E9EE;
+  --borda-forte:    #C9D4DD;
 
-  --texto:          #14161C;
-  --texto-2:        #565B6B;
-  --texto-3:        #8A8FA0;
+  /* neutros com um resto de azul: cinza puro ao lado de um campo frio
+     parece sujo */
+  --texto:          #3A4552;
+  /* escurecido de #5B6875 em 22/09, quando o cabecalho perdeu o fundo: o
+     subtitulo do topo passou a cair direto no CAMPO, e la o tom anterior
+     dava 4,31:1 — abaixo de AA. Com este, 4,72. E de quebra o canto
+     escuro do cartao subiu de 4,62 para 5,06. */
+  --texto-2:        #55626F;
+  /* de-ênfase, e escurecido por causa do degradê: no canto superior esquerdo
+     do cartão o tom anterior caía para 3,1:1 */
+  --texto-3:        #6F7D89;
 
-  /* #487DEA sobre branco dá 3,9:1 — reprova em texto normal (AA pede 4,5).
-     Por isso texto e link usam o azul escuro (11,8:1) e o claro fica pro
-     preenchimento, que só precisa de 3:1. */
-  --acento:         var(--marca-azul);
+  /* ver a decisão 1 no cabeçalho: cinza escuro no acento, azul da marca no
+     preenchimento. O acento é o MESMO tom do texto de propósito — é ele que
+     pinta o chip de ícone, e ícone e letra deviam ser a mesma tinta. */
+  --acento:         #3A4552;
   --acento-cheio:   var(--marca-azul-claro);
-  --acento-veu:     rgba(72,125,234,.12);
+  --acento-veu:     rgba(58,69,82,.07);
 
-  --positivo:       var(--d-verde);
+  /* O verde desceu um tom por causa do degradê: `--d-verde` (#0E7C55) dá
+     4,22:1 no canto escuro do cartão, abaixo de AA — e é exatamente ali que
+     o KPI escreve "▲ 4,2% vs. período anterior". `--d-verde` é DERIVADO, não
+     paleta oficial; escurecer um derivado é ajuste de legibilidade. */
+  --positivo:       #0C6E4B;
   --negativo:       var(--marca-vermelho);
   --atencao:        var(--marca-vinho);
 
-  --grade:          rgba(20,22,28,.08);
-  --sombra:         0 1px 2px rgba(16,20,40,.05), 0 8px 24px rgba(16,20,40,.06);
-  --cartao-borda:   1px solid var(--borda);
-  --cartao-fundo:   var(--superficie);
-  --cartao-blur:    none;
-  --brilho:         none;
+  --grade:          rgba(23,33,43,.06);
+
+  /* Profundidade em três camadas fracas, no lugar de uma linha. A de cima
+     (`inset`) é o fio de luz na borda superior — é ela que faz a peça parecer
+     levantada em vez de recortada. */
+  --sombra:         0 1px 1px  rgba(23,33,43,.03),
+                    0 6px 16px rgba(23,33,43,.05),
+                    0 18px 44px rgba(23,33,43,.07),
+                    inset 0 1px 0 rgba(255,255,255,.85);
+
+  /* borda branca e não cinza: no vidro a borda é reflexo, não contorno */
+  --cartao-borda:   1px solid rgba(255,255,255,.72);
+
+  /* O degradê do cartão, em duas camadas que fazem coisas diferentes:
+       `--cartao-fundo`  varia a OPACIDADE do branco (.82 → .95). Como o campo
+                         atrás é mais escuro, menos branco = mais escuro. É a
+                         rampa longa, na diagonal inteira.
+       `--brilho`        um véu cinza-azulado no CANTO, e só nele. É o que dá
+                         o arredondamento da sombra — degradê linear sozinho
+                         parece papel dobrado, não luz.
+     Medido no cartão composto: #E3E8EC no canto superior esquerdo, #FDFEFE
+     no inferior direito. Rampa de ~11%: bastante para se ver, pouco para
+     chamar atenção. */
+  --cartao-fundo:   linear-gradient(155deg, rgba(255,255,255,.82) 0%,
+                                            rgba(255,255,255,.95) 58%);
+  --cartao-blur:    blur(18px) saturate(115%);
+  --brilho:         radial-gradient(420px 260px at 0% 0%,
+                      rgba(86,112,138,.13), transparent 72%);
 }
 
 /* --------------------------------------------------------------------------
@@ -173,25 +262,95 @@ p{ margin:0 }
 /* --------------------------------------------------------------------------
    5. Topo — fixo, com o filtro dentro
    -------------------------------------------------------------------------- */
+/* SEM FUNDO E SEM BORDA (22/09), nos DOIS temas.
+   --------------------------------------------------------------------------
+   O topo era uma superfície própria — `--cartao-fundo` com uma cor sólida por
+   baixo e uma linha embaixo. Virou vidro sem tinta: o fundo da página passa
+   por ele inteiro, e no alto da página não há barra nenhuma, só a página
+   continuando até a borda de cima.
+
+   Tirar a `border-bottom` é parte da mesma decisão: linha atravessando a tela
+   é justamente o que faz uma barra parecer barra.
+
+   ⚠️ O `backdrop-filter` FICA, e é ele que segura a legibilidade. O topo é
+   `sticky`: quando a página rola, o conteúdo passa por baixo dele. Sem fundo
+   e sem blur, o título do painel ficaria por cima de texto nítido em
+   movimento. Com o blur, o que passa vira um borrão claro e o título continua
+   legível — vidro de verdade, que é o que este tema imita.
+
+   Conferido nos dois estados: no alto da página o topo some no campo; rolado,
+   o cartão de baixo aparece como mancha suave e nada colide. */
 .topo{
   position:sticky; top:0; z-index:30;
-  background:var(--cartao-fundo);
-  background-color:color-mix(in srgb, var(--superficie) 88%, transparent);
-  border-bottom:var(--cartao-borda);
+  background:transparent;
   backdrop-filter:var(--cartao-blur);
   -webkit-backdrop-filter:var(--cartao-blur);
 }
+/* Três colunas, e não flex (21/09): o título do painel fica CENTRADO, e com
+   flex o centro dele dependeria da largura da logo e de quantas ações houvesse
+   na direita — bastaria um botão a mais para o título escorregar. Com
+   `1fr auto 1fr` o meio é o meio da barra, custe o que custar aos lados. */
 .topo-in{
   max-width:1680px; margin:0 auto;
   min-height:var(--topo-h);
   padding:10px 20px;
-  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; gap:16px;
 }
-.logo{ height:26px; width:auto; display:block; flex:none }
-.topo-tit{ margin-right:auto; min-width:200px }
-.topo-tit h1{ font-size:17px }
-.topo-tit .sub{ font-size:12.5px; color:var(--texto-3); margin-top:1px }
-.topo-acoes{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+.logo{ height:26px; width:auto; display:block; flex:none; justify-self:start }
+.topo-tit{ text-align:center; min-width:0 }
+/* 22px: o nome do painel é a primeira coisa que se lê. Em 17px ele perdia
+   para o número do KPI logo abaixo, que é o dado MENOS interessante da
+   página (ver a prova de hierarquia em design/_prova_modelos.js). */
+.topo-tit h1{ font-size:22px; letter-spacing:-.01em }
+/* `--texto-2` e não `--texto-3`: sem fundo no topo, este subtítulo é o ÚNICO
+   texto do painel que fica direto sobre o campo, e lá a de-ênfase cai para
+   3,19:1. Ver a regra 10c em design/regras-de-layout.md. */
+.topo-tit .sub{ font-size:12.5px; color:var(--texto-2); margin-top:1px }
+.topo-acoes{ display:flex; align-items:center; justify-content:flex-end;
+  gap:8px; flex-wrap:wrap; justify-self:end }
+
+/* --------------------------------------------------------------------------
+   5b. Vidro — as três regras que token nenhum alcança
+   --------------------------------------------------------------------------
+   Token muda valor, não forma de pintar. Estas três completam o tema claro
+   novo e não tocam em posição, tamanho de caixa nem fluxo.
+
+   O escopo é `:root:not([data-tema="escuro"])` e não `[data-tema="claro"]`:
+   o claro é o padrão e vale também quando não há atributo nenhum no <html>.
+   Com o seletor do atributo, um documento sem `data-tema` ficaria com os
+   tokens do claro e as regras do escuro — meio tema, e ninguém percebe.
+   -------------------------------------------------------------------------- */
+
+/* (O cabeçalho já não está aqui: ele não tem fundo nenhum, nos dois temas.
+    Ver o comentário no `.topo`, na seção 5.) */
+
+/* 1. Controle afundado. Era uma caixa com borda; agora é um sulco, e quem o
+      desenha é a sombra interna. O foco continua sendo o `outline` de baixo,
+      de propósito: sombra não aparece no modo de alto contraste do sistema. */
+:root:not([data-tema="escuro"]) .ctrl{
+  background:rgba(255,255,255,.55);
+  border-color:rgba(255,255,255,.7);
+  box-shadow:inset 0 1px 2px rgba(23,33,43,.06),
+             0 1px 0 rgba(255,255,255,.9);
+}
+
+/* 2. O chip do cabeçalho de cartão é a única peça de tinta cheia da página, e
+      é o que marca "você está aqui". O SVG dentro dele usa `currentColor`,
+      então o ícone vira branco junto. */
+:root:not([data-tema="escuro"]) .chip{
+  background:var(--acento);
+  color:#FFFFFF;
+}
+
+/* 3. A faixa de KPI deita sobre a página em vez de flutuar: sombra menor,
+      porque a peça é menor. Mesma família da regra que já a deixa mais
+      apertada que os outros cartões. */
+:root:not([data-tema="escuro"]) .g4 .cartao{
+  box-shadow:0 1px 1px rgba(23,33,43,.03),
+             0 4px 12px rgba(23,33,43,.05),
+             inset 0 1px 0 rgba(255,255,255,.85);
+}
 
 .ctrl{
   font:inherit; font-size:13px; color:var(--texto);
@@ -233,7 +392,12 @@ select.ctrl{ padding-right:26px }
 @media (max-width:620px){
   .g4{ grid-template-columns:1fr }
   .area{ padding:12px 12px 40px }
-  .topo-in{ padding:10px 12px }
+  /* `auto 1fr auto` no telefone: com `1fr auto 1fr` as duas laterais reservam
+     largura igual e quem espreme é o título, que é o maior dos três. A logo
+     encolhe junto — ela é a marca escrita por extenso e comia meia barra. */
+  .topo-in{ padding:10px 12px; grid-template-columns:auto 1fr auto; gap:8px }
+  .logo{ height:18px }
+  .topo-tit h1{ font-size:16px }
 }
 
 /* --------------------------------------------------------------------------
@@ -777,6 +941,10 @@ aplicaTema(document.documentElement.dataset.tema);
 
 $('#b-tema').addEventListener('click', () =>
   aplicaTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro'));
+
+/* Ponto de enxerto do modelo de TESTE. Nos dois modelos de verdade isto vira
+   string vazia -- o marcador nunca sobra, e o monta-modelos falha se sobrar. */
+
 </script>
 </body>
 </html>

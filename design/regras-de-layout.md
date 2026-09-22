@@ -86,6 +86,32 @@ cartão, nunca em outra tela.**
 - Quando tem várias seções, elas viram **subtítulos dentro do mesmo bloco**
   (`.gl-sub`), não cartões aninhados. Cartão dentro de cartão não é hierarquia,
   é moldura.
+- **Uma margem esquerda só** (21/09/2026). O subtítulo de seção leva um chip
+  de ícone, e o chip empurrava o *texto* do subtítulo para dentro enquanto
+  termo, definição e tabela começavam colados na borda do cartão — duas
+  verticais diferentes alternando a cada seção. O chip fica na margem, e todo
+  o resto nasce na mesma vertical.
+- **E ocupa a largura toda, em colunas** (21/09/2026). Limitar a *linha* é
+  certo — linha de 200 caracteres não se lê. Errado é limitar deixando metade
+  do cartão em branco, que foi o que aconteceu: 645px de texto num bloco de
+  1.300. Colunas resolvem as duas coisas de uma vez.
+
+  ```css
+  .gl dl{ padding-left:44px;          /* 34 do chip + 10 do intervalo */
+          columns:2 34em; column-gap:44px }
+  .gl dt{ break-inside:avoid; break-after:avoid }
+  .gl dd{ break-inside:avoid; break-before:avoid }
+  @media(max-width:620px){ .gl dl{ padding-left:0 } }
+  ```
+
+  `columns:<contagem> <largura>` é **no máximo** N colunas, cada uma com **pelo
+  menos** aquela largura: onde não cabem duas, vira uma sozinha. Sem media
+  query, e a medida da linha nunca passa do legível.
+
+  Os três `break-*` **juntos** fazem o verbete inteiro — termo, definições e
+  tabela — virar um bloco que a coluna leva junto ou não leva. Só
+  `break-inside` deixa o termo no pé de uma coluna e a tabela que o explica
+  desgarrada na outra, 300px abaixo. Aconteceu.
 
 **Por que obrigatório:** quem recebe o painel não estava na conversa em que o
 termo foi definido, e "deságio" não quer dizer a mesma coisa para todo mundo.
@@ -95,18 +121,74 @@ mensagem depois.
 🔒 A prova é **estrutural**: conta `<section>` abertas e fechadas antes do
 glossário e exige que estejam equilibradas.
 
+## 4b. Bloco retrátil
+
+Bloco que se abre e fecha é `<details>` **sendo** o cartão — não um cartão com
+um `<details>` dentro. O `<summary>` recebe a classe do cabeçalho, e o
+cabeçalho inteiro vira área de clique.
+
+```css
+.gl,.dobra{ padding:0 }
+.gl>summary,.dobra>summary{ cursor:pointer; list-style:none; border-radius:var(--r-g) }
+.gl>summary::-webkit-details-marker,.dobra>summary::-webkit-details-marker{ display:none }
+.gl[open] .seta,.dobra[open] .seta{ transform:rotate(180deg) }
+```
+
+**As regras são compartilhadas por seletor, não copiadas.** São hoje dois
+blocos — glossário e extrato — e folha duplicada significa um dos dois
+apodrecendo calado na próxima mexida.
+
+| bloco | nasce | por quê |
+|---|---|---|
+| glossário | **fechado** | é referência: quem precisa, abre |
+| extrato / detalhe da seleção | **aberto** | é o motivo de ter clicado |
+
+O estado **não** é guardado: o bloco é reescrito a cada render, e guardar
+custaria uma variável para economizar um clique.
+
+## 4c. Resumo mora junto do que ele resume
+
+Caixa de contexto ("você selecionou X") a uma tela de distância do bloco que
+detalha X é a mesma frase escrita duas vezes, em dois lugares que divergem na
+próxima mexida. O resumo vai **dentro** do bloco, e sem repetir o que o título
+do bloco já diz.
+
+Quando a seleção **não** tem bloco de detalhe (no Radar, o veículo), aí sim a
+caixa própria se justifica — e continua existindo só para esse caso.
+
 ## 5. Topo
 
 **Fixo, em superfície — não em barra colorida de marca.**
 
+**Três colunas, e o título fica no meio** (decidido em 21/09/2026):
+
 | posição | o que vai |
 |---|---|
-| esquerda | logo **e o título colado nela**, na mesma linha |
-| direita | só a troca de tema (`margin-left:auto`) |
+| esquerda | só a logo |
+| **centro** | **o título do painel, centrado, a 22px** |
+| direita | as ações — troca de tema, e o ícone de ponto de atenção antes dela |
+
+```css
+.topo-in{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center }
+.topo-tit{ text-align:center }   .topo-tit h1{ font-size:22px }
+```
+
+**Por que grade e não flex:** com flex o centro do título depende da largura da
+logo e de quantas ações houver na direita — basta um botão a mais para ele
+escorregar. `1fr auto 1fr` prende o meio no meio da barra, aconteça o que
+acontecer nos lados.
+
+**Por que 22px:** o nome do painel é a primeira coisa que se lê. Em 17px ele
+perdia para o número do KPI logo abaixo, que é o dado **menos** interessante da
+página (regra 2). Hierarquia invertida.
 
 Barra sólida da cor da marca consome atenção o tempo todo e obriga a inverter
 o contraste de tudo que está em cima dela. Superfície com `border-bottom`
 resolve, e o acento sobra para o que é dado.
+
+**No telefone** as colunas viram `auto 1fr auto` e a logo encolhe para 18px:
+com `1fr auto 1fr` as laterais reservam largura igual e quem espreme é o
+título, que é o maior dos três.
 
 **O que NÃO vai no topo:**
 
@@ -116,8 +198,39 @@ resolve, e o acento sobra para o que é dado.
   O título do painel já está no topo; repetir logo abaixo é redundância que
   come a primeira dobra.
 
-⚠️ `display:flex` no `.topo` é obrigatório. Substituir a folha inteira e
-esquecer dele faz a logo cair numa linha e o título noutra — aconteceu.
+⚠️ Um `display` explícito no `.topo` é obrigatório (`grid` hoje, `flex` até
+20/09). Substituir a folha inteira e esquecer dele faz a logo cair numa linha
+e o título noutra — aconteceu.
+
+### O topo não tem fundo (22/09/2026)
+
+**Nem cor, nem borda, nos dois temas.** O fundo da página passa por ele
+inteiro: no alto da página não há barra nenhuma, só a página continuando até a
+borda de cima. Tirar a `border-bottom` é parte da mesma decisão — linha
+atravessando a tela é o que faz uma barra parecer barra.
+
+```css
+.topo{ position:sticky; top:0; background:transparent;
+       backdrop-filter:var(--cartao-blur) }
+```
+
+⚠️ **O `backdrop-filter` fica, e não é enfeite.** O topo é `sticky`: rolando a
+página, o conteúdo passa por baixo dele. Sem fundo e sem blur, o título
+ficaria por cima de texto nítido em movimento. Com o blur, o que passa vira um
+borrão claro e o título continua legível.
+
+⚠️ **Consequência:** o subtítulo do painel deixou de estar sobre uma superfície
+e passou a cair no campo. Ele usa `--texto-2`, não `--texto-3` — ver regra 10c.
+
+### Ponto de atenção: ícone, não cartão
+
+Aviso de coleta (query que falhou, par descartado, teto batido) vive num
+**ícone no topo, antes da troca de tema**, e conta o resto numa dica. Não num
+cartão de largura inteira acima do conteúdo.
+
+O cartão cobrava a primeira dobra **todos os dias** para dizer, quase sempre,
+a mesma coisa. O ícone nasce escondido, aparece só quando há algo, traz a
+contagem no canto — e no dia limpo não ocupa nada.
 
 ## 5b. Rodapé
 
@@ -186,8 +299,20 @@ sempre do mesmo jeito — o mais usado fica certo e o outro apodrece calado.
     (`Mudar para o tema escuro`), e o `title` dá a dica no mouse.
 - `color-scheme: light|dark` é obrigatório, senão `<select>` e barra de
   rolagem seguem o modo do **sistema**, não o da página.
-- **O papel da cor muda entre os temas.** `#1523A0` é texto no claro (11,8:1)
-  e some no escuro; lá quem assume é `#487DEA` (4,99:1).
+- **O papel da cor muda entre os temas.** Desde 22/09 o claro também é vidro,
+  então os dois compartilham a forma (`--r-g/--r-m/--r-p` ficam no bloco
+  comum) e divergem só na cor. Um raio por tema seria a divergência que
+  ninguém vê até pôr os dois lado a lado.
+- **Regra escrita à mão precisa escolher o tema pelo NEGATIVO.** O claro é o
+  padrão e vale também quando não há `data-tema` nenhum no `<html>`:
+
+  ```css
+  :root:not([data-tema="escuro"]) .topo{ … }   /* ✅ pega o claro e o sem-atributo */
+  [data-tema="claro"] .topo{ … }               /* ❌ documento sem atributo fica de fora */
+  ```
+
+  Com o seletor do atributo, um documento sem `data-tema` ficaria com os
+  **tokens** do claro e as **regras** do escuro — meio tema, e ninguém percebe.
 
 ## 8. Tabela
 
@@ -198,6 +323,31 @@ O Radar de Estoque usa a exceção — nove colunas, quase todas número.
 
 ⚠️ O seletor do tema é `thead th` (especificidade 2). Sobrescrever com `th`
 puro **não funciona**: o tema vence e a tabela inteira vai para o centro.
+
+## 8b. Dica (tooltip)
+
+Detalhe que só interessa a uma linha de cada vez mora numa **dica**, não numa
+tabela fixa em cima. Um bloco de referência que fica longe de onde se usa
+obriga a decorar o número e descer comparando de memória.
+
+**Um balão só para a página inteira** (`#dica`), preenchido na hora. Um balão
+por alvo, escondido no HTML, multiplica o peso da página por cada linha — e
+elas são reescritas a cada mexida num filtro.
+
+```css
+.dica{ position:fixed; pointer-events:none; width:max-content; max-width:min(700px,94vw) }
+```
+
+- **`fixed`, nunca `absolute`.** Tabela longa mora dentro de caixa com
+  `overflow:auto`, e balão absoluto dentro dela é cortado na borda — nasce
+  pela metade ou invisível. Quem posiciona é o JS, por `getBoundingClientRect`.
+- **`pointer-events:none`.** O balão costuma nascer por cima do que o abriu:
+  sem isso ele rouba o mouse do alvo, o alvo recebe `mouseleave`, o balão some,
+  o mouse volta — e a tela pisca sozinha.
+- **`width:max-content`.** Com largura fixa a coluna de texto quebra em quatro
+  linhas por item e o balão sai pela base da tela.
+- **Abre por `hover`, por `focus` e por clique.** Só hover deixa de fora quem
+  abre no telefone e quem navega por teclado.
 
 ## 9. Offline
 
@@ -218,6 +368,57 @@ SharePoint, de um anexo, de um pendrive e com a VPN caída.
   traço. O olho não dá conta: `#487DEA` sobre branco parece legível e dá 3,89.
 - Cor que **você inventou** vai marcada como `derivados` no JSON, separada da
   marca, para virar pergunta à equipe em vez de virar fato por uso.
+
+### 10b. Mede contra o pior plano, não contra branco (22/09/2026)
+
+O cartão do tema claro tem **degradê**, mais escuro no canto superior
+esquerdo. Isso moveu o piso: medir contra `#FFFFFF` deixou de descrever
+qualquer lugar real da tela.
+
+```
+cartão    #E3E8EC (canto sup. esq.)  →  #FDFEFE (canto inf. dir.)
+cabeçalho #ECF0F4                    →  #F3F5F8
+campo     #D8E1E9
+```
+
+O pior plano é o **canto escuro do cartão** — e não por acaso: é ali que ficam
+o chip e o título de cada cartão. Foi assim que o `--positivo` antigo passou a
+reprovar: 5,16:1 sobre branco, **4,22:1 no canto**, exatamente onde o KPI
+escreve "▲ 4,2% vs. período anterior".
+
+🔒 O `_prova_modelos.js` mede contra `#E3E8EC`, não contra branco.
+
+### 10c. Texto sobre o campo passa pelo medidor
+
+O campo do tema claro é `#D8E1E9` — tem cor, então já não é papel em branco.
+Quase todo texto mora dentro de cartão e a pergunta não aparece. **O
+cabeçalho é a exceção**: desde 22/09 ele não tem fundo nenhum (regra 5), e o
+subtítulo do painel é o único texto que cai direto no campo.
+
+Isso custou um tom: `--texto-2` desceu de `#5B6875` para `#55626F`, porque o
+anterior dava **4,31:1** sobre o campo. Agora:
+
+```
+sobre o campo #D8E1E9    texto 7,37   texto-2 4,72   positivo 4,74   ✓ AA
+                         texto-3 3,19  ✗ — de-ênfase NÃO vai no campo
+```
+
+🔒 O `_prova_modelos.js` mede o secundário contra o campo nu, além do canto do
+cartão. Escurecer o campo ou clarear o secundário reprova ali.
+
+**A de-ênfase (`--texto-3`) continua sendo só de superfície.** Ela existe para
+apagar o que está perto do que importa — no campo, sem nada por perto, ela só
+fica ilegível.
+
+### 10d. O acento do claro não é mais o azul da marca (22/09/2026)
+
+`--acento` é `#3A4552`, o mesmo cinza escuro do texto. O azul da marca
+(`--marca-azul-claro`) ficou em `--acento-cheio` e pinta **só o dado**: linha
+de gráfico, ponto, barra de ranking. Uma cor por página, na parte que importa.
+
+⚠️ **Consequência ainda não resolvida:** link perdeu a cor que o distinguia do
+texto corrido. Onde houver link em texto, ele precisa se anunciar por
+**sublinhado** — não há mais diferença de cor para carregar esse trabalho.
 
 ## 11. Como o arquivo é produzido
 
@@ -271,6 +472,20 @@ E o que **só o navegador mostra**: altura em caixa `inline` não vale
 (`display:block` em `<span>`), `color-scheme` ausente, colisão de rótulo,
 tamanho de fonte que empata com o vizinho. Medir com `getComputedStyle` e
 `getBoundingClientRect`, não olhar print reduzido.
+
+⚠️ **Seletor descendente onde cabia filho** é a armadilha desta família.
+`.xk span{display:block}` foi escrito para o rótulo do bloco e passou a pegar
+todo `<span>` de dentro dele — inclusive os que rotulam cada telefone, que
+viraram uma coluna em vez de uma lista horizontal. `>` quando o alvo é o filho
+direto, e a prova confere o **texto da folha**: a regra certa tem que estar lá,
+a larga não pode voltar.
+
+**Como abrir qualquer HTML do repo no navegador:** `.claude/launch.json` traz o
+alvo `previa-radar`, um servidor estático de 20 linhas
+(`.claude/servidor-previa.js`) servindo a raiz do repo em `localhost:8777`.
+Existe porque `file://` não abre da ferramenta, e porque medir alinhamento em
+print reduzido foi exatamente o erro que esta regra 12 registra — o desencontro
+de 8px no glossário (21/09) só apareceu no `getBoundingClientRect`.
 
 ---
 

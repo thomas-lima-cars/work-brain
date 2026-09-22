@@ -1,0 +1,18 @@
+# Credenciais — nunca commitar
+.env
+.env.*
+!.env.exemplo
+*.pem
+*.key
+
+# Coleta bruta e artefatos pesados
+*.csv
+*.parquet
+*.sqlite
+*.db
+
+# Sistema
+.DS_Store
+Thumbs.db
+__pycache__/
+node_modules/

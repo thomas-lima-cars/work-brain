@@ -326,6 +326,140 @@ const CARTEIRAS = {"gerado_em":"2026-09-21","origem":"carteiras-cars2you-2026-09
 
 const SEM_CARTEIRA = 'Não Distribuído';
 
+/* ══ A CARTEIRA AO VIVO, E POR QUE O LITERAL CONTINUA AQUI ═══════════════
+   Desde 21/09 a planilha e lida a cada run pelos nos `Baixar Carteira` e
+   `Ler Carteira`. Ela muda toda semana, e o literal embutido envelhecia em
+   silencio: consultor que trocou de carteira seguia respondendo pela loja
+   antiga, e a tela mostrava o nome errado com a mesma confianca do certo.
+
+   O literal NAO saiu. Ele e a reserva, e a escolha entre os dois e
+   declarada em `resumo.carteira.origem`, que aparece no glossario da
+   pagina. As duas situacoes abaixo dariam telas identicas se a origem nao
+   fosse publicada, e elas nao sao a mesma coisa:
+
+     - "estas 44 lojas nao estao na planilha"  (dado)
+     - "a planilha nao respondeu e estou com a de 4 dias atras"  (defeito)
+
+   ── O QUE FAZ A LEITURA SER RECUSADA ───────────────────────────────────
+   Recusar e cair na reserva, nunca publicar carteira pela metade:
+
+     1. o no nao existe, nao rodou, ou devolveu item de erro (403, arquivo
+        movido, credencial revogada);
+     2. faltam as colunas `CNPJ` ou `Consultor Responsavel` -- planilha
+        reorganizada;
+     3. sobrou linha sem consultor -- edicao pela metade;
+     4. vieram MENOS CNPJ do que o literal ja tem. Esta e a guarda contra
+        truncamento, que e o modo de falha mais perigoso: a planilha abre,
+        as colunas estao certas, e simplesmente sumiu gente. Carteira
+        truncada e pior que carteira velha, porque a velha pelo menos esta
+        inteira.
+
+   O numero 4 tem um efeito colateral aceito de propósito: se a carteira
+   ENCOLHER de verdade -- comercial cortou clientes --, a leitura passa a
+   ser recusada ate alguem regenerar o literal. Prefiro esse incomodo a
+   aceitar silenciosamente uma planilha pela metade. */
+
+/* ══ A CARTEIRA VEM PRONTA, DE OUTRO WORKFLOW ═══════════════════════════
+   Desde 21/09 quem captura e trata a planilha e o workflow
+   `Carteira Comercial` (ksZI8cqSbexqLOre), que roda todo dia as 6h e
+   publica `Radar de Estoque/_dados/carteira-comercial.json`.
+
+   Aqui so se LE esse arquivo. Nao ha xlsx, nao ha aba, nao ha normalizacao
+   de nome nem regra de ambiguidade -- tudo isso mora la, onde falha sem
+   derrubar relatorio nenhum.
+
+   ── POR QUE O LITERAL CONTINUA EMBUTIDO ────────────────────────────────
+   Ele e a reserva. Se o arquivo nao vier, o relatorio sai com a carteira
+   do dia da injecao e DIZ isso. Sem essa distincao publicada, duas coisas
+   muito diferentes dariam a mesma tela:
+
+     - "estas 44 lojas nao estao na carteira"     (dado)
+     - "o arquivo nao respondeu, estou com a velha"  (defeito)
+
+   ── A IDADE E O NOVO MODO DE FALHA SILENCIOSO ──────────────────────────
+   Com a captura separada, o arquivo pode ficar parado parecendo saudavel:
+   se o agendador morrer, o JSON continua la, valido, envelhecendo. Entao
+   a idade e calculada e publicada, e acima de VELHA_DIAS ela entra na
+   origem em letras gordas. NAO recusa -- carteira de dez dias ainda e
+   melhor que nenhuma. Mas tem que estar escrito. */
+
+const VELHA_DIAS = 7;
+/* o fuso em que o produtor escreve `gerado_em` — so serve pro caminho de
+   reserva, quando o arquivo e anterior ao `gerado_em_utc` */
+const FUSO_CARTEIRA_MIN = -180;
+
+function carteiraViva() {
+  var bruto;
+  try {
+    var itens = $('Baixar Carteira').all();
+    bruto = itens && itens.length ? itens[0].json : null;
+  } catch (e) {
+    return { erro: 'o no Baixar Carteira nao existe ou nao rodou' };
+  }
+  if (!bruto) return { erro: 'o Baixar Carteira nao devolveu nada' };
+
+  /* o item de erro do HTTP chega como {error: ...}: dizer o texto dele aqui
+     poupa abrir a execucao pra descobrir que foi 403 ou 404. */
+  if (bruto.error !== undefined) {
+    var msg = bruto.error;
+    if (msg && typeof msg === 'object') msg = msg.message || JSON.stringify(msg);
+    return { erro: 'o arquivo da carteira nao veio: ' + String(msg).slice(0, 160) };
+  }
+
+  /* forma minima. O `Carteira Comercial` ja se recusa a publicar mapa ruim,
+     entao aqui nao se revalida a planilha -- se revalidasse, as duas regras
+     poderiam divergir e a discordancia seria invisivel. Confere-se so que
+     isto E um mapa, e nao outra coisa que apareceu naquele caminho. */
+  if (!bruto.consultores || !bruto.consultores.length || !bruto.cnpj) {
+    return { erro: 'o arquivo nao tem forma de carteira (consultores/cnpj ausentes)' };
+  }
+  var qt = Object.keys(bruto.cnpj).length;
+  if (!qt) return { erro: 'a carteira veio sem nenhum CNPJ' };
+
+  /* idade, em dias, contada do INSTANTE e nao do texto bonito.
+
+     `gerado_em` e hora de Brasilia sem fuso declarado, e `Date.parse` le
+     string assim como hora LOCAL de quem le. Como o n8n roda em UTC, a
+     carteira parecia 3 horas mais nova do que e -- medido em 21/09, com
+     uma de 12 dias sendo contada como 11. Por isso o produtor publica
+     `gerado_em_utc`, e e ele que vale aqui.
+
+     O caminho antigo fica como reserva, com o desconto do fuso aplicado a
+     mao: arquivo publicado antes desta correcao ainda precisa render
+     idade, e render a idade CERTA. */
+  var idade = null;
+  var t = NaN;
+  if (bruto.gerado_em_utc) {
+    t = Date.parse(String(bruto.gerado_em_utc));
+  } else if (bruto.gerado_em) {
+    t = Date.parse(String(bruto.gerado_em).replace(' ', 'T'));
+    if (!isNaN(t)) t = t - FUSO_CARTEIRA_MIN * 60000;
+  }
+  if (!isNaN(t)) idade = Math.floor((Date.now() - t) / 86400000);
+
+  return {
+    mapa: {
+      gerado_em: bruto.gerado_em || null,
+      origem: 'carteira-comercial.json (' + qt + ' CNPJ' +
+        (idade === null ? '' : ', ' + idade + ' dia(s)') + ')',
+      consultores: bruto.consultores,
+      cnpj: bruto.cnpj,
+      nome: bruto.nome || {}
+    },
+    idade: idade
+  };
+}
+
+const CART_TENTATIVA = carteiraViva();
+const CARTEIRA = CART_TENTATIVA.mapa || CARTEIRAS;
+const CARTEIRA_VELHA = CART_TENTATIVA.idade !== null &&
+  CART_TENTATIVA.idade !== undefined && CART_TENTATIVA.idade > VELHA_DIAS;
+const CARTEIRA_ORIGEM = CART_TENTATIVA.mapa
+  ? CART_TENTATIVA.mapa.origem + (CARTEIRA_VELHA
+      ? ' — ATENCAO: parada ha ' + CART_TENTATIVA.idade + ' dias, o agendador pode ter morrido'
+      : '')
+  : (CARTEIRAS.origem || 'literal embutido') + ' [reserva: ' + CART_TENTATIVA.erro + ']';
+
 /* conta por onde cada loja casou — sem isso, a diferenca entre "a planilha
    nao tem essa loja" e "o `Montar Fase 2` nao foi transcrito e nao veio
    CNPJ nenhum" fica invisivel, e as duas dao a mesma tela. */
@@ -334,14 +468,14 @@ const carteiraVia = { cnpj: 0, nome: 0, nenhum: 0, sem_cnpj_no_banco: 0 };
 function responsavelDe(cnpjBruto, nomeLoja) {
   const cnpj = String(cnpjBruto || '').replace(/[^0-9]/g, '');
   if (!cnpj) carteiraVia.sem_cnpj_no_banco++;
-  if (cnpj && CARTEIRAS.cnpj[cnpj] !== undefined) {
+  if (cnpj && CARTEIRA.cnpj[cnpj] !== undefined) {
     carteiraVia.cnpj++;
-    return { nome: CARTEIRAS.consultores[CARTEIRAS.cnpj[cnpj]], via: 'cnpj' };
+    return { nome: CARTEIRA.consultores[CARTEIRA.cnpj[cnpj]], via: 'cnpj' };
   }
   const n = normNome(nomeLoja);
-  if (n && CARTEIRAS.nome[n] !== undefined) {
+  if (n && CARTEIRA.nome[n] !== undefined) {
     carteiraVia.nome++;
-    return { nome: CARTEIRAS.consultores[CARTEIRAS.nome[n]], via: 'nome' };
+    return { nome: CARTEIRA.consultores[CARTEIRA.nome[n]], via: 'nome' };
   }
   carteiraVia.nenhum++;
   return { nome: SEM_CARTEIRA, via: null };
@@ -835,7 +969,13 @@ const DADOS = {
     wl_esperado: wlEsperado,
     pares_descartados: descartados,
     status_ok: META.status_ok || [],
-    status_nome: STATUS_NOME
+    status_nome: STATUS_NOME,
+    /* O catalogo das sete categorias de cliente, publicado pelo mesmo motivo
+       do STATUS_NOME: dele saem a tabela do glossario E a dica do icone, e a
+       secao de render so enxerga DADOS. Sem publicar, uma das duas listas
+       viraria copia escrita a mao -- e copia de catalogo envelhece calada,
+       que e a falha que este projeto ja pagou tres vezes. */
+    clusters: CLUSTERS
   },
   por_status: (META.por_status || []).map((r) => ({
     status: num(r.status), nome: STATUS_NOME[num(r.status)] || ('status ' + r.status),
@@ -867,11 +1007,14 @@ const DADOS = {
          la dentro quebra a regeneracao na hora; mesma pegadinha do
          TETO_LOJAS, documentada no glossario. */
       sem_dono: SEM_CARTEIRA,
-      gerado_em: CARTEIRAS.gerado_em,
-      origem: CARTEIRAS.origem,
-      consultores: CARTEIRAS.consultores.length,
+      gerado_em: CARTEIRA.gerado_em,
+      origem: CARTEIRA_ORIGEM,
+      ao_vivo: !!CART_TENTATIVA.mapa,
+      consultores: CARTEIRA.consultores.length,
       /* contado sobre as lojas PUBLICADAS, nao sobre `lojasTodas`: e esse o
          universo que o filtro enxerga. `carteiraVia` mede o outro, maior. */
+      idade_dias: CART_TENTATIVA.idade === undefined ? null : CART_TENTATIVA.idade,
+      velha: !!CARTEIRA_VELHA,
       por_cnpj: lojas.filter((l) => l.responsavel_via === 'cnpj').length,
       por_nome: lojas.filter((l) => l.responsavel_via === 'nome').length,
       nao_distribuidas: lojas.filter((l) => !l.responsavel_via).length,
@@ -944,21 +1087,23 @@ const TEMA = [
 /* TEMA:INICIO */
   ':root{--marca-azul:       #1523A0;--marca-azul-claro: #487DEA;--marca-cinza:      #E4E6E6;',
   '--marca-vinho:      #6F4047;--marca-vermelho:   #7F1112;--d-verde:          #0E7C55;',
-  '--d-verde-vivo:     #35C08A;--d-vermelho-vivo:  #EF5B60;--r-g: 16px;--r-m: 12px;--r-p: 10px;',
+  '--d-verde-vivo:     #35C08A;--d-vermelho-vivo:  #EF5B60;--r-g: 22px;--r-m: 14px;--r-p: 11px;',
   '--gap: 16px;--topo-h: 68px;',
   '--fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,"Helvetica Neue", Arial, "Noto Sans", sans-serif;',
-  '}:root,[data-tema="claro"]{color-scheme: light;--fundo:          #F2F3F5;',
-  '--fundo-veu:      radial-gradient(1200px 600px at 12% -10%,rgba(72,125,234,.10), transparent 60%);',
-  '--superficie:     #FFFFFF;--superficie-2:   #F7F8FA;--borda:          var(--marca-cinza);',
-  '--borda-forte:    #CFD3D8;--texto:          #14161C;--texto-2:        #565B6B;',
-  '--texto-3:        #8A8FA0;--acento:         var(--marca-azul);',
-  '--acento-cheio:   var(--marca-azul-claro);--acento-veu:     rgba(72,125,234,.12);',
-  '--positivo:       var(--d-verde);--negativo:       var(--marca-vermelho);',
-  '--atencao:        var(--marca-vinho);--grade:          rgba(20,22,28,.08);',
-  '--sombra:         0 1px 2px rgba(16,20,40,.05), 0 8px 24px rgba(16,20,40,.06);',
-  '--cartao-borda:   1px solid var(--borda);--cartao-fundo:   var(--superficie);',
-  '--cartao-blur:    none;--brilho:         none;}[data-tema="escuro"]{color-scheme: dark;',
-  '--fundo:          #0B0D12;',
+  '}:root,[data-tema="claro"]{color-scheme: light;--fundo:          #D8E1E9;',
+  '--fundo-veu:      radial-gradient(420px 300px at 0% -14%,rgba(255,255,255,.72), transparent 70%),radial-gradient(1200px 900px at 100% 100%,rgba(128,155,178,.50), transparent 66%);',
+  '--superficie:     #FAFCFD;--superficie-2:   #EDF1F5;--borda:          #E3E9EE;',
+  '--borda-forte:    #C9D4DD;--texto:          #3A4552;--texto-2:        #55626F;',
+  '--texto-3:        #6F7D89;--acento:         #3A4552;',
+  '--acento-cheio:   var(--marca-azul-claro);--acento-veu:     rgba(58,69,82,.07);',
+  '--positivo:       #0C6E4B;--negativo:       var(--marca-vermelho);',
+  '--atencao:        var(--marca-vinho);--grade:          rgba(23,33,43,.06);',
+  '--sombra:         0 1px 1px  rgba(23,33,43,.03),0 6px 16px rgba(23,33,43,.05),0 18px 44px rgba(23,33,43,.07),inset 0 1px 0 rgba(255,255,255,.85);',
+  '--cartao-borda:   1px solid rgba(255,255,255,.72);',
+  '--cartao-fundo:   linear-gradient(155deg, rgba(255,255,255,.82) 0%,rgba(255,255,255,.95) 58%);',
+  '--cartao-blur:    blur(18px) saturate(115%);',
+  '--brilho:         radial-gradient(420px 260px at 0% 0%,rgba(86,112,138,.13), transparent 72%);',
+  '}[data-tema="escuro"]{color-scheme: dark;--fundo:          #0B0D12;',
   '--fundo-veu:      radial-gradient(900px 500px at 8% -8%,rgba(72,125,234,.20), transparent 62%),radial-gradient(800px 500px at 96% 4%,rgba(111,64,71,.16), transparent 60%);',
   '--superficie:     #12151D;--superficie-2:   #171B25;--borda:          rgba(255,255,255,.09);',
   '--borda-forte:    rgba(255,255,255,.16);--texto:          #EDEFF5;--texto-2:        #A4ABBF;',
@@ -977,17 +1122,22 @@ const TEMA = [
   'background-repeat:no-repeat;-webkit-font-smoothing:antialiased;}h1,h2,h3{ margin:0;',
   ' font-weight:650; letter-spacing:-.01em }p{ margin:0 }.num{',
   ' font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1 }.topo{position:sticky;',
-  ' top:0; z-index:30;background:var(--cartao-fundo);',
-  'background-color:color-mix(in srgb, var(--superficie) 88%, transparent);',
-  'border-bottom:var(--cartao-borda);backdrop-filter:var(--cartao-blur);',
+  ' top:0; z-index:30;background:transparent;backdrop-filter:var(--cartao-blur);',
   '-webkit-backdrop-filter:var(--cartao-blur);}.topo-in{max-width:1680px; margin:0 auto;',
-  'min-height:var(--topo-h);padding:10px 20px;display:flex; align-items:center; gap:16px;',
-  ' flex-wrap:wrap;}.logo{ height:26px; width:auto; display:block; flex:none }.topo-tit{',
-  ' margin-right:auto; min-width:200px }.topo-tit h1{ font-size:17px }.topo-tit .sub{',
-  ' font-size:12.5px; color:var(--texto-3); margin-top:1px }.topo-acoes{ display:flex;',
-  ' align-items:center; gap:8px; flex-wrap:wrap }.ctrl{font:inherit; font-size:13px;',
-  ' color:var(--texto);background:var(--superficie-2);border:1px solid var(--borda);',
-  'border-radius:var(--r-p);padding:7px 11px;cursor:pointer;',
+  'min-height:var(--topo-h);padding:10px 20px;display:grid; grid-template-columns:1fr auto 1fr;',
+  'align-items:center; gap:16px;}.logo{ height:26px; width:auto; display:block; flex:none;',
+  ' justify-self:start }.topo-tit{ text-align:center; min-width:0 }.topo-tit h1{',
+  ' font-size:22px; letter-spacing:-.01em }.topo-tit .sub{ font-size:12.5px;',
+  ' color:var(--texto-2); margin-top:1px }.topo-acoes{ display:flex; align-items:center;',
+  ' justify-content:flex-end;gap:8px; flex-wrap:wrap; justify-self:end }',
+  ':root:not([data-tema="escuro"]) .ctrl{background:rgba(255,255,255,.55);',
+  'border-color:rgba(255,255,255,.7);',
+  'box-shadow:inset 0 1px 2px rgba(23,33,43,.06),0 1px 0 rgba(255,255,255,.9);}',
+  ':root:not([data-tema="escuro"]) .chip{background:var(--acento);color:#FFFFFF;}',
+  ':root:not([data-tema="escuro"]) .g4 .cartao{',
+  'box-shadow:0 1px 1px rgba(23,33,43,.03),0 4px 12px rgba(23,33,43,.05),inset 0 1px 0 rgba(255,255,255,.85);',
+  '}.ctrl{font:inherit; font-size:13px; color:var(--texto);background:var(--superficie-2);',
+  'border:1px solid var(--borda);border-radius:var(--r-p);padding:7px 11px;cursor:pointer;',
   'transition:border-color .15s, background .15s;}.ctrl:hover{',
   ' border-color:var(--borda-forte) }.ctrl:focus-visible{ outline:2px solid var(--acento);',
   ' outline-offset:1px }select.ctrl{ padding-right:26px }.ctrl.so-icone{ padding:7px;',
@@ -999,41 +1149,43 @@ const TEMA = [
   ' grid-template-columns:2fr 1fr }@media (max-width:1100px){.g4{',
   ' grid-template-columns:repeat(2,1fr) }.g2{ grid-template-columns:1fr }}',
   '@media (max-width:620px){.g4{ grid-template-columns:1fr }.area{ padding:12px 12px 40px }',
-  '.topo-in{ padding:10px 12px }}.cartao{position:relative;background:var(--cartao-fundo);',
-  'border:var(--cartao-borda);border-radius:var(--r-g);box-shadow:var(--sombra);',
-  'backdrop-filter:var(--cartao-blur);-webkit-backdrop-filter:var(--cartao-blur);padding:18px;',
-  'overflow:hidden;}.cartao::before{content:""; position:absolute; inset:0;',
-  'background:var(--brilho);pointer-events:none;}.cartao > *{ position:relative }.cartao-topo{',
-  'display:flex; align-items:center; gap:10px;margin-bottom:14px;}.cartao-topo h2{',
-  ' font-size:14.5px; font-weight:650 }.cartao-topo .dir{ margin-left:auto; display:flex;',
-  ' gap:6px; align-items:center }.chip{flex:none; width:34px; height:34px; border-radius:50%;',
-  'display:grid; place-items:center;background:var(--acento-veu);color:var(--acento);}',
-  '.chip svg{ width:17px; height:17px; stroke:currentColor; fill:none;stroke-width:1.9;',
-  ' stroke-linecap:round; stroke-linejoin:round }.g4 .cartao{ padding:13px 14px }',
-  '.g4 .cartao-topo{ margin-bottom:6px; gap:8px }.g4 .chip{ width:26px; height:26px }',
-  '.g4 .chip svg{ width:14px; height:14px }.kpi-rot{ font-size:12.5px; color:var(--texto-2);',
-  ' font-weight:500 }.kpi-val{font-size:23px; line-height:1.15; font-weight:700;',
-  ' letter-spacing:-.015em;margin:4px 0 2px;}.kpi-delta{ font-size:11.5px; font-weight:600;',
-  ' display:inline-flex; gap:4px;align-items:center }.sobe{ color:var(--positivo) } .desce{',
-  ' color:var(--negativo) }.neutro{ color:var(--texto-3) }.kpi-pe{display:flex; gap:16px;',
-  'margin-top:9px; padding-top:8px;border-top:1px solid var(--borda);}.kpi-pe div{',
-  ' min-width:0 }.kpi-pe dt{ font-size:11px; color:var(--texto-3); white-space:nowrap;',
-  'overflow:hidden; text-overflow:ellipsis }.kpi-pe dd{ margin:1px 0 0; font-size:13.5px;',
-  ' font-weight:650 }.graf{ width:100%; height:auto; display:block; overflow:visible }',
-  '.graf .eixo{ font-size:10.5px; fill:var(--texto-3) }.graf .linha-grade{ stroke:var(--grade);',
-  ' stroke-width:1 }.graf .serie{ fill:none; stroke:var(--acento-cheio); stroke-width:2.25;',
-  'stroke-linecap:round; stroke-linejoin:round }.graf .area-serie{ fill:url(#veu-serie);',
-  ' stroke:none }.graf .ponto{ fill:var(--acento-cheio) }.graf .rotulo{ font-size:11px;',
-  ' font-weight:650; fill:var(--texto);font-variant-numeric:tabular-nums }.rank{',
-  ' list-style:none; margin:0; padding:0; display:flex;flex-direction:column; gap:11px }',
-  '.rank li{ display:grid; grid-template-columns:22px 1fr auto; gap:10px;align-items:center }',
-  '.rank .pos{ font-size:12px; color:var(--texto-3); text-align:right }.rank .nome{',
-  ' display:block; font-size:13px; overflow:hidden;text-overflow:ellipsis; white-space:nowrap }',
-  '.rank .barra{ display:block; height:5px; border-radius:3px;background:var(--acento-veu);',
-  ' margin-top:5px; overflow:hidden }.rank .barra i{ display:block; height:100%;',
-  ' border-radius:3px;background:var(--acento-cheio) }.rank .val{ font-size:13px;',
-  ' font-weight:650 }.rolo{ overflow-x:auto; margin:0 -18px -18px; padding:0 18px 18px }table{',
-  ' width:100%; border-collapse:collapse; font-size:13px }thead th{position:sticky; top:0;',
+  '.topo-in{ padding:10px 12px; grid-template-columns:auto 1fr auto; gap:8px }.logo{',
+  ' height:18px }.topo-tit h1{ font-size:16px }}.cartao{position:relative;',
+  'background:var(--cartao-fundo);border:var(--cartao-borda);border-radius:var(--r-g);',
+  'box-shadow:var(--sombra);backdrop-filter:var(--cartao-blur);',
+  '-webkit-backdrop-filter:var(--cartao-blur);padding:18px;overflow:hidden;}.cartao::before{',
+  'content:""; position:absolute; inset:0;background:var(--brilho);pointer-events:none;}',
+  '.cartao > *{ position:relative }.cartao-topo{display:flex; align-items:center; gap:10px;',
+  'margin-bottom:14px;}.cartao-topo h2{ font-size:14.5px; font-weight:650 }.cartao-topo .dir{',
+  ' margin-left:auto; display:flex; gap:6px; align-items:center }.chip{flex:none; width:34px;',
+  ' height:34px; border-radius:50%;display:grid; place-items:center;',
+  'background:var(--acento-veu);color:var(--acento);}.chip svg{ width:17px; height:17px;',
+  ' stroke:currentColor; fill:none;stroke-width:1.9; stroke-linecap:round;',
+  ' stroke-linejoin:round }.g4 .cartao{ padding:13px 14px }.g4 .cartao-topo{ margin-bottom:6px;',
+  ' gap:8px }.g4 .chip{ width:26px; height:26px }.g4 .chip svg{ width:14px; height:14px }',
+  '.kpi-rot{ font-size:12.5px; color:var(--texto-2); font-weight:500 }.kpi-val{font-size:23px;',
+  ' line-height:1.15; font-weight:700; letter-spacing:-.015em;margin:4px 0 2px;}.kpi-delta{',
+  ' font-size:11.5px; font-weight:600; display:inline-flex; gap:4px;align-items:center }.sobe{',
+  ' color:var(--positivo) } .desce{ color:var(--negativo) }.neutro{ color:var(--texto-3) }',
+  '.kpi-pe{display:flex; gap:16px;margin-top:9px; padding-top:8px;',
+  'border-top:1px solid var(--borda);}.kpi-pe div{ min-width:0 }.kpi-pe dt{ font-size:11px;',
+  ' color:var(--texto-3); white-space:nowrap;overflow:hidden; text-overflow:ellipsis }',
+  '.kpi-pe dd{ margin:1px 0 0; font-size:13.5px; font-weight:650 }.graf{ width:100%;',
+  ' height:auto; display:block; overflow:visible }.graf .eixo{ font-size:10.5px;',
+  ' fill:var(--texto-3) }.graf .linha-grade{ stroke:var(--grade); stroke-width:1 }.graf .serie{',
+  ' fill:none; stroke:var(--acento-cheio); stroke-width:2.25;stroke-linecap:round;',
+  ' stroke-linejoin:round }.graf .area-serie{ fill:url(#veu-serie); stroke:none }.graf .ponto{',
+  ' fill:var(--acento-cheio) }.graf .rotulo{ font-size:11px; font-weight:650;',
+  ' fill:var(--texto);font-variant-numeric:tabular-nums }.rank{ list-style:none; margin:0;',
+  ' padding:0; display:flex;flex-direction:column; gap:11px }.rank li{ display:grid;',
+  ' grid-template-columns:22px 1fr auto; gap:10px;align-items:center }.rank .pos{',
+  ' font-size:12px; color:var(--texto-3); text-align:right }.rank .nome{ display:block;',
+  ' font-size:13px; overflow:hidden;text-overflow:ellipsis; white-space:nowrap }.rank .barra{',
+  ' display:block; height:5px; border-radius:3px;background:var(--acento-veu); margin-top:5px;',
+  ' overflow:hidden }.rank .barra i{ display:block; height:100%; border-radius:3px;',
+  'background:var(--acento-cheio) }.rank .val{ font-size:13px; font-weight:650 }.rolo{',
+  ' overflow-x:auto; margin:0 -18px -18px; padding:0 18px 18px }table{ width:100%;',
+  ' border-collapse:collapse; font-size:13px }thead th{position:sticky; top:0;',
   'background:var(--superficie-2);color:var(--texto-2); font-weight:600; font-size:12px;',
   'text-align:center; white-space:nowrap;padding:9px 10px;border-bottom:1px solid var(--borda);',
   '}tbody td{ padding:9px 10px; text-align:center;border-bottom:1px solid var(--borda) }',
@@ -1091,21 +1243,33 @@ const PONTE = [
   'body{font-size:13px}',
 
   /* 2. topo: era barra azul solida; no modelo e superficie, e fica fixa */
-  /* `display:flex` mora AQUI porque o bloco de CSS antigo (que o tinha) foi
-     inteiro substituido. Sem ele `.esq` e `.dir` voltam a ser span inline e
-     a logo cai numa linha, o titulo noutra. */
-  '.topo{display:flex;align-items:center;gap:16px;flex-wrap:wrap;',
-  'position:sticky;top:0;z-index:30;padding:10px 20px 10px 52px;',
-  'background:var(--cartao-fundo);background-color:var(--superficie);',
-  'border-bottom:var(--cartao-borda);color:var(--texto);',
+  /* GRADE de tres colunas, e nao flex (21/09), porque o titulo agora e
+     CENTRALIZADO. Com flex o centro depende da largura da logo e do que
+     houver na direita — bastaria o icone de atencao aparecer pro titulo
+     escorregar alguns pixels. `1fr auto 1fr` prende o meio no centro do
+     topo, tenha o lado que tiver o que tiver.
+     Um `display` aqui e OBRIGATORIO de qualquer jeito: sem ele `.esq` e
+     `.dir` voltam a ser span inline e a logo cai numa linha, o titulo
+     noutra — ja aconteceu. */
+  '.topo{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;',
+  'gap:16px;position:sticky;top:0;z-index:30;padding:10px 20px 10px 52px;',
+  /* SEM FUNDO E SEM BORDA (22/09), como no tema: o fundo da pagina passa por
+     ele inteiro. Estas duas linhas existiam aqui e REPUNHAM o que o tema
+     tinha tirado — a PONTE vem depois do TEMA e ganha no empate, entao
+     apagar so la nao bastava. A barra continuava branca e nada acusava.
+     O blur FICA: o topo e sticky, e sem ele o titulo passaria por cima de
+     texto nitido rolando por baixo. */
+  'background:transparent;color:var(--texto);',
   'backdrop-filter:var(--cartao-blur);-webkit-backdrop-filter:var(--cartao-blur)}',
-  /* o titulo deixa de ser centralizado: no modelo ele encosta na logo e as
-     acoes e que vao pra direita */
-  '.topo .esq{flex:0 0 auto}',
-  '.topo .meio{flex:1 1 auto;text-align:left;padding-left:2px}',
-  '.topo .dir{flex:0 0 auto;gap:8px}',
+  '.topo .esq{display:flex;align-items:center;gap:12px;min-width:0;justify-self:start}',
+  '.topo .meio{text-align:center;min-width:0}',
+  '.topo .dir{display:flex;align-items:center;gap:8px;justify-self:end}',
   '.topo .logo{height:26px;width:auto;flex:none;display:block}',
-  '.topo b{font-size:17px;font-weight:650;letter-spacing:-.01em;color:var(--texto)}',
+  /* 22px e o tamanho de titulo de painel do modelo do brain
+     (design/tokens/tema.css, `.topo-tit h1`) desde 21/09. Era 17px, que e
+     tamanho de rotulo: o nome do painel e a primeira coisa que se le e
+     precisa ganhar da faixa de KPIs logo abaixo. */
+  '.topo b{font-size:22px;font-weight:650;letter-spacing:-.01em;color:var(--texto)}',
   '.topo .dim{font-size:12.5px;color:var(--texto-3)}',
   /* so o icone: quadrado, e o nome vem do aria-label */
   '#btn_tema{background:var(--superficie-2);color:var(--texto);',
@@ -1115,9 +1279,23 @@ const PONTE = [
   'fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}',
   '#btn_tema:hover{background:var(--superficie-2);color:var(--texto);',
   'border-color:var(--borda-forte)}',
-  /* logo e titulo colados; a acao encosta na direita */
-  '.topo .esq{display:flex;align-items:center;gap:12px;min-width:0}',
-  '.topo .dir{margin-left:auto;display:flex;align-items:center;gap:8px}',
+  /* ── ICONE DE ATENCAO ──────────────────────────────────────────────
+     Os pontos de atencao eram um cartao vermelho de largura inteira, entre
+     os KPIs e as tabelas. O problema nunca foi o aviso: era ele cobrar a
+     primeira dobra TODO DIA pra dizer, quase sempre, a mesma coisa sobre
+     teto e corte. Virou icone — nasce escondido, aparece so quando ha algo,
+     traz a contagem no canto, e conta o resto na dica. */
+  '.ico-aviso{display:none;align-items:center;justify-content:center;',
+  'position:relative;width:32px;height:32px;border:1px solid var(--borda);',
+  'border-radius:var(--r-p);background:var(--superficie-2);',
+  'color:var(--atencao);cursor:pointer}',
+  '.ico-aviso:hover,.ico-aviso:focus-visible{border-color:var(--atencao)}',
+  '.ico-aviso svg{width:17px;height:17px;display:block;stroke:currentColor;',
+  'fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}',
+  '.ico-aviso .pt{position:absolute;top:-6px;right:-6px;min-width:16px;',
+  'height:16px;padding:0 3px;border-radius:8px;background:var(--atencao);',
+  'color:var(--superficie);font:700 10px/16px inherit;font-style:normal;',
+  'text-align:center}',
 
   /* ── GAVETA DE FILTROS ─────────────────────────────────────────────
      Aba fixa na lateral esquerda, painel que desliza por cima. A aba fica
@@ -1146,7 +1324,14 @@ const PONTE = [
   /* a pagina abre espaco pra aba nao cobrir conteudo */
   '.pg{padding-left:52px}',
   '@media(max-width:620px){.pg{padding-left:20px}',
-  '.topo{padding-left:20px}',
+  /* no telefone as tres colunas viram `auto 1fr auto`: com `1fr auto 1fr`
+     as duas laterais reservam largura igual e o titulo, que e o maior dos
+     tres, e quem espreme. */
+  '.topo{padding-left:20px;grid-template-columns:auto 1fr auto;gap:8px}',
+  /* a logo tambem encolhe: ela e larga (marca escrita por extenso) e no
+     telefone comia metade da barra — o titulo quebrava em duas linhas */
+  '.topo .logo{height:18px}',
+  '.topo b{font-size:16px}',
   '.aba{top:auto;bottom:16px;transform:none;flex-direction:row;',
   'border-radius:0 var(--r-m) var(--r-m) 0}',
   '.aba span{writing-mode:horizontal-tb}}',
@@ -1277,11 +1462,49 @@ const PONTE = [
   '.xg{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}',
   '.xk{flex:1 1 170px;background:var(--superficie-2);border:1px solid var(--borda);',
   'border-left:3px solid var(--acento);border-radius:var(--r-m);padding:9px 12px}',
-  '.xk span{display:block;color:var(--texto-3);font-size:11px;',
+  /* `>` e nao descendente, e isso e uma correcao (21/09): a regra antiga
+     pegava QUALQUER span dentro do bloco, inclusive os `.dim` que rotulam
+     cada telefone do contato. O efeito era o contato sair empilhado, um
+     dado por linha, quando ele e uma lista horizontal:
+
+         washyngton.santoos@gmail.com
+         (1 de 2)
+         71999261215
+         WhatsApp
+
+     O `>` limita o bloco ao rotulo do cartao, que e filho direto. */
+  '.xk>span{display:block;color:var(--texto-3);font-size:11px;',
   'text-transform:none;letter-spacing:0}',
   '.xk b{display:block;font-size:16px;font-weight:650;margin-top:2px}',
   '.xk i{display:block;color:var(--texto-3);font-size:11px;font-style:normal;margin-top:2px}',
   '.xk a{color:var(--acento)}',
+  /* ── ICONE DE AJUDA, colado no rotulo ──────────────────────────────
+     Circulo de 14px com um "?" dentro. Caractere e nao SVG porque "?" e
+     ASCII: nao vira emoji colorido em nenhum sistema, que e o motivo de o
+     sol e a lua do botao de tema serem desenhados.
+     O `.xk .ajuda` existe porque `.xk i{display:block}` colocaria o icone
+     numa linha so dele -- duas classes ganham de uma classe e um elemento. */
+  '.ajuda{display:inline-flex;align-items:center;justify-content:center;',
+  'width:14px;height:14px;margin-left:5px;border-radius:50%;vertical-align:middle;',
+  'border:1px solid var(--texto-3);color:var(--texto-3);',
+  'font-size:10px;font-weight:700;font-style:normal;line-height:1;cursor:help}',
+  '.ajuda:hover,.ajuda:focus-visible{border-color:var(--acento);color:var(--acento)}',
+  '.xk .ajuda{display:inline-flex;margin-top:0}',
+  /* na dica das categorias, a linha da loja aberta vem marcada: a lista das
+     sete so ajuda se disser ONDE esta loja cai */
+  '.dica .aqui th,.dica .aqui td{color:var(--acento);font-weight:650}',
+  /* ── A PRIMEIRA LINHA DO EXTRATO ────────────────────────────────────
+     resumo a ESQUERDA, categoria do cliente a direita, contato inteiro na
+     linha de baixo. O resumo cresce (`1 1`) e a categoria nao (`0 1`):
+     ela tem tres palavras e um numero, e o espaco que sobrar pertence ao
+     texto corrido, nao a caixa de rotulo. */
+  '.xk.resumo{flex:1 1 380px}',
+  '.xk.resumo b{font-size:13.5px;font-weight:600;line-height:1.5}',
+  '.xk.resumo i{font-size:12px;color:var(--texto-2);margin-top:3px;line-height:1.5}',
+  '.xk.cat{flex:0 1 260px}',
+  /* `1 1 100%` quebra a linha sozinho, sem precisar de style embutido */
+  '.xk.contato{flex:1 1 100%}',
+  '.xk.contato b{font-size:13px;font-weight:400;line-height:1.7}',
   /* `.tag` ja vem do tema; aqui so a variante de aviso */
   '.tag.w{background:color-mix(in srgb,var(--atencao) 20%,transparent);color:var(--atencao)}',
   '.dim{color:var(--texto-3)}',
@@ -1300,24 +1523,96 @@ const PONTE = [
   /* 8. glossario.
         O modelo manda que ele seja bloco proprio e nunca rodape de outro
         cartao. Aqui ele ja e uma TELA inteira, que separa mais ainda. */
+  /* ── DICA: UM balao so, reaproveitado ──────────────────────────────
+     Serve o icone de atencao no topo e cada linha da tabela de veiculos.
+     `position:fixed` e nao `absolute`, e isso nao e preferencia: a lista de
+     veiculos mora dentro de um `.wrap` com `overflow:auto`, e balao
+     absoluto dentro de caixa que rola e cortado na borda dela — nasceria
+     pela metade ou invisivel. Quem posiciona e o JS, por
+     getBoundingClientRect.
+     `pointer-events:none` porque o balao costuma nascer POR CIMA do que o
+     abriu: sem isso ele rouba o mouse do proprio alvo, o alvo recebe
+     `mouseleave`, o balao some, o mouse volta pro alvo, o balao volta — e a
+     tela pisca sozinha. */
+  '.dica{position:fixed;z-index:60;display:none;pointer-events:none;',
+  /* Largura pelo CONTEUDO, e nao 100% do teto: com largura fixa a coluna
+     Leitura quebrava em quatro linhas por indicador e o balao passava de
+     450px de altura, saindo pela base da tela. Com max-content a tabela
+     ocupa o que precisa ate o teto, e a altura cai pela metade. */
+  'width:max-content;max-width:min(700px,94vw);background:var(--superficie);',
+  'border:var(--cartao-borda);border-radius:var(--r-m);box-shadow:var(--sombra);',
+  'padding:12px 14px;color:var(--texto);font-size:12px;line-height:1.5}',
+  '.dica .dica-t{font-weight:650;font-size:12.5px;margin-bottom:8px}',
+  '.dica ul{margin:0;padding-left:16px}',
+  '.dica li+li{margin-top:6px}',
+  '.dica table{width:100%;border-collapse:collapse;font-size:11.5px}',
+  '.dica th{text-align:right;font-weight:600;color:var(--texto-3);',
+  'padding:3px 7px;white-space:nowrap;border-bottom:1px solid var(--borda)}',
+  '.dica td{text-align:right;padding:3px 7px;white-space:nowrap;',
+  'border-bottom:1px solid var(--grade)}',
+  '.dica tbody th{font-weight:650;color:var(--texto);border-bottom:1px solid var(--grade)}',
+  '.dica th.tx,.dica td.tx{text-align:left;white-space:normal}',
+  '.dica .fora{color:var(--texto-3);font-weight:400}',
+  '.dica .dica-p{color:var(--texto-3);font-size:11.5px;margin-top:9px}',
+  /* a celula que guarda a dica precisa dizer que guarda alguma coisa */
+  '.comp{cursor:help}',
+  '.comp:hover{color:var(--acento)}',
+
   /* O glossario acompanha a largura da pagina (ele e o fim dela agora, nao
      uma tela a parte). Quem limita a linha e o TEXTO, nao o cartao — bloco
      estreito debaixo de um largo pareceria desalinhado. */
   /* ── GLOSSARIO ─────────────────────────────────────────────────────
      Um bloco so, fechado ate clicarem. O <details> E o cartao: o cabecalho
      inteiro e a area de clique. */
-  '.gl{padding:0}',
-  '.gl>summary{cursor:pointer;list-style:none;border-radius:var(--r-g)}',
-  '.gl>summary::-webkit-details-marker{display:none}',
-  '.gl>summary:focus-visible{outline:2px solid var(--acento);outline-offset:-2px}',
-  '.gl[open]>summary{border-radius:var(--r-g) var(--r-g) 0 0}',
-  '.gl .seta{color:var(--texto-3);font-size:12px;transition:transform .15s}',
-  '.gl[open] .seta{transform:rotate(180deg)}',
+  /* As regras de `<details>`-como-cartao valem pro glossario E pro extrato
+     (21/09). Sao os dois blocos que abrem e fecham, e duplicar a folha faria
+     um deles apodrecer: o cabecalho inteiro e a area de clique, o marcador
+     nativo some, e a seta gira. */
+  '.gl,.dobra{padding:0}',
+  '.gl>summary,.dobra>summary{cursor:pointer;list-style:none;border-radius:var(--r-g)}',
+  '.gl>summary::-webkit-details-marker,.dobra>summary::-webkit-details-marker{display:none}',
+  '.gl>summary:focus-visible,.dobra>summary:focus-visible{outline:2px solid var(--acento);',
+  'outline-offset:-2px}',
+  '.gl[open]>summary,.dobra[open]>summary{border-radius:var(--r-g) var(--r-g) 0 0}',
+  '.gl .seta,.dobra .seta{color:var(--texto-3);font-size:12px;transition:transform .15s}',
+  '.gl[open] .seta,.dobra[open] .seta{transform:rotate(180deg)}',
+  /* no extrato o `#id` da loja ja foi pra direita pelo `.card-h .n`; a seta
+     vem depois dele, colada na borda */
+  '.dobra .seta{margin-left:10px}',
+  '.dobra>summary:hover{background:var(--superficie-2)}',
   '.gl .n{margin-left:auto;margin-right:10px}',
   '.gl-sub{display:flex;align-items:center;gap:10px;margin:26px 0 10px;',
   'font-size:13.5px;font-weight:650;color:var(--texto)}',
   '.gl-sub:first-child{margin-top:0}',
-  '.gl dd,.gl .sub{max-width:92ch}',
+  /* ── ALINHAMENTO (21/09) ───────────────────────────────────────────
+     O chip do titulo de secao empurrava o TEXTO do titulo 36px pra dentro,
+     enquanto termo, definicao e tabela comecavam colados na borda do
+     cartao: duas margens esquerdas diferentes na mesma coluna de leitura,
+     alternando a cada secao. Agora o chip e a unica coisa que fica na
+     margem e todo o resto nasce na MESMA vertical.
+     44px = 34 do chip (ver .chip la em cima) + 10 do intervalo do flex;
+     se um dos dois mudar, este numero muda junto. */
+  /* ── E OCUPA A LARGURA TODA (21/09) ────────────────────────────────
+     O cartao tem 1.300px e o texto usava 645 deles: metade do bloco em
+     branco, com tudo encostado na esquerda. Limitar a LINHA continua certo
+     — linha de 200 caracteres nao se le —, so que a forma de limitar era
+     deixar o resto vazio.
+
+     `columns:2 34em` resolve as duas coisas de uma vez: no maximo duas
+     colunas, cada uma com pelo menos 34em. Onde nao cabem duas, vira uma
+     sozinha — sem media query, e a medida da linha nunca passa do que se
+     le. O `break-inside` impede que um verbete seja partido ao meio pela
+     quebra de coluna, e que um termo fique orfao no pe de uma delas. */
+  '.gl dl{padding-left:44px;columns:2 34em;column-gap:44px}',
+  '.gl dt{break-inside:avoid;break-after:avoid}',
+  /* `break-before:avoid` no dd, e nao so `break-inside`: sem ele o TERMO
+     fica no pe de uma coluna e a tabela que o explica aparece na outra,
+     desgarrada. Com os dois mais o `break-after` do dt, o verbete inteiro
+     -- termo, definicoes e tabela -- vira um bloco que a coluna leva junto
+     ou nao leva. Aconteceu com as sete categorias de cliente. */
+  '.gl dd{break-inside:avoid;break-before:avoid}',
+  '@media(max-width:620px){.gl dl{padding-left:0}}',
+  '.gl .sub{max-width:92ch}',
   '.gl h2{font-size:13px;margin:0 0 4px;color:var(--acento);',
   'text-transform:none;letter-spacing:0}',
   '.gl .sub{color:var(--texto-3);font-size:12.5px;margin:0 0 16px}',
@@ -1362,6 +1657,30 @@ const APP = [
   'const money=(v)=>v===null||v===undefined?"—":"R$ "+nf(v,0);',
   'const esc=(s)=>String(s===null||s===undefined?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;");',
   '$("#ger").textContent=new Date(D.gerado_em).toLocaleString("pt-BR");',
+  /* ── O BALAO DAS DICAS ──────────────────────────────────────────────
+     Um elemento so, preenchido na hora. Alternativa seria um balao por
+     alvo, escondido no HTML: sao ate 30 linhas de veiculo por loja, cada
+     uma com uma tabela de oito indicadores dentro, reescritas a cada
+     movimento da barra de aderencia. Isso e peso de sobra pra mostrar uma
+     coisa de cada vez.
+
+     Posiciona ACIMA do alvo, e so cai pra baixo quando nao cabe. O balao e
+     `fixed`, entao a conta e em coordenada de tela (getBoundingClientRect
+     ja devolve nessa) e nao precisa saber nada de rolagem. */
+  'const DICA=$("#dica");',
+  'function dicaAberta(){return DICA.style.display==="block";}',
+  'function escondeDica(){DICA.style.display="none";}',
+  'function mostraDica(alvo,corpo){',
+  'DICA.innerHTML=corpo;DICA.style.display="block";',
+  'if(!alvo.getBoundingClientRect)return;',
+  'const r=alvo.getBoundingClientRect();',
+  'const lg=window.innerWidth||1200,al=window.innerHeight||800;',
+  'const w=DICA.offsetWidth||320,h=DICA.offsetHeight||120;',
+  'let x=r.left+r.width/2-w/2;',
+  'if(x<8)x=8;if(x+w>lg-8)x=Math.max(8,lg-8-w);',
+  'let y=r.top-h-10;',
+  'if(y<8)y=Math.min(al-h-8,r.bottom+10);',
+  'DICA.style.left=x+"px";DICA.style.top=y+"px";}',
   /* ---- indexa os pares nas duas direcoes ---- */
   'const P=D.pares,DET=D.det;',
   'const porV={},porL={};',
@@ -1531,9 +1850,14 @@ const APP = [
   'if(selV!==null){const v=D.veiculos[selV];',
   `$("#ctx").innerHTML="<b>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" "+(v.model_year||"")+"</b> · "+money(v.valor)+" · "+nf(v.km)+" km · "+esc(v.categoria||"?")+" · "+esc(v.uf)+" · "+esc(v.evento)+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener'>abrir anúncio ↗</a>":"")+"<br><span class='dim'>"+(v.canal_sem_loja?"O canal deste evento (<b>"+esc(v.wl_nomes||"?")+"</b>) não tem loja compradora alguma — é canal de pessoa física, então não existe par possível para este veículo.":"Lojas elegíveis: as do canal do evento (<b>"+esc(v.wl_nomes||"nenhum")+"</b>) — "+nf(v.elegiveis)+" elegível(is), "+nf(v.candidatos)+" acima de "+MIN+"%. A UF do pátio (<b>"+esc(v.uf)+"</b>) não exclui ninguém: ela <b>pesa</b> no score de cada loja, conforme o quanto aquela loja compra na própria praça.")+"</span>";`,
   '$("#ctx").style.display="";return;}',
-  'if(selL!==null){const l=D.lojas[selL];',
-  `$("#ctx").innerHTML="<b>"+esc(l.loja)+"</b> · "+esc(l.uf)+" · "+esc(l.whitelabel)+" · resp. "+esc(l.responsavel||"` + SEMDONO + `")+" · perfil: "+money(l.preco_medio)+" · "+nf(l.idade_media,1)+" anos · "+nf(l.km_medio)+" km · "+esc(l.modelo||"?")+" ("+nf(l.pct_modelo,1)+"% das ofertas)<br><span class='dim'>Veículos elegíveis: "+nf(l.pares)+", ordenados por aderência.</span>";`,
-  '$("#ctx").style.display="";return;}',
+  /* O resumo da LOJA mudou de endereco em 21/09: ele agora nasce DENTRO do
+     cartao do extrato, na mesma linha e a esquerda da categoria do cliente
+     (ver `resumoLoja`). Aqui sobrou so o do veiculo, que nao tem extrato
+     pra morar — e por isso a caixa continua existindo acima das tabelas.
+
+     A troca nao e so de lugar: la o resumo ficava a uma tela de distancia do
+     extrato que ele descrevia, e repetia a linha de identificacao que o
+     extrato ja trazia. Agora e um texto so, no bloco a que pertence. */
   '$("#ctx").style.display="none";}',
   /* ---- extrato ---- */
   /* ---- o corte de aderencia agora e do usuario ----
@@ -1551,52 +1875,124 @@ const APP = [
   'function cvDe(m,d){if(!m||d===null||d===undefined)return null;return d/m;}',
   `function leitura(cv){if(cv===null)return "<span class='dim'>sem desvio medido</span>";if(cv<0.25)return "faixa apertada: acertar este número vale muito";if(cv<0.6)return "faixa média";return "dispersão alta: este indicador quase não informa";}`,
   `const chipLista="<span class='chip' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M9 11l3 3 8-8'/><path d='M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11'/></svg></span>";`,
-  'function extrato(){',
-  'if(selL===null){$("#extrato").innerHTML="";$("#extrato").style.display="none";return;}',
-  'const l=D.lojas[selL];',
-  'const linhas=[];',
-  '[["Preço",l.preco_medio,l.preco_desvio,l.p_preco,money],',
-  ' ["Idade",l.idade_media,l.idade_desvio,l.p_idade,function(v){return nf(v,1)+" anos";}],',
-  ' ["Km",l.km_medio,l.km_desvio,l.p_km,function(v){return nf(v)+" km";}],',
+  /* ══ A DICA DOS INDICADORES ═══════════════════════════════════════
+     Ate 21/09 isto era uma tabela fixa no alto do extrato, com o perfil da
+     loja e NADA do veiculo. Para usa-la era preciso guardar "media 264 mil,
+     desvio 69 mil" na cabeca e descer a lista comparando de memoria — e a
+     tabela ficava la em cima enquanto os carros rolavam la embaixo.
+
+     Agora ela nasce ao lado da LINHA, com a coluna que faltava: o valor
+     daquele veiculo ao lado da media da loja com que ele foi comparado. E
+     traz a aderencia de cada indicador, que e o que a coluna Componentes
+     mostra em codigo (`P 96 · I 83`) — a dica e a legenda dela.
+
+     Peso e leitura continuam identicos aos de antes: eles descrevem a LOJA,
+     nao o par, e por isso se repetem em todas as linhas dela. */
+  'function linhaDica(rot,doVeic,daLoja,ad,peso,lei){',
+  `return "<tr><th class='tx'>"+rot+"</th><td>"+doVeic+"</td><td>"+daLoja+"</td>"+`,
+  `"<td>"+((ad===null||ad===undefined)?"<span class='fora'>fora do cálculo</span>":nf(ad,0))+"</td>"+`,
+  `"<td>"+nf(peso,3)+"</td><td class='tx'>"+lei+"</td></tr>";}`,
+  /* o par (valor, formatador) aparece tres vezes por linha; sem isto cada
+     uma repetiria o mesmo teste de nulo */
+  'function fmt(v,g){return (v===null||v===undefined)?"—":g(v);}',
+  'function dicaInd(l,x){',
+  'const v=D.veiculos[x.o];const d=x.d||{};',
+  'const L=[];',
+  '[["Preço","preco",v.valor,l.preco_medio,l.preco_desvio,l.p_preco,money],',
+  ' ["Idade","idade",v.idade,l.idade_media,l.idade_desvio,l.p_idade,function(y){return nf(y,1)+" anos";}],',
+  ' ["Km","km",v.km,l.km_medio,l.km_desvio,l.p_km,function(y){return nf(y)+" km";}],',
   /* desagio entrou como quantitativo em 11/09: mesma forma de preco, idade
      e km, entao entra na MESMA tabela e nao num canto separado. */
-  ' ["Deságio",l.desagio,l.desagio_desvio,l.p_desagio,function(v){return nf(v,1)+"%";}]].forEach(function(r){',
-  'const cv=cvDe(r[1],r[2]);',
-  `linhas.push("<tr><td class='tx'>"+r[0]+"</td><td>"+(r[1]===null?"—":r[4](r[1]))+"</td><td>"+(r[2]===null||r[2]===undefined?"—":r[4](r[2]))+"</td><td>"+(cv===null?"—":nf(cv,2))+"</td><td>"+nf(r[3],3)+"</td><td class='tx'>"+leitura(cv)+"</td></tr>");});`,
-  `linhas.push("<tr><td class='tx'>Modelo</td><td class='tx' colspan='3'>"+esc(l.modelo||"—")+"</td><td>"+nf(l.pct_modelo/100,3)+"</td><td class='tx'>"+nf(l.pct_modelo,1)+"% das ofertas caem neste modelo</td></tr>");`,
-  `linhas.push("<tr><td class='tx'>Categoria</td><td class='tx' colspan='3'>"+esc(l.categoria||"—")+"</td><td>"+nf(l.pct_categoria/100,3)+"</td><td class='tx'>"+nf(l.pct_categoria,1)+"% das ofertas caem nesta categoria</td></tr>");`,
-  /* laudo e UF: qualitativos, como modelo e categoria.
-     As duas linhas SE APAGAM quando o dado nao existe, em vez de renderizar
-     NaN. Acontece de verdade: um `dados-*.json` anterior a 11/09 (noite) nao
-     tem pct_laudo, e `undefined/100` vira NaN na tela. O smoke pegou isso na
+  ' ["Deságio","desagio",v.desagio,l.desagio,l.desagio_desvio,l.p_desagio,function(y){return nf(y,1)+"%";}]',
+  '].forEach(function(r){',
+  'const cv=cvDe(r[3],r[4]);',
+  'const ref=fmt(r[3],r[6])+((r[4]===null||r[4]===undefined)?"":" ± "+r[6](r[4]));',
+  'L.push(linhaDica(r[0],fmt(r[2],r[6]),ref,d[r[1]],r[5],leitura(cv)));});',
+  /* nos qualitativos a "media da loja" e a MODA: o item que ela mais oferta.
+     O peso e o quanto ela concentra nele, e vem em fracao — a leitura ao
+     lado diz a mesma coisa em porcentagem, pra quem le. */
+  'L.push(linhaDica("Modelo",esc(v.modelo||"—"),esc(l.modelo||"—"),d.modelo,l.pct_modelo/100,',
+  'nf(l.pct_modelo,1)+"% das ofertas caem neste modelo"));',
+  'L.push(linhaDica("Categoria",esc(v.categoria||"—"),esc(l.categoria||"—"),d.categoria,l.pct_categoria/100,',
+  'nf(l.pct_categoria,1)+"% das ofertas caem nesta categoria"));',
+  /* laudo e UF SE APAGAM quando o dado nao existe, em vez de renderizar NaN.
+     Acontece de verdade: um `dados-*.json` anterior a 11/09 (noite) nao tem
+     pct_laudo, e `undefined/100` vira NaN na tela. O smoke pegou isso na
      regeneracao do run 50379. */
   'if(l.pct_laudo!==null&&l.pct_laudo!==undefined){',
-  `linhas.push("<tr><td class='tx'>Laudo</td><td class='tx' colspan='3'>"+esc(l.laudo_moda_nome||"—")+"</td><td>"+nf(l.pct_laudo/100,3)+"</td><td class='tx'>"+nf(l.pct_laudo,1)+"% das ofertas caem neste estado de laudo</td></tr>");}`,
+  'L.push(linhaDica("Laudo",esc(v.laudo_nome||"—"),esc(l.laudo_moda_nome||"—"),d.laudo,l.pct_laudo/100,',
+  'nf(l.pct_laudo,1)+"% das ofertas caem neste estado de laudo"));}',
   'if(l.p_uf!==null&&l.p_uf!==undefined){',
-  `linhas.push("<tr><td class='tx'>UF</td><td class='tx' colspan='3'>"+esc(l.uf)+"</td><td>"+nf(l.p_uf,3)+"</td><td class='tx'>"+nf(l.pct_mesma_uf,1)+"% das ofertas na própria praça"+(l.p_uf?"":" — indiferente à UF")+"</td></tr>");}`,
+  'L.push(linhaDica("UF",esc(v.uf||"—"),esc(l.uf||"—"),d.uf,l.p_uf,',
+  `nf(l.pct_mesma_uf,1)+"% das ofertas na própria praça"+(l.p_uf?"":" — indiferente à UF")));}`,
+  `return "<div class='dica-t'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" "+(v.model_year||"")+`,
+  `" · aderência "+nf(x.s/(l.confianca||1),1)+" · score "+nf(x.s,1)+"</div>"+`,
+  `"<table><thead><tr><th class='tx'>Indicador</th><th>Este veículo</th><th>Média da loja</th>"+`,
+  `"<th>Aderência</th><th>Peso</th><th class='tx'>Leitura</th></tr></thead><tbody>"+`,
+  `L.join("")+"</tbody></table>"+`,
+  `"<div class='dica-p'>Média, desvio e peso vêm do histórico de 6 meses da loja inteira e <b>não mudam</b> com o filtro. Aderência vai de 0 a 100 e é a deste par. Ver o glossário para como o peso é formado.</div>";}`,
+
+  /* ── AS SETE CATEGORIAS, NA DICA ───────────────────────────────────
+     A tela mostra UMA categoria por loja, e sozinha ela nao diz nada: saber
+     que a loja e "Diamante" so vale sabendo que ha sete degraus e que este
+     e o primeiro. A lista inteira num bloco fixo custaria sete linhas de
+     tela para uma informacao que se consulta uma vez.
+
+     Sai do mesmo catalogo publicado que alimenta a tabela do glossario
+     (`D.parametros.clusters`), entao as duas nunca discordam. */
+  'function dicaCategorias(atual){',
+  'const C=(D.parametros&&D.parametros.clusters)||{};',
+  'const ks=Object.keys(C).map(Number).sort(function(a,b){return a-b;});',
+  'const L=ks.map(function(k){',
+  'const aqui=(C[k].nome===atual);',
+  `return "<tr"+(aqui?" class='aqui'":"")+"><th class='tx'>"+esc(C[k].nome)+"</th>"+`,
+  `"<td class='tx'>"+esc(C[k].desc)+"</td></tr>";});`,
+  `return "<div class='dica-t'>As sete categorias de cliente</div>"+`,
+  `"<table><tbody>"+L.join("")+"</tbody></table>"+`,
+  `"<div class='dica-p'>A <b>primeira</b> categoria que se aplica é a que vale — a ordem é a regra. Nesta tela quase toda loja é Diamante ou Ouro, e isso é esperado: a base do relatório <b>é</b> &ldquo;lojas que ofertaram nos últimos 6 meses&rdquo;. As sete só se separam sobre o conjunto completo de lojas da plataforma.</div>";}`,
+  'function extrato(){',
+  'if(selL===null){escondeDica();$("#extrato").innerHTML="";$("#extrato").style.display="none";return;}',
+  'const l=D.lojas[selL];',
   'const ev2=evSel(),w2=wlSel(),uf2=ufSel();',
   'const todos=(porL[selL]||[]).filter(function(x){return x.s>LIMIAR;});',
-  /* ---- painel dos cinco campos de 11/09 ----
-     Cada bloco se apaga sozinho quando o dado nao existe, em vez de mostrar
-     um travessao: linha vazia ocupa espaco e nao informa nada. */
+  /* ══ O QUE SOBROU DO EXTRATO ══════════════════════════════════════
+     Ate 21/09 este painel tinha seis blocos e uma tabela de oito linhas.
+     Sobraram DOIS, e o criterio foi: o que se usa pra AGIR sobre a loja
+     fica; o que descreve a loja sai.
+
+       fica  categoria do cliente (Diamante, Ouro...) — diz com quem se
+             esta falando, e vem com a data da ultima oferta
+       fica  contato — e o que se faz depois de escolher os carros
+       sai   desagio medio, ofertas na propria UF, laudo cautelar: perfil,
+             e perfil quantitativo ja esta na dica de cada linha
+       sai   a linha de identificacao (UF, canal, responsavel, confianca):
+             o resumo logo acima da tabela (`#ctx`) diz tudo isso, e dizia
+             junto — duas vezes a mesma frase, a 300px de distancia
+       sai   a tabela de indicadores, que virou a dica da tabela de baixo
+
+     Cada bloco continua se apagando sozinho quando o dado nao existe:
+     linha vazia ocupa espaco e nao informa nada. */
+  /* o resumo, sem o nome da loja: ele ja e o titulo do cartao, e repeti-lo
+     dois centimetros abaixo e a mesma redundancia que tirou a linha de
+     identificacao daqui em primeiro lugar */
+  'function resumoLoja(l){',
+  `return "<div class='xk resumo'><span>Resumo</span>"+`,
+  `"<b>"+esc(l.uf)+" · "+esc(l.whitelabel)+" · resp. "+esc(l.responsavel||"` + SEMDONO + `")+"</b>"+`,
+  `"<i>perfil: "+money(l.preco_medio)+" · "+nf(l.idade_media,1)+" anos · "+nf(l.km_medio)+" km · "+esc(l.modelo||"?")+" ("+nf(l.pct_modelo,1)+"% das ofertas)</i>"+`,
+  `"<i>"+nf(l.pares)+" veículo(s) elegível(is), ordenados por aderência</i></div>";}`,
   'function perfilExtra(l){',
-  'const b=[];',
-  /* deságio: media ja cortada nos extremos, com o n ao lado porque media de
-     3 carros e media de 300 nao valem o mesmo */
-  `if(l.desagio!==null&&l.desagio!==undefined){b.push("<div class='xk'><span>Deságio médio</span><b>"+nf(l.desagio,1)+"%</b><i>abaixo da FIPE, em "+nf(l.desagio_n)+" veículo(s)</i></div>");}`,
-  `if(l.pct_mesma_uf!==null&&l.pct_mesma_uf!==undefined){b.push("<div class='xk'><span>Ofertas na própria UF</span><b>"+nf(l.pct_mesma_uf,1)+"%</b><i>o resto foi para fora de "+esc(l.uf)+"</i></div>");}`,
-  `if(l.cluster_nome){b.push("<div class='xk'><span>Faixa de recência</span><b>"+esc(l.cluster_nome||"—")+"</b><i>"+(l.ult_oferta?("última oferta "+dataBr(l.ult_oferta)):"sem oferta registrada")+"</i></div>");}`,
-  /* laudo: so os status com valor, e `sem laudo` separado de `não informado` */
-  'if(l.laudo){const L=l.laudo;const p=[];',
-  `[["Aprovado",L.aprovado],["Com apontamento",L.apontamento],["Reprovado",L.reprovado],["Não informado",L.nao_informado],["Sem laudo",L.ausente]].forEach(function(x){if(x[1]){p.push(esc(x[0])+" <b>"+nf(x[1],1)+"%</b>");}});`,
-  `if(p.length){b.push("<div class='xk' style='flex:1 1 100%'><span>Laudo cautelar dos veículos ofertados</span><b style='font-size:13px;font-weight:400'>"+p.join(" &middot; ")+"</b><i>&ldquo;não informado&rdquo; é laudo sem veredito, diferente de não ter laudo</i></div>");}}`,
+  'const b=[resumoLoja(l)];',
+  /* "categoria do cliente" e o nome que a area comercial usa; o campo no
+     banco e o cluster de recencia, e o rotulo antigo ("Faixa de recência")
+     era o nome do calculo, nao o da coisa */
+  `if(l.cluster_nome){b.push("<div class='xk cat'><span>Categoria do cliente<i class='ajuda' id='aj_cat' tabindex='0' role='button' aria-label='O que significa cada categoria'>?</i></span><b>"+esc(l.cluster_nome||"—")+"</b><i>"+(l.ult_oferta?("última oferta "+dataBr(l.ult_oferta)):"sem oferta registrada")+"</i></div>");}`,
   /* contato: PII, por isso so aparece no painel que se abre por clique */
   'const c=[];',
   `if(l.email){c.push("<a href='mailto:"+esc(l.email)+"'>"+esc(l.email)+"</a>"+(l.qt_emails>1?" <span class='dim'>(1 de "+l.qt_emails+")</span>":""));}`,
   `if(l.tel_comercial){c.push(esc(l.tel_comercial)+" <span class='dim'>comercial</span>");}`,
   `if(l.whatsapp){c.push(esc(l.whatsapp)+" <span class='dim'>WhatsApp</span>");}`,
   `if(l.tel_privativo){c.push(esc(l.tel_privativo)+" <span class='dim'>privativo</span>");}`,
-  `if(c.length){b.push("<div class='xk' style='flex:1 1 100%'><span>Contato</span><b style='font-size:13px;font-weight:400'>"+c.join(" &middot; ")+"</b></div>");}`,
+  `if(c.length){b.push("<div class='xk contato'><span>Contato</span><b>"+c.join(" &middot; ")+"</b></div>");}`,
   `return b.length?("<div class='xg'>"+b.join("")+"</div>"):"";}`,
   /* data curta em pt-BR, tolerante a formato do banco */
   'function dataBr(x){const t=Date.parse(String(x).indexOf("T")>0?String(x):String(x).split(" ").join("T")+"Z");return isNaN(t)?"—":new Date(t).toLocaleDateString("pt-BR");}',
@@ -1605,14 +2001,19 @@ const APP = [
   /* `onclick=event.stopPropagation()` na celula da caixa: sem isso o clique
      sobe pra linha, que tem handler de selecao de veiculo, e marcar a caixa
      trocaria a tela inteira. */
-  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
+  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
   `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
-  `$("#extrato").innerHTML="<div class='card'><div class='card-h'>Extrato da loja — "+esc(l.loja)+" <span class='n mono'>#"+l.loja_id+"</span></div><div class='card-b'>"+`,
-  `"<div style='margin-bottom:12px'>"+esc(l.uf)+" &middot; "+esc(l.whitelabel)+" &middot; responsável <b>"+esc(l.responsavel||"` + SEMDONO + `")+"</b> &middot; <b>"+nf(l.qt_veiculos)+"</b> veículos ofertados em <b>"+nf(l.qt_ofertas)+"</b> lances nos últimos 6 meses"+(l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+" &middot; fator de confiança <b>"+nf(l.confianca,2)+"</b> &middot; elegível para <b>"+nf(l.pares)+"</b> veículo(s)</div>"+`,
-  /* ---- os cinco campos de 11/09 ---- */
-  'perfilExtra(l)+',
-  `"<table><thead><tr><th class='tx'>Indicador</th><th>Referência</th><th>Desvio</th><th>CV</th><th>Peso</th><th class='tx'>Leitura</th></tr></thead><tbody>"+linhas.join("")+"</tbody></table>"+`,
-  `"<div class='dim' style='margin-top:10px;font-size:11.5px'>Estes números vêm do histórico de 6 meses da loja inteira e <b>não mudam</b> com o filtro. Ver o glossário para como o peso é formado.</div></div></div>"+`,
+  /* RETRATIL (21/09), e `open` por padrao: o mesmo `<details>` do
+     glossario, com o cabecalho inteiro como area de clique. Aberto porque o
+     contato e a categoria sao o motivo de clicar na loja; fechavel porque
+     quem ja anotou os dois quer a lista de veiculos mais acima na tela.
+
+     O estado NAO e guardado entre trocas de loja: o cartao e reescrito
+     inteiro a cada render, e `open` volta. Guardar exigiria uma variavel a
+     mais pra economizar um clique — e o caso comum e justamente querer ver
+     os dados da loja que se acabou de escolher. */
+  'const daLoja=perfilExtra(l);',
+  `$("#extrato").innerHTML="<details class='card dobra' open><summary class='card-h'>Extrato da loja — "+esc(l.loja)+" <span class='n mono'>#"+l.loja_id+"</span><span class='seta' aria-hidden='true'>&#9662;</span></summary><div class='card-b'>"+daLoja+"</div></details>"+`,
   `"<div class='card'><div class='card-h'>"+chipLista+"Veículos selecionáveis <span class='n'>"+acima.length+" de "+nf(l.pares)+" elegíveis"+(escondidos?", "+escondidos+" fora do filtro":"")+"</span></div>"+`,
   `"<div class='card-b barra-corte'><label for='lim'>Aderência mínima</label>"+`,
   `"<input type='range' id='lim' min='0' max='100' step='1' value='"+LIMIAR+"'>"+`,
@@ -1640,6 +2041,33 @@ const APP = [
   'Array.prototype.forEach.call(document.querySelectorAll("#extrato .cx"),function(cx){',
   'cx.onclick=function(e){e.stopPropagation();',
   'escolhidos[cx.getAttribute("data-vid")]=cx.checked;contaEscolhidos();};});',
+  /* A dica de cada linha. Ligada AQUI, e nao uma vez so na carga, porque o
+     innerHTML do extrato e reescrito inteiro a cada render — handler preso
+     no no antigo morre junto com ele. Mesma razao da barra e das caixas.
+
+     `acima` chega por parametro: e dele que sai o par (veiculo, componentes)
+     de cada linha, pelo indice guardado no `data-k`. Guardar o indice do
+     VEICULO nao bastaria: a dica mostra a aderencia de cada indicador, que
+     e do PAR e nao do carro. */
+  'Array.prototype.forEach.call(document.querySelectorAll("#extrato .comp"),function(td){',
+  'const x=acima[Number(td.getAttribute("data-k"))];if(!x)return;',
+  'td.onmouseenter=function(){mostraDica(td,dicaInd(l,x));};',
+  'td.onmouseleave=escondeDica;',
+  /* no telefone nao ha mouse: o clique abre, e nao pode subir pra linha, que
+     tem handler de selecao de veiculo */
+  'td.onclick=function(e){e.stopPropagation();',
+  'if(dicaAberta())escondeDica();else mostraDica(td,dicaInd(l,x));};});',
+  /* o "?" da categoria do cliente. Mesmo trio do icone de atencao no topo:
+     mouse, foco e clique -- so hover deixaria de fora quem abre no telefone
+     e quem navega por teclado. */
+  'const ajCat=$("#aj_cat");',
+  'if(ajCat){const corpoCat=dicaCategorias(l.cluster_nome);',
+  'ajCat.onmouseenter=function(){mostraDica(ajCat,corpoCat);};',
+  'ajCat.onmouseleave=escondeDica;',
+  'ajCat.onfocus=function(){mostraDica(ajCat,corpoCat);};',
+  'ajCat.onblur=escondeDica;',
+  'ajCat.onclick=function(e){e.stopPropagation();',
+  'if(dicaAberta())escondeDica();else mostraDica(ajCat,corpoCat);};}',
   'contaEscolhidos();',
   '$("#btn_msg").onclick=function(){montaMensagem(l);};}',
 
@@ -1696,10 +2124,31 @@ const APP = [
   'try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value);ok=true;}',
   'else{ok=document.execCommand("copy");}}catch(e){ok=false;}',
   '$("#copiado").textContent=ok?"copiado":"não consegui copiar — use Ctrl+C";};}',
-  /* ---- avisos ---- */
+  /* ---- avisos: icone no topo, lista dentro da dica (21/09) ----
+     Eram um cartao vermelho de largura inteira entre os KPIs e as tabelas.
+     Cobravam a primeira dobra todo santo dia pra dizer, quase sempre, o
+     mesmo par de linhas sobre o teto de lojas e o corte de score. O que
+     eles dizem continua igual, e continua chegando inteiro — mudou so
+     quanto custa nao precisar deles. */
   'const av=[];D.falhas.forEach(f=>av.push("<li>"+esc(f)+"</li>"));',
   `D.diagnostico.filter(d=>d.veredito!=="ok").forEach(p=>av.push("<li><code>"+p.queryName+"</code>: "+esc(p.veredito)+(p.erro?" — <span class='mono'>"+esc(p.erro)+"</span>":"")+"</li>"));`,
-  `if(av.length){$("#alerta").innerHTML="<div class='card aviso'><div class='card-h'><span class='chip' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M12 9v4M12 17h.01'/><path d='M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z'/></svg></span>"+av.length+" ponto(s) de atenção</div><div class='card-b'><ul>"+av.join("")+"</ul></div></div>";}`,
+  'const icoAv=$("#aviso");',
+  'if(av.length){',
+  'icoAv.style.display="inline-flex";',
+  'const rotAv=av.length+" ponto(s) de atenção";',
+  'icoAv.setAttribute("aria-label",rotAv);',
+  `const corpoAv="<div class='dica-t'>"+rotAv+"</div><ul>"+av.join("")+"</ul>";`,
+  /* `querySelector` no elemento so existe no navegador de verdade; o DOM de
+     mentira do smoke nao o tem, e a contagem no canto e enfeite. */
+  'const ptAv=icoAv.querySelector?icoAv.querySelector(".pt"):null;',
+  'if(ptAv)ptAv.textContent=av.length;',
+  'icoAv.onmouseenter=function(){mostraDica(icoAv,corpoAv);};',
+  'icoAv.onmouseleave=escondeDica;',
+  /* teclado e telefone: `tabindex=0` da foco, o foco abre, e o clique
+     alterna. Sem isto o aviso so existiria pra quem tem mouse. */
+  'icoAv.onfocus=function(){mostraDica(icoAv,corpoAv);};',
+  'icoAv.onblur=escondeDica;',
+  'icoAv.onclick=function(){if(dicaAberta())escondeDica();else mostraDica(icoAv,corpoAv);};}',
   /* ---- o glossario ----
      Ate 18/09 ele era uma SEGUNDA TELA: clicar escondia o relatorio inteiro.
      Virou o fim da MESMA pagina, como manda o modelo do brain — glossario e
@@ -1764,8 +2213,14 @@ const CORTADOS = (DADOS.parametros && DADOS.parametros.pares_descartados) || 0;
 const ST_NOME = (DADOS.parametros && DADOS.parametros.status_nome) || {};
 const ST_OK = (DADOS.parametros && DADOS.parametros.status_ok) || [];
 
-/* a tabela de status do glossario sai do proprio dicionario publicado,
-   entao mudar STATUS_OK la em cima muda a documentacao junto */
+/* As duas tabelas do glossario saem dos dicionarios PUBLICADOS, entao mexer
+   em STATUS_OK ou em CLUSTERS la em cima muda a documentacao junto -- e a
+   dica do icone, que le o mesmo catalogo, nunca discorda dela. */
+const CL_CAT = (DADOS.parametros && DADOS.parametros.clusters) || {};
+const LINHAS_CL = Object.keys(CL_CAT).map(Number).sort((a, b) => a - b).map((k) =>
+  '<tr><td class="tx">' + CL_CAT[k].nome + '</td><td class="tx">' +
+  CL_CAT[k].desc + '</td></tr>').join('');
+
 const LINHAS_ST = Object.keys(ST_NOME).map(Number).sort((a, b) => a - b).map((k) => {
   const dentro = ST_OK.indexOf(k) >= 0;
   return '<tr><td>' + k + '</td><td class="tx">' + ST_NOME[k] + '</td><td class="tx ' +
@@ -1793,17 +2248,26 @@ const html = [
   '<meta name="viewport" content="width=device-width,initial-scale=1">',
   '<title>Radar de Estoque — Cars2You</title>',
   '<style>' + CSS + '</style></head><body>',
-  /* O topo carrega SO identidade e a troca de tema, como no modelo: logo,
-     titulo colado nela, e a acao encostada na direita. Saíram daqui o botao
-     do glossario (ele agora e um bloco que abre no proprio lugar) e o
+  /* O topo carrega SO identidade, o aviso e a troca de tema. Tres colunas:
+     logo na esquerda, TITULO NO CENTRO (21/09, e a regra 5 do
+     design/regras-de-layout.md), acoes na direita. Saíram daqui o botao do
+     glossario (ele agora e um bloco que abre no proprio lugar) e o
      "Gerado em" (foi pro rodape, junto da descricao da base). */
   '<div class="topo"><span class="esq">' +
   /* src vazio de proposito: quem preenche e o APP, porque o arquivo
      muda com o tema. Ver `aplicaTema` no fim do APP. */
   '<img class="logo" id="logo" alt="Cars2You" src="">' +
-  '<b>Radar de Estoque</b>' +
   '</span>',
-  '<span class="dir"><button id="btn_tema" type="button" aria-label="Mudar o tema"></button></span></div>',
+  '<span class="meio"><b>Radar de Estoque</b></span>',
+  /* O icone dos pontos de atencao vem ANTES da troca de tema, e nasce
+     escondido: quem o mostra, conta e preenche e o APP — e so quando ha
+     aviso. Dia limpo, dia nenhum icone. */
+  '<span class="dir">' +
+  '<span id="aviso" class="ico-aviso" tabindex="0" role="button" aria-label="Pontos de atenção">' +
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/>' +
+  '<path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>' +
+  '<i class="pt"></i></span>' +
+  '<button id="btn_tema" type="button" aria-label="Mudar o tema"></button></span></div>',
   /* ═══ TELA 1: o relatorio ═══ */
   '<div class="pg" id="pg_rel">',
   /* ═══ FILTROS SUSPENSOS ═══
@@ -1835,7 +2299,7 @@ const html = [
   '</div></div>',
   '</aside>',
   '<div class="kpis" id="kpis"></div>',
-  '<div id="alerta"></div>',
+  /* o `<div id="alerta">` morava aqui e foi pro topo, como icone (21/09) */
   '<div id="ctx" class="ctx" style="display:none"></div>',
   '<div class="grid">',
   '<div class="card"><div class="card-h">' + chip(ICO_CARD.veiculos) + 'Veículos <span class="n" id="cv"></span></div>',
@@ -1927,8 +2391,9 @@ const html = [
   `<dd>Fatia dos lances da loja em veículos cujo <b>pátio</b> fica no mesmo estado dela. O complemento é compra para fora, que envolve frete e logística.</dd>`,
   '<dt>Laudo cautelar</dt>',
   `<dd>Distribuição dos veículos que a loja ofertou por situação do laudo. <b>&ldquo;Não informado&rdquo; não é o mesmo que &ldquo;sem laudo&rdquo;:</b> o primeiro é um laudo que existe e não traz o resultado — a maior parte da base —, o segundo é veículo sem laudo nenhum. Os dois aparecem separados de propósito.</dd>`,
-  '<dt>Faixa de recência</dt>',
-  `<dd>Classificação da loja em sete faixas, da mais ativa à mais fria, combinando <b>quando ofertou pela última vez</b> e <b>quando acessou a plataforma pela última vez</b>. A primeira faixa que se aplica é a que vale.</dd>`,
+  '<dt>Categoria do cliente</dt>',
+  `<dd>Classificação da loja em sete degraus, do mais ativo ao mais frio, combinando <b>quando ofertou pela última vez</b> e <b>quando acessou a plataforma pela última vez</b>. A <b>primeira</b> categoria que se aplica é a que vale &mdash; a ordem é a regra.</dd>`,
+  '<dd><table><thead><tr><th class="tx">Categoria</th><th class="tx">Quando se aplica</th></tr></thead><tbody>' + LINHAS_CL + '</tbody></table></dd>',
   `<dd class="ex"><b>Nesta tela a faixa quase não varia, e isso é esperado:</b> a base do relatório é justamente &ldquo;lojas que ofertaram nos últimos 6 meses&rdquo;, então praticamente toda loja aqui é Diamante ou Ouro. As sete faixas só se separam sobre o conjunto completo de lojas da plataforma.</dd>`,
   `<dd class="ex">⚠️ O registro de acesso começa em 31/08/2025. Onde se lê &ldquo;nunca acessou&rdquo;, o que o dado sustenta é <b>&ldquo;não acessou nos últimos 12 meses&rdquo;</b>. Já &ldquo;nunca ofertou&rdquo; é verificável de verdade: o histórico de ofertas alcança 2020.</dd>`,
   '<dt>Contato</dt>',
@@ -1969,6 +2434,10 @@ const html = [
   ' &middot; veículos em evento &times; lojas compradoras',
   ' &middot; ' + descreveRecorte() + ' &middot; perfil de compra desde ' + (META.data_ini || '?'),
   '</p></div>',
+  /* O balao das dicas: UM so pra pagina inteira, vazio ate alguem passar o
+     mouse. Fica fora de `.pg` porque e `position:fixed` e nao pertence a
+     coluna de conteudo nenhuma. */
+  '<div id="dica" class="dica" role="tooltip"></div>',
   '<script>const D=' + DADOS_JSON + ';</' + 'script>',
   '<script>' + APP + '</' + 'script>',
   '</body></html>'

@@ -1200,6 +1200,71 @@ ok(semComent.indexOf('${') < 0,
   ok(cart && cart.sem_dono === 'Não Distribuído',
     'o rotulo viaja nos DADOS, senao o regenerador nao o enxerga');
 
+  /* ── a carteira vem PRONTA de outro workflow (21/09) ────────────────
+     Quem captura e trata a planilha e o `Carteira Comercial`; aqui so se
+     le o `carteira-comercial.json` que ele publica. Estas provas cobrem o
+     que o Radar tem que fazer com esse arquivo -- inclusive quando ele nao
+     vem, ou vem velho. O que importa nao e so qual carteira foi usada, e
+     sim que a pagina DIGA qual foi e de quando e. */
+  function comCarteira(objeto) {
+    return rodaNo('montar-html.js', ctxDe({
+      'Montar Fase 2': f2b,
+      'MCP Fase 2': respostas,
+      'Baixar Carteira': [{ json: objeto }]
+    }))[0].json.DADOS.resumo.carteira;
+  }
+  function arquivoFalso(qt, idadeDias, mexer) {
+    const consultores = ['Amanda', 'Zulmira'];
+    const cnpj = {};
+    for (let i = 0; i < qt; i++) cnpj[String(10000000000000 + i)] = i % 2;
+    const d = new Date(Date.now() - (idadeDias || 0) * 86400000);
+    const o = {
+      gerado_em: new Date(d.getTime() - 180 * 60000).toISOString().slice(0, 19).replace('T', ' '),
+      gerado_em_utc: d.toISOString(),
+      origem: 'planilha da area comercial (SharePoint)',
+      linhas_lidas: qt,
+      consultores: consultores,
+      cnpj: cnpj,
+      nome: {}
+    };
+    if (mexer) mexer(o);
+    return o;
+  }
+
+  const viva = comCarteira(arquivoFalso(1458, 0));
+  ok(viva.ao_vivo === true, 'arquivo bom: a carteira publicada e usada');
+  ok(viva.consultores === 2, 'e os consultores dela sao os que valem');
+  ok(String(viva.origem).indexOf('carteira-comercial.json') >= 0,
+    'a origem publicada nomeia o arquivo');
+  ok(viva.idade_dias === 0, 'a idade e calculada e publicada');
+  ok(viva.velha === false, 'carteira do dia nao e velha');
+
+  /* a idade e o modo de falha silencioso deste desenho: se o agendador
+     morrer, o arquivo fica parado parecendo saudavel. Usar assim mesmo e
+     certo; nao dizer que esta velho nao e. */
+  const velha = comCarteira(arquivoFalso(1458, 12));
+  ok(velha.ao_vivo === true, 'carteira velha ainda e USADA — melhor que nenhuma');
+  ok(velha.velha === true, 'mas e marcada como velha');
+  ok(velha.idade_dias === 12, 'com a idade em dias');
+  ok(String(velha.origem).indexOf('agendador') >= 0,
+    'e a origem diz o que suspeitar: ' + String(velha.origem).slice(-60));
+
+  /* cada recusa cai na reserva E explica o motivo na origem */
+  [
+    ['404 ou 403 no arquivo', { error: { message: 'The resource could not be found' } }, 'nao veio'],
+    ['veio outra coisa naquele caminho', { qualquer: 'coisa' }, 'forma de carteira'],
+    ['carteira sem CNPJ nenhum', arquivoFalso(0, 0, (o) => { o.cnpj = {}; }), 'sem nenhum CNPJ']
+  ].forEach(function (c) {
+    const r = comCarteira(c[1]);
+    ok(r.ao_vivo === false, '[neg] ' + c[0] + ': cai na carteira embutida');
+    ok(String(r.origem).indexOf(c[2]) >= 0,
+      '[neg] ' + c[0] + ': e a origem diz por que (' + String(r.origem).slice(0, 72) + ')');
+  });
+
+  /* sem o no nenhum -- workflow antigo, ou alguem apagou o Baixar Carteira */
+  ok(D.resumo.carteira.ao_vivo === false,
+    'sem o no Baixar Carteira, o relatorio segue com a carteira embutida');
+
   /* ── NEGATIVA: baldes de laudo que nao somam viram falha declarada ──
      Fan-out de juncao ja mordeu duas vezes aqui, as duas silenciosamente.
      Aqui a loja 11 recebe 100 ofertas e baldes somando 105. */

@@ -26,10 +26,25 @@
    dia seguinte, e o arquivo sairia datado de amanhã. Mesma armadilha que já
    mordeu a janela de eventos — por isso o mesmo FUSO_MIN do `Montar Fase 1`.
 
-   Um arquivo por dia, e o PUT no mesmo caminho SUBSTITUI. Dois runs no mesmo
-   dia geram um arquivo só, o do último run. É de propósito: a pasta não
-   acumula lixo de teste. O custo é não haver histórico intradiário — se um
-   dia isso fizer falta, acrescentar a hora ao nome.
+   ⚠️ **UM arquivo só, sem data no nome** (decisão do Thomas, 21/09). O PUT
+   no mesmo caminho SUBSTITUI, então todo run reescreve o mesmo
+   `radar-de-estoque.html`. Antes o nome levava a data e nascia um arquivo
+   por dia; em duas semanas isso é um acervo que ninguém poda, e a pergunta
+   que o relatório responde é sobre os **próximos 7 dias** — relatório de
+   terça passada não tem leitor.
+
+   O ganho que o nome datado não dava: **o link é estável**. Dá para marcar
+   como favorito, mandar uma vez para o time e embutir em outro lugar sem
+   que quebre no dia seguinte.
+
+   O custo é não haver histórico nenhum do lado do workflow. Se um dia
+   fizer falta, o lugar certo é o **versionamento da biblioteca do
+   SharePoint** — que guarda as versões anteriores do mesmo arquivo e é
+   configuração da biblioteca, não coisa que este nó controle.
+
+   A data não sumiu: ela continua DENTRO do relatório (cabeçalho e
+   `gerado_em`) e sai aqui no json, que é por onde o FUSO_MIN segue vivo e
+   exercitado pelas provas.
 
    💡 Rodando só para mexer na tela? Desabilite o `Subir no SharePoint` no
    canvas (um clique) para não republicar a cada teste.
@@ -67,16 +82,47 @@ if (typeof html !== 'string') {
     typeof html + '). Sem isso não há o que subir.');
 }
 
-const bytesFonte = Buffer.byteLength(html, 'utf8');
+/* ── o BOM, e por que ele é necessário mesmo com o <meta charset> ───────
+   Medido em 21/09: o relatório publicado abria como
+   "Radar de Estoque â€” Cars2You". Os bytes do arquivo estavam CERTOS --
+   travessão gravado como e2 80 94, `<meta charset="utf-8">` no lugar, zero
+   duplo-encode. Quem errava era a leitura: alguém interpretando UTF-8 como
+   CP1252.
 
-if (bytesFonte < MIN_BYTES) {
-  throw new Error('Virar Arquivo: o HTML tem ' + bytesFonte + ' bytes, abaixo do piso de ' +
+   O `mimeType` abaixo declara `charset=utf-8`, mas isso NÃO sobrevive ao
+   SharePoint: a resposta do upload devolve `"mimeType":"text/html"`, sem
+   charset. Ou seja, a nossa declaração morre no armazenamento, e o que o
+   navegador recebe depende do que o servidor resolver dizer.
+
+   O BOM resolve porque está acima dos dois na ordem de detecção do HTML:
+   BOM > charset do cabeçalho HTTP > <meta charset> do documento. Custa 3
+   bytes e vale para o arquivo servido pelo SharePoint, baixado para o
+   disco, aberto no editor ou anexado num e-mail -- todos os caminhos, e
+   não só o que eu testei.
+
+   `String.fromCharCode(0xFEFF)` e não a sequência de escape: este arquivo
+   viaja pro n8n como string e não pode ganhar barra invertida. Mesmo
+   motivo do `String.fromCharCode(10)` no texto do lojista. */
+const BOM = String.fromCharCode(0xFEFF);
+const comBom = html.indexOf(BOM) === 0 ? html : BOM + html;
+
+/* Duas contagens, e a diferença importa. O piso pergunta "o relatório
+   perdeu conteúdo?", que é sobre o HTML; o BOM é embalagem e não pode
+   empurrar um arquivo raquítico para cima do piso. Já o `bytes` publicado
+   e a conferência de ida e volta falam do ARQUIVO, esse com BOM. Medir os
+   dois com a mesma régua deixaria o piso 3 bytes frouxo -- pouco, e
+   errado do jeito que não dá para perceber depois. */
+const bytesHtml = Buffer.byteLength(html, 'utf8');
+const bytesFonte = Buffer.byteLength(comBom, 'utf8');
+
+if (bytesHtml < MIN_BYTES) {
+  throw new Error('Virar Arquivo: o HTML tem ' + bytesHtml + ' bytes, abaixo do piso de ' +
     MIN_BYTES + '. Relatório desse tamanho é sintoma de conteúdo perdido, não de dia fraco ' +
     '— melhor falhar do que publicar arquivo vazio.');
 }
 
 /* ── o binário, e a conferência de ida e volta ─────────────────────────── */
-const buffer = Buffer.from(html, 'utf8');
+const buffer = Buffer.from(comBom, 'utf8');
 const b64 = buffer.toString('base64');
 const bytesVolta = Buffer.from(b64, 'base64').length;
 
@@ -88,7 +134,10 @@ if (bytesVolta !== bytesFonte) {
 /* ── nome e caminho ────────────────────────────────────────────────────── */
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const dia = agora.toISOString().slice(0, 10);        /* YYYY-MM-DD, hora de Brasília */
-const nomeArquivo = PREFIXO + '-' + dia + '.html';
+/* Sem a data: um arquivo só, sobrescrito a cada run. O `dia` continua sendo
+   calculado porque viaja no json abaixo -- e é ele que mantém a lição do
+   fuso viva e testada, em vez de virar comentário sobre código que sumiu. */
+const nomeArquivo = PREFIXO + '.html';
 
 /* Cada trecho codificado à parte, como no `linkAnuncio()`: a pasta tem
    espaços, e barra codificada quebraria o caminho. */
@@ -100,6 +149,9 @@ return [{
     nomeArquivo: nomeArquivo,
     caminho: caminho,
     bytes: bytesFonte,
+    /* a data saiu do nome do arquivo e vive aqui: sem ela, quem lê a saída
+       do nó não sabe de quando é a publicação sem abrir 4 MB de HTML */
+    gerado_em: dia,
     /* carregados adiante para quem for citar o relatório (e-mail, WhatsApp) */
     resumo: fonte.resumo,
     falhas: fonte.falhas,
@@ -113,7 +165,9 @@ return [{
          cabecalho HTTP ter precedencia sobre o `<meta charset="utf-8">` do
          proprio documento -- e o navegador escolhe o padrao dele. Num
          relatorio inteiro em portugues, o resultado e acento corrompido em
-         cada linha. */
+         cada linha.
+         Ele NAO basta sozinho: o SharePoint descarta o charset ao guardar,
+         e por isso o BOM acima existe. Os dois juntos. */
       mimeType: 'text/html; charset=utf-8',
       fileName: nomeArquivo,
       fileExtension: 'html'

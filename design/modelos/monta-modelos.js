@@ -29,6 +29,7 @@ const DESIGN = path.resolve(AQUI, '..');
 const ler = p => fs.readFileSync(p, 'utf8');
 
 const CSS = ler(path.join(DESIGN, 'tokens', 'tema.css'));
+const JS_TESTE = ler(path.join(AQUI, '_fonte', 'controles-teste.js'));
 const FONTE = ler(path.join(AQUI, '_fonte', 'dashboard.html'));
 
 const uri = arquivo => 'data:image/png;base64,' +
@@ -36,6 +37,20 @@ const uri = arquivo => 'data:image/png;base64,' +
 
 const LOGO_CLARO = uri('logo-azul.png');    // fundo claro pede tinta escura
 const LOGO_ESCURO = uri('logo-branca.png');
+
+/* ⏳ TEMPORARIO — a DM Sans, candidata a fonte, no modelo de laboratorio.
+   Mesmo arranjo dos logos: o arquivo mora em design/fontes/ e vira data URI
+   aqui, porque a regra 9 nao admite requisicao de rede. Variavel, entao um
+   arquivo so cobre 400, 600, 650 e 700 -- e o que ainda nao foi usado.
+   Se a fonte for aprovada, este bloco sai do extra e entra no CSS de
+   verdade; se nao, sai junto com a pasta design/fontes/. */
+const uriFonte = arquivo => 'data:font/woff2;base64,' +
+  fs.readFileSync(path.join(DESIGN, 'fontes', arquivo)).toString('base64');
+
+const CSS_DM_SANS =
+  "@font-face{font-family:'DM Sans';font-style:normal;font-weight:100 1000;" +
+  "font-display:swap;src:url(" + uriFonte('dm-sans-latin-variavel.woff2') +
+  ") format('woff2')}";
 
 /* `.replace` com string troca `$&`, `$1` e afins por pedaço do casamento.
    Base64 não tem `$`, mas a forma de função não custa nada e não depende
@@ -47,13 +62,21 @@ const TEMAS = [
     titulo: 'Modelo de painel — tema claro' },
   { tema: 'escuro', arquivo: 'dashboard-escuro.html',
     titulo: 'Modelo de painel — tema escuro' },
+  /* LABORATORIO DE FONTE. Mesmo molde e mesmo tema dos outros dois: o que
+     ele tem a mais e a DM Sans embutida e um <select> pra trocar de fonte
+     ao vivo. Escolher fonte por lista de nomes nao funciona.
+     O tema vidro saiu daqui em 22/09: virou o claro de verdade. */
+  { tema: 'claro',  arquivo: 'dashboard-teste.html',
+    titulo: 'Modelo de painel — laboratório de fonte',
+    extra: CSS_DM_SANS, extraJs: JS_TESTE },
 ];
 
 let falhou = false;
 
 for (const t of TEMAS) {
   let html = FONTE;
-  html = troca(html, '/*__CSS__*/', CSS);
+  html = troca(html, '/*__CSS__*/', CSS + (t.extra || ''));
+  html = troca(html, '/*__EXTRA__*/', t.extraJs || '');
   html = troca(html, '__LOGO_CLARO__', LOGO_CLARO);
   html = troca(html, '__LOGO_ESCURO__', LOGO_ESCURO);
   html = troca(html, '__TITULO__', t.titulo);

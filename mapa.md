@@ -14,10 +14,15 @@
 | `automations/bancos/` | **Acesso direto aos bancos** (Cars2You e Dealers): conexão, runner somente-leitura, gerador de schema | Consultar banco fora do n8n |
 | `automations/precificacao/` | O estudo de precificação sobre as duas bases | Mexer no estudo |
 | `automations/n8n-sdk/rel-veiculos/` | **Radar de Estoque** — o relatório de veículos em evento × lojas compradoras. A pasta ainda tem o nome antigo | Mexer no Radar |
+| `automations/n8n-sdk/carteira-comercial/` | **Quem responde por cada loja** — lê a planilha da área comercial no SharePoint e publica `carteira-comercial.json`, que o Radar consome. Roda 6h, falha alto de propósito | Mexer na carteira, ou quando o Radar disser que a carteira está velha |
 | `design/regras-de-layout.md` | 📐 **O que já foi decidido sobre layout** — anatomia do cartão, KPI, gráfico, glossário, tema, tabela | **Antes de ajustar visual de qualquer painel** — a decisão já pode estar tomada |
 | `design/` | **Identidade e modelos de painel** — marca por produto, paleta por produto, `tema.css` e os dois modelos de dashboard (claro e escuro) | **Antes de montar qualquer HTML** — copiar o modelo, não inventar layout |
+| `design/fontes/` | **Fontes embutidas em base64** — hoje só a DM Sans, candidata. A regra 9 não admite requisição de rede, então arquivo de fonte mora aqui e vira `data:` na geração | Trocar a tipografia de um painel |
 | `memory/decisions/` | Decisões grandes, com opções consideradas e consequências | Entender por que algo é do jeito que é |
 | `.claude/skills/` | Skills (slash commands) | Invocadas via `/<nome>` |
+| `modelo-generico/` | **Kit genérico do brain** — este modelo sem nenhum domínio, pronto pra outra pessoa clonar e rodar | Compartilhar o modelo com alguém, ou revisar o desenho do brain em abstrato |
+| `modelo-por-projeto/` | **Variante do modelo organizada por projeto/seção** (sem eixo por área): um `.md` que o bot executa pra gerar a estrutura + manual de usuário autônomo | Passar o modelo pra alguém montar sozinho |
+| `modelo-local/` | **Variante sem git** — mesma organização por projeto/seção, só pastas locais. A integração com controle de versão fica registrada como pendência no brain gerado | Passar pra quem não usa (ou não quer) git |
 
 ## Frentes ativas
 

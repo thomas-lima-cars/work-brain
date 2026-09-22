@@ -45,6 +45,26 @@ for (const nome of ['dashboard-claro.html', 'dashboard-escuro.html']) {
 }
 
 /* ---------------------------------------------------------------------------
+   O laboratório fica CONTIDO no modelo de teste
+   ---------------------------------------------------------------------------
+   `dashboard-teste.html` leva duas coisas a mais, as duas temporárias: a fonte
+   DM Sans embutida (+48 KB) e um `<select>` pra trocar de fonte ao vivo. Os
+   dois modelos de verdade não podem ver nenhuma das duas — os três saem do
+   MESMO molde, e uma linha no lugar errado do `monta-modelos.js` vaza o
+   laboratório para os painéis em uso, calada, porque o arquivo continua
+   abrindo e parecendo certo.
+
+   O terceiro item desta prova era o tema `vidro`. Ele foi aprovado em 22/09 e
+   virou o tema claro: deixou de ser candidato, e a assertiva saiu. */
+for (const nome of ['dashboard-claro.html', 'dashboard-escuro.html']) {
+  const h = fs.readFileSync(path.join(MOD, nome), 'utf8');
+  ok(!h.includes('f-fonte'),
+     nome + ' NÃO leva o seletor de fonte');
+  ok(!h.includes('font/woff2'),
+     nome + ' NÃO leva fonte embutida (são +48 KB por arquivo)');
+}
+
+/* ---------------------------------------------------------------------------
    Contraste — WCAG 2.1, relação entre duas cores
    ------------------------------------------------------------------------- */
 const lum = hex => {
@@ -62,13 +82,28 @@ const contraste = (a, b) => {
    comentário, que não se atualiza sozinho. */
 console.log('\n■ Contraste (WCAG AA: 4,5 para texto, 3,0 para traço e texto grande)');
 const CSS = fs.readFileSync(path.join(AQUI, 'tokens', 'tema.css'), 'utf8');
+/* ⚠️ O fundo de referência do claro MUDOU em 22/09. Era `#FFFFFF`, o cartão
+   branco chapado. Agora o cartão tem degradê, e o pior caso é o canto
+   superior esquerdo dele — #E3E8EC, o branco translúcido resolvido sobre o
+   campo. É lá que ficam o chip e o título de cada cartão.
+
+   Medir contra branco continuaria "passando" e esconderia o problema real:
+   o `--positivo` antigo dava 5,16 no branco e 4,22 no canto, abaixo de AA,
+   exatamente onde o KPI escreve "▲ 4,2% vs. período anterior". */
+const CANTO = '#E3E8EC';
 const PARES = [
-  ['#14161C', '#FFFFFF', 4.5, 'texto sobre cartão claro'],
-  ['#565B6B', '#FFFFFF', 4.5, 'texto secundário sobre cartão claro'],
-  ['#1523A0', '#FFFFFF', 4.5, 'azul da marca como TEXTO no claro'],
-  ['#487DEA', '#FFFFFF', 3.0, 'azul claro como TRAÇO no claro (reprova em texto: ~3,9)'],
-  ['#7F1112', '#FFFFFF', 4.5, 'negativo no claro'],
-  ['#0E7C55', '#FFFFFF', 4.5, 'positivo derivado no claro'],
+  ['#3A4552', CANTO, 4.5, 'texto no canto escuro do cartão'],
+  ['#55626F', CANTO, 4.5, 'texto secundário no canto escuro'],
+  /* O cabeçalho perdeu o fundo em 22/09: o subtítulo do topo é o único texto
+     do painel que cai direto no CAMPO. Se alguém escurecer o campo ou clarear
+     o secundário, é aqui que aparece. */
+  ['#55626F', '#D8E1E9', 4.5, 'texto secundário sobre o campo nu (subtítulo do topo)'],
+  ['#6F7D89', CANTO, 3.0, 'de-ênfase no canto escuro (piso de traço, não de texto)'],
+  ['#487DEA', CANTO, 3.0, 'azul da marca como TRAÇO no claro (reprova em texto)'],
+  ['#7F1112', CANTO, 4.5, 'negativo no claro'],
+  ['#0C6E4B', CANTO, 4.5, 'positivo derivado no claro'],
+  ['#6F4047', CANTO, 4.5, 'atenção no claro'],
+  ['#FFFFFF', '#3A4552', 4.5, 'ícone vazado dentro do chip'],
   ['#EDEFF5', '#0B0D12', 4.5, 'texto sobre fundo escuro'],
   ['#A4ABBF', '#0B0D12', 4.5, 'texto secundário sobre fundo escuro'],
   ['#487DEA', '#0B0D12', 3.0, 'acento no escuro'],

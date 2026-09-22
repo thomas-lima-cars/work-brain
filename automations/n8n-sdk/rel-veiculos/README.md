@@ -79,6 +79,238 @@ lá antes de ajustar qualquer coisa de visual aqui.
 O glossário já era uma **tela inteira** aqui, o que é ainda mais separado do
 que o modelo pede (cartão próprio, último bloco).
 
+## 🎨 O tema claro virou vidro (2026-09-22)
+
+O visual NÃO é decisão deste relatório — ele vem do modelo do brain, e o que
+mudou foi lá: `design/tokens/tema.css`. Aqui só se rodou o injetor:
+
+```bash
+node automations/n8n-sdk/rel-veiculos/_aplica-modelo.js
+```
+
+O que chegou junto, sem uma linha de CSS escrita nesta pasta:
+
+| antes | agora |
+|---|---|
+| fundo #F2F3F5 quase neutro | campo #D8E1E9 frio, com clarão no canto |
+| cartão branco chapado, borda de 1px | cartão translúcido com degradê, separado por SOMBRA |
+| raio 16/12/10 | 22/14/11 |
+| texto #14161C (quase preto) | #3A4552 (cinza escuro) |
+| acento = azul da marca | acento = o mesmo cinza; o azul foi só pro dado |
+| cabeçalho tão claro quanto um cartão | um degrau abaixo, no mesmo degradê |
+
+⚠️ **O `.topo` daqui quase não pegou a mudança.** A PONTE declara
+`background:var(--cartao-fundo);background-color:var(--superficie)`, e quem
+ganha dela é a **especificidade** do seletor do tema —
+`:root:not([data-tema="escuro"]) .topo` vale por duas classes, a regra local
+por uma. Se alguém subir a especificidade da PONTE, o cabeçalho volta a ser
+branco e **nada mais quebra**: o tipo de regressão que só aparece olhando.
+
+A barra de score continua azul: ela é pintada por `--acento-cheio`, que
+guardou o azul da marca de propósito. Numa página sem cor nenhuma, é a única
+coisa colorida — e é dado.
+
+## 🧹 A tela enxuta (2026-09-21)
+
+Quatro mudanças, e todas com o mesmo critério: **o que se usa para agir fica
+onde se age; o que descreve fica onde se pergunta.**
+
+### 1. O extrato da loja: três blocos, e retrátil
+
+```
+┌─ Extrato da loja — FORT AUTOMOVEIS                    #48667   ▾ ─┐
+│  ┌─ Resumo ───────────────────────────────┐ ┌─ Categoria ─────┐  │
+│  │ SP · Marketplace Cars2You · resp. Não  │ │ Cliente Diamante│  │
+│  │ Distribuído                            │ │ última oferta   │  │
+│  │ perfil: R$ 53.767 · 2,4 anos · 68.912  │ │ 01/09/2026      │  │
+│  │ km · Saveiro (31,0% das ofertas)       │ └─────────────────┘  │
+│  │ 187 veículo(s) elegível(is)            │                      │
+│  └────────────────────────────────────────┘                      │
+│  ┌─ Contato ──────────────────────────────────────────────────┐  │
+│  │ crisvit@… (1 de 2) · 1147075376 comercial · 11940… WhatsApp │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**O resumo mudou de endereço.** Ele era a caixa `#ctx`, acima das duas tabelas
+— a uma tela de distância do extrato que descrevia, e repetindo a linha de
+identificação que o extrato já trazia. Agora é **um texto só**, dentro do bloco
+a que pertence, à esquerda da categoria. Sem o nome da loja: ele já é o título
+do cartão.
+
+⚠️ **`#ctx` continua existindo** — para o **veículo**, que não tem extrato onde
+morar. Só o ramo da loja saiu de lá. O smoke clica num carro e exige que a
+caixa continue sendo preenchida.
+
+**Retrátil** (`<details open>`), com o mesmo mecanismo do glossário: cabeçalho
+inteiro como área de clique, marcador nativo escondido, seta que gira. As
+regras de CSS são **as mesmas dos dois** (`.gl,.dobra`) — folha duplicada é um
+dos dois blocos apodrecendo calado.
+
+Nasce **aberto**: contato e categoria são o motivo de clicar na loja. O estado
+não é guardado entre trocas de loja — o cartão é reescrito inteiro a cada
+render, e guardar exigiria uma variável a mais para economizar um clique.
+
+Saíram deste cartão, e ficaram fora:
+
+| saiu | para onde |
+|---|---|
+| a linha de identificação (confiança, ofertas, lances) | o fator de confiança está na dica de cada par; o resto era ruído |
+| deságio médio, ofertas na própria UF, laudo cautelar | perfil da loja; o que dele interessa está na dica de cada linha |
+| a tabela de indicadores | virou a **dica** da tabela de baixo |
+
+O rótulo **"Faixa de recência" virou "Categoria do cliente"**, na tela **e no
+glossário**: o nome antigo era o do cálculo, não o da coisa — a área comercial
+chama de categoria. Termo que aparece na tela e não está no glossário é uma
+pergunta que chega por mensagem depois.
+
+#### O "?" das sete categorias
+
+A tela mostra **uma** categoria por loja, e sozinha ela não diz nada: saber que
+a loja é "Diamante" só vale sabendo que há sete degraus e que este é o
+primeiro. Um `?` ao lado do rótulo abre a lista inteira — **com a categoria
+desta loja marcada em azul**, que é o que transforma a lista em resposta.
+
+| | |
+|---|---|
+| Cliente Diamante | Top — ofertou nos últimos 30 dias |
+| **Cliente Ouro** | **Ativo recente — ofertou na janela de 6 meses** |
+| Cliente Prata | Risco de churn — já ofertou e acessou nos últimos 90 dias |
+| … | (sete no total) |
+
+**Uma fonte só.** O catálogo `CLUSTERS` passou a ser **publicado** em
+`DADOS.parametros.clusters`, junto do `status_nome` e pelo mesmo motivo: dele
+saem **a dica e a tabela do glossário**. Sem publicar, uma das duas listas
+seria copiada à mão — e cópia de catálogo envelhece calada, que é a falha que
+este projeto já pagou três vezes.
+
+⚠️ O `?` é **caractere**, não SVG — ao contrário do sol e da lua do botão de
+tema. `?` é ASCII e não vira emoji colorido em sistema nenhum.
+
+⚠️ `dicaCategorias` mora no **nível de cima** do APP, não dentro de
+`extrato()`. `perfilExtra` e `resumoLoja` são declaradas *dentro* de
+`extrato()`, e quem chama a dica é `ligaExtrato`, que é irmã — a primeira
+versão morreu com `dicaCategorias is not defined`, e o smoke pegou.
+
+#### O contato empilhava, e a culpa era de um seletor
+
+```css
+.xk span{ display:block }   /* ❌ pega os .dim de dentro do contato */
+.xk>span{ display:block }   /* ✅ só o rótulo do bloco, que é filho direto */
+```
+
+A regra existia para o **rótulo** do bloco ("Contato", "Resumo"). Como era
+descendente e não filho, ela pegava também os `<span class='dim'>` que rotulam
+cada telefone — e a lista horizontal virava uma coluna:
+
+```
+washyngton.santoos@gmail.com
+(1 de 2)
+71999261215
+WhatsApp
+```
+
+🔒 As duas metades viraram prova: a folha **tem** que ter `.xk>span` e **não
+pode** ter `.xk span{display:block`.
+
+### 2. Os indicadores viraram dica, ao lado do veículo
+
+A tabela de Preço/Idade/Km/Deságio/Modelo/Categoria/Laudo/UF era fixa no alto
+do extrato e trazia o perfil da loja e **nada do veículo**. Para usá-la era
+preciso guardar "média 264 mil, desvio 69 mil" na cabeça e descer a lista
+comparando de memória — e a tabela ficava lá em cima enquanto os carros
+rolavam lá embaixo.
+
+Agora ela nasce ao lado da **linha**, ao passar o mouse na coluna
+**Componentes**, com a coluna que faltava:
+
+| Indicador | Este veículo | Média da loja | Aderência | Peso | Leitura |
+|---|---|---|---|---|---|
+| Preço | R$ 251.500 | R$ 264.414 ± R$ 69.399 | 84 | 0,792 | faixa média |
+| Km | 60.819 km | 58.845 km ± 33.847 km | 94 | 0,635 | faixa média |
+| Deságio | — | 25,7% ± 6,8% | *fora do cálculo* | 0,790 | faixa média |
+
+A coluna **Aderência** é a decodificação do `P 96 · I 83 · K 90` que a célula
+mostra em código: **a dica é a legenda da coluna em que ela mora.** Peso e
+leitura continuam idênticos aos de antes — descrevem a **loja**, não o par, e
+por isso se repetem em todas as linhas dela.
+
+Indicador sem dado aparece como **fora do cálculo**, e não como zero: zero
+puxaria a média para baixo e diria uma coisa falsa sobre o par.
+
+### 3. Os pontos de atenção viraram ícone no topo
+
+Eram um cartão vermelho de largura inteira entre os KPIs e as tabelas. O
+problema nunca foi o aviso: era ele cobrar a primeira dobra **todo santo dia**
+para dizer, quase sempre, o mesmo par de linhas sobre teto e corte.
+
+Agora é um ícone antes da troca de tema, com a contagem no canto. **Nasce
+escondido** e só aparece quando há algo — dia limpo, dia sem ícone. O conteúdo
+continua chegando inteiro, na dica.
+
+### 4. O título foi para o centro, a 22px
+
+Regra nova do brain, não só daqui: [regra 5 em
+`design/regras-de-layout.md`](../../../design/regras-de-layout.md), e está em
+`design/tokens/tema.css` — os dois modelos de painel mudaram junto.
+
+O `.topo` virou **grade de três colunas** (`1fr auto 1fr`). Com flex o centro
+do título dependeria da largura da logo e de quantas ações houvesse na direita
+— bastava o ícone de atenção aparecer para o título escorregar.
+
+### E o balão, que é um só
+
+`#dica` serve o ícone do topo e as trinta linhas da lista. Um balão por alvo,
+escondido no HTML, multiplicaria o peso da página por linha — e elas são
+reescritas inteiras a cada movimento da barra de aderência.
+
+| decisão | por quê |
+|---|---|
+| `position:fixed` | a lista mora num `.wrap` com `overflow:auto`; balão absoluto dentro dela é cortado na borda e nasce invisível |
+| `pointer-events:none` | o balão nasce por cima do alvo; sem isso ele rouba o mouse, o alvo recebe `mouseleave`, o balão some, o mouse volta — e a tela pisca sozinha |
+| `width:max-content` | com largura fixa a coluna Leitura quebrava em quatro linhas por indicador e o balão passava de 450px, saindo pela base da tela |
+| abre por hover, foco e clique | só hover deixaria de fora quem abre no telefone e quem navega por teclado |
+
+🔒 **O smoke exercita a dica de verdade**: chama o mesmo `onmouseenter` que o
+mouse chamaria, lê o que caiu no balão e exige as seis colunas, sem `undefined`
+nem `NaN`. E prova o que **saiu**: se a tabela de indicadores voltar ao
+extrato, ou o cartão `#alerta` reaparecer, ele reprova. Remoção não se prova
+sozinha — sem isso alguém reabre a tabela "só para conferir" e a partir dali as
+duas divergem.
+
+### O glossário: uma margem só, e a largura toda
+
+**Duas correções, e a segunda só apareceu depois da primeira.**
+
+**(a) O alinhamento.** O chip do subtítulo de seção empurrava o **texto** do
+subtítulo 44px para dentro, enquanto termo, definição e tabela começavam
+colados na borda do cartão: duas verticais diferentes na mesma coluna de
+leitura, alternando a cada seção. Agora o chip é a única coisa na margem e todo
+o resto nasce na mesma vertical (`.gl dl{padding-left:44px}` = 34 do chip + 10
+do intervalo). Medido: título em x=83, termos em x=75 — **8px**, que print
+reduzido não mostra e `getBoundingClientRect` mostra.
+
+**(b) A largura.** O cartão tem 1.300px e o texto usava **645** deles — metade
+do bloco em branco, tudo encostado à esquerda. Limitar a **linha** continua
+certo (linha de 200 caracteres não se lê); errado era limitar deixando o resto
+vazio.
+
+```css
+.gl dl{ columns:2 34em; column-gap:44px }
+.gl dt{ break-inside:avoid; break-after:avoid }
+.gl dd{ break-inside:avoid; break-before:avoid }
+```
+
+`columns:2 34em` resolve as duas coisas de uma vez: **no máximo** duas colunas,
+cada uma com **pelo menos** 34em. Onde não cabem duas, vira uma sozinha — sem
+media query, e a medida da linha nunca passa do que se lê.
+
+Os três `break-*` juntos fazem o **verbete inteiro** — termo, definições e
+tabela — virar um bloco que a coluna leva junto ou não leva. Com só o
+`break-inside` aconteceu isto: o termo "Categoria do cliente" no pé da coluna
+da esquerda e a tabela das sete categorias desgarrada na da direita, 300px
+abaixo.
+
 ## 🎯 O extrato da loja: escolher e mandar
 
 Clicar numa loja abre o extrato. Desde 18/09 ele deixou de ser só leitura:
@@ -417,6 +649,81 @@ A normalização é **uma implementação só**: ela mora no `montar-html.js` (b
 mapa. Reimplementá-la no injetor criaria duas versões escritas juntas, que erram juntas — e
 a divergência só apareceria como loja sem responsável, sem erro nenhum.
 
+#### A carteira é lida a cada run (2026-09-21)
+
+A planilha muda **toda semana**, e o literal embutido envelhecia em silêncio: consultor
+que trocou de carteira seguia respondendo pela loja antiga, e a tela mostrava o nome
+errado com a mesma confiança do certo. Desde 21/09 ela é lida a cada execução:
+
+```
+Rodar ─┬─ Montar Fase 1 → … → Montar HTML
+       └─ Baixar Carteira → Ler Carteira ──┘
+```
+
+**`Baixar Carteira`** faz `GET` em `/_api/v2.0/shares/u!<link-em-base64url>/driveItem/content`.
+O endpoint `/shares/` resolve um **link de compartilhamento** direto para o arquivo, então
+não é preciso saber `driveId` nem `itemId` — e o acesso segue a permissão do próprio link.
+É o que torna possível ler de um espaço que a conta de serviço não possui.
+
+**`Ler Carteira`** é um Extract from File (`xlsx`), só na aba `Todos os Clientes`, com
+`readAsString` para o CNPJ não virar número e perder zero à esquerda.
+
+⚠️ **As colunas variam por linha.** O Extract from File descarta célula vazia, então a
+primeira linha pode não ter `UF` nem `Cidade`. Procurar as colunas obrigatórias em uma
+linha só dá falso negativo — o nó varre até achar.
+
+#### 🔴 O nó da carteira fica EM SÉRIE, nunca em ramo paralelo
+
+Ele nasceu como ramo paralelo ao `Montar Fase 1` — parecia certo, porque a carteira não
+depende de nada da cadeia. **Não funciona.** Na ordem de execução v1 o n8n roda a cadeia
+principal inteira primeiro: medido no run 52930, o `Subir no SharePoint` saiu com índice
+**7** e o `Baixar Carteira` com **8**. Quando o `Montar HTML` executa, o nó da carteira
+ainda não rodou, e `$('Baixar Carteira')` estoura.
+
+O sintoma foi mudo do jeito certo: o relatório saiu normalmente, com a carteira embutida,
+e a origem declarou `[reserva: o no Baixar Carteira nao existe ou nao rodou]`. Foi a
+própria reserva que denunciou o defeito — sem ela, o filtro teria ficado desatualizado
+sem ninguém saber.
+
+Hoje a ligação é `Rodar → Baixar Carteira → Montar Fase 1 → …`. Isso é seguro porque o
+`Montar Fase 1` **não lê `$json`** (zero ocorrências): receber a carteira na entrada não
+muda nada para ele. Se um dia ele passar a ler a entrada, esta ligação precisa ser
+repensada.
+
+#### O literal não saiu: ele virou a reserva
+
+`resumo.carteira.ao_vivo` diz qual das duas foi usada, e `origem` diz por quê. Isso existe
+porque **duas situações muito diferentes dariam telas idênticas**:
+
+- "estas 44 lojas não estão na planilha" — dado
+- "a planilha não respondeu e estou com a de quatro dias atrás" — defeito
+
+A leitura ao vivo é **recusada** — e cai na reserva — em quatro casos, cada um com prova
+negativa em `prova-local.js`:
+
+| recusa | por quê |
+|---|---|
+| o nó não existe, não rodou, ou devolveu erro | 403, arquivo movido, credencial revogada |
+| faltam `CNPJ` ou `Consultor Responsavel` | planilha reorganizada |
+| alguma linha sem consultor | planilha em edição |
+| menos CNPJ do que o literal já tem | **leitura truncada** |
+
+A última é a guarda contra o modo de falha mais perigoso: a planilha abre, as colunas
+estão certas, e simplesmente sumiu gente. **Carteira truncada é pior que carteira velha** —
+a velha ao menos está inteira.
+
+Ela tem um efeito colateral aceito de propósito: se a carteira **encolher de verdade**, a
+leitura passa a ser recusada até alguém regenerar o literal. É um incômodo conhecido, e
+preferível a aceitar em silêncio uma planilha pela metade.
+
+⚠️ **Onde o arquivo mora, e por que isso é dívida.** Ele está no OneDrive **pessoal** do
+Doni, compartilhado com a conta de serviço — decisão do Thomas em 21/09, com a troca de
+caminho prevista. É a mesma forma de problema que a decisão de 28/07 desfez: a publicação
+depende de uma permissão que qualquer pessoa pode revogar sem saber que quebrou um
+relatório. Quando quebrar, **é aqui que se olha** — e a reserva garante que o relatório
+sai mesmo assim, dizendo que está com carteira velha. O destino certo é a biblioteca do
+site N8N, onde a conta de serviço já escreve todo dia.
+
 #### O que declara que deu errado
 
 `resumo.carteira` publica `por_cnpj`, `por_nome`, `nao_distribuidas` e
@@ -425,16 +732,20 @@ a divergência só apareceria como loja sem responsável, sem erro nenhum.
 nenhum**" — nesta segunda, a coluna inteira cai em Não Distribuído e o filtro parece só
 estar vazio.
 
-#### Medido: o CNPJ casa 93,8% (run 52794, 2026-09-21)
+#### Medido: o CNPJ casa 93,9% (run 52810, 2026-09-21)
 
 O primeiro run com o SQL novo respondeu a pergunta que estava aberta:
 
 | | lojas | |
 |---|---:|---|
-| casaram por **CNPJ** | 675 | 93,8% |
+| casaram por **CNPJ** | 695 | 93,9% |
 | casaram por **nome** | 1 | 0,1% |
-| **Não Distribuído** | 44 | 6,1% |
-| total de lojas elegíveis | **720** | |
+| **Não Distribuído** | 44 | 5,9% |
+| total de lojas elegíveis | **740** | |
+
+O run 52794, três horas antes, deu 675 de 720 — **93,8%**. As duas medições
+concordam, e a diferença é só a janela de eventos andando: a base de lojas se
+move durante o dia, como todo número deste relatório.
 
 E `lojas_sem_cnpj_no_banco` veio **0**: toda loja do relatório tem CNPJ em `shops`, então
 o cruzamento não perde ninguém por falta da chave. Contra os **65,2%** que o nome sozinho
@@ -540,10 +851,14 @@ pasta nova e deixa a antiga parada, com tudo que já estava publicado:
 
 ### ✅ RESOLVIDO em 2026-09-21: a pasta nova nasceu (run 52794)
 
-O `Virar Arquivo` foi transcrito e a execução **52794** publicou em
-`Radar de Estoque/radar-de-estoque-2026-09-21.html` — 4.544.250 bytes, 11min45,
-pela conta `powerbi@cars2you.com.br`. 1.001 veículos, 720 lojas elegíveis,
-30.030 pares, 25 eventos.
+O `Virar Arquivo` foi transcrito e a pasta nasceu. A publicação corrente é
+**`Radar de Estoque/radar-de-estoque.html`** — nome fixo, sem data, sobrescrito
+a cada run (execução **52810**, 4.761.824 bytes, 12min02, pela conta
+`powerbi@cars2you.com.br`).
+
+⚠️ **O arquivo `radar-de-estoque-2026-09-21.html`**, do run 52794, ficou órfão
+quando o nome perdeu a data: ele não é sobrescrito, porque o caminho mudou.
+Apagar junto com as pastas antigas.
 
 🔜 **Ainda falta, e é operação no SharePoint do time, não do workflow:** apagar as
 **duas pastas antigas** e o arquivo de 18/09 que caiu na pasta #2.

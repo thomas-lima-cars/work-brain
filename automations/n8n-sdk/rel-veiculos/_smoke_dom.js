@@ -154,6 +154,27 @@ function smoke(html) {
        innerHTML do extrato, como as linhas de tabela ja sao. */
     querySelectorAll: function (sel) {
       const ext = cache['extrato'];
+      /* `.comp` sao as celulas de Componentes, que guardam a dica dos
+         indicadores. Sem esta lista o `td.onmouseenter=...` do app cai em
+         lugar nenhum e `dicaInd` -- oito indicadores, dois formatos, quatro
+         campos que podem faltar -- nunca roda em teste. E exatamente a
+         familia de codigo que este smoke existe pra cobrir: ele so aparece
+         quando alguem passa o mouse. */
+      if (ext && String(sel).indexOf('.comp') >= 0) {
+        if (doc._compHtml === ext.innerHTML && doc._comp) return doc._comp;
+        const tds = ext.innerHTML.match(/<td[^>]*class='[^']*comp'[^>]*>/g) || [];
+        doc._compHtml = ext.innerHTML;
+        doc._comp = tds.map(function (t) {
+          const m = t.match(/data-k='([^']*)'/);
+          return {
+            onmouseenter: null, onmouseleave: null, onclick: null,
+            getAttribute: function (k) {
+              return k === 'data-k' ? (m ? m[1] : null) : null;
+            }
+          };
+        });
+        return doc._comp;
+      }
       if (!ext || String(sel).indexOf('.cx') < 0) return [];
       /* MEMOIZA enquanto o innerHTML nao muda — mesma armadilha do
          `querySelectorAll` do elemento, e eu caí nela de novo: sem isto,
@@ -528,8 +549,8 @@ function smoke(html) {
           if (ex.indexOf("class='xg'") < 0 && ex.indexOf('class="xg"') < 0) {
             erros.push('o extrato abriu SEM o painel dos cinco campos (.xg)');
           }
-          if (ex.indexOf('Faixa de recência') < 0) {
-            erros.push('o painel abriu sem a faixa de recencia');
+          if (ex.indexOf('Categoria do cliente') < 0) {
+            erros.push('o painel abriu sem a categoria do cliente');
           }
         }
         /* O ROTULO nao prova nada: e texto fixo, aparece com ou sem dado.
@@ -539,10 +560,10 @@ function smoke(html) {
            nomes conhecidos so passa se `cluster_nome` chegou de verdade. */
         const NOMES = ['Cliente Diamante', 'Cliente Ouro', 'Cliente Prata',
           'Cliente Recuperação', 'Lead Quente', 'Lead Morno', 'Lead Frio'];
-        if (ex.indexOf('Faixa de recência') >= 0 &&
+        if (ex.indexOf('Categoria do cliente') >= 0 &&
             !NOMES.some(function (n) { return ex.indexOf(n) >= 0; })) {
-          erros.push('o painel mostra o rotulo da faixa mas nenhum nome de faixa — ' +
-            'o valor nao chegou na tela');
+          erros.push('o painel mostra o rotulo da categoria mas nenhum nome de ' +
+            'categoria — o valor nao chegou na tela');
         }
         /* undefined em tela e o sintoma classico deste projeto: campo que o
            no esqueceu de repassar chega assim, em silencio */
@@ -552,12 +573,220 @@ function smoke(html) {
         if (ex.indexOf('NaN') >= 0) {
           erros.push('o extrato da loja mostra "NaN" — conta com valor ausente');
         }
+
+        /* ── 21/09: o que SAIU do extrato tem que continuar fora ────────
+           Remocao nao se prova sozinha. Sem estas tres linhas, alguem
+           reabre a tabela de indicadores "so pra conferir" e ela volta a
+           morar nos dois lugares -- e a partir dai as duas divergem. */
+        if (ex.indexOf('<th') >= 0 && ex.indexOf('Referência') >= 0) {
+          erros.push('a tabela de indicadores voltou pro extrato — ela agora e a dica');
+        }
+        if (ex.indexOf('Deságio médio') >= 0 || ex.indexOf('Laudo cautelar') >= 0) {
+          erros.push('o extrato voltou a trazer perfil da loja (deságio/laudo)');
+        }
+        if (ex.indexOf('fator de confiança') >= 0) {
+          erros.push('o fator de confiança voltou pro extrato — ele vive na dica de cada par');
+        }
+
+        /* ── 21/09: o resumo da loja MUDOU DE ENDERECO ─────────────────
+           Saiu da caixa `#ctx`, acima das tabelas, e entrou no cartao do
+           extrato, a esquerda da categoria do cliente. As duas metades
+           precisam de prova: que ele CHEGOU la, e que nao ficou nos dois
+           lugares -- dois textos iguais que divergem na proxima mexida e o
+           modo de falha desta pagina inteira. */
+        if (ex.indexOf('>Resumo<') < 0) {
+          erros.push('o resumo da loja nao esta dentro do extrato');
+        }
+        if (ex.indexOf('resp. ') < 0 || ex.indexOf('perfil: ') < 0) {
+          erros.push('o resumo dentro do extrato nao traz responsavel e perfil');
+        }
+        if (cache['ctx'] && cache['ctx'].style.display !== 'none') {
+          erros.push('o #ctx continuou visivel com uma loja selecionada — ' +
+            'o resumo ficou nos dois lugares');
+        }
+        /* a ordem importa: resumo a ESQUERDA da categoria */
+        const iRes = ex.indexOf("class='xk resumo'");
+        const iCat = ex.indexOf("class='xk cat'");
+        if (iRes < 0) erros.push('o bloco do resumo nao tem a classe que o dimensiona');
+        if (iCat >= 0 && iRes >= 0 && iRes > iCat) {
+          erros.push('a categoria do cliente esta ANTES do resumo na mesma linha');
+        }
+        /* e o contato fecha a linha de baixo, inteiro */
+        if (ex.indexOf("class='xk contato'") < 0) {
+          erros.push('o bloco de contato nao tem a classe que o faz ocupar a linha');
+        }
+
+        /* ── o "?" das categorias de cliente (21/09) ────────────────────
+           Exigido so quando o catalogo veio nos dados: um `dados-*.json`
+           gravado antes desta mudanca nao tem `parametros.clusters`, e ai
+           a lista vazia e o comportamento certo. Exigir sempre faria a
+           regeneracao de qualquer arquivo antigo gritar sem motivo -- e
+           alarme que grita no caso normal e alarme que se aprende a
+           ignorar. */
+        const temCat = html.indexOf('"clusters"') >= 0;
+        if (temCat) {
+          if (ex.indexOf("id='aj_cat'") < 0) {
+            erros.push('a categoria do cliente nao tem o icone de ajuda');
+          }
+          const aj = cache['aj_cat'];
+          if (!aj || typeof aj.onmouseenter !== 'function') {
+            erros.push('o icone da categoria nao abre a dica');
+          } else {
+            aj.onmouseenter();
+            const dcat = cache['dica'] && cache['dica'].innerHTML || '';
+            const nLinhas = (dcat.match(/<tr/g) || []).length;
+            if (nLinhas < 7) {
+              erros.push('a dica das categorias lista ' + nLinhas + ' de 7');
+            }
+            /* a lista das sete so ajuda se disser ONDE esta loja cai */
+            if (dcat.indexOf("class='aqui'") < 0) {
+              erros.push('a dica das categorias nao marca a categoria desta loja');
+            }
+            if (dcat.indexOf('undefined') >= 0) {
+              erros.push('a dica das categorias mostra "undefined"');
+            }
+            aj.onmouseleave();
+          }
+          /* e o glossario tem que trazer a MESMA lista, do mesmo catalogo */
+          if (html.indexOf('Quando se aplica') < 0) {
+            erros.push('o glossario nao traz a tabela das categorias de cliente');
+          }
+          NOMES.forEach(function (n) {
+            if (html.indexOf('>' + n + '<') < 0) {
+              erros.push('o catalogo publicado nao traz a categoria "' + n + '"');
+            }
+          });
+        }
+
+        /* ── e o cartao e RETRATIL ─────────────────────────────────────── */
+        if (ex.indexOf('<details') < 0 || ex.indexOf('<summary') < 0) {
+          erros.push('o extrato da loja nao e retratil (sem <details>/<summary>)');
+        }
+        if (ex.indexOf('<details class=\'card dobra\' open>') < 0 &&
+            ex.indexOf('<details class="card dobra" open>') < 0) {
+          erros.push('o extrato retratil nao nasce aberto');
+        }
+
+        /* ── e o que ENTROU no lugar tem que funcionar ──────────────────
+           Aqui a dica e exercitada de verdade: o smoke chama o mesmo
+           `onmouseenter` que o mouse chamaria e le o que caiu no balao. */
+        const comps = doc.querySelectorAll('#extrato .comp');
+        if (!comps.length) {
+          erros.push('nenhuma celula de componentes com .comp e data-k na lista de veiculos');
+        } else if (typeof comps[0].onmouseenter !== 'function') {
+          erros.push('a celula de componentes nao recebeu a dica');
+        } else {
+          comps[0].onmouseenter();
+          const dc = cache['dica'] && cache['dica'].innerHTML || '';
+          if (!dc) {
+            erros.push('passar o mouse nos componentes nao preencheu a dica');
+          } else {
+            ['Indicador', 'Este veículo', 'Média da loja', 'Peso', 'Leitura']
+              .forEach(function (c) {
+                if (dc.indexOf(c) < 0) erros.push('a dica dos indicadores nao traz a coluna ' + c);
+              });
+            if (dc.indexOf('undefined') >= 0) {
+              erros.push('a dica dos indicadores mostra "undefined" — campo nao repassado');
+            }
+            if (dc.indexOf('NaN') >= 0) {
+              erros.push('a dica dos indicadores mostra "NaN" — conta com valor ausente');
+            }
+            if (cache['dica'].style.display !== 'block') {
+              erros.push('a dica foi preenchida mas nao apareceu');
+            }
+            comps[0].onmouseleave();
+            if (cache['dica'].style.display !== 'none') {
+              erros.push('a dica nao some quando o mouse sai');
+            }
+          }
+        }
       }
       /* fecha a selecao para nao contaminar o passo seguinte */
       comHandler[0].onclick();
     } catch (e) {
       erros.push('erro ao clicar numa loja: ' + e.message);
     }
+  }
+
+  /* 7b-bis. O #ctx perdeu o ramo da LOJA, mas nao o do VEICULO: clicar num
+     carro continua enchendo a caixa acima das tabelas. Sem esta prova, tirar
+     metade de uma funcao passa por refatoracao ate alguem clicar num carro. */
+  const tv = cache['t_v'];
+  const linhasV2 = tv ? tv.querySelectorAll('tbody tr') : [];
+  const comV = linhasV2.filter(function (tr) { return typeof tr.onclick === 'function'; });
+  if (!comV.length) {
+    erros.push('nenhuma linha de veiculo recebeu handler de clique');
+  } else {
+    try {
+      comV[0].onclick();
+      const cx = cache['ctx'];
+      if (!cx || cx.style.display === 'none' || !cx.innerHTML) {
+        erros.push('clicar num veiculo nao preencheu o resumo (#ctx)');
+      } else if (cx.innerHTML.indexOf('Lojas elegíveis') < 0 &&
+                 cx.innerHTML.indexOf('canal sem loja') < 0 &&
+                 cx.innerHTML.indexOf('não tem loja compradora') < 0) {
+        erros.push('o resumo do veiculo nao explica quais lojas sao elegiveis');
+      }
+      comV[0].onclick();
+    } catch (e) {
+      erros.push('erro ao clicar num veiculo: ' + e.message);
+    }
+  }
+
+  /* 7c. os pontos de atencao viraram icone no cabecalho (21/09).
+     O cartao `#alerta` nao existe mais; quem avisa e `#aviso`, que so
+     APARECE quando ha algo a dizer. As duas metades sao testaveis: a marca
+     no HTML estatico, e o comportamento no DOM de mentira. */
+  if (html.indexOf('id="alerta"') >= 0) {
+    erros.push('o cartao de alerta voltou ao corpo da pagina');
+  }
+  if (html.indexOf('id="aviso"') < 0) {
+    erros.push('o icone de pontos de atenção nao esta no cabecalho');
+  }
+  if (html.indexOf('id="dica"') < 0) {
+    erros.push('o balao das dicas nao esta na pagina');
+  }
+  /* o icone vem ANTES do botao de tema, que e o que o pedido dizia */
+  if (html.indexOf('id="aviso"') > html.indexOf('id="btn_tema"')) {
+    erros.push('o icone de atenção esta DEPOIS do botao de tema');
+  }
+  const avi = cache['aviso'];
+  const temAviso = (D.falhas && D.falhas.length) ||
+    (D.diagnostico || []).some(function (d) { return d.veredito !== 'ok'; });
+  if (temAviso) {
+    if (avi.style.display !== 'inline-flex') {
+      erros.push('ha ponto de atenção e o icone continuou escondido');
+    }
+    if (typeof avi.onmouseenter !== 'function') {
+      erros.push('o icone de atenção nao abre a dica');
+    } else {
+      avi.onmouseenter();
+      const dc = cache['dica'] && cache['dica'].innerHTML || '';
+      if (dc.indexOf('ponto(s) de atenção') < 0) {
+        erros.push('a dica do icone nao lista os pontos de atenção');
+      }
+      avi.onmouseleave();
+    }
+  } else if (avi.style.display === 'inline-flex') {
+    erros.push('nao ha ponto de atenção e o icone apareceu assim mesmo');
+  }
+
+  /* 7d. o titulo do painel fica no CENTRO, na coluna do meio (21/09) */
+  if (html.indexOf('<span class="meio"><b>') < 0) {
+    erros.push('o titulo nao esta na coluna do meio do topo');
+  }
+
+  /* 7e. Duas regras de CSS que so o navegador mostraria, e que ja voltaram
+     sozinhas uma vez cada. Aqui elas sao conferidas no TEXTO da folha,
+     porque o DOM de mentira nao calcula estilo. */
+  if (html.indexOf('.xk>span{display:block') < 0) {
+    erros.push('o rotulo do bloco voltou a ser \'.xk span\' — o contato empilha');
+  }
+  if (/\.xk span\{display:block/.test(html)) {
+    erros.push('a regra larga \'.xk span\' voltou: ela pega os .dim do contato');
+  }
+  if (!/\.gl dl\{[^}]*columns:/.test(html)) {
+    erros.push('o glossario voltou a uma coluna so, encostado na esquerda');
   }
 
   /* 8. o botao limpar volta ao estado inicial */
