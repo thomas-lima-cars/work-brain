@@ -3,6 +3,13 @@
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
 > **Última atualização:** 2026-09-22 (madrugada) — tema claro virou vidro e foi pro Radar
 
+> ⚠️ **5 commits locais NÃO enviados** desde 2026-09-18 (`14daf5b`, `a8cef9b`,
+> `455fe0b`, `fac91d7` + este). O `git push` foi barrado **pelo classificador de
+> permissões desta sessão**, não pela rede nem pelo git — é o mesmo bloqueio de
+> 18/09, agora na quarta sessão seguida.
+> **Rodar `git push` à mão** e tirar esta linha. Enquanto isso, o trabalho de
+> quatro sessões existe só nesta máquina.
+
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
   ✅ **Carteira comercial ao vivo** desde 21/09: o `Baixar Carteira` lê o JSON que o
