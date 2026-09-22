@@ -222,6 +222,52 @@ borrão claro e o título continua legível.
 ⚠️ **Consequência:** o subtítulo do painel deixou de estar sobre uma superfície
 e passou a cair no campo. Ele usa `--texto-2`, não `--texto-3` — ver regra 10c.
 
+### 5a. A marca tem duas larguras (22/09/2026)
+
+**Extensa na web, curta no telefone.** São artes diferentes, não a mesma
+encolhida.
+
+| arte | caixa | na barra, a 26px |
+|---|---|---|
+| extensa — a marca por extenso | 933 × 168 (5,55:1) | 144px |
+| curta — o `c2y` | 990 × 454 (2,18:1) | 57px |
+
+Encolher não resolvia: a 18px de altura a extensa ainda ocupava **100px de uma
+barra de 360**, e o título quebrava em uma palavra por linha. A curta, na mesma
+altura, ocupa 39 — e por isso pode ser **mais alta** (22px) e ainda assim caber
+melhor.
+
+🔴 **As duas vivem dentro de UM invólucro** (`.marca` no modelo, `.esq` no
+Radar). Soltas, seriam dois filhos do `.topo-in`, e a grade de três colunas
+viraria de quatro: o título sai do centro. Mesma família da armadilha que o
+`display` explícito do `.topo` já registra.
+
+**Quem troca a arte é o CSS; quem troca a cor é o JS.** A largura é
+`@media`, então sobrevive a imprimir, a redimensionar e a rodar sem script, e
+não pisca na carga. A cor depende do tema, que é estado do documento.
+
+```css
+.marca{ justify-self:start; min-width:0; display:block; line-height:0 }
+.logo{ height:26px; width:auto; display:block }
+.logo-curta{ display:none }
+@media(max-width:620px){
+  .logo-extensa{ display:none }
+  .logo-curta{ display:block; height:22px }
+}
+```
+
+A escondida sai da árvore de acessibilidade com o `display:none`, então as duas
+podem levar o mesmo `alt` sem repetir no leitor de tela.
+
+⚠️ **SVG sem `viewBox` não escala.** Cinco dos seis arquivos entregues vieram
+só com `width`/`height`: num `<img>` com `height:26px` a arte é **cortada**, não
+reduzida. O `viewBox` que está neles saiu de medir a caixa com `getBBox` — não
+de ler o atributo, que era justamente o que faltava.
+
+**O "preto" da marca é `#3A4552`** — o mesmo `--texto`/`--acento` do tema
+claro. Marca e letra da página são a mesma tinta, e é por isso que ela assenta
+em vez de saltar.
+
 ### Ponto de atenção: ícone, não cartão
 
 Aviso de coleta (query que falhou, par descartado, teto batido) vive num
@@ -425,8 +471,15 @@ texto corrido. Onde houver link em texto, ele precisa se anunciar por
 **Modelo é gerado de uma fonte só**, nunca mantido em duplicata:
 
 ```bash
-node design/modelos/monta-modelos.js && node design/_prova_modelos.js
+node design/modelos/monta-modelos.js && node design/monta-kit.js && node design/_prova_modelos.js
 ```
+
+São **três** alvos saindo do `tema.css`: os dois modelos e o
+[`kit-de-painel.md`](kit-de-painel.md), o arquivo único que vai para quem não
+tem este repositório. O kit carrega a folha inteira dentro de si — a prova
+reaplica a tabela de trocas de caminho do `monta-kit.js` sobre o `tema.css` e
+exige igualdade, então **nada além dos comentários que apontam para pastas
+daqui pode divergir**.
 
 A prova confere **frescor**: arquivo de saída mais velho que a fonte reprova.
 Já aconteceu de o gerador falhar, o HTML anterior continuar em disco e o teste
@@ -495,5 +548,6 @@ de 8px no glossário (21/09) só apareceu no `getBoundingClientRect`.
 |---|---|
 | Tokens, componentes, os dois temas | `design/tokens/tema.css` |
 | Modelos prontos | `design/modelos/` |
+| O padrão para quem é de fora | `design/kit-de-painel.md` (gerado) |
 | Paleta e logo por produto | `design/paletas/` · `design/marca/` |
 | Estas regras | este arquivo |

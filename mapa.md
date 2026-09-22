@@ -16,6 +16,7 @@
 | `automations/n8n-sdk/rel-veiculos/` | **Radar de Estoque** — o relatório de veículos em evento × lojas compradoras. A pasta ainda tem o nome antigo | Mexer no Radar |
 | `automations/n8n-sdk/carteira-comercial/` | **Quem responde por cada loja** — lê a planilha da área comercial no SharePoint e publica `carteira-comercial.json`, que o Radar consome. Roda 6h, falha alto de propósito | Mexer na carteira, ou quando o Radar disser que a carteira está velha |
 | `design/regras-de-layout.md` | 📐 **O que já foi decidido sobre layout** — anatomia do cartão, KPI, gráfico, glossário, tema, tabela | **Antes de ajustar visual de qualquer painel** — a decisão já pode estar tomada |
+| `design/kit-de-painel.md` | 📦 **O padrão num arquivo só, para levar para fora** — contrato, esqueleto, regras e o `tema.css` inteiro embutido. Gerado por `monta-kit.js`; quem recebe não precisa deste repo | Compartilhar o padrão com o time ou com outro projeto |
 | `design/` | **Identidade e modelos de painel** — marca por produto, paleta por produto, `tema.css` e os dois modelos de dashboard (claro e escuro) | **Antes de montar qualquer HTML** — copiar o modelo, não inventar layout |
 | `design/fontes/` | **Fontes embutidas em base64** — hoje só a DM Sans, candidata. A regra 9 não admite requisição de rede, então arquivo de fonte mora aqui e vira `data:` na geração | Trocar a tipografia de um painel |
 | `memory/decisions/` | Decisões grandes, com opções consideradas e consequências | Entender por que algo é do jeito que é |

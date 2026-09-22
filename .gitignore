@@ -76,3 +76,7 @@ __pycache__/
 # Os MODELOS de credencial sao versionados de proposito: o README manda copiar
 # deles. A regra `.env.*` la em cima os pegaria junto. So tem placeholder dentro.
 !automations/bancos/.env-*.exemplo
+
+# Config pessoal do Claude Code nesta maquina (permissoes). Nao versionar:
+# permissao e decisao de quem senta na maquina, nao do repositorio.
+.claude/settings.local.json

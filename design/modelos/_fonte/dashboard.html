@@ -28,7 +28,15 @@
 <!-- ╔══ TOPO ════════════════════════════════════════════════════════════╗ -->
 <header class="topo">
   <div class="topo-in">
-    <img class="logo" id="logo" src="" alt="Cars2You">
+    <!-- As duas artes vivem juntas dentro do `.marca`, que é UM filho da
+         grade de três colunas. Quem esconde uma delas é o CSS, por largura;
+         o JS abaixo só troca a COR, que depende do tema.
+         A escondida sai da árvore de acessibilidade com o `display:none`,
+         então as duas podem levar o mesmo `alt` sem repetir no leitor. -->
+    <span class="marca">
+      <img class="logo logo-extensa" id="logo" src="" alt="Cars2You">
+      <img class="logo logo-curta" id="logo-curta" src="" alt="Cars2You">
+    </span>
     <div class="topo-tit">
       <h1>Título do painel</h1>
       <p class="sub">Recorte dos dados · janela · fonte</p>
@@ -338,7 +346,12 @@ $('#gerado').textContent = new Date().toLocaleString('pt-BR',
    Um projeto que QUEIRA lembrar a escolha do leitor põe o localStorage
    aqui — e assume que o nome do arquivo deixa de valer como promessa.
    ========================================================================== */
-const LOGO = { claro:"__LOGO_CLARO__", escuro:"__LOGO_ESCURO__" };
+/* Quatro artes: duas larguras × duas cores. A LARGURA quem escolhe é o CSS,
+   por media query; a COR é que depende do tema, e por isso está aqui. */
+const LOGO = {
+  claro:  { extensa:"__LOGO_CLARO_EXTENSA__",  curta:"__LOGO_CLARO_CURTA__"  },
+  escuro: { extensa:"__LOGO_ESCURO_EXTENSA__", curta:"__LOGO_ESCURO_CURTA__" }
+};
 
 /* O ícone mostra PARA ONDE o botão leva, não onde você está: sol quando o
    tema atual é escuro. É a convenção que as pessoas já esperam. */
@@ -350,7 +363,8 @@ const ICO_TEMA = {
 
 function aplicaTema(t){
   document.documentElement.dataset.tema = t;
-  $('#logo').src = LOGO[t];
+  $('#logo').src = LOGO[t].extensa;
+  $('#logo-curta').src = LOGO[t].curta;
   const alvo = t === 'escuro' ? 'claro' : 'escuro';
   const b = $('#b-tema');
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO_TEMA[alvo] + '</svg>';

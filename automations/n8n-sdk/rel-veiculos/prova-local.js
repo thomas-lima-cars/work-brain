@@ -953,8 +953,51 @@ ok(h.indexOf('undefined/') < 0 && h.indexOf('/null/') < 0,
    contexto e o cabecalho do detalhe), nao as linhas renderizadas -- a tabela
    e construida no navegador. Contar links aqui enganaria; quem conta o
    render de verdade e o _smoke_dom, que roda o JS contra um DOM de mentira. */
+/* 3 desde 22/09: a linha de contexto da tabela de cima, o cabecalho do
+   detalhe, e a lista selecionavel do extrato -- a tabela em que se AGE. */
 const nSites = (h.match(/class='lk'/g) || []).length;
-ok(nSites === 2, 'os dois pontos de montagem do link estao no template (' + nSites + ')');
+ok(nSites === 3, 'os tres pontos de montagem do link estao no template (' + nSites + ')');
+/* o do extrato tem que estar DENTRO do construtor da lista selecionavel, e
+   nao em qualquer lugar do arquivo: e o `data-vid` que identifica aquela
+   tabela, porque so ela tem caixa de selecao por veiculo. */
+const trechoLista = h.slice(h.indexOf('data-vid='), h.indexOf('data-vid=') + 900);
+ok(h.indexOf('data-vid=') > 0 && trechoLista.indexOf("class='lk'") > 0,
+   'o link entrou na SEGUNDA tabela de veiculos (a lista selecionavel do extrato)');
+
+/* ── o dominio segue o canal do evento (22/09) ────────────────────────
+   `hostDoAnuncio` e avaliada em isolamento, extraida do proprio arquivo do
+   no: os eventos do fixture alvejam so 4 e 7, entao rodar o cenario inteiro
+   nunca passaria pelo ramo do C6. Mesma tecnica com que a `normNome` e
+   comparada entre os dois workflows. */
+const fonteLink = fs.readFileSync(path.join(AQUI, 'montar-html.js'), 'utf8');
+const iniHost = fonteLink.indexOf('const WL_C6 =');
+const fimHost = fonteLink.indexOf('\n}', fonteLink.indexOf('function hostDoAnuncio'));
+ok(iniHost > 0 && fimHost > iniHost, 'o bloco do host existe no montar-html.js');
+const host = new Function(
+  fonteLink.slice(iniHost, fimHost + 2) +
+  '\nreturn { h: hostDoAnuncio, amb: () => linkAmbiguo, C6: HOST_C6, P: HOST_PADRAO };')();
+ok(host.C6 === 'https://compraveiculos.cars2you.com.br',
+   'a vitrine do C6 e compraveiculos.cars2you.com.br');
+ok(host.h([43]) === host.C6, 'canal 43 (Canal de vendas C6 Auto) vai pra vitrine do C6');
+ok(host.h([48]) === host.C6, 'canal 48 (Colaboradores C6) vai pra vitrine do C6');
+ok(host.h([43, 48]) === host.C6, 'evento que alveja os DOIS canais C6 continua no C6');
+ok(host.h([7]) === host.P, 'Marketplace continua em cars2you.com.br');
+ok(host.h([4, 7]) === host.P, 'Trucks2you + Marketplace continua em cars2you.com.br');
+ok(host.h([62]) === host.P, 'Lance Facil BTB continua em cars2you.com.br');
+ok(host.h([]) === host.P, 'evento sem canal declarado cai no dominio padrao');
+/* o caso ambiguo: nao escolhe, e nao fica calado */
+ok(host.amb() === 0, 'ate aqui nenhum caso ambiguo foi contado');
+ok(host.h([7, 43]) === host.P,
+   'evento que alveja C6 E outro canal fica no dominio padrao: o anuncio existe nos dois');
+ok(host.amb() === 1, 'e o caso ambiguo foi CONTADO, pra virar aviso na tela');
+/* [neg] se a regra passasse a decidir sozinha no caso misto, esta prova cai */
+ok(host.h([7, 43]) === host.P && host.amb() === 2,
+   'o contador soma a cada ocorrencia, nao marca um booleano');
+
+/* o fixture nao tem evento C6, entao o link dele tem que estar no padrao --
+   e isso prova que o ramo novo nao vazou pro caminho antigo */
+ok(D.veiculos.every((v) => !v.link || v.link.indexOf('https://cars2you.com.br/') === 0),
+   'sem evento C6 no cenario, nenhum link mudou de dominio');
 
 /* ── as TRES causas de "sem correspondencia" ───────────────────────────── */
 console.log('\n[10] sem correspondencia: tres causas, tres decisoes');

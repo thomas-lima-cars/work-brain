@@ -619,21 +619,55 @@ function desagioDe(valor, fipe) {
   return Math.round(d * 100) / 100;
 }
 
-/* cars2you.com.br/anuncio/veiculo/{marca}/{modelo}/{versao}/{uuid}
+/* ── o dominio segue o canal do evento (pedido de 2026-09-22) ────────
+   O C6 tem vitrine propria: o mesmo anuncio que o Marketplace serve em
+   cars2you.com.br, o canal C6 serve em compraveiculos.cars2you.com.br. O
+   caminho e identico nos dois -- muda so o host.
+
+   Por ID, nao por nome, pela mesma razao do recorte de canais: renomear um
+   whitelabel no banco quebraria um teste por nome em silencio. */
+const WL_C6 = [43, 48];
+const HOST_PADRAO = 'https://cars2you.com.br';
+const HOST_C6 = 'https://compraveiculos.cars2you.com.br';
+
+/* quantos veiculos cairam no caso ambiguo abaixo. Zero em todas as 17
+   execucoes que existem em disco (medido em 2026-09-22): nenhum evento da
+   janela alveja C6 e um canal nao-C6 ao mesmo tempo. Se um dia alvejar, o
+   relatorio DECLARA em vez de escolher calado. */
+let linkAmbiguo = 0;
+
+/* {host}/anuncio/veiculo/{marca}/{modelo}/{versao}/{uuid}
    Padrao da reuniao de 25/08, conferido contra os exemplos do Gui. Tudo
    minusculo, encodeURIComponent por trecho (espaco vira %20, nao hifen),
    uuid sem hifens.
 
    Faltando UM pedaco, devolve null e o relatorio nao mostra botao. Melhor
    sem botao que botao que cai em lugar nenhum. */
-function linkAnuncio(marca, modelo, versao, uuid) {
+function linkAnuncio(marca, modelo, versao, uuid, wls) {
   const t = (x) => String(x == null ? '' : x).trim();
   const partes = [t(marca), t(modelo), t(versao)];
   const id = t(uuid).split('-').join('');
   if (!id || partes.some((p) => !p)) return null;
-  return 'https://cars2you.com.br/anuncio/veiculo/' +
+  return hostDoAnuncio(wls) + '/anuncio/veiculo/' +
     partes.map((p) => encodeURIComponent(p.toLowerCase())).join('/') +
     '/' + id;
+}
+
+/* O evento pode alvejar VARIOS canais (`event_whitelabels`), entao "este
+   veiculo e do C6" so e verdade quando TODOS os canais dele sao C6.
+
+   Alvejando C6 e outro canal ao mesmo tempo, o anuncio existe nas duas
+   vitrines e nao ha resposta unica: fica no host padrao, que atende o
+   publico maior, e o caso e contado pra virar aviso na tela. Mesma regra do
+   link sem pedaco e do nome de consultor ambiguo -- quando nao da pra
+   decidir, nao se inventa. */
+function hostDoAnuncio(wls) {
+  const w = wls || [];
+  if (!w.length) return HOST_PADRAO;
+  const ehC6 = (x) => WL_C6.indexOf(Number(x)) >= 0;
+  if (w.every(ehC6)) return HOST_C6;
+  if (w.some(ehC6)) linkAmbiguo++;
+  return HOST_PADRAO;
 }
 
 (dados.q_veiculos || []).forEach((r) => {
@@ -645,7 +679,10 @@ function linkAnuncio(marca, modelo, versao, uuid) {
   const wls = Object.keys(eventoWl[String(evid)] || {}).map(Number);
   veiculos.push({
     versao: r.versao || null,
-    link: linkAnuncio(r.marca, r.modelo, r.versao, r.anuncio_uuid),
+    /* `wls` entra no link porque o host depende do canal do evento. Ele e
+       calculado logo acima, na linha do `const wls` -- se alguem mover uma
+       das duas, a outra quebra alto (ReferenceError), nao em silencio. */
+    link: linkAnuncio(r.marca, r.modelo, r.versao, r.anuncio_uuid, wls),
     neg_id: num(r.neg_id), vehicle_id: num(r.vehicle_id),
     evento_id: evid, evento: r.evento, fim_evento: r.fim_evento,
     valor: num(r.valor), fipe: num(r.fipe),
@@ -853,6 +890,12 @@ if (semValor) falhas.push(semValor + ' veiculo(s) sem value_actual: ficam sem o 
 if (dupVeic) {
   falhas.push(dupVeic + ' veiculo(s) vieram mais de uma vez do banco e foram descartados: ' +
     'a query deveria trazer so a ultima negociacao de cada um');
+}
+/* Nao e defeito de dado: e uma pergunta que o dado passou a fazer e que a
+   regra do host nao responde. Ver `hostDoAnuncio`. */
+if (linkAmbiguo) {
+  falhas.push(linkAmbiguo + ' veiculo(s) em evento que alveja C6 E outro canal ao mesmo tempo: ' +
+    'o link ficou no dominio padrao, porque o anuncio existe nas duas vitrines');
 }
 /* ── os canais do recorte sao mesmo os que eu penso? ────────
    O recorte e por ID, e id errado nao da erro de SQL: a base so vem menor,
@@ -1125,13 +1168,13 @@ const TEMA = [
   ' top:0; z-index:30;background:transparent;backdrop-filter:var(--cartao-blur);',
   '-webkit-backdrop-filter:var(--cartao-blur);}.topo-in{max-width:1680px; margin:0 auto;',
   'min-height:var(--topo-h);padding:10px 20px;display:grid; grid-template-columns:1fr auto 1fr;',
-  'align-items:center; gap:16px;}.logo{ height:26px; width:auto; display:block; flex:none;',
-  ' justify-self:start }.topo-tit{ text-align:center; min-width:0 }.topo-tit h1{',
-  ' font-size:22px; letter-spacing:-.01em }.topo-tit .sub{ font-size:12.5px;',
-  ' color:var(--texto-2); margin-top:1px }.topo-acoes{ display:flex; align-items:center;',
-  ' justify-content:flex-end;gap:8px; flex-wrap:wrap; justify-self:end }',
-  ':root:not([data-tema="escuro"]) .ctrl{background:rgba(255,255,255,.55);',
-  'border-color:rgba(255,255,255,.7);',
+  'align-items:center; gap:16px;}.marca{ justify-self:start; min-width:0; display:block;',
+  ' line-height:0 }.logo{ height:26px; width:auto; display:block; flex:none }.logo-curta{',
+  ' display:none }.topo-tit{ text-align:center; min-width:0 }.topo-tit h1{ font-size:22px;',
+  ' letter-spacing:-.01em }.topo-tit .sub{ font-size:12.5px; color:var(--texto-2);',
+  ' margin-top:1px }.topo-acoes{ display:flex; align-items:center; justify-content:flex-end;',
+  'gap:8px; flex-wrap:wrap; justify-self:end }:root:not([data-tema="escuro"]) .ctrl{',
+  'background:rgba(255,255,255,.55);border-color:rgba(255,255,255,.7);',
   'box-shadow:inset 0 1px 2px rgba(23,33,43,.06),0 1px 0 rgba(255,255,255,.9);}',
   ':root:not([data-tema="escuro"]) .chip{background:var(--acento);color:#FFFFFF;}',
   ':root:not([data-tema="escuro"]) .g4 .cartao{',
@@ -1149,10 +1192,10 @@ const TEMA = [
   ' grid-template-columns:2fr 1fr }@media (max-width:1100px){.g4{',
   ' grid-template-columns:repeat(2,1fr) }.g2{ grid-template-columns:1fr }}',
   '@media (max-width:620px){.g4{ grid-template-columns:1fr }.area{ padding:12px 12px 40px }',
-  '.topo-in{ padding:10px 12px; grid-template-columns:auto 1fr auto; gap:8px }.logo{',
-  ' height:18px }.topo-tit h1{ font-size:16px }}.cartao{position:relative;',
-  'background:var(--cartao-fundo);border:var(--cartao-borda);border-radius:var(--r-g);',
-  'box-shadow:var(--sombra);backdrop-filter:var(--cartao-blur);',
+  '.topo-in{ padding:10px 12px; grid-template-columns:auto 1fr auto; gap:8px }.logo-extensa{',
+  ' display:none }.logo-curta{ display:block; height:22px }.topo-tit h1{ font-size:16px }}',
+  '.cartao{position:relative;background:var(--cartao-fundo);border:var(--cartao-borda);',
+  'border-radius:var(--r-g);box-shadow:var(--sombra);backdrop-filter:var(--cartao-blur);',
   '-webkit-backdrop-filter:var(--cartao-blur);padding:18px;overflow:hidden;}.cartao::before{',
   'content:""; position:absolute; inset:0;background:var(--brilho);pointer-events:none;}',
   '.cartao > *{ position:relative }.cartao-topo{display:flex; align-items:center; gap:10px;',
@@ -1265,6 +1308,9 @@ const PONTE = [
   '.topo .meio{text-align:center;min-width:0}',
   '.topo .dir{display:flex;align-items:center;gap:8px;justify-self:end}',
   '.topo .logo{height:26px;width:auto;flex:none;display:block}',
+  /* a curta nasce escondida: a extensa e o padrao, na web. As duas ficam
+     dentro do `.esq`, que ja e o filho unico da coluna da esquerda. */
+  '.topo .logo-curta{display:none}',
   /* 22px e o tamanho de titulo de painel do modelo do brain
      (design/tokens/tema.css, `.topo-tit h1`) desde 21/09. Era 17px, que e
      tamanho de rotulo: o nome do painel e a primeira coisa que se le e
@@ -1328,9 +1374,12 @@ const PONTE = [
      as duas laterais reservam largura igual e o titulo, que e o maior dos
      tres, e quem espreme. */
   '.topo{padding-left:20px;grid-template-columns:auto 1fr auto;gap:8px}',
-  /* a logo tambem encolhe: ela e larga (marca escrita por extenso) e no
-     telefone comia metade da barra — o titulo quebrava em duas linhas */
-  '.topo .logo{height:18px}',
+  /* a marca extensa SAI e entra a curta (22/09). Encolher nao bastava: a
+     18px de altura a extensa ainda ocupava 100px de uma barra de 360, e o
+     titulo quebrava em duas linhas. A curta, na mesma altura, ocupa 39 — e
+     por isso pode ser mais alta, 22px, e ainda assim caber melhor. */
+  '.topo .logo-extensa{display:none}',
+  '.topo .logo-curta{display:block;height:22px}',
   '.topo b{font-size:16px}',
   '.aba{top:auto;bottom:16px;transform:none;flex-direction:row;',
   'border-radius:0 var(--r-m) var(--r-m) 0}',
@@ -1630,13 +1679,19 @@ const PONTE = [
 
 const CSS = [TEMA, PONTE].join('');
 
-/* Os dois logos, em data URI. Tambem injetados por `_aplica-modelo.js` a
-   partir de design/marca/cars2you/ — o azul some no fundo escuro (1,65:1),
-   entao o tema troca o arquivo junto com as cores. */
+/* As QUATRO artes da marca, em data URI. Injetadas por `_aplica-modelo.js` a
+   partir de design/marca/cars2you/.
+
+   Duas larguras x duas cores. O TEMA escolhe a cor -- a escura (#3A4552, o
+   mesmo tom do texto) no claro, a branca no escuro, porque o azul da marca
+   some no fundo escuro (1,65:1). A LARGURA DA TELA escolhe a arte, e quem faz
+   isso e o CSS: extensa na web, curta ("c2y") abaixo de 620px. */
 const LOGOS = {
 /* LOGOS:INICIO */
-  claro: 'data:image/png;base64,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',
-  escuro: 'data:image/png;base64,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'
+  claro_extensa: 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTMzIDE2OCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIwIiB5PSIxNCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcDApIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjAgLTE0KSI+PHBhdGggZD0iTTU0MC40MTggNjMuOTcwMyA1NDAuNDE4IDM4Ljk4NTEgNDY1LjQ2MyAzOC45ODUxIDQ2NS40NjMgMTQgNTQwLjQxOCAxNCA1NDAuNDE4IDM4Ljk4NTEgNTY1LjQwMyAzOC45ODUxIDU2NS40MDMgNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDNaTTQ2NS40NjMgMTM4LjkyNiA0NjUuNDYzIDg4Ljk1NTQgNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggMTEzLjk0MSA1NjUuNDAzIDExMy45NDEgNTY1LjQwMyAxMzguOTI2IDQ2NS40NjMgMTM4LjkyNlpNNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDMgNTQwLjQxOCA4OC45NTU0IDQ5MC40NDggODguOTU1NFoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNMzE5Ljc0OSA0My4zODI1IDMxNC43NTIgNjQuMDcwMkMzMTAuMzU1IDYxLjc3MTYgMzAzLjk1OSA2MC41NzIzIDI5OC44NjIgNjAuNTcyMyAyODUuNTcgNjAuNTcyMyAyNzYuMDc1IDY5Ljk2NjcgMjc2LjA3NSA4Ni4yNTdMMjc2LjA3NSAxMzguOTI2IDI1NS4xODggMTM4LjkyNiAyNTUuMTg4IDQzLjE4MjYgMjc1Ljg3NSA0My4xODI2IDI3NS44NzUgNTMuOTc2MkMyODIuMTcyIDQ0Ljg4MTYgMjkxLjk2NiA0MC42ODQxIDMwMy42NTkgNDAuNjg0MSAzMTUuMzUyIDQwLjY4NDEgMzE0Ljk1MiA0MS40ODM2IDMxOS43NDkgNDMuMzgyNVoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNNDA0LjE5OSA2Ny4xNjg0QzM5OC40MDIgNjMuNTcwNSAzODYuNTEgNTguOTczMiAzNzQuNjE3IDU4Ljk3MzIgMzYyLjcyNCA1OC45NzMyIDM1Ni41MjcgNjMuNTcwNSAzNTYuNTI3IDcwLjM2NjUgMzU2LjUyNyA3Ny4xNjI0IDM2My41MjMgNzguOTYxMyAzNzIuMzE4IDgwLjI2MDZMMzgyLjIxMiA4MS43NTk3QzQwMy4xIDg0Ljc1NzkgNDE1LjQ5MiA5My42NTI2IDQxNS40OTIgMTEwLjA0MyA0MTUuNDkyIDEyNi40MzMgMzk5LjUwMiAxNDEuMzI0IDM3MS45MTggMTQxLjMyNCAzNDQuMzM1IDE0MS4zMjQgMzQ0LjgzNCAxMzkuNDI1IDMzMC44NDMgMTI5LjAzMkwzNDAuNTM3IDExMy4zNDFDMzQ3LjQzMyAxMTguNjM4IDM1Ni41MjcgMTIzLjEzNSAzNzIuMTE4IDEyMy4xMzUgMzg3LjcwOSAxMjMuMTM1IDM5My45MDUgMTE4LjYzOCAzOTMuOTA1IDExMS40NDIgMzkzLjkwNSAxMDQuMjQ2IDM4OC43MDggMTAyLjQ0NyAzNzcuMzE1IDEwMC44NDhMMzY3LjMyMSA5OS41NDkxQzM0Ni4xMzQgOTYuNjUwOCAzMzQuODQgODYuODU2NiAzMzQuODQgNzEuNDY1OCAzMzQuODQgNTYuMDc1IDM1MC4wMzEgNDAuNzg0MSAzNzQuNDE3IDQwLjc4NDEgMzk4LjgwMiA0MC43ODQxIDQwMy4zIDQ0LjQ4MTkgNDEzLjE5NCA1MC44NzgxTDQwNC4xOTkgNjcuMTY4NFoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNNjQ0LjY1NiAxODIgNjIxLjQ3IDE4MiA2NTUuNzQ5IDEyMS43MzYgNjEzLjI3NSA0NS42ODExIDYzNi43NjEgNDUuNjgxMSA2NjcuNTQyIDEwMC42NDggNjk3LjIyNSA0NS42ODExIDcyMC4yMTEgNDUuNjgxMSA2NDQuNjU2IDE4MloiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNOTUyLjc3MiAxMDAuODQ4Qzk1Mi43NzIgMTMxLjMzIDkzMC43ODYgMTQzLjkyMyA5MDguMzk5IDE0My45MjMgODg2LjAxMiAxNDMuOTIzIDg2NC4wMjUgMTMxLjMzIDg2NC4wMjUgMTAwLjg0OEw4NjQuMDI1IDQ1LjY4MTEgODg1LjAxMyA0NS42ODExIDg4NS4wMTMgOTguOTQ5NEM4ODUuMDEzIDExNy40MzggODk1LjMwNyAxMjQuMjM0IDkwOC4zOTkgMTI0LjIzNCA5MjEuNDkxIDEyNC4yMzQgOTMxLjc4NSAxMTcuNDM4IDkzMS43ODUgOTguOTQ5NEw5MzEuNzg1IDQ1LjY4MTEgOTUyLjc3MiA0NS42ODExIDk1Mi43NzIgMTAwLjg0OFoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNMTA2LjM3NiA1NS45NzUgOTIuOTg0MiA3MC4yNjY1Qzg2LjI4ODIgNjMuOTcwMyA3OS4xOTI0IDYwLjM3MjQgNjkuOTk3OSA2MC4zNzI0IDUzLjkwNzUgNjAuMzcyNCA0MS43MTQ4IDcyLjk2NDkgNDEuNzE0OCA5MS4wNTQxIDQxLjcxNDggMTA5LjE0MyA1My45MDc1IDEyMS43MzYgNjkuOTk3OSAxMjEuNzM2IDg2LjA4ODMgMTIxLjczNiA4Ny4zODc2IDExNy40MzggOTMuNDgzOSAxMTEuNzQyTDEwNi4zNzYgMTI2LjEzM0M5Ny42ODE0IDEzNi4yMjcgODQuODg5MSAxNDEuNDI0IDcwLjU5NzYgMTQxLjQyNCA0MC4xMTU3IDE0MS40MjQgMjAuMjI3NSAxMTkuNzM3IDIwLjIyNzUgOTEuMDU0MSAyMC4yMjc1IDYyLjM3MTIgNDAuMTE1NyA0MC42ODQxIDcwLjU5NzYgNDAuNjg0MSAxMDEuMDc5IDQwLjY4NDEgOTcuODgxMyA0NS44ODEgMTA2LjM3NiA1NS45NzVaIiBmaWxsPSIjM0E0NTUyIi8+PHBhdGggZD0iTTIyMS45MDggMTM4LjkyNiAyMDEuMDIgMTM4LjkyNiAyMDEuMDIgMTI3LjQzMkMxOTQuNDI0IDEzNS45MjcgMTg0LjUzIDE0MS40MjQgMTcwLjkzOCAxNDEuNDI0IDE0NC4xNTQgMTQxLjQyNCAxMjMuMDY2IDEyMC4zMzcgMTIzLjA2NiA5MS4wNTQxIDEyMy4wNjYgNjEuNzcxNiAxNDQuMTU0IDQwLjY4NDEgMTcwLjkzOCA0MC42ODQxIDE5Ny43MjIgNDAuNjg0MSAxOTQuNDI0IDQ2LjI4MDggMjAxLjAyIDU0Ljc3NTdMMjAxLjAyIDQzLjE4MjYgMjIxLjkwOCA0My4xODI2IDIyMS45MDggMTM4LjkyNlpNMTQ0LjU1NCA5MS4wNTQxQzE0NC41NTQgMTA3Ljg0NCAxNTUuNDQ3IDEyMS43MzYgMTczLjQzNiAxMjEuNzM2IDE5MS40MjYgMTIxLjczNiAyMDIuMzE5IDEwOC41NDQgMjAyLjMxOSA5MS4wNTQxIDIwMi4zMTkgNzMuNTY0NSAxOTAuNzI2IDYwLjM3MjQgMTczLjQzNiA2MC4zNzI0IDE1Ni4xNDcgNjAuMzcyNCAxNDQuNTU0IDc0LjI2NDEgMTQ0LjU1NCA5MS4wNTQxWiIgZmlsbD0iIzNBNDU1MiIvPjxwYXRoIGQ9Ik04MzUuMTQzIDkzLjU1MjdDODM1LjE0MyAxMjIuMjM2IDgxMy4xNTYgMTQzLjkyMyA3ODMuNTczIDE0My45MjMgNzUzLjk5MSAxNDMuOTIzIDczMi4xMDQgMTIyLjIzNiA3MzIuMTA0IDkzLjU1MjcgNzMyLjEwNCA2NC44Njk3IDc1My45OTEgNDMuMTgyNiA3ODMuNTczIDQzLjE4MjYgODEzLjE1NiA0My4xODI2IDgzNS4xNDMgNjQuODY5NyA4MzUuMTQzIDkzLjU1MjdaTTc1My41OTEgOTMuNTUyN0M3NTMuNTkxIDExMS42NDIgNzY2LjQ4MyAxMjQuMjM0IDc4My41NzMgMTI0LjIzNCA4MDAuNjYzIDEyNC4yMzQgODEzLjY1NSAxMTEuNjQyIDgxMy42NTUgOTMuNTUyNyA4MTMuNjU1IDc1LjQ2MzQgODAwLjY2MyA2Mi44NzA5IDc4My41NzMgNjIuODcwOSA3NjYuNDgzIDYyLjg3MDkgNzUzLjU5MSA3NS40NjM0IDc1My41OTEgOTMuNTUyN1oiIGZpbGw9IiMzQTQ1NTIiLz48L2c+PC9zdmc+',
+  claro_curta: 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTkwIDQ1NCIgd2lkdGg9Ijk5MCIgaGVpZ2h0PSI0NTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk2IC0xOTcpIj48cGF0aCBkPSJNMjE5Ljc4IDEzOC4yNTggMTg1LjU4MyAxNzUuMjczQzE2OC41MjEgMTU4Ljk2OSAxNTAuMzc2IDE0OS42NDIgMTI2Ljk1MiAxNDkuNjQyIDg1Ljg4NzYgMTQ5LjY0MiA1NC44MDAzIDE4Mi4yNSA1NC44MDAzIDIyOS4xNzkgNTQuODAwMyAyNzYuMTA4IDg1Ljg4NzYgMzA4LjcxNiAxMjYuOTUyIDMwOC43MTYgMTUwLjQ0OCAzMDguNzE2IDE3MS4zNDEgMjk3LjU1MyAxODYuODg1IDI4Mi43OTFMMjE5Ljc4IDMyMC4wOTlDMTk3LjU4NSAzNDYuMjQ1IDE2NC45OCAzNTkuNzU4IDEyOC40NyAzNTkuNzU4IDUwLjc1MTcgMzU5LjY4NCAwIDMwMy41MDEgMCAyMjkuMTc5IDAgMTU0Ljg1NiA1MC43NTE3IDk4LjYwMDEgMTI4LjU0MiA5OC42MDAxIDE2NC45OCA5OC42MDAxIDE5OC4xNjMgMTEyLjA0IDIxOS44NTEgMTM4LjI1OEwyMTkuNzggMTM4LjI1OFoiIGZpbGw9IiMzQTQ1NTIiIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIDEuMDAxMzEgLTk2IDE5NykiLz48cGF0aCBkPSJNNTMyLjI5MSAxNDMuODIyIDUzMi4yOTEgNzEuODcgMzQyLjQzNiA3MS44NyAzNDIuNDM2IDAgNTMyLjI5MSAwIDUzMi4yOTEgNzEuOTUxNiA1OTUuNTk5IDcxLjk1MTYgNTk1LjU5OSAxNDMuOTAzIDUzMi4yOTEgMTQzLjkwMyA1MzIuMjkxIDE0My44MjJaTTM0Mi40MzYgMzU5LjY3NiAzNDIuNDM2IDIxNS44NTUgNDA1Ljc0NCAyMTUuODU1IDQwNS43NDQgMjg3LjgwNiA1OTUuNTk5IDI4Ny44MDYgNTk1LjU5OSAzNTkuNzU4IDM0Mi40MzYgMzU5Ljc1OCAzNDIuNDM2IDM1OS42NzZaTTQwNS42NzMgMjE1Ljc3MyA0MDUuNjczIDE0My44MjIgNTMyLjIxOCAxNDMuODIyIDUzMi4yMTggMjE1Ljc3MyA0MDUuNjczIDIxNS43NzNaIiBmaWxsPSIjM0E0NTUyIiB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAxLjAwMTMxIC05NiAxOTcpIi8+PHBhdGggZD0iTTc5Ni45NzEgNDUzLjAyOSA3MzcuNzY4IDQ1My4wMjkgODI1LjM0NCAyOTYuMzMxIDcxNi44NSA5OC42MDAxIDc3Ni44NTEgOTguNjAwMSA4NTUuNDUxIDI0MS41MiA5MzEuMzAzIDk4LjYwMDEgOTkwIDk4LjYwMDEgNzk2Ljk3MSA0NTMuMDI5WiIgZmlsbD0iIzNBNDU1MiIgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgMS4wMDEzMSAtOTYgMTk3KSIvPjwvZz48L3N2Zz4=',
+  escuro_extensa: 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTMzIDE2OCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIwIiB5PSIxNCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcDApIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjAgLTE0KSI+PHBhdGggZD0iTTU0MC40MTggNjMuOTcwMyA1NDAuNDE4IDM4Ljk4NTEgNDY1LjQ2MyAzOC45ODUxIDQ2NS40NjMgMTQgNTQwLjQxOCAxNCA1NDAuNDE4IDM4Ljk4NTEgNTY1LjQwMyAzOC45ODUxIDU2NS40MDMgNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDNaTTQ2NS40NjMgMTM4LjkyNiA0NjUuNDYzIDg4Ljk1NTQgNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggMTEzLjk0MSA1NjUuNDAzIDExMy45NDEgNTY1LjQwMyAxMzguOTI2IDQ2NS40NjMgMTM4LjkyNlpNNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDMgNTQwLjQxOCA4OC45NTU0IDQ5MC40NDggODguOTU1NFoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNMzE5Ljc0OSA0My4zODI1IDMxNC43NTIgNjQuMDcwMkMzMTAuMzU1IDYxLjc3MTYgMzAzLjk1OSA2MC41NzIzIDI5OC44NjIgNjAuNTcyMyAyODUuNTcgNjAuNTcyMyAyNzYuMDc1IDY5Ljk2NjcgMjc2LjA3NSA4Ni4yNTdMMjc2LjA3NSAxMzguOTI2IDI1NS4xODggMTM4LjkyNiAyNTUuMTg4IDQzLjE4MjYgMjc1Ljg3NSA0My4xODI2IDI3NS44NzUgNTMuOTc2MkMyODIuMTcyIDQ0Ljg4MTYgMjkxLjk2NiA0MC42ODQxIDMwMy42NTkgNDAuNjg0MSAzMTUuMzUyIDQwLjY4NDEgMzE0Ljk1MiA0MS40ODM2IDMxOS43NDkgNDMuMzgyNVoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNNDA0LjE5OSA2Ny4xNjg0QzM5OC40MDIgNjMuNTcwNSAzODYuNTEgNTguOTczMiAzNzQuNjE3IDU4Ljk3MzIgMzYyLjcyNCA1OC45NzMyIDM1Ni41MjcgNjMuNTcwNSAzNTYuNTI3IDcwLjM2NjUgMzU2LjUyNyA3Ny4xNjI0IDM2My41MjMgNzguOTYxMyAzNzIuMzE4IDgwLjI2MDZMMzgyLjIxMiA4MS43NTk3QzQwMy4xIDg0Ljc1NzkgNDE1LjQ5MiA5My42NTI2IDQxNS40OTIgMTEwLjA0MyA0MTUuNDkyIDEyNi40MzMgMzk5LjUwMiAxNDEuMzI0IDM3MS45MTggMTQxLjMyNCAzNDQuMzM1IDE0MS4zMjQgMzQ0LjgzNCAxMzkuNDI1IDMzMC44NDMgMTI5LjAzMkwzNDAuNTM3IDExMy4zNDFDMzQ3LjQzMyAxMTguNjM4IDM1Ni41MjcgMTIzLjEzNSAzNzIuMTE4IDEyMy4xMzUgMzg3LjcwOSAxMjMuMTM1IDM5My45MDUgMTE4LjYzOCAzOTMuOTA1IDExMS40NDIgMzkzLjkwNSAxMDQuMjQ2IDM4OC43MDggMTAyLjQ0NyAzNzcuMzE1IDEwMC44NDhMMzY3LjMyMSA5OS41NDkxQzM0Ni4xMzQgOTYuNjUwOCAzMzQuODQgODYuODU2NiAzMzQuODQgNzEuNDY1OCAzMzQuODQgNTYuMDc1IDM1MC4wMzEgNDAuNzg0MSAzNzQuNDE3IDQwLjc4NDEgMzk4LjgwMiA0MC43ODQxIDQwMy4zIDQ0LjQ4MTkgNDEzLjE5NCA1MC44NzgxTDQwNC4xOTkgNjcuMTY4NFoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNNjQ0LjY1NiAxODIgNjIxLjQ3IDE4MiA2NTUuNzQ5IDEyMS43MzYgNjEzLjI3NSA0NS42ODExIDYzNi43NjEgNDUuNjgxMSA2NjcuNTQyIDEwMC42NDggNjk3LjIyNSA0NS42ODExIDcyMC4yMTEgNDUuNjgxMSA2NDQuNjU2IDE4MloiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNOTUyLjc3MiAxMDAuODQ4Qzk1Mi43NzIgMTMxLjMzIDkzMC43ODYgMTQzLjkyMyA5MDguMzk5IDE0My45MjMgODg2LjAxMiAxNDMuOTIzIDg2NC4wMjUgMTMxLjMzIDg2NC4wMjUgMTAwLjg0OEw4NjQuMDI1IDQ1LjY4MTEgODg1LjAxMyA0NS42ODExIDg4NS4wMTMgOTguOTQ5NEM4ODUuMDEzIDExNy40MzggODk1LjMwNyAxMjQuMjM0IDkwOC4zOTkgMTI0LjIzNCA5MjEuNDkxIDEyNC4yMzQgOTMxLjc4NSAxMTcuNDM4IDkzMS43ODUgOTguOTQ5NEw5MzEuNzg1IDQ1LjY4MTEgOTUyLjc3MiA0NS42ODExIDk1Mi43NzIgMTAwLjg0OFoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNMTA2LjM3NiA1NS45NzUgOTIuOTg0MiA3MC4yNjY1Qzg2LjI4ODIgNjMuOTcwMyA3OS4xOTI0IDYwLjM3MjQgNjkuOTk3OSA2MC4zNzI0IDUzLjkwNzUgNjAuMzcyNCA0MS43MTQ4IDcyLjk2NDkgNDEuNzE0OCA5MS4wNTQxIDQxLjcxNDggMTA5LjE0MyA1My45MDc1IDEyMS43MzYgNjkuOTk3OSAxMjEuNzM2IDg2LjA4ODMgMTIxLjczNiA4Ny4zODc2IDExNy40MzggOTMuNDgzOSAxMTEuNzQyTDEwNi4zNzYgMTI2LjEzM0M5Ny42ODE0IDEzNi4yMjcgODQuODg5MSAxNDEuNDI0IDcwLjU5NzYgMTQxLjQyNCA0MC4xMTU3IDE0MS40MjQgMjAuMjI3NSAxMTkuNzM3IDIwLjIyNzUgOTEuMDU0MSAyMC4yMjc1IDYyLjM3MTIgNDAuMTE1NyA0MC42ODQxIDcwLjU5NzYgNDAuNjg0MSAxMDEuMDc5IDQwLjY4NDEgOTcuODgxMyA0NS44ODEgMTA2LjM3NiA1NS45NzVaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTIyMS45MDggMTM4LjkyNiAyMDEuMDIgMTM4LjkyNiAyMDEuMDIgMTI3LjQzMkMxOTQuNDI0IDEzNS45MjcgMTg0LjUzIDE0MS40MjQgMTcwLjkzOCAxNDEuNDI0IDE0NC4xNTQgMTQxLjQyNCAxMjMuMDY2IDEyMC4zMzcgMTIzLjA2NiA5MS4wNTQxIDEyMy4wNjYgNjEuNzcxNiAxNDQuMTU0IDQwLjY4NDEgMTcwLjkzOCA0MC42ODQxIDE5Ny43MjIgNDAuNjg0MSAxOTQuNDI0IDQ2LjI4MDggMjAxLjAyIDU0Ljc3NTdMMjAxLjAyIDQzLjE4MjYgMjIxLjkwOCA0My4xODI2IDIyMS45MDggMTM4LjkyNlpNMTQ0LjU1NCA5MS4wNTQxQzE0NC41NTQgMTA3Ljg0NCAxNTUuNDQ3IDEyMS43MzYgMTczLjQzNiAxMjEuNzM2IDE5MS40MjYgMTIxLjczNiAyMDIuMzE5IDEwOC41NDQgMjAyLjMxOSA5MS4wNTQxIDIwMi4zMTkgNzMuNTY0NSAxOTAuNzI2IDYwLjM3MjQgMTczLjQzNiA2MC4zNzI0IDE1Ni4xNDcgNjAuMzcyNCAxNDQuNTU0IDc0LjI2NDEgMTQ0LjU1NCA5MS4wNTQxWiIgZmlsbD0iI0ZGRkZGRiIvPjxwYXRoIGQ9Ik04MzUuMTQzIDkzLjU1MjdDODM1LjE0MyAxMjIuMjM2IDgxMy4xNTYgMTQzLjkyMyA3ODMuNTczIDE0My45MjMgNzUzLjk5MSAxNDMuOTIzIDczMi4xMDQgMTIyLjIzNiA3MzIuMTA0IDkzLjU1MjcgNzMyLjEwNCA2NC44Njk3IDc1My45OTEgNDMuMTgyNiA3ODMuNTczIDQzLjE4MjYgODEzLjE1NiA0My4xODI2IDgzNS4xNDMgNjQuODY5NyA4MzUuMTQzIDkzLjU1MjdaTTc1My41OTEgOTMuNTUyN0M3NTMuNTkxIDExMS42NDIgNzY2LjQ4MyAxMjQuMjM0IDc4My41NzMgMTI0LjIzNCA4MDAuNjYzIDEyNC4yMzQgODEzLjY1NSAxMTEuNjQyIDgxMy42NTUgOTMuNTUyNyA4MTMuNjU1IDc1LjQ2MzQgODAwLjY2MyA2Mi44NzA5IDc4My41NzMgNjIuODcwOSA3NjYuNDgzIDYyLjg3MDkgNzUzLjU5MSA3NS40NjM0IDc1My41OTEgOTMuNTUyN1oiIGZpbGw9IiNGRkZGRkYiLz48L2c+PC9zdmc+',
+  escuro_curta: 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTkwIDQ1NCIgd2lkdGg9Ijk5MCIgaGVpZ2h0PSI0NTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk2IC0xOTcpIj48cGF0aCBkPSJNMjE5Ljc4IDEzOC4yNTggMTg1LjU4MyAxNzUuMjczQzE2OC41MjEgMTU4Ljk2OSAxNTAuMzc2IDE0OS42NDIgMTI2Ljk1MiAxNDkuNjQyIDg1Ljg4NzYgMTQ5LjY0MiA1NC44MDAzIDE4Mi4yNSA1NC44MDAzIDIyOS4xNzkgNTQuODAwMyAyNzYuMTA4IDg1Ljg4NzYgMzA4LjcxNiAxMjYuOTUyIDMwOC43MTYgMTUwLjQ0OCAzMDguNzE2IDE3MS4zNDEgMjk3LjU1MyAxODYuODg1IDI4Mi43OTFMMjE5Ljc4IDMyMC4wOTlDMTk3LjU4NSAzNDYuMjQ1IDE2NC45OCAzNTkuNzU4IDEyOC40NyAzNTkuNzU4IDUwLjc1MTcgMzU5LjY4NCAwIDMwMy41MDEgMCAyMjkuMTc5IDAgMTU0Ljg1NiA1MC43NTE3IDk4LjYwMDEgMTI4LjU0MiA5OC42MDAxIDE2NC45OCA5OC42MDAxIDE5OC4xNjMgMTEyLjA0IDIxOS44NTEgMTM4LjI1OEwyMTkuNzggMTM4LjI1OFoiIGZpbGw9IiNGRkZGRkYiIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIDEuMDAxMzEgLTk2IDE5NykiLz48cGF0aCBkPSJNNTMyLjI5MSAxNDMuODIyIDUzMi4yOTEgNzEuODcgMzQyLjQzNiA3MS44NyAzNDIuNDM2IDAgNTMyLjI5MSAwIDUzMi4yOTEgNzEuOTUxNiA1OTUuNTk5IDcxLjk1MTYgNTk1LjU5OSAxNDMuOTAzIDUzMi4yOTEgMTQzLjkwMyA1MzIuMjkxIDE0My44MjJaTTM0Mi40MzYgMzU5LjY3NiAzNDIuNDM2IDIxNS44NTUgNDA1Ljc0NCAyMTUuODU1IDQwNS43NDQgMjg3LjgwNiA1OTUuNTk5IDI4Ny44MDYgNTk1LjU5OSAzNTkuNzU4IDM0Mi40MzYgMzU5Ljc1OCAzNDIuNDM2IDM1OS42NzZaTTQwNS42NzMgMjE1Ljc3MyA0MDUuNjczIDE0My44MjIgNTMyLjIxOCAxNDMuODIyIDUzMi4yMTggMjE1Ljc3MyA0MDUuNjczIDIxNS43NzNaIiBmaWxsPSIjRkZGRkZGIiB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAxLjAwMTMxIC05NiAxOTcpIi8+PHBhdGggZD0iTTc5Ni45NzEgNDUzLjAyOSA3MzcuNzY4IDQ1My4wMjkgODI1LjM0NCAyOTYuMzMxIDcxNi44NSA5OC42MDAxIDc3Ni44NTEgOTguNjAwMSA4NTUuNDUxIDI0MS41MiA5MzEuMzAzIDk4LjYwMDEgOTkwIDk4LjYwMDEgNzk2Ljk3MSA0NTMuMDI5WiIgZmlsbD0iI0ZGRkZGRiIgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgMS4wMDEzMSAtOTYgMTk3KSIvPjwvZz48L3N2Zz4='
 /* LOGOS:FIM */
 };
 
@@ -2000,8 +2055,14 @@ const APP = [
   'const escondidos=todos.length-acima.length;',
   /* `onclick=event.stopPropagation()` na celula da caixa: sem isso o clique
      sobe pra linha, que tem handler de selecao de veiculo, e marcar a caixa
-     trocaria a tela inteira. */
-  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span></td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
+     trocaria a tela inteira. Pelo mesmo motivo o link do anuncio para o
+     clique dele.
+
+     O link entrou aqui em 22/09. Ele ja existia na tabela de cima, mas esta
+     e a tabela em que se AGE: e dela que sai a lista copiada pro consultor,
+     e ate agora era preciso voltar pra tabela de cima -- e reachar o carro
+     -- so pra ver o anuncio. Mesma regra de la: sem um pedaco, sem link. */
+  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span>"+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
   `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
   /* RETRATIL (21/09), e `open` por padrao: o mesmo `<details>` do
      glossario, com o cabecalho inteiro como area de clique. Aberto porque o
@@ -2185,7 +2246,7 @@ const APP = [
   `var ICO_TEMA={claro:"<circle cx='12' cy='12' r='4'/><path d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/>",`,
   `escuro:"<path d='M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z'/>"};`,
   'function aplicaTema(t){document.documentElement.dataset.tema=t;',
-  '$("#logo").src=LOGOS[t];',
+  '$("#logo").src=LOGOS[t+"_extensa"];$("#logo-curta").src=LOGOS[t+"_curta"];',
   'var alvo=(t==="escuro"?"claro":"escuro");var b=$("#btn_tema");',
   `b.innerHTML="<svg viewBox='0 0 24 24' aria-hidden='true'>"+ICO_TEMA[alvo]+"</svg>";`,
   'b.setAttribute("aria-label","Mudar para o tema "+alvo);',
@@ -2256,7 +2317,12 @@ const html = [
   '<div class="topo"><span class="esq">' +
   /* src vazio de proposito: quem preenche e o APP, porque o arquivo
      muda com o tema. Ver `aplicaTema` no fim do APP. */
-  '<img class="logo" id="logo" alt="Cars2You" src="">' +
+  /* Duas artes: a extensa na web e a curta ("c2y") no telefone. Quem esconde
+     uma delas e o CSS, por largura; o APP so troca a COR, que segue o tema.
+     A escondida sai da arvore de acessibilidade com o `display:none`, entao
+     as duas podem levar o mesmo `alt` sem repetir no leitor de tela. */
+  '<img class="logo logo-extensa" id="logo" alt="Cars2You" src="">' +
+  '<img class="logo logo-curta" id="logo-curta" alt="Cars2You" src="">' +
   '</span>',
   '<span class="meio"><b>Radar de Estoque</b></span>',
   /* O icone dos pontos de atencao vem ANTES da troca de tema, e nasce
@@ -2340,7 +2406,8 @@ const html = [
      porque ela decide metade da elegibilidade */
   '<dd>É a UF do <b>pátio</b> onde o carro está (o estoque da loja), não a do endereço da loja vendedora. São coisas diferentes com frequência: <b>68%</b> dos veículos desta base têm pátio numa UF diferente da UF cadastral de quem vende. É a UF do pátio que entra no score, como preferência de praça &mdash; e era ela que, até 11/09/2026, decidia sozinha quem podia ver o carro.</dd>',
   '<dt>Link do anúncio</dt>',
-  '<dd>Cada veículo leva o link do anúncio na plataforma. Faltando marca, modelo, versão ou identificador, o link <b>não</b> é mostrado &mdash; melhor sem botão que botão que cai em lugar nenhum.</dd>',
+  '<dd>Cada veículo leva o link do anúncio na plataforma, nas <b>duas</b> tabelas de veículos &mdash; a de cima e a lista selecionável do extrato da loja. Faltando marca, modelo, versão ou identificador, o link <b>não</b> é mostrado &mdash; melhor sem botão que botão que cai em lugar nenhum.</dd>',
+  '<dd class="ex"><b>O domínio segue o canal do evento.</b> Veículo de evento exclusivo do C6 abre em <b>compraveiculos.cars2you.com.br</b>, a vitrine daquele canal; todo o resto abre em <b>cars2you.com.br</b>. O caminho é o mesmo nos dois. Quando um evento alveja o C6 <b>e</b> outro canal, o anúncio existe nas duas vitrines e não há resposta única: o link fica no domínio padrão e o caso é declarado nos avisos.</dd>',
   '<dd class="ex">Ter anúncio não é o mesmo que poder receber proposta: veículo de evento encerrado ou marcado como sobra tem link, mas o anúncio pode não aceitar mais lance. O status vem ao lado do link justamente por isso.</dd>',
   '<dt>Janela de eventos</dt>',
   /* o glossario descreve o recorte DESTA coleta, nao um recorte de exemplo */

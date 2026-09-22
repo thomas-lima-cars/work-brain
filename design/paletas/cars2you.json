@@ -32,9 +32,15 @@
 
   "logo": {
     "pasta": "design/marca/cars2you/",
-    "claro": "logo-azul.png",
-    "escuro": "logo-branca.png",
-    "tinta_do_arquivo_azul": "#1E289B",
-    "_nota_tinta": "O PNG azul veio com #1E289B, não com o #1523A0 da paleta. Diferença pequena e real. O logo fica como está; a interface usa o valor da paleta."
+    "formato": "SVG desde 2026-09-22 — vetor de verdade, uma cor sólida por arquivo",
+    "claro": { "extensa": "logo-cars2you-preto.svg", "curta": "logo-c2y-preto.svg" },
+    "escuro": { "extensa": "logo-cars2you-branco.svg", "curta": "logo-c2y-branco.svg" },
+    "caixa": { "extensa": "933 x 168 (5,55:1)", "curta": "990 x 454 (2,18:1)" },
+    "_nota_caixa": "Medidas com getBBox no navegador. Cinco dos seis arquivos vieram sem viewBox, e sem ele o SVG não escala com height — o viewBox atual saiu dessa medição.",
+    "tinta_do_preto": "#3A4552",
+    "_nota_preto": "O 'preto' não é preto: é exatamente o --texto e o --acento do tema claro. Marca e letra da página são a mesma tinta.",
+    "azul_guardado": { "extensa": "logo-cars2you-azul.svg", "curta": "logo-c2y-azul.svg" },
+    "tinta_do_arquivo_azul": "#1D279A",
+    "_nota_tinta": "O SVG azul traz #1D279A; a paleta diz #1523A0; os PNG antigos traziam #1E289B — três valores. Enquanto a azul não entra em uso, fica registrado. Se entrar, é conversa com a marca, não ajuste de CSS."
   }
 }

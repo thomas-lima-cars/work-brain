@@ -27,11 +27,11 @@ modelos em `design/modelos/`. Antes ele tinha paleta e componentes só dele
 cartão, e contraste corrigido num não chegava no outro.
 
 **Este nó roda dentro do n8n**, onde não existe `require`, `fs` nem pasta do
-repo. Então a folha e os dois logos viajam como literal, injetados por:
+repo. Então a folha e as quatro artes da marca viajam como literal, injetadas por:
 
 ```bash
 node automations/n8n-sdk/rel-veiculos/_aplica-modelo.js
-node automations/n8n-sdk/rel-veiculos/_prova-modelo.js   # 46 provas
+node automations/n8n-sdk/rel-veiculos/_prova-modelo.js   # 50 provas
 ```
 
 🔴 **Não edite o bloco entre `TEMA:INICIO` e `TEMA:FIM` à mão.** Mexa em
@@ -97,14 +97,17 @@ O que chegou junto, sem uma linha de CSS escrita nesta pasta:
 | raio 16/12/10 | 22/14/11 |
 | texto #14161C (quase preto) | #3A4552 (cinza escuro) |
 | acento = azul da marca | acento = o mesmo cinza; o azul foi só pro dado |
-| cabeçalho tão claro quanto um cartão | um degrau abaixo, no mesmo degradê |
+| cabeçalho com superfície e linha embaixo | **sem fundo nenhum** — a página passa por ele inteiro |
 
-⚠️ **O `.topo` daqui quase não pegou a mudança.** A PONTE declara
-`background:var(--cartao-fundo);background-color:var(--superficie)`, e quem
-ganha dela é a **especificidade** do seletor do tema —
-`:root:not([data-tema="escuro"]) .topo` vale por duas classes, a regra local
-por uma. Se alguém subir a especificidade da PONTE, o cabeçalho volta a ser
-branco e **nada mais quebra**: o tipo de regressão que só aparece olhando.
+⚠️ **O `.topo` daqui quase não pegou a mudança, e a lição ficou.** A PONTE
+declarava `background:var(--cartao-fundo);background-color:var(--superficie)` e
+uma `border-bottom` — e **a PONTE vem depois do TEMA, então ganha no empate de
+especificidade**. Apagar o fundo só no `tema.css` não bastava: a barra
+continuava branca e **nada acusava**, porque não quebra nada — só não muda.
+
+Hoje a PONTE declara `background:transparent` de propósito, e o `backdrop-filter`
+fica: o topo é `sticky`, e sem ele o título passaria por cima de texto nítido
+rolando por baixo.
 
 A barra de score continua azul: ela é pintada por `--acento-cheio`, que
 guardou o azul da marca de propósito. Numa página sem cor nenhuma, é a única
@@ -353,7 +356,8 @@ link não entra** — melhor sem link que link que cai em lugar nenhum.
 ### Detalhes que custaram erro
 
 - A célula da caixa tem `event.stopPropagation()`: sem isso o clique sobe para
-  a linha, que tem handler de seleção, e marcar a caixa trocaria a tela.
+  a linha, que tem handler de seleção, e marcar a caixa trocaria a tela. O link
+  do anúncio, que entrou nesta tabela em 22/09, para o clique pelo mesmo motivo.
 - O texto usa `String.fromCharCode(10)` para quebrar linha, e não `
 `: dentro
   da string de JS do nó o escape seria consumido ali e chegaria ao cliente como
@@ -393,11 +397,39 @@ e conferido caractere por caractere contra os exemplos do Guilherme (o raciocín
 está em [`lista-lm-propostas.md`](../../n8n-flows/lista-lm-propostas.md)):
 
 ```
-cars2you.com.br/anuncio/veiculo/{marca}/{modelo}/{versão}/{uuid}
+{host}/anuncio/veiculo/{marca}/{modelo}/{versão}/{uuid}
 ```
 
 Tudo minúsculo, `encodeURIComponent` em cada trecho (espaço vira `%20`, **não** hífen) e o
 uuid **sem hífens**. São quatro pedaços, não um — `advertisements` não tem coluna de URL.
+
+O link aparece nas **duas** tabelas de veículos: a de cima, na linha de contexto, e a
+lista selecionável dentro do extrato da loja. A segunda ganhou o link em **22/09** — é a
+tabela em que se *age* (é dela que sai o texto copiado para o lojista), e até então era
+preciso voltar à tabela de cima e reachar o carro só para abrir o anúncio.
+
+#### O host segue o canal do evento (2026-09-22)
+
+O C6 tem vitrine própria. O mesmo anúncio que o Marketplace serve em `cars2you.com.br`, o
+canal C6 serve em `compraveiculos.cars2you.com.br` — **só o host muda, o caminho é
+idêntico**.
+
+| canais do evento | host |
+|---|---|
+| 43 (Canal de vendas C6 Auto) e/ou 48 (Colaboradores C6), e **nada mais** | `compraveiculos.cars2you.com.br` |
+| qualquer outra combinação, ou nenhum canal declarado | `cars2you.com.br` |
+
+Por **ID**, não por nome, pela mesma razão do recorte de canais: renomear um whitelabel no
+banco quebraria um teste por nome em silêncio.
+
+⚠️ **O evento pode alvejar vários canais**, então "este veículo é do C6" só é verdade
+quando **todos** os canais dele são C6. Alvejando C6 **e** um canal não-C6, o anúncio
+existe nas duas vitrines e não há resposta única: fica no host padrão, que atende o
+público maior, **e o caso vira aviso na tela** — mesma regra do link sem pedaço e do nome
+de consultor ambíguo. Quando não dá para decidir, não se inventa: declara-se.
+
+Medido em 2026-09-22 sobre as **17** execuções salvas em disco (`dados-*.json`): **zero**
+veículos no caso misto. O ramo existe para quando aparecer, não porque já apareceu.
 
 **Regra dura, herdada da lista LM: faltando um pedaço, o link não é entregue.** Melhor sem
 botão que botão que cai em lugar nenhum. Hoje ninguém cai nesse ramo (medido: 1.879 de
@@ -794,25 +826,42 @@ E **depois de sincronizar com o n8n, antes de rodar** — a etapa que faltava:
 python _confere_transcricao.py <dump-do-get_workflow_details.txt>
 ```
 
-### A logo no cabeçalho
+### A marca no cabeçalho
 
-Cabeçalho em **#1523A0** (a cor da marca), com o tom também nos detalhes — barra de score,
-links, a barra do título e o KPI de veículos. O token é `--mar`; `--ac` passou a ser ele.
+**Quatro artes em SVG**, duas larguras × duas cores, injetadas por
+`_aplica-modelo.js` a partir de `design/marca/cars2you/`. Entram como **data
+URI**: o relatório é arquivo único, e referenciar arquivo externo quebraria
+assim que alguém encaminhasse o HTML.
 
-A logo entra como **data URI**: o relatório é arquivo único, e referenciar um arquivo
-externo quebraria assim que alguém encaminhasse o HTML. Mas **não** como o `.jpg` original
-de 6.216 bytes — viraria ~8.300 caracteres de base64 transcritos à mão para o nó, e base64
-longo é exatamente o tipo de coisa que se transcreve errado.
+| | web (≥ 620px) | telefone |
+|---|---|---|
+| **claro** | `logo-cars2you-preto.svg` | `logo-c2y-preto.svg` |
+| **escuro** | `logo-cars2you-branco.svg` | `logo-c2y-branco.svg` |
 
-Como a logo é de **duas cores por desenho** e aparece a 26px, ela vai como PNG paletizado
-de 128px construído por limiar de luminância: **570 bytes, 760 caracteres**. Treze vezes
-menor, sem artefato de JPEG na borda do glifo, e conferível por sha1.
+**Quem troca a arte é o CSS, por largura; quem troca a cor é o APP, com o
+tema.** A regra inteira, com o porquê, está em `design/regras-de-layout.md`
+(regra 5a) — aqui vale o que é específico do Radar: as duas `<img>` ficam
+dentro do `.esq`, que já era o filho único da coluna da esquerda, então a
+grade de três colunas não mudou.
 
-⚠️ A quantização automática do Pillow (`quantize(colors=2)`) escolheu **dois azuis e perdeu
-o branco**. Por isso a paleta é construída à mão. Ver `_marca_c2y.py`.
+⚠️ **O "preto" é `#3A4552`**, o mesmo `--texto` do tema. Desde 22/09 o
+cabeçalho **não tem fundo nenhum** — nem cor, nem borda —, então não existe
+mais "a cor do cabeçalho" para a marca combinar: ela assenta no campo da
+página, como o resto do texto.
 
-O fundo da logo é `#1523A0` medido pixel a pixel — idêntico ao do cabeçalho, então ela
-encaixa sem emenda e o que se vê é só o wordmark.
+#### O que isto substituiu, e por quê importa
+
+Até 21/09 a marca era um **PNG paletizado de 128px** construído à mão por
+limiar de luminância — 570 bytes, 760 caracteres de base64 — sobre um
+cabeçalho `#1523A0`. Aquilo resolvia um problema real (o `.jpg` original
+viraria ~8.300 caracteres transcritos à mão, e base64 longo é exatamente o que
+se transcreve errado), e trazia uma cicatriz registrada: a quantização
+automática do Pillow escolheu **dois azuis e perdeu o branco**, então a paleta
+era construída à mão. Ver `_marca_c2y.py`.
+
+Nada disso é mais necessário: o SVG é vetor, não escadeia em HiDPI nem na
+impressão, e o injetor recusa conteúdo com barra invertida ou aspa simples
+antes de escrever — a transcrição não depende mais de cuidado.
 
 ### Por que o `montar-html.js` não tem mais barra invertida
 

@@ -32,8 +32,10 @@ console.log('\n■ Frescor');
 const FONTES = [
   path.join(MOD, '_fonte', 'dashboard.html'),
   path.join(AQUI, 'tokens', 'tema.css'),
-  path.join(AQUI, 'marca', 'cars2you', 'logo-azul.png'),
-  path.join(AQUI, 'marca', 'cars2you', 'logo-branca.png'),
+  path.join(AQUI, 'marca', 'cars2you', 'logo-cars2you-preto.svg'),
+  path.join(AQUI, 'marca', 'cars2you', 'logo-cars2you-branco.svg'),
+  path.join(AQUI, 'marca', 'cars2you', 'logo-c2y-preto.svg'),
+  path.join(AQUI, 'marca', 'cars2you', 'logo-c2y-branco.svg'),
 ];
 const maisNova = Math.max(...FONTES.map(f => fs.statSync(f).mtimeMs));
 
@@ -42,6 +44,71 @@ for (const nome of ['dashboard-claro.html', 'dashboard-escuro.html']) {
   ok(fs.existsSync(p), nome + ' existe');
   ok(fs.statSync(p).mtimeMs >= maisNova,
      nome + ' é mais novo que a fonte (senão: o gerador falhou e sobrou o antigo)');
+}
+
+/* ---------------------------------------------------------------------------
+   O KIT que vai para o time
+   ---------------------------------------------------------------------------
+   `kit-de-painel.md` é o arquivo único que sai daqui para quem NÃO tem este
+   repositório. Ele carrega o tema inteiro dentro de si, e é por isso que
+   precisa de prova: um kit velho não quebra nada aqui e nada lá — ele só
+   ensina em silêncio um tema que já não existe.
+   ------------------------------------------------------------------------- */
+console.log('\n■ Kit do time');
+const KIT = path.join(AQUI, 'kit-de-painel.md');
+const MOLDE_KIT = path.join(AQUI, '_fonte-kit.md');
+ok(fs.existsSync(KIT), 'kit-de-painel.md existe');
+
+/* O kit carrega o tema E as quatro artes da marca, então o frescor tem que
+   olhar as três coisas. Trocar um SVG e não regerar deixaria o time montando
+   painel com a marca antiga — e nada nesta pasta quebraria. */
+const KIT_ARTES = require('./monta-kit.js').ARTES;
+const maisNovaKit = Math.max(
+  fs.statSync(path.join(AQUI, 'tokens', 'tema.css')).mtimeMs,
+  fs.statSync(MOLDE_KIT).mtimeMs,
+  ...KIT_ARTES.map(([, , arq]) =>
+    fs.statSync(path.join(AQUI, 'marca', 'cars2you', arq)).mtimeMs));
+ok(fs.statSync(KIT).mtimeMs >= maisNovaKit,
+   'o kit é mais novo que o tema, o molde e as artes (senão: alguém mexeu e não regerou)');
+
+/* As artes viajam dentro do kit, e é isso que o torna colável sem caçar
+   arquivo. Comparar o base64 INTEIRO, não o nome: a cor mora dentro do SVG. */
+const kitTxt = fs.readFileSync(KIT, 'utf8');
+const uriArte = require('./monta-kit.js').uriArte;
+for (const [tema, largura, arq] of KIT_ARTES) {
+  ok(kitTxt.includes(uriArte(arq)),
+     'o kit carrega ' + arq + ' (' + tema + ' / ' + largura + ')');
+}
+ok((kitTxt.match(/data:image\/svg\+xml;base64,/g) || []).length === KIT_ARTES.length,
+   'e são exatamente ' + KIT_ARTES.length + ' artes, sem sobra nem falta');
+ok(!kitTxt.includes('COLE_A_EXTENSA') && !kitTxt.includes('COLE_A_CURTA'),
+   'nenhum marcador de "cole a sua logo aqui" sobrou');
+
+const kit = fs.readFileSync(KIT, 'utf8');
+const temaBruto = fs.readFileSync(path.join(AQUI, 'tokens', 'tema.css'), 'utf8');
+
+/* O kit carrega o tema com UMA classe de mudança: os comentários que apontam
+   para pastas deste repositório viram instrução que quem recebe consegue
+   seguir. A tabela é a do `monta-kit.js` — reaplicá-la aqui e exigir
+   igualdade é o que prova que NADA ALÉM dela divergiu. Sem isto, o kit podia
+   carregar um tema editado à mão e a prova não veria. */
+const TROCAS_KIT = require('./monta-kit.js').TROCAS;
+const esperado = TROCAS_KIT.reduce((s, [de, por]) => s.split(de).join(por), temaBruto);
+ok(kit.includes(esperado),
+   'o kit carrega o tema.css inteiro, com apenas as trocas de caminho declaradas');
+ok(!esperado.includes('design/'),
+   'e nenhum caminho deste repositório sobrou no tema do kit');
+ok(!kit.includes('_' + '_TEMA_CSS_' + '_'),
+   'o marcador foi substituído (marcador vivo no alvo = geração pela metade)');
+
+/* Autossuficiência: quem recebe o kit não tem este repositório, então
+   caminho daqui de dentro é instrução que a pessoa não consegue seguir. */
+const CAMINHOS = ['design/tokens', 'design/modelos', 'design/paletas',
+                  'design/marca', 'design/_contraste.js', 'design/_prova_modelos.js',
+                  'automations/'];
+for (const c of CAMINHOS) {
+  ok(!kit.includes(c),
+     'o kit não manda ninguém abrir `' + c + '` — pasta que quem recebe não tem');
 }
 
 /* ---------------------------------------------------------------------------
@@ -159,6 +226,21 @@ const fonteKpi = px(regra('.kpi-val'), 'font-size');
 ok(fonteKpi <= 26,
    'o número do KPI tem ' + fonteKpi + 'px (teto 26 — acima disso ele vira manchete)');
 
+/* ── a troca de arte é do CSS, e o DOM de mentira não tem media query ───────
+   O smoke roda contra um DOM falso, que não avalia `@media`. Então quem prova
+   a troca por largura é o TEXTO da folha: a curta nasce escondida, e dentro do
+   bloco de 620px as duas inverte. Sem isto, apagar uma das duas linhas deixaria
+   o painel com as DUAS artes na barra — e nada acusaria. */
+ok(/\.logo-curta\s*\{\s*display:none\s*\}/.test(CSS),
+   'a arte curta nasce escondida (a extensa é o padrão, na web)');
+const bloco620 = (CSS.match(/@media \(max-width:620px\)\{([\s\S]*?)\n\}/) || [, ''])[1];
+ok(/\.logo-extensa\{\s*display:none\s*\}/.test(bloco620),
+   'abaixo de 620px a extensa sai');
+ok(/\.logo-curta\{\s*display:block;\s*height:\d+px\s*\}/.test(bloco620),
+   'e a curta entra, com altura própria');
+ok(/^\.marca\{[^}]*justify-self:start/m.test(CSS),
+   'o .marca é quem se alinha na coluna, não o .logo (senão a grade ganha um filho)');
+
 const padGlobal = px(regra('.cartao'), 'padding');
 const padKpi = px(regra('.g4 .cartao'), 'padding');
 ok(padKpi < padGlobal,
@@ -209,9 +291,11 @@ function domFalso() {
 /* ---------------------------------------------------------------------------
    1..N — cada modelo
    ------------------------------------------------------------------------- */
-for (const [nome, temaEsperado, logoEsperado] of [
-  ['dashboard-claro.html', 'claro', 'logo-azul.png'],
-  ['dashboard-escuro.html', 'escuro', 'logo-branca.png'],
+for (const [nome, temaEsperado, logoExtensa, logoCurta] of [
+  ['dashboard-claro.html', 'claro',
+   'logo-cars2you-preto.svg', 'logo-c2y-preto.svg'],
+  ['dashboard-escuro.html', 'escuro',
+   'logo-cars2you-branco.svg', 'logo-c2y-branco.svg'],
 ]) {
   console.log('\n■ ' + nome);
   const html = fs.readFileSync(path.join(MOD, nome), 'utf8');
@@ -231,9 +315,27 @@ for (const [nome, temaEsperado, logoEsperado] of [
      'nenhum url() de fora' + (urlsExternas.length ? ' — achei ' + urlsExternas[0] : ''));
 
   // --- embutidos ---
-  ok(html.includes('data:image/png;base64,'), 'logos em data URI');
-  ok((html.match(/data:image\/png;base64,/g) || []).length === 2,
-     'os DOIS logos entram (o botão de tema troca o logo ao vivo)');
+  /* SVG desde 22/09. São QUATRO artes: duas larguras × duas cores. O tema
+     escolhe a cor (JS), a largura da tela escolhe a arte (CSS). */
+  ok(html.includes('data:image/svg+xml;base64,'), 'logos em data URI');
+  ok(!html.includes('data:image/png;base64,'),
+     'e nenhum logo em PNG sobrou — vetor não escadeia em HiDPI nem na impressão');
+  ok((html.match(/data:image\/svg\+xml;base64,/g) || []).length === 4,
+     'as QUATRO artes entram: extensa e curta, em claro e escuro');
+
+  /* A grade do topo tem TRÊS colunas, então o topo precisa ter TRÊS filhos.
+     As duas artes moram dentro do `.marca` justamente por isso: soltas,
+     virariam um quarto filho e o título sairia do centro. Esta prova é a que
+     morde se alguém "simplificar" tirando o invólucro. */
+  const topoIn = html.match(/<div class="topo-in">([\s\S]*?)\n  <\/div>/);
+  ok(!!topoIn, 'o .topo-in existe');
+  if (topoIn) {
+    const filhos = (topoIn[1].match(/^    <(?!\/)[a-z]/gm) || []).length;
+    ok(filhos === 3,
+       'o .topo-in tem 3 filhos diretos, um por coluna da grade (achei ' + filhos + ')');
+  }
+  ok(/<span class="marca">/.test(html),
+     'as duas artes vivem dentro do .marca');
   /* --- o glossário é bloco de primeiro nível, não rodapé de outro cartão --- */
   const iGloss = html.indexOf('<details class="cartao gloss"');
   ok(iGloss > 0, 'o glossário existe como cartão próprio');
@@ -313,8 +415,12 @@ for (const [nome, temaEsperado, logoEsperado] of [
     ok((gl.match(/<dd>/g) || []).length === 3, 'cada termo tem definição');
     ok(cache['#gloss-n'].textContent === '3 termos',
        'a contagem de termos sai do dado, não do HTML');
-    ok(cache['#logo'].src.startsWith('data:image/png;base64,'),
-       'logo aplicado no <img>');
+    ok(cache['#logo'].src.startsWith('data:image/svg+xml;base64,'),
+       'a arte extensa foi aplicada no <img>');
+    ok(cache['#logo-curta'].src.startsWith('data:image/svg+xml;base64,'),
+       'a arte curta também — as duas nascem preenchidas, e o CSS é que esconde uma');
+    ok(cache['#logo'].src !== cache['#logo-curta'].src,
+       'e são artes DIFERENTES (o mesmo src nas duas = marcador trocado errado)');
     ok(feito.ouvintes === 1, 'o botão de tema está ligado');
 
     /* Botão só de ícone: quem não enxerga o ícone precisa do nome em algum
@@ -386,10 +492,14 @@ for (const [nome, temaEsperado, logoEsperado] of [
   }
 
   // --- o logo certo pro fundo certo ---
-  const b64 = arquivo => fs.readFileSync(
+  const b64 = arquivo => 'data:image/svg+xml;base64,' + fs.readFileSync(
     path.join(AQUI, 'marca', 'cars2you', arquivo)).toString('base64');
-  ok(!estourou && cache['#logo'].src === 'data:image/png;base64,' + b64(logoEsperado),
-     'usa ' + logoEsperado + ' no tema ' + temaEsperado);
+  /* Compara o arquivo INTEIRO, nao so o nome: a cor mora dentro do SVG, e um
+     `fill` trocado passaria por qualquer prova que olhasse o caminho. */
+  ok(!estourou && cache['#logo'].src === b64(logoExtensa),
+     'usa ' + logoExtensa + ' no tema ' + temaEsperado);
+  ok(!estourou && cache['#logo-curta'].src === b64(logoCurta),
+     'e ' + logoCurta + ' na arte curta');
 }
 
 /* ---------------------------------------------------------------------------

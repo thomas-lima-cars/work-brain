@@ -3,7 +3,7 @@
 
        node design/modelos/monta-modelos.js
 
-   Entra:  _fonte/dashboard.html + ../tokens/tema.css + ../marca/cars2you/*.png
+   Entra:  _fonte/dashboard.html + ../tokens/tema.css + ../marca/cars2you/*.svg
    Sai:    dashboard-claro.html + dashboard-escuro.html
 
    ── POR QUE GERAR EM VEZ DE MANTER OS DOIS NA MÃO ─────────────────────────
@@ -32,11 +32,30 @@ const CSS = ler(path.join(DESIGN, 'tokens', 'tema.css'));
 const JS_TESTE = ler(path.join(AQUI, '_fonte', 'controles-teste.js'));
 const FONTE = ler(path.join(AQUI, '_fonte', 'dashboard.html'));
 
-const uri = arquivo => 'data:image/png;base64,' +
+/* SVG desde 22/09, no lugar do PNG de 300 × 56. Vetor resolve de uma vez as
+   três queixas que o README da marca listava: escadeamento em HiDPI e na
+   impressão, a arte encostando na borda do canvas, e a branca que era um PNG
+   recortado embrulhado numa tag <svg>.
+
+   Base64 e não o SVG cru no `src`: o arquivo tem `#` (nas cores) e aspas, que
+   numa data URI sem codificar quebram o atributo. Base64 custa ~33% de bytes
+   e não depende de acertar escape nenhum — e são 4 KB, não 400. */
+const uri = arquivo => 'data:image/svg+xml;base64,' +
   fs.readFileSync(path.join(DESIGN, 'marca', 'cars2you', arquivo)).toString('base64');
 
-const LOGO_CLARO = uri('logo-azul.png');    // fundo claro pede tinta escura
-const LOGO_ESCURO = uri('logo-branca.png');
+/* Quatro artes: duas larguras × duas cores.
+     extensa  a marca escrita por extenso — 933 × 168 (5,55:1), para a web
+     curta    o "c2y" — 990 × 454 (2,18:1), para o telefone
+   As duas caixas foram MEDIDAS com `getBBox`, não lidas do atributo: cinco
+   dos seis arquivos vieram sem `viewBox`, e sem ele o SVG não escala com
+   `height`. O `viewBox` que está neles hoje saiu dessa medição.
+
+   "preto" é `#3A4552` — exatamente o `--texto`/`--acento` do tema claro. Por
+   isso a versão azul fica de fora por enquanto (decisão de 22/09). */
+const LOGO_CLARO_EXTENSA = uri('logo-cars2you-preto.svg');
+const LOGO_CLARO_CURTA = uri('logo-c2y-preto.svg');
+const LOGO_ESCURO_EXTENSA = uri('logo-cars2you-branco.svg');
+const LOGO_ESCURO_CURTA = uri('logo-c2y-branco.svg');
 
 /* ⏳ TEMPORARIO — a DM Sans, candidata a fonte, no modelo de laboratorio.
    Mesmo arranjo dos logos: o arquivo mora em design/fontes/ e vira data URI
@@ -77,8 +96,10 @@ for (const t of TEMAS) {
   let html = FONTE;
   html = troca(html, '/*__CSS__*/', CSS + (t.extra || ''));
   html = troca(html, '/*__EXTRA__*/', t.extraJs || '');
-  html = troca(html, '__LOGO_CLARO__', LOGO_CLARO);
-  html = troca(html, '__LOGO_ESCURO__', LOGO_ESCURO);
+  html = troca(html, '__LOGO_CLARO_EXTENSA__', LOGO_CLARO_EXTENSA);
+  html = troca(html, '__LOGO_CLARO_CURTA__', LOGO_CLARO_CURTA);
+  html = troca(html, '__LOGO_ESCURO_EXTENSA__', LOGO_ESCURO_EXTENSA);
+  html = troca(html, '__LOGO_ESCURO_CURTA__', LOGO_ESCURO_CURTA);
   html = troca(html, '__TITULO__', t.titulo);
   html = troca(html, '__TEMA__', t.tema);
 

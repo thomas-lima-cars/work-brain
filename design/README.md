@@ -11,6 +11,7 @@
 | a tarefa é… | vá para |
 |---|---|
 | **saber como algo deve ficar** | 📐 [`regras-de-layout.md`](regras-de-layout.md) — o que já foi decidido |
+| **passar o padrão para alguém de fora** | 📦 [`kit-de-painel.md`](kit-de-painel.md) — arquivo único, autossuficiente, com o tema dentro |
 | começar um painel novo | copie `modelos/dashboard-claro.html` (ou o escuro) pra pasta do projeto |
 | mudar cor, espaçamento, cartão | [`tokens/tema.css`](tokens/tema.css) — e regere os modelos |
 | subir logo de um produto | [`marca/`](marca/) — uma pasta por produto |
@@ -23,6 +24,9 @@
 ```
 design/
 ├── regras-de-layout.md    ← 📐 o que já foi decidido sobre a cara dos painéis
+├── kit-de-painel.md       ← 📦 gerado — o arquivo que vai para o time
+├── _fonte-kit.md          ← molde do kit (edite AQUI)
+├── monta-kit.js           ← molde + tema → kit-de-painel.md
 ├── tokens/tema.css        ← FONTE ÚNICA do visual: cor, forma, os dois temas
 ├── modelos/
 │   ├── _fonte/dashboard.html   molde (edite AQUI)
@@ -42,12 +46,18 @@ design/
 Edite `modelos/_fonte/dashboard.html` ou `tokens/tema.css` e rode:
 
 ```bash
-node design/modelos/monta-modelos.js && node design/_prova_modelos.js
+node design/modelos/monta-modelos.js && node design/monta-kit.js && node design/_prova_modelos.js
 ```
 
 Dois arquivos irmãos mantidos à mão divergem sempre do mesmo jeito: o que se
 usa mais fica certo e o outro apodrece calado. Aqui a única diferença entre
 eles é o `data-tema` do `<html>`.
+
+**O `kit-de-painel.md` sai do mesmo `tema.css`** e carrega a folha inteira
+dentro de si — é o que o torna utilizável por quem não tem este repositório.
+Por isso ele entra na mesma linha de comando: tema mexido e kit não regerado
+significa o time montando painel com um tema que já não existe aqui. A prova
+confere o frescor **e** a igualdade byte a byte.
 
 **2. Painel é autossuficiente.** CSS embutido, logo em `data:` URI, zero
 requisição de rede. Ele abre do SharePoint, de um anexo, de um pendrive e com
@@ -84,6 +94,8 @@ parece legível sobre branco e dá **3,89:1** — reprova em texto normal.
 - 🔵 **O verde não é da marca.** A paleta entregue não tem cor de "subiu", e
   painel precisa. Os três derivados estão marcados como tais em
   [`paletas/cars2you.json`](paletas/cars2you.json) — levar à equipe.
-- 🟡 **Os logos são provisórios.** O Thomas vai mandar arquivos melhores. Os
-  atuais são bitmap de 300×56 e escadeiam quando ampliados. Ver
-  [`marca/cars2you/README.md`](marca/cars2you/README.md).
+- 🔵 **A logo azul está guardada, não em uso.** Decisão de 22/09 foi usar só
+  branco e preto — e o "preto" é `#3A4552`, o mesmo tom do texto. A azul volta
+  se o cabeçalho precisar da cor da marca, mas aí é outra decisão: hoje o azul
+  pinta só o dado (regra 10d). Ela também traz um **terceiro** valor de azul
+  (`#1D279A`) — ver [`marca/cars2you/README.md`](marca/cars2you/README.md).

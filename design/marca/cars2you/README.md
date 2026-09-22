@@ -1,40 +1,74 @@
 # Logo — Cars2You
 
-> 🟡 **Provisório.** O Thomas vai mandar arquivos melhores. O que está aqui é o
-> que veio em 18/09, e tem limitações conhecidas — listadas abaixo para quem
-> for substituir saber o que precisa resolver.
+> ✅ **Arquivos definitivos desde 2026-09-22.** São SVG de verdade — `<path>`,
+> uma cor sólida por arquivo, nenhum raster embutido. Os PNG provisórios de
+> 18/09 saíram, e com eles as três limitações que este arquivo listava.
 
-| arquivo | usar em | o que é |
+## As seis artes
+
+Duas larguras × três cores.
+
+| | preto (`#3A4552`) | branco (`#FFFFFF`) | azul (`#1D279A`) |
+|---|---|---|---|
+| **extensa** — 933 × 168 (5,55:1) | `logo-cars2you-preto.svg` | `logo-cars2you-branco.svg` | `logo-cars2you-azul.svg` |
+| **curta** — 990 × 454 (2,18:1) | `logo-c2y-preto.svg` | `logo-c2y-branco.svg` | `logo-c2y-azul.svg` |
+
+**Extensa** é a marca escrita por extenso, para a web. **Curta** é o `c2y`,
+para o telefone: na barra ela ocupa um terço da largura da outra.
+
+As duas caixas foram **medidas** com `getBBox` no navegador, não lidas do
+atributo — ver a ressalva do `viewBox` abaixo.
+
+## Quais estão em uso, e por quê
+
+| tema | extensa | curta |
 |---|---|---|
-| `logo-azul.png` | **fundo claro** | 300 × 56, PNG transparente, tinta `#1E289B` |
-| `logo-branca.png` | **fundo escuro** | 300 × 56, PNG transparente |
-| `_original-branca-cortada.svg` | — | o arquivo branco como veio. **Não usar** |
+| claro | `logo-cars2you-preto.svg` | `logo-c2y-preto.svg` |
+| escuro | `logo-cars2you-branco.svg` | `logo-c2y-branco.svg` |
 
-Nos painéis o logo entra com `height:26px`, embutido em `data:` URI pelo
-gerador. O botão de tema troca o arquivo junto com as cores: o azul da marca
-some no fundo escuro (1,65:1).
+**O "preto" não é preto: é `#3A4552`** — exatamente o `--texto` e o `--acento`
+do tema claro. A marca e a letra da página são a mesma tinta, e é por isso que
+ela assenta em vez de saltar.
 
-## O que o arquivo novo precisa resolver
+🔵 **A azul está guardada, não descartada.** Decisão de 22/09 foi usar só
+branco e preto. Ela volta se o painel precisar da cor da marca no cabeçalho —
+mas aí é outra decisão, porque hoje o azul pinta **só o dado** (regra 10d).
 
-**1. A branca que veio está cortada.** O `logo_car2you_branca.svg` **não é
-vetor**: é um PNG de 179 × 82 embrulhado numa tag `<svg>` com `<pattern>`. E o
-PNG de dentro está **recortado** — só cabem `c`, o `2` quadriculado e o `y`; as
-letras `ars` e `ou` ficaram fora do quadro.
+⚠️ **A azul tem `#1D279A`, e a paleta oficial diz `#1523A0`.** Não é o mesmo
+tom. Os PNG antigos vinham com `#1E289B` — um terceiro valor. Se a azul entrar
+em uso, isso precisa ser resolvido com a marca, não no CSS.
 
-A `logo-branca.png` daqui foi gerada do arquivo azul (mesma silhueta pelo canal
-alfa, tinta trocada por branco) só para o tema escuro não ficar sem logo.
+## ⚠️ Cinco dos seis vieram sem `viewBox`
 
-**2. Não é vetor, e a resolução é baixa.** A letra tem ~33px de altura. Em tela
-grande, em HiDPI e na impressão a borda escadeia. `.svg` com `<path>`, `.ai` ou
-`.eps` resolve de vez e permite gerar qualquer tamanho e qualquer cor.
+Só `logo-cars2you-azul.svg` (exportado do Illustrator) tinha. Os outros cinco
+traziam `width`/`height` e mais nada — e **sem `viewBox` o SVG não escala**:
+posto num `<img>` com `height:26px`, a arte é cortada em vez de encolher.
 
-**3. A arte encosta nos quatro lados do canvas.** O PNG foi exportado no
-recorte exato: alfa cheio na borda esquerda (o `c`), na de cima (o `2`), na de
-baixo (o `y`) e na direita (o `u`). Sem folga, o renderizador come o
-anti-serrilhado da extremidade e a letra parece cortada. Uma margem de 1 a 2px
-no arquivo novo evita isso.
+O `viewBox` que está neles hoje foi acrescentado aqui, a partir da medição:
 
-**4. A tinta não bate com a paleta.** O PNG azul veio com **`#1E289B`**; a
-paleta oficial diz **`#1523A0`**. Decisão atual: o logo fica como veio (mexer
-nele é assunto da marca) e a interface usa o valor da paleta. Se o arquivo novo
-vier no tom da paleta, esta ressalva cai.
+```
+logo-c2y-*       viewBox="0 0 990 454"     bbox medida: 0,0 → 990 × 453,62
+logo-cars2you-*  viewBox="0 0 933 168"     bbox medida: 0,23,0 → 932,54 × 168
+```
+
+**Arquivo novo que chegar sem `viewBox` precisa do mesmo tratamento** — e da
+mesma medição, não do meu chute.
+
+## Como entram no painel
+
+Base64, em `data:` URI, pelo gerador — regra 1: zero requisição de rede. O
+`<img>` recebe `height` e `width:auto`, e o `viewBox` faz o resto.
+
+Quem troca a **cor** é o JS, junto com o tema. Quem troca a **arte** é o CSS,
+por largura de tela. As duas vivem dentro de um `<span class="marca">`, que é
+um filho só da grade de três colunas do topo — soltas, virariam quatro filhos
+e o título sairia do centro.
+
+## O que ficou para trás
+
+`_original-branca-cortada.svg` e os dois PNG saíram em 22/09. Ficam registrados
+só porque explicam uma cicatriz: a "branca" original não era vetor — era um PNG
+de 179 × 82 embrulhado numa tag `<svg>` com `<pattern>`, e **recortado**: só
+cabiam o `c`, o `2` e o `y`; as letras `ars` e `ou` ficavam fora do quadro. A
+branca que usamos até 21/09 foi gerada do arquivo azul, com a tinta trocada,
+só para o tema escuro não ficar sem marca.

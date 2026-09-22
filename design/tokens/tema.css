@@ -274,7 +274,22 @@ p{ margin:0 }
   display:grid; grid-template-columns:1fr auto 1fr;
   align-items:center; gap:16px;
 }
-.logo{ height:26px; width:auto; display:block; flex:none; justify-self:start }
+/* ── A MARCA É UM FILHO SÓ DA GRADE (22/09) ────────────────────────────────
+   São duas artes — a extensa e a curta — e as duas moram dentro do `.marca`.
+   Soltas, seriam DOIS filhos do `.topo-in`, e a grade de três colunas viraria
+   de quatro: o título sairia do centro. Mesma família da armadilha que o
+   `display` explícito do `.topo` já registra.
+
+   Quem troca uma pela outra é CSS, não JS. Assim a escolha sobrevive a
+   imprimir, a redimensionar a janela e a rodar com o script desligado — e não
+   pisca na carga. O JS só decide a COR, que depende do tema. */
+.marca{ justify-self:start; min-width:0; display:block; line-height:0 }
+.logo{ height:26px; width:auto; display:block; flex:none }
+
+/* A extensa é a marca escrita por extenso (933 × 168, 5,55:1). A curta é o
+   "c2y" (990 × 454, 2,18:1) — medido com `getBBox`, não estimado. Na barra,
+   a 26px de altura, uma dá 144px de largura e a outra 57px. */
+.logo-curta{ display:none }
 .topo-tit{ text-align:center; min-width:0 }
 /* 22px: o nome do painel é a primeira coisa que se lê. Em 17px ele perdia
    para o número do KPI logo abaixo, que é o dado MENOS interessante da
@@ -373,7 +388,12 @@ select.ctrl{ padding-right:26px }
      largura igual e quem espreme é o título, que é o maior dos três. A logo
      encolhe junto — ela é a marca escrita por extenso e comia meia barra. */
   .topo-in{ padding:10px 12px; grid-template-columns:auto 1fr auto; gap:8px }
-  .logo{ height:18px }
+  /* A marca extensa sai e entra a curta. Não é encolher: a 18px de altura a
+     extensa ainda ocupa 100px de uma barra de 360, e o que ela tem de largura
+     o título perde de espaço. A curta, na mesma altura, ocupa 39px.
+     Por isso ela pode ser mais alta — 22px — e ainda assim cabe melhor. */
+  .logo-extensa{ display:none }
+  .logo-curta{ display:block; height:22px }
   .topo-tit h1{ font-size:16px }
 }
 

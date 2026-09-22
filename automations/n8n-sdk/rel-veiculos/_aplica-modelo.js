@@ -4,7 +4,7 @@
        node automations/n8n-sdk/rel-veiculos/_aplica-modelo.js
 
    Entra:  design/tokens/tema.css
-           design/marca/cars2you/logo-azul.png + logo-branca.png
+           design/marca/cars2you/logo-{cars2you,c2y}-{preto,branco}.svg
    Sai:    montar-html.js, com os blocos entre TEMA:INICIO/FIM e
            LOGOS:INICIO/FIM reescritos.
 
@@ -86,17 +86,26 @@ recusaPerigo(css, 'design/tokens/tema.css (compactado)');
 const linhasCss = emLinhas(css, 92).map(l => "  '" + l + "',");
 linhasCss[linhasCss.length - 1] = linhasCss[linhasCss.length - 1].replace(/,$/, '');
 
-const uri = arq => 'data:image/png;base64,' +
+/* SVG desde 22/09, no lugar dos PNG de 300 x 56. E sao QUATRO artes, nao
+   duas: o tema escolhe a COR e a largura da tela escolhe a ARTE -- extensa na
+   web, curta ("c2y") no telefone. Mesma estrutura do modelo do brain. */
+const uri = arq => 'data:image/svg+xml;base64,' +
   fs.readFileSync(path.join(DESIGN, 'marca', 'cars2you', arq)).toString('base64');
 
-const claro = uri('logo-azul.png');
-const escuro = uri('logo-branca.png');
+const ARTES = [
+  ['claro_extensa', 'logo-cars2you-preto.svg'],
+  ['claro_curta', 'logo-c2y-preto.svg'],
+  ['escuro_extensa', 'logo-cars2you-branco.svg'],
+  ['escuro_curta', 'logo-c2y-branco.svg'],
+];
+
 /* Conferir o CONTEUDO, nao o invólucro: a primeira versao passava a linha
    inteira e reprovava nas aspas que o proprio injetor acabara de escrever. */
-recusaPerigo(claro, 'logo-azul.png em base64');
-recusaPerigo(escuro, 'logo-branca.png em base64');
-
-const logos = "  claro: '" + claro + "',\n  escuro: '" + escuro + "'";
+const logos = ARTES.map(([chave, arq]) => {
+  const b64 = uri(arq);
+  recusaPerigo(b64, arq + ' em base64');
+  return "  " + chave + ": '" + b64 + "'";
+}).join(',\n');
 
 /* O que a prova precisa comparar. Exportar os BLOCOS PRONTOS, e nao as
    funcoes, e de proposito: se a prova refizesse a compactacao com codigo
@@ -118,7 +127,7 @@ if (require.main === module) {
   console.log('✓ montar-html.js atualizado');
   console.log('  tema.css: %d -> %d bytes compactados, em %d linhas',
               cssFonte.length, css.length, linhasCss.length);
-  console.log('  logos: 2 (azul para fundo claro, branca para escuro)');
+  console.log('  logos: %d artes (extensa/curta x claro/escuro)', ARTES.length);
   console.log('');
   console.log('Confira com: node automations/n8n-sdk/rel-veiculos/_prova-modelo.js');
 }

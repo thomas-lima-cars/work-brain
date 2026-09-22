@@ -101,7 +101,20 @@ for (const c of ['.pg', '.tit', '.card', '.card-h', '.card-b', '.kpis', '.kpi',
    ------------------------------------------------------------------- */
 console.log('\n■ Regras do modelo');
 ok(/data-tema="claro"/.test(fonte), 'o documento nasce num tema declarado');
-ok(fonte.includes('LOGOS[t]'), 'o logo troca com o tema (o azul some no escuro)');
+/* As duas artes trocam de COR com o tema; quem troca a ARTE e o CSS, por
+   largura. Conferir so uma das duas deixaria a outra congelada na cor errada
+   -- invisivel no claro, porque a curta so aparece no telefone. */
+ok(fonte.includes('LOGOS[t+"_extensa"]') && fonte.includes('LOGOS[t+"_curta"]'),
+   'as duas artes trocam de cor com o tema (o escuro some no fundo escuro)');
+ok(/\.topo \.logo-curta\{display:none\}/.test(ponte),
+   'a arte curta nasce escondida: a extensa e o padrao, na web');
+ok(/\.topo \.logo-extensa\{display:none\}/.test(ponte) &&
+   /\.topo \.logo-curta\{display:block;height:\d+px\}/.test(ponte),
+   'e abaixo de 620px elas se invertem');
+ok((fonte.match(/data:image\/svg\+xml;base64,/g) || []).length === 4,
+   'as QUATRO artes viajam dentro do no, em SVG');
+ok(!fonte.includes('data:image/png;base64,'),
+   'e nenhum logo em PNG sobrou (vetor nao escadeia em HiDPI nem na impressao)');
 ok(!/localStorage/.test(fonte),
    'o tema NAO e gravado — relatorio por link abre igual pra todo mundo');
 const kpi = ponte.match(/\.kpi \.vl\{font-size:(\d+)px/);
