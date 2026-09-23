@@ -118,6 +118,13 @@ termo foi definido, e "deságio" não quer dizer a mesma coisa para todo mundo.
 Termo que aparece na tela e não está no glossário é uma pergunta que chega por
 mensagem depois.
 
+- **Só a regra vigente, nunca o histórico dela (23/09/2026).** O glossário
+  explica o que a tela faz **hoje**. "Antes era X, agora é Y" e "desde
+  DD/MM não aparece mais Z" são changelog, e changelog não é referência —
+  quem abre o glossário quer saber a regra, não a novela de como ela chegou
+  lá. Histórico de decisão mora no `README.md` do relatório e no
+  `memory/decisions/` do brain, nunca na tela que o usuário final lê.
+
 🔒 A prova é **estrutural**: conta `<section>` abertas e fechadas antes do
 glossário e exige que estejam equilibradas.
 
@@ -277,6 +284,14 @@ cartão de largura inteira acima do conteúdo.
 O cartão cobrava a primeira dobra **todos os dias** para dizer, quase sempre,
 a mesma coisa. O ícone nasce escondido, aparece só quando há algo, traz a
 contagem no canto — e no dia limpo não ocupa nada.
+
+**Só aviso sobre O QUE ESTÁ NA TELA, nunca sobre o código (23/09/2026).**
+"42 veículo(s) em evento cujo canal não tem loja alguma" é aviso — fala do
+dado desta coleta, e quem lê decide se precisa agir. "Removida a tag X
+porque duplicava o farol" não é aviso: é nota de versão, e nota de versão
+não ajuda quem só quer saber se o carro tem loja compradora. O aviso também
+não é manual — não ensina a usar a tela, só avisa do que **esta coleta**
+trouxe de esquisito.
 
 ## 5b. Rodapé
 

@@ -122,6 +122,21 @@ function laudoChave(x) {
   return 'vazio';
 }
 
+/* farol de oferta: vermelho sem oferta, amarelo com oferta e VMV nao
+   atingido, verde quando alguma oferta chegou no VMV.
+   `vmv` pode vir NULL -- nem toda negociacao tem valor minimo declarado
+   (q_veiculos, NULLIF em min_sale_price). Sem VMV nao da pra afirmar
+   "atingido": fica amarelo, e a dica diz que o VMV nao foi informado, em
+   vez de sugerir um numero que nao existe. Mesma regra do link sem pedaco
+   e do canal ambiguo -- quando nao da pra decidir, declara-se. */
+const FAROL_NOME = { vermelho: 'Sem oferta', amarelo: 'Com oferta — VMV não atingido',
+                     verde: 'VMV atingido' };
+function faroDe(qtOfertas, ofertaMax, vmv) {
+  if (!qtOfertas) return 'vermelho';
+  if (vmv !== null && ofertaMax !== null && ofertaMax >= vmv) return 'verde';
+  return 'amarelo';
+}
+
 const pedidos = $('Montar Fase 2').all().map((i) => i.json);
 const outs = $('MCP Fase 2').all();
 const META = pedidos.length ? pedidos[0].meta : {};
@@ -191,6 +206,37 @@ const wlNome = {};
   if (r.whitelabel) wlNome[String(r.whitelabel_id)] = r.whitelabel;
 });
 
+/* ── mapa evento -> grupos de cliente que ele alveja ────────
+   Segunda trava, alem do canal. `tem` marca que o evento lista algum grupo;
+   `ativos` sao os que dao acesso. Evento com grupo mas nenhum ativo nao tem
+   comprador; evento sem grupo nenhum nao tem a trava. */
+const eventoGr = {};
+(META.evento_grupo || []).forEach((r) => {
+  const e = String(r.evento_id);
+  if (!eventoGr[e]) eventoGr[e] = { ativos: {} };
+  if (Number(r.ativo) === 1) eventoGr[e].ativos[String(r.grupo_id)] = 1;
+});
+
+/* ── grupos de cada loja (herdados dos usuarios) ────────
+   Vem a lista INTEIRA, ativos e inativos: quem decide se o grupo da acesso
+   e o `ativos` do evento, acima.
+   GROUP_CONCAT corta em silencio no group_concat_max_len (1024 por padrao).
+   Lista que chega perto disso pode ter perdido grupo no fim: conta e avisa. */
+const GRUPOS_TETO = 1000;
+const lojaGr = {};
+let gruposTalvezCortados = 0;
+(dados.q_loja_grupos || []).forEach((r) => {
+  const txt = String(r.grupos || '');
+  if (txt.length >= GRUPOS_TETO) gruposTalvezCortados++;
+  const m = {};
+  txt.split(',').forEach((g) => { if (g.trim()) m[g.trim()] = 1; });
+  lojaGr[String(r.shop_id)] = m;
+});
+function compartilhaGrupo(daLoja, doEvento) {
+  for (const g in doEvento) if (daLoja[g]) return true;
+  return false;
+}
+
 /* ── as sete faixas de recencia ────────
    Regra do Thomas (2026-09-11), com "ofertou" no lugar de "comprou". Em
    cascata: a primeira que bate ganha, entao a ORDEM e a regra.
@@ -246,11 +292,14 @@ function clusterDe(ultOferta, ultAcesso) {
 }
 
 /* ── perfil das lojas ──────── */
+/* Otimizacao de 2026-09-23: q_contato e q_cluster se fundiram em q_lojas
+   (mesma base, mesma pagina -- eram tres consultas identicas na clausula).
+   Essa fusao rodou limpa no run 53385 (27 paginas, sem erro), entao ficou.
+   Contato e cluster leem direto da linha de `s` (o proprio q_lojas), mais
+   abaixo -- nao ha mais iCt/iCl separados. */
 const iOf = indexa(dados.q_ofertas || [], 'shop_id');
 const iPe = indexa(dados.q_perfil || [], 'shop_id');
 const iUl = indexa(dados.q_uf_laudo || [], 'shop_id');
-const iCt = indexa(dados.q_contato || [], 'shop_id');
-const iCl = indexa(dados.q_cluster || [], 'shop_id');
 
 /* Os seis baldes de laudo tem que somar as ofertas da loja. Nao somando, a
    juncao com vehicle_precautionary_reports duplicou ofertas (veiculo com
@@ -497,13 +546,13 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
   const kmDesvio = num(pe.km_desvio);
   const qtVeiculos = num(pe.qt_veiculos);
 
-  /* os cinco campos de 11/09 */
+  /* os cinco campos de 11/09. Contato e cluster nao tem indice proprio
+     desde 23/09 -- vem direto de `s`, a linha de q_lojas (que os absorveu
+     de q_contato/q_cluster). */
   const ul = iUl[k] || {};
-  const ct = iCt[k] || {};
-  const cl = iCl[k] || {};
   const base = num(ul.ofertas_base);
   const fatia = (n) => (base ? Math.round((num(n) / base) * 1000) / 10 : null);
-  const cid = clusterDe(cl.ult_oferta, cl.ult_acesso);
+  const cid = clusterDe(s.ult_oferta, s.ult_acesso);
 
   /* moda de laudo da loja: o balde com mais ofertas, e o peso e a fatia
      dele. Mesma forma de modelo e categoria -- loja que concentra 70% das
@@ -536,6 +585,8 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
     responsavel_via: resp.via,
     whitelabel_id: num(s.whitelabel_id),
     whitelabel: s.whitelabel || ('whitelabel #' + s.whitelabel_id),
+    /* uso interno da trava: nao entra no array publicado (lista explicita) */
+    grupos: lojaGr[k] || {},
     uf: s.uf || 'Nao identificada',
     qt_ofertas: qtOfertas, qt_veiculos: qtVeiculos,
     preco_medio: precoMedio, preco_desvio: precoDesvio,
@@ -579,16 +630,16 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
       vazio: fatia(ul.laudo_vazio)
     } : null,
     /* 4. contato. PII: isto sai no HTML e o HTML sobe pro SharePoint. */
-    email: ct.email || null,
-    qt_emails: num(ct.qt_emails),
-    tel_comercial: ct.tel_comercial || null,
-    whatsapp: ct.whatsapp || null,
-    tel_privativo: ct.tel_privativo || null,
+    email: s.email || null,
+    qt_emails: num(s.qt_emails),
+    tel_comercial: s.tel_comercial || null,
+    whatsapp: s.whatsapp || null,
+    tel_privativo: s.tel_privativo || null,
     /* 5. faixa de recencia, id e nome resolvidos aqui para a tela so exibir */
     cluster: cid,
     cluster_nome: CLUSTERS[cid].nome,
-    ult_oferta: cl.ult_oferta || null,
-    ult_acesso: cl.ult_acesso || null
+    ult_oferta: s.ult_oferta || null,
+    ult_acesso: s.ult_acesso || null
   };
 }).filter((l) => l.qt_veiculos);
 
@@ -709,7 +760,9 @@ function hostDoAnuncio(wls) {
     status_nome: STATUS_NOME[num(r.neg_status)] || ('status ' + r.neg_status),
     /* sobra = passou pelo evento e nao foi vendido nem esta em negociacao.
        Status 1 e o unico que significa "ainda em disputa". */
-    sobra: num(r.neg_status) !== null && num(r.neg_status) !== 1
+    sobra: num(r.neg_status) !== null && num(r.neg_status) !== 1,
+    vmv: num(r.vmv), qt_ofertas: num(r.qt_ofertas) || 0, oferta_max: num(r.oferta_max),
+    farol: faroDe(num(r.qt_ofertas) || 0, num(r.oferta_max), num(r.vmv))
   });
 });
 
@@ -777,6 +830,7 @@ const wlComLoja = {};
 lojasTodas.forEach((l) => { wlComLoja[String(l.whitelabel_id)] = 1; });
 
 let descartados = 0;       /* pares que existiam mas nao chegaram a CORRESP_MIN */
+let cortadosPeloGrupo = 0; /* pares do canal barrados pela trava de grupo */
 const pares = [];          /* flat: [vi, li, score*10, det...] */
 const detPares = [];       /* decomposição, mesmo índice do par */
 const usadas = {};
@@ -791,11 +845,14 @@ veiculos.forEach((v, vi) => {
     });
   });
   let eleg = 0;
+  const eg = eventoGr[String(v.evento_id)];
   /* junta TODOS os que passam do corte, ordena, e so entao aplica o teto.
      Cortar durante a varredura guardaria os primeiros, nao os melhores. */
   const passaram = [];
   for (let i = 0; i < cands.length; i++) {
     const l = lojasTodas[cands[i]];
+    /* trava de grupo: a loja precisa estar em algum grupo ATIVO do evento */
+    if (eg && !compartilhaGrupo(l.grupos, eg.ativos)) { cortadosPeloGrupo++; continue; }
     /* passou na regra de elegibilidade. Contar AQUI, antes do corte, e o
        que permite distinguir "nao ha loja pra este carro" de "havia loja e
        o corte cortou" -- duas causas que pedem decisoes opostas. */
@@ -817,6 +874,9 @@ veiculos.forEach((v, vi) => {
   v.elegiveis = eleg;
   /* o canal inteiro nao tem loja: o par era impossivel desde o inicio */
   v.canal_sem_loja = !!(v.wls.length && !v.wls.some((w) => wlComLoja[String(w)]));
+  /* o canal tinha loja, mas nenhuma esta num grupo do evento: tambem par
+     impossivel por construcao, com causa diferente */
+  v.grupo_sem_loja = !!(eg && cands.length && !eleg);
 });
 
 /* só publica as lojas que participam de pelo menos um par */
@@ -922,7 +982,10 @@ if (wlIds.length) {
   }
 }
 
-/* As duas consultas de moda podem passar do numero de lojas (empate no
+/* 🔴 REVERTIDO em 2026-09-23: q_moda (a fusao) estourou o prazo do MCP nas
+   27 paginas no run 53385 -- ver montar-fase2.js. Voltou a ser duas
+   consultas, e esta conferencia volta a olhar as duas separadas.
+   As duas consultas de moda podem passar do numero de lojas (empate no
    topo rende mais de uma linha por loja), entao elas NAO dao pra conferir
    por contagem de linha -- so por LOJA DISTINTA. Sem isto, truncamento
    nelas tira o componente de modelo/categoria de algumas lojas e o score
@@ -942,6 +1005,20 @@ const mLoj = META.moda_lojas || {};
     }
   });
 
+/* cobertura dos grupos por loja: loja que falta aqui fica sem grupo e perde
+   todo evento com trava, sem erro -- so some das tabelas. */
+const lojasGrupoEsperado = Number(META.esperado_lojas_grupo);
+const lojasGrupoVistas = Object.keys(lojaGr).length;
+if (Number.isFinite(lojasGrupoEsperado) && lojasGrupoVistas < lojasGrupoEsperado) {
+  falhas.push('os grupos de cliente vieram para ' + lojasGrupoVistas + ' lojas de ' +
+    lojasGrupoEsperado + ': faltam ' + (lojasGrupoEsperado - lojasGrupoVistas) +
+    ' — essas lojas ficam fora de todo evento com trava de grupo.');
+}
+if (gruposTalvezCortados) {
+  falhas.push(gruposTalvezCortados + ' loja(s) com lista de grupos no limite do banco ' +
+    '(' + GRUPOS_TETO + ' caracteres): algum grupo pode ter ficado fora da lista.');
+}
+
 const semWl = veiculos.filter((v) => !v.wls.length).length;
 if (semWl) falhas.push(semWl + ' veiculo(s) em evento sem whitelabel declarado: ficam sem nenhuma loja elegivel');
 /* os seis baldes de laudo tem que somar as ofertas da loja; nao somando, a
@@ -955,13 +1032,18 @@ if (laudoDesencontro) {
    como uma frase so fez o run 50106 parecer ter 23% de buraco, quando 9,6%
    era impossivel por construcao e so 8,8% responde ao limiar. */
 const semCanal = veiculos.filter((v) => v.canal_sem_loja).length;
-const semNaUf = veiculos.filter((v) => !v.canal_sem_loja && !v.elegiveis).length;
+const semGrupo = veiculos.filter((v) => v.grupo_sem_loja).length;
+const semNaUf = veiculos.filter((v) => !v.canal_sem_loja && !v.grupo_sem_loja && !v.elegiveis).length;
 const cortadosPeloMin = veiculos.filter((v) => v.elegiveis && !v.candidatos).length;
 const semPar = veiculos.filter((v) => !v.candidatos).length;
 if (semCanal) {
   falhas.push(semCanal + ' veiculo(s) em evento cujo canal NAO TEM loja alguma ' +
     '(canal de pessoa fisica: colaborador, associado, clube). Par impossivel por ' +
     'construcao — nao e falta de aderencia, e categoria.');
+}
+if (semGrupo) {
+  falhas.push(semGrupo + ' veiculo(s) com loja no canal do evento, mas nenhuma nos grupos de ' +
+    'cliente que o evento alveja. Par impossivel pela regra de acesso, nao por aderencia.');
 }
 if (semNaUf) {
   /* Ate 2026-09-11 isto dizia "sem loja do canal na UF do patio". A UF
@@ -1018,7 +1100,11 @@ const DADOS = {
        secao de render so enxerga DADOS. Sem publicar, uma das duas listas
        viraria copia escrita a mao -- e copia de catalogo envelhece calada,
        que e a falha que este projeto ja pagou tres vezes. */
-    clusters: CLUSTERS
+    clusters: CLUSTERS,
+    /* mesmo motivo do status_nome e do clusters: o rotulo de cada cor do
+       farol sai daqui pro glossario E pro title da bolinha -- uma fonte,
+       nao duas listas escritas a mao que podem divergir. */
+    farol_nome: FAROL_NOME
   },
   por_status: (META.por_status || []).map((r) => ({
     status: num(r.status), nome: STATUS_NOME[num(r.status)] || ('status ' + r.status),
@@ -1034,6 +1120,8 @@ const DADOS = {
     sobra: veiculos.filter((v) => v.sobra).length,
     sem_par: semPar,
     sem_canal: semCanal,
+    sem_grupo: semGrupo,
+    cortados_pelo_grupo: cortadosPeloGrupo,
     sem_loja_na_uf: semNaUf,
     cortados_pelo_min: cortadosPeloMin,
     cortados_pelo_teto: cortadosPeloTeto,
@@ -1490,11 +1578,16 @@ const PONTE = [
   'text-transform:none;letter-spacing:0}',
   'tbody tr{cursor:pointer}',
   'tbody tr:hover td{background:var(--acento-veu)}',
-  'tr.sel td,tr.sel+tr.dado td{background:var(--acento-veu)}',
-  'tr.ctxr td{border-bottom:0;padding:9px 10px 1px;font-size:11.5px;color:var(--texto-3)}',
-  'tr.ctxr:hover td,tr.ctxr:hover+tr.dado td{background:var(--acento-veu)}',
-  'tr.dado td{padding-top:2px;padding-bottom:9px}',
-  'tr.dado{border-bottom:1px solid var(--borda)}',
+  /* Invertido em 23/09: dado virou o nivel 1 (primeira linha do par) e
+     ctxr o nivel 2. Border e padding trocam de dono junto -- e a borda
+     que separa um par do proximo tem que ficar na linha de BAIXO, seja
+     qual for; a propagacao de hover/selecao so alcanca o irmao SEGUINTE
+     em CSS puro, entao o sentido virou dado->ctxr. */
+  'tr.sel td,tr.sel+tr.ctxr td{background:var(--acento-veu)}',
+  'tr.dado td{border-bottom:0;padding:9px 10px 1px}',
+  'tr.dado:hover td,tr.dado:hover+tr.ctxr td{background:var(--acento-veu)}',
+  'tr.ctxr td{padding-top:2px;padding-bottom:9px;font-size:11.5px;color:var(--texto-3)}',
+  'tr.ctxr{border-bottom:1px solid var(--borda)}',
   'tr.ctxr .uf{color:var(--texto);font-weight:600;letter-spacing:.3px}',
   '.wrap{overflow:auto;max-height:62vh}',
   '.vazio{padding:26px 18px;color:var(--texto-3);text-align:center}',
@@ -1516,9 +1609,9 @@ const PONTE = [
      cada telefone do contato. O efeito era o contato sair empilhado, um
      dado por linha, quando ele e uma lista horizontal:
 
-         washyngton.santoos@gmail.com
+         contato@loja.exemplo
          (1 de 2)
-         71999261215
+         (71) 9xxxx-xxxx
          WhatsApp
 
      O `>` limita o bloco ao rotulo do cartao, que e filho direto. */
@@ -1556,11 +1649,25 @@ const PONTE = [
   '.xk.contato b{font-size:13px;font-weight:400;line-height:1.7}',
   /* `.tag` ja vem do tema; aqui so a variante de aviso */
   '.tag.w{background:color-mix(in srgb,var(--atencao) 20%,transparent);color:var(--atencao)}',
+  /* farol de oferta: vermelho e verde reusam --negativo e --positivo, que ja
+     leem como vermelho e verde de verdade. O amarelo NAO reusa --atencao --
+     esse token e o vinho da marca (fica marrom, nao amarelo, ver o `.tag.w`
+     acima), e um farol precisa das tres cores reais pra funcionar como
+     farol. Por isso e cor literal, como a barra de score: e dado, nao voz
+     de marca. */
+  '.farol{display:inline-block;width:9px;height:9px;border-radius:50%;',
+  'margin-right:5px;vertical-align:middle;flex:none}',
+  '.farol.vermelho{background:var(--negativo)}',
+  '.farol.amarelo{background:#E3A008}',
+  '.farol.verde{background:var(--positivo)}',
   '.dim{color:var(--texto-3)}',
   '.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px}',
   'code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;',
   'background:var(--superficie-2);padding:1px 5px;border-radius:6px}',
-  '.bar{display:inline-block;height:6px;background:var(--acento-cheio);',
+  /* a cor da barra e calculada por VALOR, nao posicao -- ver corScore() no
+     APP. Aqui so o fallback (nunca deveria aparecer: barra() sempre define
+     a cor inline antes de qualquer render). */
+  '.bar{display:inline-block;height:6px;background:var(--marca-azul-claro);',
   'border-radius:99px;vertical-align:middle}',
   '.aviso{border-color:var(--negativo)}',
   '.aviso .card-h{color:var(--negativo);border-bottom-color:var(--negativo)}',
@@ -1761,12 +1868,22 @@ const APP = [
      da carteira o quer, que e o contrario do que o relatorio serve. */
   'const rps=Array.from(new Set(D.lojas.map(l=>l.responsavel||"' + SEMDONO + '"))).sort(function(a,b){',
   'if(a==="' + SEMDONO + '")return 1;if(b==="' + SEMDONO + '")return -1;return a.localeCompare(b);});',
+  /* ---- farol: como responsavel, mas do lado do VEICULO ----
+     Um veiculo tem farol (o resultado da negociacao dele); uma loja nao.
+     Entao, ao contrario do responsavel, este entra no `passaV` e NAO entra
+     no `passaL` -- e por isso, como whitelabel/UF/evento, ele pesa na
+     pagina inteira: KPIs, as duas tabelas e o extrato, nao so uma delas.
+     A ORDEM e a que o Thomas pediu (atingido, nao atingido, sem oferta),
+     nao a ordem interna de `farol_nome`. */
+  'const FAROIS=["verde","amarelo","vermelho"];',
   'function wlSel(){const i=$("#f_wl").value;return i===""?null:wls[Number(i)];}',
   'function evSel(){const i=$("#f_ev").value;return i===""?null:evs[Number(i)];}',
   'function ufSel(){const i=$("#f_uf").value;return i===""?null:ufs[Number(i)];}',
   'function rpSel(){const i=$("#f_rp").value;return i===""?null:rps[Number(i)];}',
+  'function faSel(){const i=$("#f_fa").value;return i===""?null:FAROIS[Number(i)];}',
   'function noWl(v,w){return w===null||(v.wls||[]).indexOf(w)>=0;}',
-  'function passaV(v,ev,w,uf){return (!ev||v.evento===ev)&&noWl(v,w)&&(uf===null||v.uf===uf);}',
+  'function passaV(v,ev,w,uf,fa){return (!ev||v.evento===ev)&&noWl(v,w)&&(uf===null||v.uf===uf)' +
+  '&&(fa===null||fa===undefined||v.farol===fa);}',
   'function passaL(l,w,uf,rp){return (w===null||l.whitelabel_id===w)&&(uf===null||l.uf===uf)' +
   '&&(rp===null||rp===undefined||(l.responsavel||"' + SEMDONO + '")===rp);}',
   /* `tot` e CONTADO, nao somado. Somar as opcoes inflava o whitelabel:
@@ -1784,21 +1901,27 @@ const APP = [
   'if(String(i)===cur)manteve=true;',
   `const rot=n?(" ("+n+")"):(" (0 · "+x+" loja"+(x>1?"s":"")+")");`,
   `return "<option value='"+i+"'>"+rotulo(it)+rot+"</option>";}).join("");`,
-  `$(alvo).innerHTML="<option value=''>"+(alvo==="#f_wl"?"Todos os whitelabels":alvo==="#f_uf"?"Todas as UFs":alvo==="#f_rp"?"Todos os responsáveis":"Todos os eventos")+" ("+tot+")</option>"+opts;`,
+  `$(alvo).innerHTML="<option value=''>"+(alvo==="#f_wl"?"Todos os whitelabels":alvo==="#f_uf"?"Todas as UFs":alvo==="#f_rp"?"Todos os responsáveis":alvo==="#f_fa"?"Todos os status":"Todos os eventos")+" ("+tot+")</option>"+opts;`,
   '$(alvo).value=manteve?cur:"";}',
   'function pintaFiltros(){',
-  'const w=wlSel(),ev=evSel(),uf=ufSel(),rp=rpSel();',
-  'const qt=function(e2,w2,u2){return D.veiculos.filter(function(v){return passaV(v,e2,w2,u2);}).length;};',
+  'const w=wlSel(),ev=evSel(),uf=ufSel(),rp=rpSel(),fa=faSel();',
+  'const qt=function(e2,w2,u2,f2){return D.veiculos.filter(function(v){return passaV(v,e2,w2,u2,f2);}).length;};',
   'opcoes("#f_wl",wls,function(x){return esc(wlNome[x]);},',
-  'function(x){return qt(ev,x,uf);},qt(ev,null,uf),$("#f_wl").value);',
+  'function(x){return qt(ev,x,uf,fa);},qt(ev,null,uf,fa),$("#f_wl").value);',
   /* o quinto argumento conta LOJAS naquela UF: e o que impede uma UF com
      loja e sem veiculo de desaparecer do filtro. */
   'const qtL=function(w2,u2,r2){return D.lojas.filter(function(l){return passaL(l,w2,u2,r2);}).length;};',
   'opcoes("#f_uf",ufs,function(x){return esc(x);},',
-  'function(x){return qt(ev,w,x);},qt(ev,w,null),$("#f_uf").value,',
+  'function(x){return qt(ev,w,x,fa);},qt(ev,w,null,fa),$("#f_uf").value,',
   'function(x){return qtL(w,x,rp);});',
   'opcoes("#f_ev",evs,function(x){return esc(x)+(evFechado[x]?" [encerrado]":"");},',
-  'function(x){return qt(x,w,uf);},qt(null,w,uf),$("#f_ev").value);',
+  'function(x){return qt(x,w,uf,fa);},qt(null,w,uf,fa),$("#f_ev").value);',
+  /* farol: o mesmo padrao dos tres de cima (conta VEICULO, pesa na pagina
+     inteira). O rotulo vem de farol_nome -- a mesma fonte da dica da
+     bolinha e do glossario, pra nao ter uma terceira lista de tres textos
+     que pode divergir das outras duas. */
+  'opcoes("#f_fa",FAROIS,function(x){return esc(FAROL_NOME[x]||x);},',
+  'function(x){return qt(ev,w,uf,x);},qt(ev,w,uf,null),$("#f_fa").value);',
   /* Aqui a contagem e de LOJAS, e nao de veiculos como nos tres de cima.
      Nao ha escolha honesta: um veiculo nao tem responsavel, e contar quantos
      carros "sao da Gabriela" so faria sentido somando os pares dela — numero
@@ -1820,8 +1943,8 @@ const APP = [
   `function kpi(cor,icone,rot,val){return "<div class='kpi'><div class='ring' style='color:"+cor+"'>"+ic(icone)+"</div>"+`,
   `"<div class='tx'><div class='lb' style='color:"+cor+"'>"+rot+"</div><div class='vl'>"+val+"</div></div></div>";}`,
   'function pintaKpis(){',
-  'const ev=evSel(),w=wlSel(),uf=ufSel(),rp=rpSel();',
-  'const vIdx=[];D.veiculos.forEach(function(v,i){if(passaV(v,ev,w,uf))vIdx.push(i);});',
+  'const ev=evSel(),w=wlSel(),uf=ufSel(),rp=rpSel(),fa=faSel();',
+  'const vIdx=[];D.veiculos.forEach(function(v,i){if(passaV(v,ev,w,uf,fa))vIdx.push(i);});',
   'const naLista={};vIdx.forEach(function(i){naLista[i]=1;});',
   'var nPares=0;const lojasVistas={};const porVeic={};',
   'for(let i=0;i<P.length;i+=3){',
@@ -1831,53 +1954,87 @@ const APP = [
   /* "Sem correspondencia" so conta quem PODIA ter par. Veiculo cujo canal
      nao tem loja alguma vai pro KPI proprio, em cinza: numero que nao e
      culpa de ninguem nao deve aparecer em vermelho ao lado dos que sao. */
-  'const semCanal=vIdx.filter(function(i){return D.veiculos[i].canal_sem_loja;}).length;',
-  'const semPar=vIdx.filter(function(i){return !porVeic[i]&&!D.veiculos[i].canal_sem_loja;}).length;',
+  /* canal sem loja e grupo sem loja dividem o KPI cinza: nos dois nenhuma
+     loja PODE comprar. A etiqueta da linha diz qual das duas causas. */
+  'const semCanal=vIdx.filter(function(i){return D.veiculos[i].canal_sem_loja||D.veiculos[i].grupo_sem_loja;}).length;',
+  'const semPar=vIdx.filter(function(i){return !porVeic[i]&&!D.veiculos[i].canal_sem_loja&&!D.veiculos[i].grupo_sem_loja;}).length;',
   'const media=vIdx.length?Math.round(nPares/vIdx.length):0;',
   '$("#kpis").innerHTML=',
   'kpi("var(--ac)",ICO.veic,"Veículos",nf(vIdx.length))+',
   'kpi("var(--gr)",ICO.loja,"Lojas elegíveis",nf(Object.keys(lojasVistas).length))+',
   'kpi("var(--tl)",ICO.med,"Média de lojas por veículo",nf(media))+',
-  'kpi("var(--dim)",ICO.sobra,"Canal sem loja",nf(semCanal))+',
+  'kpi("var(--dim)",ICO.sobra,"Sem loja com acesso",nf(semCanal))+',
   'kpi(semPar?"var(--rd)":"var(--dim)",ICO.zero,"Sem correspondência",nf(semPar));}',
   /* ---- helpers de celula ---- */
-  `function barra(s){return "<span class='bar' style='width:"+Math.round(s/2.6)+"px'></span> "+nf(s,1);}`,
+  /* cor da barra por VALOR, pedido em 23/09: uma cor so por barra, nao um
+     degrade correndo dentro dela. 25 e abaixo e o azul claro da marca
+     (#487DEA); 75 e acima e o azul escuro (#1523A0); entre os dois,
+     interpola canal a canal -- e o mesmo criterio da barra em si (score
+     baixo = loja fraca pro carro, score alto = loja forte). RGB literal
+     porque e mais barato que ler --marca-azul via getComputedStyle a cada
+     linha da tabela, e os dois numeros sao os mesmos da paleta oficial. */
+  'function corScore(s){',
+  'var t=Math.max(0,Math.min(1,(Number(s)-25)/50));',
+  'var r=Math.round(72+(21-72)*t),g=Math.round(125+(35-125)*t),b=Math.round(234+(160-234)*t);',
+  'return "rgb("+r+","+g+","+b+")";}',
+  `function barra(s){return "<span class='bar' style='width:"+Math.round(s/2.6)+"px;background:"+corScore(s)+"'></span> "+nf(s,1);}`,
   'function celulas(s,conf){if(s===null||s===undefined)return "<td>—</td><td>—</td>";const c=conf||1;const bruto=s/c;return "<td>"+nf(bruto,1)+"</td><td>"+barra(s)+"</td>";}',
   `function det(d){if(!d)return "";const p=[];["preco","idade","km","desagio","modelo","categoria","laudo","uf"].forEach(k=>{if(d[k]!==undefined)p.push(k[0].toUpperCase()+" "+d[k]);});return "<span class='dim mono'>"+p.join(" · ")+"</span>";}`,
+  /* farol de oferta: o rotulo vem de D.parametros.farol_nome -- mesma fonte
+     que alimenta o glossario, pra nao ter duas listas de tres linhas que
+     podem divergir. */
+  'const FAROL_NOME=(D.parametros&&D.parametros.farol_nome)||{};',
+  'function farolTitulo(v){const t=[FAROL_NOME[v.farol]||v.farol];',
+  't.push(nf(v.qt_ofertas)+" oferta(s)");',
+  't.push(v.vmv!==null&&v.vmv!==undefined?("VMV "+money(v.vmv)):"VMV não informado");',
+  'if(v.oferta_max!==null&&v.oferta_max!==undefined)t.push("maior oferta "+money(v.oferta_max));',
+  'return t.join(" · ");}',
+  `function farolSpan(v){return "<span class='farol "+v.farol+"' title='"+esc(farolTitulo(v))+"'></span>";}`,
   /* ---- veiculos: dois niveis por carro ---- */
   'function linhasV(){',
   'const q=$("#f_v").value.toLowerCase();',
-  'const ev=evSel(),w=wlSel(),uf=ufSel();',
+  'const ev=evSel(),w=wlSel(),uf=ufSel(),fa=faSel();',
   'let base;',
   'if(selL!==null){base=(porL[selL]||[]).map(x=>({v:D.veiculos[x.o],i:x.o,s:x.s,d:x.d}));}',
   'else{base=D.veiculos.map((v,i)=>({v:v,i:i,s:v.melhor,d:null}));base.sort((a,b)=>(b.s||0)-(a.s||0));}',
-  'return base.filter(r=>passaV(r.v,ev,w,uf)&&(!q||((r.v.marca||"")+" "+(r.v.modelo||"")+" "+(r.v.status_nome||"")).toLowerCase().indexOf(q)>=0));}',
+  'return base.filter(r=>passaV(r.v,ev,w,uf,fa)&&(!q||((r.v.marca||"")+" "+(r.v.modelo||"")+" "+(r.v.status_nome||"")).toLowerCase().indexOf(q)>=0));}',
   'function pintaV(){',
   'const rows=linhasV();',
   'const comScore=selL!==null;',
-  'const nCols=comScore?7:6;',
+  /* uma coluna a menos desde 23/09: a de Lojas (candidatos) saiu -- o
+     numero ja aparecia no #ctx ao clicar no veiculo, e repetia aqui sem
+     acrescentar nada que a tabela de lojas ao lado ja nao mostrasse. */
+  'const nCols=comScore?6:5;',
   '$("#cv").textContent=rows.length+" de "+D.veiculos.length;',
   `if(!rows.length){$("#t_v").innerHTML="";$("#v_vazio").innerHTML="<div class='vazio'>Nenhum veículo no filtro atual.</div>";return;}`,
   '$("#v_vazio").innerHTML="";',
-  `$("#t_v").innerHTML="<thead><tr><th class='tx'>Veículo</th><th>Ano</th><th>Km</th><th>Valor</th>"+(comScore?"<th>Aderência</th><th>Score</th>":"<th>Melhor score</th>")+"<th>Lojas</th></tr></thead><tbody>"+`,
+  `$("#t_v").innerHTML="<thead><tr><th class='tx'>Veículo</th><th>Ano</th><th>Km</th><th>Valor</th>"+(comScore?"<th>Aderência</th><th>Score</th>":"<th>Melhor score</th>")+"</tr></thead><tbody>"+`,
   'rows.map(function(r){',
   'const sel=(r.i===selV?" sel":"");',
-  /* nivel 1: UF e evento */
-  `return "<tr data-i='"+r.i+"' class='ctxr"+sel+"'><td class='tx' colspan='"+nCols+"'>"+`,
+  /* nivel 1 agora e o VEICULO (invertido em 23/09): nome, farol e o link do
+     anuncio -- o que identifica a linha e convida ao clique. UF e evento
+     desceram pro nivel 2, como contexto secundario. */
+  `return "<tr data-i='"+r.i+"' class='dado"+sel+"'>"+`,
+  `"<td class='tx nm' title='"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+"'>"+farolSpan(r.v)+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+" <span class='dim mono'>#"+r.v.vehicle_id+"</span>"+`,
+  /* stopPropagation: a linha toda seleciona o veiculo, e clicar no link nao
+     deve mexer na selecao por baixo */
+  `(r.v.link?" · <a class='lk' href='"+esc(r.v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td>"+`,
+  '"<td>"+(r.v.model_year||"—")+"</td><td>"+nf(r.v.km)+"</td><td>"+money(r.v.valor)+"</td>"+',
+  '(comScore?celulas(r.s,D.lojas[selL].confianca):"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+"</tr>"+',
+  /* nivel 2: UF e evento, com os avisos que ja existiam */
+  `"<tr data-i='"+r.i+"' class='ctxr"+sel+"'><td class='tx' colspan='"+nCols+"'>"+`,
   `"<span class='uf'>"+esc(r.v.uf)+"</span> · "+esc(r.v.evento)+`,
-  `(r.v.sobra?" <span class='tag w'>"+esc(r.v.status_nome)+"</span>":"")+`,
+  /* status 11 (Sem Ofertas) NAO ganha mais tag: e exatamente o que o farol
+     vermelho ja diz (nenhuma oferta chegou), e repetir a mesma informacao
+     de duas formas na mesma linha e ruido, nao reforco. Os outros tres
+     estados de sobra continuam com tag -- eles dizem algo que o farol NAO
+     diz (chegou oferta, e o motivo dela nao ter virado venda). Por CODIGO,
+     nao pelo texto do nome: comparar string quebraria se o rotulo mudasse. */
+  `(r.v.sobra&&r.v.neg_status!==11?" <span class='tag w'>"+esc(r.v.status_nome)+"</span>":"")+`,
   /* canal sem loja: dizer na propria linha, senao o carro parece so "sem
      correspondencia" e o leitor procura culpa na aderencia */
   `(r.v.canal_sem_loja?" <span class='tag'>canal sem loja</span>":"")+`,
-  /* stopPropagation: a linha toda seleciona o veiculo, e clicar no link nao
-     deve mexer na selecao por baixo */
-  `(r.v.link?" · <a class='lk' href='"+esc(r.v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td></tr>"+`,
-  /* nivel 2: o veiculo em si */
-  `"<tr data-i='"+r.i+"' class='dado"+sel+"'>"+`,
-  `"<td class='tx nm' title='"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+"'>"+esc((r.v.marca?r.v.marca+" ":"")+(r.v.modelo||"?"))+" <span class='dim mono'>#"+r.v.vehicle_id+"</span></td>"+`,
-  '"<td>"+(r.v.model_year||"—")+"</td><td>"+nf(r.v.km)+"</td><td>"+money(r.v.valor)+"</td>"+',
-  '(comScore?celulas(r.s,D.lojas[selL].confianca):"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+',
-  '"<td>"+nf(r.v.candidatos)+"</td></tr>";}).join("")+"</tbody>";',
+  `(r.v.grupo_sem_loja?" <span class='tag'>grupo sem loja</span>":"")+"</td></tr>";}).join("")+"</tbody>";`,
   'Array.prototype.forEach.call($("#t_v").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selV=(selV===i?null:i);selL=null;pinta();};});}',
   /* ---- lojas ---- */
   'function linhasL(){',
@@ -2008,7 +2165,7 @@ const APP = [
   'function extrato(){',
   'if(selL===null){escondeDica();$("#extrato").innerHTML="";$("#extrato").style.display="none";return;}',
   'const l=D.lojas[selL];',
-  'const ev2=evSel(),w2=wlSel(),uf2=ufSel();',
+  'const ev2=evSel(),w2=wlSel(),uf2=ufSel(),fa2=faSel();',
   'const todos=(porL[selL]||[]).filter(function(x){return x.s>LIMIAR;});',
   /* ══ O QUE SOBROU DO EXTRATO ══════════════════════════════════════
      Ate 21/09 este painel tinha seis blocos e uma tabela de oito linhas.
@@ -2051,7 +2208,7 @@ const APP = [
   `return b.length?("<div class='xg'>"+b.join("")+"</div>"):"";}`,
   /* data curta em pt-BR, tolerante a formato do banco */
   'function dataBr(x){const t=Date.parse(String(x).indexOf("T")>0?String(x):String(x).split(" ").join("T")+"Z");return isNaN(t)?"—":new Date(t).toLocaleDateString("pt-BR");}',
-  'const acima=todos.filter(function(x){return passaV(D.veiculos[x.o],ev2,w2,uf2);});',
+  'const acima=todos.filter(function(x){return passaV(D.veiculos[x.o],ev2,w2,uf2,fa2);});',
   'const escondidos=todos.length-acima.length;',
   /* `onclick=event.stopPropagation()` na celula da caixa: sem isso o clique
      sobe pra linha, que tem handler de selecao de veiculo, e marcar a caixa
@@ -2062,7 +2219,7 @@ const APP = [
      e a tabela em que se AGE: e dela que sai a lista copiada pro consultor,
      e ate agora era preciso voltar pra tabela de cima -- e reachar o carro
      -- so pra ver o anuncio. Mesma regra de la: sem um pedaco, sem link. */
-  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span>"+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
+  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+farolSpan(v)+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span>"+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
   `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
   /* RETRATIL (21/09), e `open` por padrao: o mesmo `<details>` do
      glossario, com o cabecalho inteiro como area de clique. Aberto porque o
@@ -2265,7 +2422,8 @@ const APP = [
   '$("#f_uf").onchange=function(){pintaFiltros();pinta();};',
   '$("#f_wl").onchange=function(){pintaFiltros();pinta();};',
   '$("#f_rp").onchange=function(){pintaFiltros();pinta();};',
-  '$("#limpar").onclick=function(){selV=null;selL=null;$("#f_v").value="";$("#f_l").value="";$("#f_ev").value="";$("#f_wl").value="";$("#f_uf").value="";$("#f_rp").value="";pintaFiltros();pinta();};',
+  '$("#f_fa").onchange=function(){pintaFiltros();pinta();};',
+  '$("#limpar").onclick=function(){selV=null;selL=null;$("#f_v").value="";$("#f_l").value="";$("#f_ev").value="";$("#f_wl").value="";$("#f_uf").value="";$("#f_rp").value="";$("#f_fa").value="";pintaFiltros();pinta();};',
   'pintaFiltros();pinta();'
 ].join('\n');
 
@@ -2352,12 +2510,13 @@ const html = [
   '<div class="fg"><label for="f_wl">Whitelabel</label><select id="f_wl"></select></div>',
   '<div class="fg"><label for="f_uf">UF</label><select id="f_uf"></select></div>',
   '<div class="fg"><label for="f_ev">Evento</label><select id="f_ev"></select></div>',
+  '<div class="fg"><label for="f_fa">Farol de oferta</label><select id="f_fa"></select></div>',
   '<div class="fg"><label for="f_rp">Responsável</label><select id="f_rp"></select></div>',
   '<div class="fg"><label for="f_v">Buscar veículo</label><input id="f_v" placeholder="marca, modelo ou status" size="26"></div>',
   '<div class="fg"><label for="f_l">Buscar loja</label><input id="f_l" placeholder="loja, UF, whitelabel ou responsável" size="26"></div>',
   '<div class="fg"><label>&nbsp;</label><button id="limpar">Limpar tudo</button></div>',
   '</div>',
-  '<div class="nota"><b>Whitelabel</b>, <b>UF</b> e <b>evento</b> valem para a página inteira: KPIs, as duas tabelas e o extrato. As duas <b>buscas</b> só filtram a tabela em que estão.<br>',
+  '<div class="nota"><b>Whitelabel</b>, <b>UF</b>, <b>evento</b> e <b>farol de oferta</b> valem para a página inteira: KPIs, as duas tabelas e o extrato. As duas <b>buscas</b> só filtram a tabela em que estão.<br>',
   '<b>Responsável</b> é o consultor dono da loja na carteira comercial, e é o único filtro que age <b>só sobre as lojas</b>: um veículo não tem responsável, então a lista de veículos continua inteira — o que muda é quais lojas concorrem por ele. Por isso a contagem ao lado de cada nome conta <b>lojas</b>, e não veículos como nos três de cima. Loja fora da planilha aparece como <b>' + SEMDONO + '</b>.<br>',
   'O filtro <b>não</b> alcança o perfil de compra da loja nem o fator de confiança: esses vêm do histórico de <b>6 meses da loja inteira</b>. Como a aderência é calculada contra esse perfil, o <b>score de cada par também não muda</b> com o filtro &mdash; o filtro escolhe quais pares aparecem, não os recalcula.' +
   (MIN_TX ? ' Correspondência mínima de <b>' + MIN_TX + '%</b>' + (CORTADOS ? ' (' + CORTADOS.toLocaleString('pt-BR') + ' pares descartados nesta coleta)' : '') + '.' : '') +
@@ -2396,7 +2555,10 @@ const html = [
   '<dd>Cinco dos doze estados entram. Ficam de fora os que têm <b>oferta viva na mesa</b> (9 e 13) &mdash; ranquear loja para um carro em negociação atrapalha o negócio em andamento &mdash; além da venda e do que foi suspenso ou cancelado.</dd>',
   '<dd><table><thead><tr><th>Cód.</th><th class="tx">Significado</th><th class="tx">No relatório</th></tr></thead><tbody>' + LINHAS_ST + '</tbody></table></dd>',
   '<dt>Sobra</dt>',
-  '<dd>Veículo cuja última negociação NÃO está em "Ativo": passou pelo evento e não foi vendido. Vem marcado com o nome do status na tabela. <b>Desde 18/09 a sobra aparece pouco aqui</b>: a janela passou a olhar os 7 dias à frente, então quase tudo na base ainda está em evento por encerrar.</dd>',
+  '<dd>Veículo cuja última negociação NÃO está em "Ativo": passou pelo evento e não foi vendido. Vem marcado com o nome do status na tabela, exceto "Sem Ofertas" — essa informação já está no farol vermelho. Como a janela olha para os 7 dias à frente, a sobra costuma ser pouca aqui: a maior parte da base ainda está em evento por encerrar.</dd>',
+  '<dt>Farol de oferta</dt>',
+  '<dd>Uma bolinha antes do nome do veículo, nas duas tabelas, com o mesmo critério dos dois lados. <b style="color:var(--negativo)">Vermelho</b>: nenhuma oferta chegou nesta negociação. <b style="color:#E3A008">Amarelo</b>: chegou oferta, mas nenhuma alcançou o VMV (valor mínimo de venda) do vendedor. <b style="color:var(--positivo)">Verde</b>: alguma oferta alcançou o VMV. Passar o mouse mostra o número de ofertas e os valores.</dd>',
+  '<dd class="ex">⚠️ Nem toda negociação tem VMV declarado. Sem ele não dá para afirmar "atingido" &mdash; fica amarelo, e a dica diz "VMV não informado" em vez de inventar um número. Mesma regra do link sem pedaço: quando não dá para decidir, declara-se.</dd>',
   '<dt>Canais que entram</dt>',
   /* o recorte de 2026-09-11. Quem le a tela tem que saber que a base NAO e
      a plataforma inteira, senao compara com outro numero e acha erro */
@@ -2414,20 +2576,25 @@ const html = [
   '<dd>Nesta coleta: ' + descreveRecorte() + '. Datas em <b>hora de Brasília</b> &mdash; o banco responde em UTC, então o recorte é calculado fora do SQL e vai como literal.</dd>',
   /* o piso na meia-noite nao e detalhe: sem ele o mesmo relatorio encolhe
      conforme a hora em que roda, e ninguem entende por que */
-  '<dd class="ex">⚠️ <b>Mudou em 18/09/2026.</b> Antes a janela era aberta para trás (tudo que encerrou desde 09/09, mais o que não encerrou) e o relatório mostrava sobretudo a <b>sobra</b>. Agora ele olha para a frente: <b>os eventos que encerram nos próximos 7 dias</b>. Comparar a contagem com um relatório anterior a essa data não faz sentido &mdash; é outra pergunta, não a mesma base menor. O piso é a <b>meia-noite de hoje</b>, não o instante da coleta: evento que encerrou mais cedo no mesmo dia continua aqui até o dia virar.</dd>',
+  '<dd class="ex">⚠️ O piso é a <b>meia-noite de hoje</b>, não o instante da coleta: evento que encerrou mais cedo no mesmo dia continua aqui até o dia virar. O teto é <b>os eventos que encerram nos próximos 7 dias</b> a partir de agora.</dd>',
   '<dd>Quando não há teto, tudo o que ainda não encerrou entra, inclusive evento de fim distante. O filtro de <b>evento</b> acima é a forma de isolar uma edição. O recorte também pode ser uma lista fixa de ids, modo usado para reanalisar edições específicas.</dd>',
   '</dl>',
 
   '<h3 class="gl-sub">' + chip(ICO_CARD.regras) + 'Regras de elegibilidade</h3><dl>',
   '<dt>Elegibilidade</dt>',
-  '<dd>Um par (veículo, loja) <b>só existe</b> se a loja pertence a um dos <b>whitelabels que o evento alveja</b>. O canal é a única condição obrigatória.</dd>',
-  '<dd class="ex">⚠️ <b>Mudou em 11/09/2026.</b> Até então a <b>mesma UF</b> também era obrigatória: carro de São Paulo nunca aparecia para loja de Minas. Agora a UF <b>pesa</b> em vez de excluir (ver <i>UF como preferência</i> abaixo), então o ranking de cada veículo ficou bem mais longo e comparar o número de correspondências com o de um relatório anterior a essa data não faz sentido.</dd>',
+  '<dd>Um par (veículo, loja) <b>só existe</b> se a loja passa nas <b>duas travas de acesso do evento</b>: pertence a um dos <b>whitelabels</b> que ele alveja <b>e</b> está em um dos <b>grupos de cliente</b> que ele alveja. As duas são condição; todo o resto pesa no score.</dd>',
+  '<dd class="ex">A <b>UF não é condição de elegibilidade</b>: ela <b>pesa</b> no score, não exclui (ver <i>UF como preferência</i> abaixo). Carro de São Paulo pode aparecer para loja de Minas — a UF diferente só reduz a aderência daquele componente.</dd>',
   '<dt>Whitelabel do evento</dt>',
   '<dd>Um evento pode alvejar vários whitelabels, então a comparação é "o whitelabel da loja está no conjunto do evento", não uma igualdade simples. Como consequência, somar veículos por whitelabel dá um número maior que o total: o mesmo carro conta em cada canal onde é exposto.</dd>',
+  '<dt>Grupo de cliente do evento</dt>',
+  '<dd>Além dos canais, cada evento lista os <b>grupos de cliente</b> que podem vê-lo. O grupo pertence ao <b>usuário</b>, não à loja: a loja está no grupo quando <b>algum usuário dela</b> está. Todo grupo listado conta, inclusive os de nome de bloqueio; grupo <b>inativo</b> não dá acesso.</dd>',
+  '<dd class="ex">Evento sem grupo nenhum cadastrado fica só com a trava de canal. Evento cujos grupos estão todos inativos não tem loja com acesso.</dd>',
+  '<dt>Sem loja com acesso</dt>',
+  '<dd>KPI cinza para o veículo que <b>nenhuma</b> loja pode comprar, por uma de duas causas, dita na etiqueta da linha: <b>canal sem loja</b> (abaixo) ou <b>grupo sem loja</b> &mdash; o canal tem lojas, mas nenhuma está nos grupos que o evento alveja. Nos dois casos não é aderência baixa, então fica fora de <b>Sem correspondência</b>.</dd>',
   '<dt>Canal sem loja compradora</dt>',
   /* sem este verbete, esses carros parecem so "sem correspondencia" e o
      leitor procura culpa na aderencia ou no corte */
-  '<dd>Alguns eventos alvejam <b>canais de pessoa física</b> &mdash; colaborador, associado, clube. Ali não existe loja compradora como categoria, então o veículo <b>nunca</b> pode ter par: não é aderência baixa, é ausência de contraparte. Esses carros vêm marcados com a etiqueta <b>canal sem loja</b> e têm KPI próprio, separado de <b>Sem correspondência</b>.</dd>',
+  '<dd>Alguns eventos alvejam <b>canais de pessoa física</b> &mdash; colaborador, associado, clube. Ali não existe loja compradora como categoria, então o veículo <b>nunca</b> pode ter par: não é aderência baixa, é ausência de contraparte. Esses carros vêm marcados com a etiqueta <b>canal sem loja</b> e contam em <b>Sem loja com acesso</b>.</dd>',
   '<dt>Correspondência mínima</dt>',
   (MIN_TX
     ? '<dd>Par com score abaixo de <b>' + MIN_TX + '%</b> não existe em lugar nenhum do relatório: não entra nas tabelas, não conta nos KPIs, não aparece em nenhuma das duas direções. O KPI <b>Sem correspondência</b> conta só quem <b>podia</b> ter par: tinha loja elegível e nenhuma alcançou o piso. São esses, e só esses, que mudariam se o corte baixasse.</dd>'

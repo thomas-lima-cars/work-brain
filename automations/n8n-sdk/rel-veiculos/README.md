@@ -207,9 +207,9 @@ descendente e não filho, ela pegava também os `<span class='dim'>` que rotulam
 cada telefone — e a lista horizontal virava uma coluna:
 
 ```
-washyngton.santoos@gmail.com
+contato@loja.exemplo
 (1 de 2)
-71999261215
+(71) 9xxxx-xxxx
 WhatsApp
 ```
 
@@ -313,6 +313,29 @@ tabela — virar um bloco que a coluna leva junto ou não leva. Com só o
 `break-inside` aconteceu isto: o termo "Categoria do cliente" no pé da coluna
 da esquerda e a tabela das sete categorias desgarrada na da direita, 300px
 abaixo.
+
+## 🔄 A tabela de veículos, invertida e enxuta (2026-09-23)
+
+A linha do veículo tinha dois níveis: nível 1 (colspan) trazia UF, evento e o link do
+anúncio; nível 2 trazia o veículo, ano, km, valor, score e a contagem de lojas. Três
+mudanças, todas no mesmo lugar:
+
+- **O veículo subiu para o nível 1**, com o farol, o nome e o link do anúncio juntos —
+  é o que identifica a linha e convida ao clique. UF e evento desceram para o nível 2,
+  como contexto secundário, do jeito que antes era ao contrário.
+- **A coluna "Lojas" saiu.** O número de candidatos já aparece no `#ctx` ao clicar no
+  veículo, e a tabela de lojas ao lado já mostra quem são — repetir o número aqui era
+  ruído, não reforço.
+- **A barra de "Melhor score" (e de "Score") ganhou cor por valor.** Não é degradê
+  correndo dentro da barra — é **uma cor só**, calculada a partir do próprio número:
+  25 e abaixo é o azul claro da marca (`#487DEA`), 75 e acima é o azul escuro (`#1523A0`),
+  e entre os dois ela interpola canal a canal. `corScore()`, no APP.
+
+⚠️ **Border e padding trocaram de dono junto com a ordem.** A borda que separa um par de
+veículo do próximo tem que ficar na linha de baixo, seja qual for — hoje é `tr.ctxr`, não
+mais `tr.dado`. E a propagação de hover/seleção entre as duas linhas só alcança o irmão
+**seguinte** em CSS puro (`+`), nunca o anterior — o sentido virou `tr.dado:hover+tr.ctxr`,
+espelhando o que já era assim antes (`tr.ctxr:hover+tr.dado`), só que na direção nova.
 
 ## 🎯 O extrato da loja: escolher e mandar
 
@@ -440,6 +463,61 @@ propósito veículo de evento encerrado e de status "Sem Ofertas", então parte 
 abre anúncio que não aceita mais lance. Aqui isso é o certo — é relatório de aderência,
 não lista de compra — e por isso o status aparece ao lado do link.
 
+## 🚦 O farol de oferta (2026-09-23)
+
+Uma bolinha antes do nome do veículo, nas **duas** tabelas (a de cima e a lista
+selecionável do extrato da loja) — mesmo critério, mesmo lugar visual do link. Responde
+uma pergunta que antes exigia abrir a plataforma: *este carro já recebeu proposta, e ela
+chegou no valor mínimo que o vendedor aceita?*
+
+| cor | significa |
+|---|---|
+| 🔴 vermelho | nenhuma oferta chegou nesta negociação |
+| 🟡 amarelo | chegou oferta, mas nenhuma alcançou o VMV |
+| 🟢 verde | alguma oferta alcançou o VMV |
+
+Passar o mouse mostra o número de ofertas e os valores — o rótulo vem de
+`DADOS.parametros.farol_nome`, publicado pelo mesmo motivo do `status_nome` e do
+`clusters`: uma fonte só para a bolinha e para o glossário, não duas listas que podem
+divergir.
+
+### De onde vêm os três números
+
+Duas colunas novas na `q_veiculos` (`montar-fase2.js`), correlacionadas por
+`advs_negotiation_id` — a FK de `offers` para a **mesma negociação** que a query já
+resolve como `an.id`, não o histórico de 6 meses da loja (isso é outra coisa, e já vinha
+por `q_ofertas`/`q_perfil`):
+
+```sql
+NULLIF(an.min_sale_price, 0) AS vmv,
+(SELECT COUNT(*) FROM offers o WHERE o.advs_negotiation_id = an.id
+  AND o.deleted_at IS NULL AND o.price > 0) AS qt_ofertas,
+(SELECT MAX(o.price) FROM offers o WHERE o.advs_negotiation_id = an.id
+  AND o.deleted_at IS NULL AND o.price > 0) AS oferta_max
+```
+
+Sem filtro de `offers.situation`: o domínio dela ainda não foi decodificado (é item
+pendente no `estado-atual.md`), e contar só "existe oferta com preço" não depende de
+entender esse código. `vmv` entra no `GROUP BY` como as demais colunas simples de `an`;
+`qt_ofertas` e `oferta_max` não entram — são subquery correlacionada, não coluna de
+tabela juntada, e `neg_id` (chave primária de `an`, já no `GROUP BY`) já garante uma
+linha por negociação.
+
+⚠️ **VMV pode vir `NULL`** — nem toda negociação tem valor mínimo declarado. Sem ele não
+dá para afirmar "atingido": o farol fica **amarelo**, e a dica diz "VMV não informado"
+em vez de sugerir um número que não existe. Mesma regra do link sem pedaço e do canal
+ambíguo — quando não dá para decidir, declara-se, não se inventa.
+
+🔴 **Não medido ao vivo:** o preenchimento de `min_sale_price` na base — a qualidade do
+dado documentada em [`qualidade.md`](../../../context/banco-de-dados/plataforma/qualidade.md)
+mede que o VMV é **real** na Cars2You (mediana 0,71× a FIPE), mas não a taxa de
+preenchimento. A VPN estava fora do ar quando isto foi escrito (2026-09-23); medir antes
+de assumir que a maioria das negociações tem VMV.
+
+O critério mora em `faroDe()` (`montar-html.js`): `!qtOfertas` → vermelho;
+`ofertaMax >= vmv` (com os dois não-nulos) → verde; senão amarelo. `>=`, não `>` — uma
+oferta que empata com o VMV já é o vendedor aceitando aquele valor.
+
 ## A janela de eventos, e a armadilha do fuso
 
 Desde **2026-09-18** o recorte olha para a frente: `PISO_FIXO = ''` (piso na **meia-noite de
@@ -540,12 +618,58 @@ O filtro vale em **quatro** lugares, e faltar um não dá erro — dá base erra
 
 ## A regra de elegibilidade
 
-Um par (veículo, loja) **só existe** se as duas condições valerem:
+Hoje, um par (veículo, loja) **só existe** se a loja passa nas **duas travas de acesso do
+evento**:
 
-1. **Mesma UF** — a do veículo é a do **pátio** onde ele está (`shop_stocks`), não a do
-   endereço da loja vendedora; a da compradora vem do endereço dela.
-2. **Whitelabel do evento** — `event_whitelabels` é 1:N, então é `loja.whitelabel_id ∈
+1. **Whitelabel do evento** — `event_whitelabels` é 1:N, então é `loja.whitelabel_id ∈
    conjunto`, não igualdade simples.
+2. **Grupo de cliente do evento** (desde 2026-09-23) — `event_client_groups`, também 1:N.
+   A loja precisa estar em algum grupo **ativo** que o evento alveja.
+
+A UF deixou de ser trava em 2026-09-11: virou componente com peso no score. O texto
+abaixo sobre a UF do pátio continua valendo, porque o componente usa a mesma fonte.
+
+### 🔒 A trava de grupo de cliente (2026-09-23)
+
+Pedido do Thomas, depois de medir que o evento também restringe por grupo. O que o banco
+mostrou (significado completo em
+[`dominios.md`](../../../context/banco-de-dados/plataforma/dominios.md), números em
+[`indicadores.md`](../../../context/banco-de-dados/projetos/radar-de-estoque/indicadores.md)):
+
+- **O grupo mora no usuário, não na loja.** A loja chega nele por `user_shops` →
+  `user_clients_group` e herda a união dos grupos de todos os seus usuários.
+- **Decisões do Thomas:** a loja herda de **todos** os usuários, sem cortar super-usuário;
+  **todo grupo listado dá acesso**, inclusive os de nome "Bloqueio"; grupo **inativo** não
+  dá acesso.
+- **Evento sem grupo nenhum** fica só com a trava de canal. **Evento com grupos todos
+  inativos** não tem loja com acesso. Por isso `q_evento_grupo` traz os pares com a marca
+  `ativo`, em vez de filtrar os inativos no SQL: filtrar faria o segundo caso virar o
+  primeiro.
+
+Custo e efeito, medidos antes de implementar:
+
+| | |
+|---|---|
+| pares cortados (recorte de 23/09) | 985.388 → 946.875 (−3,9%) |
+| onde pesa | evento 23995: 234 lojas → 1; eventos 24001 e 24008: 944 → 319 |
+| chamadas a mais | fase 1: +10 (`q_evgr_total`, `q_evento_grupo` × 8, `q_lojas_grupo_total`); fase 2: +27 (`q_loja_grupos`) |
+| tempo a mais, estimado | ~2 min (27 × ~4s na fase 2, ~20s na fase 1) |
+
+🔴 **`q_loja_grupos` não junta `client_groups`, e isso é medido, não descuido.** Com o join
+(para filtrar grupo ativo) e com um filtro "só grupos que os eventos alvejam", o banco
+começava pelos grupos e refazia o `EXISTS` de oferta para cada par loja × grupo: **20 a
+36s por passada**, contra **~4s** sem os dois. Nenhum dos dois decide nada: se o grupo
+está ativo vem do lado do evento, e grupo de loja que nenhum evento alveja não casa.
+
+Proteções:
+- `q_evento_grupo` é conferida contra `q_evgr_total`; se faltar par, o run para.
+- `q_loja_grupos` é conferida contra `q_lojas_grupo_total`; se faltar loja, vira aviso
+  nomeado.
+- Lista de grupos perto do limite do `GROUP_CONCAT` (1.024 caracteres) vira aviso. A maior
+  lista medida tem 93.
+- Veículo que tem loja no canal mas nenhuma no grupo fica marcado `grupo_sem_loja`, com
+  etiqueta própria. Ele conta no KPI cinza **Sem loja com acesso** (antes "Canal sem loja")
+  e **não** em "Sem correspondência".
 
 🚨 **A UF do veículo mudou de fonte em 2026-09-10, e não é cosmético: 68% dos veículos têm
 pátio numa UF diferente da UF cadastral de quem vende** (sonda 50068, cobertura de 100%
@@ -605,6 +729,46 @@ Daí o desenho atual:
 repassar chega `undefined` no fim — em silêncio. Já aconteceu duas vezes; hoje há prova
 travando a ponte.
 
+### Seis consultas por loja, não oito (2026-09-23 — uma fusão ficou, a outra não)
+
+`q_lojas`, `q_contato` e `q_cluster` eram **três consultas com a cláusula idêntica**:
+`FROM shops s ... WHERE s.deleted_at IS NULL <canal> AND EXISTS (...oferta na janela...)`.
+Mesma base, mesma página (`PAG_LOJAS`), três vezes a mesma volta à mesa. Viraram uma
+`q_lojas` só, com telefone/e-mail e as duas datas do cluster como colunas a mais.
+**Rodou no banco de verdade no run 53385 (23/09): 27 páginas, sem erro.** Ficou.
+
+`q_modelo` e `q_categoria` também eram a mesma função `moda()`, chamada duas vezes
+trocando só a coluna — e a tentativa de fundir as duas em `q_moda` (um `LEFT JOIN`
+duplo, as duas modas lado a lado) **estourou o prazo do MCP nas 27 páginas, todas**
+(`context deadline exceeded`) no mesmo run 53385. O banco não parece compartilhar a
+varredura de `offers`/`advertisements`/`vehicles` entre os dois `ganhador()`
+independentes — junto, o dobro do trabalho de cada parte sozinha, e isso passou dos
+60s. **Revertida na hora**, de volta a duas consultas.
+
+A guarda de cobertura (a que compara `q_moda_lojas` contra o que a moda de fato
+cobriu) funcionou como devia: declarou a falha — "cobriu 0 lojas de 1.316" — em vez de
+publicar silenciosamente um score sem modelo nem categoria. Mas o efeito é real: **o
+relatório publicado às 20:53 de 23/09 saiu sem esses dois componentes do score**, para
+todas as lojas, até a próxima execução com a SQL revertida.
+
+| | antes (até 22/09) | tentado (q_moda) | sem a trava de grupo | hoje, com a trava |
+|---|---|---|---|---|
+| consultas por loja | 8 | 5 | 6 | **7** (+`q_loja_grupos`) |
+| chamadas por run (1.316 lojas) | 216 | 135 | 162 | **189** |
+| chamadas totais (fase 1 + fase 2) | 255 | ≈174 | ≈203 | **≈240** |
+
+As contagens da coluna "sem a trava" corrigem as da versão anterior desta tabela (156 e
+≈180), que tinham usado 26 páginas por consulta no lugar das 27 de 1.316 lojas.
+
+`q_lojas` sozinha já poupa 54 chamadas por run — a fusão de contato e cluster ficou,
+provada com dado real. A de modelo e categoria não sobreviveu ao primeiro run.
+
+⚠️ **Não fundida:** `q_ofertas` em `q_uf_laudo`. As duas agrupam pela mesma janela, mas
+`q_uf_laudo` tem `INNER JOIN advertisements` que `q_ofertas` não tem — se alguma oferta
+apontar pra um anúncio apagado, `qt_ofertas` mudaria de valor sem aviso. Não medido (a
+VPN pro banco estava fora do ar); não fundir sem medir. Dado o que aconteceu com a
+moda, vale medir com ainda mais cuidado antes de tentar.
+
 ## A tela
 
 Duas telas no mesmo arquivo, alternadas pelo botão do cabeçalho:
@@ -622,6 +786,22 @@ O que o filtro **não** alcança, e está escrito na tela: o perfil de compra da
 fator de confiança vêm do histórico de 6 meses da loja inteira. Como a aderência é
 calculada contra esse perfil, o score de cada par também não muda com o filtro — o filtro
 escolhe quais pares aparecem, não os recalcula.
+
+### 🚦 O filtro de farol de oferta (2026-09-23)
+
+Um dropdown a mais na gaveta, com as três cores do farol (ver a seção do farol, acima):
+VMV atingido, com oferta mas VMV não atingido, sem oferta.
+
+**Ao contrário do responsável, este é do lado do VEÍCULO — o espelho exato dele.** Um
+veículo tem farol; uma loja não. Então, como whitelabel, UF e evento, ele entra no
+`passaV` e vale para a **página inteira** (KPIs, as duas tabelas, o extrato), não só numa
+tabela. O smoke test prova o espelho: a soma dos veículos ao longo das opções fecha com o
+total (todo veículo tem exatamente uma cor, nunca nula), e a soma das lojas é o total
+multiplicado pelo número de opções — a tabela de lojas fica parada, porque farol não é
+atributo de loja.
+
+O rótulo de cada opção vem de `DADOS.parametros.farol_nome`, a mesma fonte da dica da
+bolinha e do glossário — uma lista de três textos, não três listas que podem divergir.
 
 ### 👤 O filtro de responsável (2026-09-21)
 
@@ -1038,6 +1218,7 @@ mínima". São **três populações com causas opostas**:
 | causa | o que significa | baixar o corte resolve? |
 |---|---|---|
 | **canal sem loja** | o evento alveja um **canal de pessoa física** (colaborador, associado, clube). Não existe loja compradora como categoria — o par é impossível por construção. | **não** |
+| **grupo sem loja** (desde 23/09) | há loja no canal, mas nenhuma nos grupos de cliente que o evento alveja. Par impossível pela regra de acesso. | **não** |
 | **sem loja na UF** | há loja no canal, mas nenhuma na UF do pátio | **não** |
 | **cortado pelo mínimo** | havia loja elegível e nenhuma alcançou os 50% | **sim** |
 

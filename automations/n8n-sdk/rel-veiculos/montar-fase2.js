@@ -118,6 +118,18 @@ if (Number.isFinite(EVWL_ESPERADO) && eventoWl.length !== EVWL_ESPERADO) {
     'elegibilidade -- faltar par faz veiculo perder loja em silencio).');
 }
 
+/* mesma guarda para a trava de grupo: par evento x grupo que falta tira
+   comprador de veiculo, e na tela isso fica igual a carro sem loja. */
+const eventoGrupo = leitura('q_evento_grupo');
+const EVGR_ESPERADO = Number((leitura('q_evgr_total')[0] || {}).pares);
+if (Number.isFinite(EVGR_ESPERADO) && eventoGrupo.length !== EVGR_ESPERADO) {
+  throw new Error('q_evento_grupo veio incompleta: ' + eventoGrupo.length +
+    ' pares evento x grupo de ' + EVGR_ESPERADO +
+    '. Aumente as paginas dela na fase 1 (grupo e metade da trava de ' +
+    'elegibilidade -- faltar par faz veiculo perder loja em silencio).');
+}
+const LOJAS_GRUPO = Number((leitura('q_lojas_grupo_total')[0] || {}).lojas);
+
 const PAG_VEIC = Math.ceil(VEICULOS / PAGE);
 const PAG_LOJAS = Math.ceil(LOJAS / PAGE);
 /* As modas voltaram a caber em PAG_LOJAS: elas agora colapsam os empates no
@@ -196,7 +208,25 @@ push('q_veiculos',
      laudo -- que aqui chega como NULL. Sao tres estados, nao dois. */
   " vpr.situation AS laudo," +
   " a.shop_id AS loja_id, s.name AS loja_vendedora," +
-  " COALESCE(" + UF_PATIO + ", 'Não identificada') AS uf" +
+  " COALESCE(" + UF_PATIO + ", 'Não identificada') AS uf," +
+  /* VMV = valor minimo de venda, decidido pelo vendedor por negociacao.
+     E real na Cars2You (mediana 0,71x a FIPE, medido em 17/09) -- na Dealers
+     e valor-sentinela e nao seria comparavel, mas esta query so le
+     cars2you_production, entao o numero vale. Pode vir NULL: nem toda
+     negociacao tem VMV declarado, e o farol trata isso como "nao da pra
+     confirmar atingido", nao como zero. */
+  " NULLIF(an.min_sale_price, 0) AS vmv," +
+  /* ofertas da PROPRIA negociacao (nao do historico de 6 meses da loja,
+     que e outra coisa e ja vem em q_ofertas/q_perfil). advs_negotiation_id
+     e a FK de offers pra advertisement_negotiations -- correlacionada aqui
+     porque e um numero por negociacao, nao por loja. Sem filtro de
+     `situation`: o dominio dela ainda nao foi decodificado (ver
+     dominios.md), e contar so 'existe oferta com preco' nao depende de
+     entender esse codigo. */
+  " (SELECT COUNT(*) FROM offers o WHERE o.advs_negotiation_id = an.id" +
+  " AND o.deleted_at IS NULL AND o.price > 0) AS qt_ofertas," +
+  " (SELECT MAX(o.price) FROM offers o WHERE o.advs_negotiation_id = an.id" +
+  " AND o.deleted_at IS NULL AND o.price > 0) AS oferta_max" +
   " FROM " + ULTIMA_NEG +
   " INNER JOIN advertisement_negotiations an ON an.id = u.neg_id" +
   " INNER JOIN events e ON e.id = an.event_id" +
@@ -223,10 +253,60 @@ push('q_veiculos',
   " GROUP BY neg_id, evento_id, evento, fim_evento, anuncio_id, vehicle_id," +
   " valor, valor_inicial, fipe, model_id, modelo, category_id, categoria," +
   " marca, versao, anuncio_uuid, model_year, km, neg_status, laudo," +
-  " loja_id, loja_vendedora, uf" +
+  " loja_id, loja_vendedora, uf, vmv" +
+  /* qt_ofertas e oferta_max NAO entram aqui: sao subquery correlacionada,
+     nao coluna simples de tabela juntada -- e neg_id (chave primaria de
+     an, ja no GROUP BY) ja garante uma linha por negociacao. */
   " ORDER BY an.id", PAG_VEIC);
 
 /* ── B) perfil de compra das lojas (mesmas queries do LZL3mxfbMIz4avyx) ── */
+/* mesmo filtro de q_lojas_total (fase 1), que a dimensiona -- repetido
+   aqui porque tres consultas (q_lojas, o antigo q_contato, o antigo
+   q_cluster) partiam da mesma clausula, letra por letra. Uma fusao so:
+   MESMA base, MESMA pagina, tres vezes menos chamada.
+   Otimizacao de 2026-09-23: eram 3 consultas x 27 paginas = 81 chamadas
+   por run; viram 1 x 27 = 27. O merge nao muda nenhum numero publicado,
+   so onde ele mora -- contato e cluster (`ult_oferta`/`ult_acesso`) saem
+   direto da linha de `q_lojas` agora, sem indice proprio no Montar HTML. */
+const LOJA_TEM_OFERTA =
+  " AND EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id" +
+  " AND o.deleted_at IS NULL AND o.created_at >= '" + DATA_INI + "' AND o.price > 0)";
+/* ── contato (ex-q_contato) ────────
+   Telefone sai de `shops` (comercial 79,3%, whatsapp 79,0%, privativo 8,9%).
+   O privativo entra a pedido explicito do Thomas em 11/09.
+
+   🔴 O e-mail NAO sai de `shops`: medido em 5,8% ali contra 99,5% em `users`
+   via `user_shops` (sonda 50347). Quando a loja tem mais de um usuario com
+   e-mail -- 1,19 por loja na media -- o desempate e o MENOR user_id, pelo
+   mesmo motivo que a moda usa MIN(item_id): e deterministico entre runs.
+   `user_shops.function` nao serve de criterio, esta nulo em 77% dos
+   vinculos.
+
+   🚨 ISTO E PII. O relatorio passa a carregar e-mail e telefone de loja real,
+   e ele sobe pro SharePoint. `qt_emails` viaja junto para a tela poder dizer
+   "1 de N" em vez de fingir que a loja tem um contato so. */
+const EMAIL_AG =
+  "(SELECT us.shop_id AS shop_id, MIN(us.user_id) AS user_id," +
+  " COUNT(DISTINCT us.user_id) AS qt" +
+  " FROM user_shops us" +
+  " INNER JOIN users u ON u.id = us.user_id AND u.deleted_at IS NULL" +
+  " WHERE TRIM(COALESCE(u.email, '')) <> ''" +
+  " GROUP BY us.shop_id) ue";
+/* ── as duas datas do cluster (ex-q_cluster) ────────
+   So as DATAS CRUAS vem do banco; a regra das sete faixas e calculada no
+   Montar HTML. Assim ela e testavel pelo prova-local.js sem tocar no banco,
+   e mudar uma faixa nao exige rodar o workflow inteiro.
+
+   `ult_oferta` NAO leva filtro de janela: a pergunta e "ja ofertou alguma
+   vez", e `offers` alcanca 2020-06-24 (sonda 50347). `ult_acesso` sai de
+   `access_logs`, que so comeca em 2025-08-31 -- por isso "nunca acessou" e,
+   na verdade, "nao acessou nos ultimos 12 meses". A tela tem que dizer isso.
+
+   🚨 Na base deste relatorio o cluster e DEGENERADO: 98,8% cai em Diamante
+   ou Ouro, porque a base *e* "lojas que ofertaram nos ultimos 6 meses" e
+   nenhuma delas pode ser "nunca ofertou". Medido na sonda 50347. Entra assim
+   mesmo por decisao do Thomas; os sete so existem sobre o universo inteiro
+   de lojas. */
 push('q_lojas',
   "SELECT s.id AS shop_id, MAX(s.name) AS loja," +
   /* o CNPJ e a chave do cruzamento com a carteira comercial (filtro de
@@ -234,13 +314,28 @@ push('q_lojas',
      resto da linha ja vem assim -- nao ha dois CNPJ pra mesma loja. */
   " MAX(s.cnpj) AS cnpj," +
   " MAX(s.whitelabel_id) AS whitelabel_id, MAX(w.name) AS whitelabel," +
-  " COALESCE(MAX(" + UF_CASE + "), 'Não identificada') AS uf" +
+  " COALESCE(MAX(" + UF_CASE + "), 'Não identificada') AS uf," +
+  /* ex-q_contato: telefone sai de shops (comercial/whatsapp/privativo); o
+     e-mail sai de users via user_shops (99,5% preenchido ali contra 5,8%
+     em shops, sonda 50347) -- desempate pelo MENOR user_id, deterministico
+     entre runs. ISTO E PII: sobe pro SharePoint junto do relatorio. */
+  " MAX(s.comercial_number) AS tel_comercial," +
+  " MAX(s.whatsapp_number) AS whatsapp," +
+  " MAX(s.privative_number) AS tel_privativo," +
+  " MAX(uu.email) AS email," +
+  " MAX(ue.qt) AS qt_emails," +
+  /* ex-q_cluster: as duas datas cruas (a regra das sete faixas e calculada
+     no Montar HTML, pra ser testavel sem tocar no banco). Correlacionada
+     por shop_id como antes -- so mudou de consulta, nao de forma. */
+  " (SELECT MAX(o2.created_at) FROM offers o2 WHERE o2." + LADO + " = s.id" +
+  " AND o2.deleted_at IS NULL AND o2.price > 0) AS ult_oferta," +
+  " (SELECT MAX(al.created_at) FROM access_logs al WHERE al.shop_id = s.id) AS ult_acesso" +
   " FROM shops s" +
   " LEFT JOIN whitelabels w ON w.id = s.whitelabel_id" +
   " LEFT JOIN shop_addresses sa ON sa.shop_id = s.id AND sa.deleted_at IS NULL" +
-  " WHERE s.deleted_at IS NULL" + SO_WL_LOJA +
-  " AND EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id" +
-  " AND o.deleted_at IS NULL AND o.created_at >= '" + DATA_INI + "' AND o.price > 0)" +
+  " LEFT JOIN " + EMAIL_AG + " ON ue.shop_id = s.id" +
+  " LEFT JOIN users uu ON uu.id = ue.user_id" +
+  " WHERE s.deleted_at IS NULL" + SO_WL_LOJA + LOJA_TEM_OFERTA +
   " GROUP BY s.id ORDER BY s.id", PAG_LOJAS);
 
 push('q_ofertas',
@@ -347,69 +442,16 @@ push('q_uf_laudo',
   " WHERE" + JANELA +
   " GROUP BY o." + LADO + " ORDER BY o." + LADO, PAG_LOJAS);
 
-/* ── contato ────────
-   Telefone sai de `shops` (comercial 79,3%, whatsapp 79,0%, privativo 8,9%).
-   O privativo entra a pedido explicito do Thomas em 11/09.
-
-   🔴 O e-mail NAO sai de `shops`: medido em 5,8% ali contra 99,5% em `users`
-   via `user_shops` (sonda 50347). Quando a loja tem mais de um usuario com
-   e-mail -- 1,19 por loja na media -- o desempate e o MENOR user_id, pelo
-   mesmo motivo que a moda usa MIN(item_id): e deterministico entre runs.
-   `user_shops.function` nao serve de criterio, esta nulo em 77% dos
-   vinculos.
-
-   🚨 ISTO E PII. O relatorio passa a carregar e-mail e telefone de loja real,
-   e ele sobe pro SharePoint. `qt_emails` viaja junto para a tela poder dizer
-   "1 de N" em vez de fingir que a loja tem um contato so. */
-const EMAIL_AG =
-  "(SELECT us.shop_id AS shop_id, MIN(us.user_id) AS user_id," +
-  " COUNT(DISTINCT us.user_id) AS qt" +
-  " FROM user_shops us" +
-  " INNER JOIN users u ON u.id = us.user_id AND u.deleted_at IS NULL" +
-  " WHERE TRIM(COALESCE(u.email, '')) <> ''" +
-  " GROUP BY us.shop_id) ue";
-
-push('q_contato',
-  "SELECT s.id AS shop_id," +
-  " MAX(s.comercial_number) AS tel_comercial," +
-  " MAX(s.whatsapp_number) AS whatsapp," +
-  " MAX(s.privative_number) AS tel_privativo," +
-  " MAX(uu.email) AS email," +
-  " MAX(ue.qt) AS qt_emails" +
-  " FROM shops s" +
-  " LEFT JOIN " + EMAIL_AG + " ON ue.shop_id = s.id" +
-  " LEFT JOIN users uu ON uu.id = ue.user_id" +
-  " WHERE s.deleted_at IS NULL" + SO_WL_LOJA +
-  " AND EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id" +
-  " AND o.deleted_at IS NULL AND o.created_at >= '" + DATA_INI + "' AND o.price > 0)" +
-  " GROUP BY s.id ORDER BY s.id", PAG_LOJAS);
-
-/* ── as duas datas do cluster ────────
-   So as DATAS CRUAS vem do banco; a regra das sete faixas e calculada no
-   Montar HTML. Assim ela e testavel pelo prova-local.js sem tocar no banco,
-   e mudar uma faixa nao exige rodar o workflow inteiro.
-
-   `ult_oferta` NAO leva filtro de janela: a pergunta e "ja ofertou alguma
-   vez", e `offers` alcanca 2020-06-24 (sonda 50347). `ult_acesso` sai de
-   `access_logs`, que so comeca em 2025-08-31 -- por isso "nunca acessou" e,
-   na verdade, "nao acessou nos ultimos 12 meses". A tela tem que dizer isso.
-
-   🚨 Na base deste relatorio o cluster e DEGENERADO: 98,8% cai em Diamante
-   ou Ouro, porque a base *e* "lojas que ofertaram nos ultimos 6 meses" e
-   nenhuma delas pode ser "nunca ofertou". Medido na sonda 50347. Entra assim
-   mesmo por decisao do Thomas; os sete so existem sobre o universo inteiro
-   de lojas. */
-push('q_cluster',
-  "SELECT s.id AS shop_id," +
-  " (SELECT MAX(o2.created_at) FROM offers o2 WHERE o2." + LADO + " = s.id" +
-  " AND o2.deleted_at IS NULL AND o2.price > 0) AS ult_oferta," +
-  " (SELECT MAX(al.created_at) FROM access_logs al WHERE al.shop_id = s.id) AS ult_acesso" +
-  " FROM shops s" +
-  " WHERE s.deleted_at IS NULL" + SO_WL_LOJA +
-  " AND EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id" +
-  " AND o.deleted_at IS NULL AND o.created_at >= '" + DATA_INI + "' AND o.price > 0)" +
-  " ORDER BY s.id", PAG_LOJAS);
-
+/* 🔴 REVERTIDO em 2026-09-23, mesmo dia: a fusao de q_modelo+q_categoria em
+   `q_moda` (um LEFT JOIN duplo, duas modas lado a lado) rodou no run 53385
+   e ESTOUROU O PRAZO NAS 27 PAGINAS -- "context deadline exceeded" em
+   todas, 0 de 1.316 lojas cobertas nas duas. O banco parece nao
+   compartilhar a varredura de offers/advertisements/vehicles entre os
+   dois `ganhador()` independentes: junto, o dobro do trabalho de cada
+   parte sozinha, e isso passou dos 60s do MCP. Separadas, cada uma corria
+   dentro do prazo (medido em runs anteriores a esta sessao). A fusao de
+   q_lojas (contato+cluster, acima) NAO teve esse problema -- rodou limpa
+   no mesmo run 53385, 27 paginas, sem erro. So a moda voltou atras. */
 function moda(nome, campo, tabela) {
   const AG =
     "(SELECT o." + LADO + " AS shop_id, v." + campo + " AS item_id, COUNT(*) AS n" +
@@ -440,6 +482,21 @@ function moda(nome, campo, tabela) {
 }
 moda('q_modelo', 'model_id', 'models');
 moda('q_categoria', 'category_id', 'categories');
+
+/* ── os grupos de cada loja ────────
+   Consulta DIRETA e separada: uma linha por loja, com os grupos numa coluna
+   so (`GROUP_CONCAT`). Uma linha por (loja, grupo) teria contagem
+   desconhecida e a paginacao voltaria a ser chute; assim ela cabe nas mesmas
+   PAG_LOJAS das outras. O cruzamento com o evento e feito no Montar HTML.
+   O FROM/WHERE vem pronto da fase 1, identico ao da contagem que confere
+   esta coleta. Custo medido em 23/09: ~4,5s por passada, 1.309 lojas.
+   Paginada por LOJAS, nao por LOJAS_GRUPO: sao ate LOJAS linhas (loja sem
+   grupo nenhum nao aparece), entao a pagina que sobra, se sobrar, e uma. */
+push('q_loja_grupos',
+  "SELECT us.shop_id AS shop_id," +
+  " GROUP_CONCAT(DISTINCT ucg.client_group_id ORDER BY ucg.client_group_id) AS grupos" +
+  META_IN.grupo_loja_base +
+  " GROUP BY us.shop_id ORDER BY us.shop_id", PAG_LOJAS);
 
 /* ── guardas ──────── */
 /* Sem regex de proposito. Este arquivo viaja ate o n8n como string JSON
@@ -476,6 +533,8 @@ const META = {
   moda_lojas: leitura('q_moda_lojas')[0] || {},
   eventos: eventos,
   evento_wl: eventoWl,
+  evento_grupo: eventoGrupo,
+  esperado_lojas_grupo: Number.isFinite(LOJAS_GRUPO) ? LOJAS_GRUPO : null,
   por_status: porStatus,
   meses_historico: META_IN.meses_historico,
   /* o corte de outlier viaja pro glossario: numero descartado em silencio e

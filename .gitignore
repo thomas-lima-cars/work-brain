@@ -29,6 +29,11 @@ automations/n8n-sdk/saida-teste-local.html
 automations/n8n-sdk/*/dados-*.json
 automations/n8n-sdk/*/saida-*.html
 
+# Exports do workflow baixados da interface do n8n, guardados depois de
+# conferir a transcricao (_confere_transcricao.py). Um por colagem: o codigo
+# versionado sao os .js e o .wf.ts; estes sao a prova do que estava no n8n.
+automations/n8n-sdk/*/workflow-n8n-*.json
+
 # Credenciais do banco da Dealers. O modelo (.env.exemplo) e versionado; o
 # preenchido mora em ~/.dealers-dlc.env, FORA do repo. Estas linhas sao a
 # segunda barreira -- conexao.py recusa ler credencial de dentro do repo.

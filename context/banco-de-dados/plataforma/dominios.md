@@ -4,7 +4,7 @@
 > os valores **significam** e onde a leitura ingênua erra. Tudo nesta página foi medido
 > por consulta, com a execução anotada. Nada foi inferido do nome da coluna.
 >
-> **Última medição:** 2026-09-09
+> **Última medição:** 2026-09-23
 
 ## `advertisement_negotiations.status`
 
@@ -362,8 +362,95 @@ usar a **mesma** definição nos dois lugares.
 Os sete só existem sobre o universo inteiro de lojas — é lá que a
 segmentação tem para onde variar.
 
+## `event_shops` — o DONO do evento, não quem pode comprar
+
+Medido em **2026-09-23** por conexão direta (`consulta.py --base cars2you`).
+
+| medida | valor |
+|---|---|
+| linhas | 4.785 |
+| eventos com registro | 4.759 (de 8.341 não apagados) |
+| lojas distintas | 81 |
+| lojas por evento | 1 em 4.736 eventos; 2 a 4 em só 23 |
+| primeiro registro | 2025-08-31 (mesma data de corte de `access_logs`) |
+
+**É a loja que vende no evento — o comitente.** Em 4.323 dos 4.785 pares
+(90%) a loja é quem anuncia veículo naquele evento (`advertisements.shop_id`);
+em só 61 ela deu lance. Nos 31 eventos do recorte do Radar em 23/09 a
+coincidência foi total: um registro por evento e nenhum veículo de outro
+vendedor. São os nomes conhecidos (LM Transportes, Outlet Netcarros, Banco
+Volkswagen, C6 Bank Lojista, Itaú, Scania, Bradesco, Vamos, Addiante…).
+
+Conclusão prática: **não serve como trava de loja compradora.** Para quem
+pode comprar, ver a seção abaixo. Para o vendedor de um veículo,
+`advertisements.shop_id` já responde, e vale também para evento anterior a
+2025-08-31, onde `event_shops` não existe.
+
+## Quem pode ver um evento: whitelabel E grupo de cliente
+
+Medido em **2026-09-23** por conexão direta, sobre os 31 eventos com fim entre
+23/09 e 30/09 nos canais do Radar (4, 7, 43, 48, 62, 65).
+
+Duas travas, as duas por evento:
+
+| trava | tabela do evento | como a loja chega nela |
+|---|---|---|
+| canal | `event_whitelabels` | `shops.whitelabel_id` — direto |
+| grupo | `event_client_groups` | **pelo usuário**: `user_shops` → `user_clients_group` |
+
+🔴 **O grupo mora no USUÁRIO, não na loja.** Não existe `shops.client_group_id`.
+Uma loja "está" num grupo quando algum usuário dela está. Por isso uma loja
+herda a união dos grupos de todos os seus usuários: média de **7,97 grupos por
+loja**, máximo de 131, e só 7 de 1.316 lojas sem grupo nenhum.
+
+**`event_client_groups` não tem coluna de tipo.** Todo grupo listado entra da
+mesma forma, sem marcação de "permite" ou "bloqueia". Mesmo assim, há grupos
+com nome de bloqueio sendo alvejados: "Bloqueio Banco" (id 102) em 19 dos 31
+eventos, "PJ Bloqueado LM" (109) em 9. O significado desses nomes não foi
+confirmado.
+
+**Todo evento do recorte tinha grupo** (4 com um, 27 com vários, até 8). Os
+grupos mais alvejados são largos: "Marketplace Cars2you" (11) cobre 898 das
+1.316 lojas da base, "Marketplace Cars2you sem CNAE" (50) cobre 600, "iCarros
+PJ" (5) cobre 565.
+
+⚠️ **Grupo inativo ainda é alvejado.** `client_groups.status = 0` em "Base
+compradora LM" (92, 10 eventos) e "VD Itaú - Feirão IGA" (130, 2 eventos).
+
+⚠️ **Super-usuários contaminam o vínculo loja → grupo.** Distribuição de
+usuários por quantidade de lojas vinculadas:
+
+| lojas por usuário | usuários | com e-mail @cars2you.com.br |
+|---|---:|---:|
+| 1 | 16.992 | 68 |
+| 2-3 | 337 | 38 |
+| 4-10 | 72 | 12 |
+| 11-20 | 23 | 10 |
+| 21-50 | 22 | 6 |
+| 51+ | 14 | 7 |
+
+O maior está em 354 lojas; o 52370 está em 328 lojas com 14 grupos. Quem passa
+de 10 lojas é conta interna ou de assessoria, não comprador, e leva todos os
+seus grupos para centenas de lojas. Para medir "a loja está no grupo", decidir
+se esses usuários contam.
+
+## `access_logs` não tem índice (shop_id, created_at)
+
+Medido em **2026-09-23**: 3,3 milhões de linhas, 1,07 GB. Os índices com
+`shop_id` são `(shop_id)` sozinho e `(advertisement_id, event_id, shop_id,
+user_id)`. `MAX(created_at) ... GROUP BY shop_id` varre o índice inteiro
+(`EXPLAIN`: `type=index`, 3.332.592 linhas) e leva **~14s por passada** pela
+VPN.
+
+No MCP, onde cada página `OFFSET` refaz o agregado inteiro, isso se multiplica
+pelo número de páginas. Com 27 páginas são ~6 minutos só para a data do último
+acesso. Para comparação, o mesmo agregado sobre `offers` (740 mil linhas, todo
+o histórico) leva ~5s.
+
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`
+- o que significam os grupos de cliente com nome de bloqueio ("Bloqueio
+  Banco", "PJ Bloqueado LM") quando aparecem em `event_client_groups`
 - `events.situation` — aparece como 1, 3 e 4 nos eventos observados; o 4 sai
   em evento encerrado e no "Preparação Repasse", mas não foi confirmado

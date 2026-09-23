@@ -252,3 +252,18 @@ precificar.
   Thomas corrige na **segunda, 21/09**.
 - Defeito corrigido de passagem: `q_eventos` truncava em 50 linhas sem avisar, e um evento
   com veículo no relatório não aparecia no filtro da página.
+
+## 2026-09-23
+- **Radar de Estoque ganhou o farol de oferta** (sem oferta / VMV não atingido / VMV
+  atingido) e o filtro por ele. A tabela de veículos ficou mais enxuta e a barra de score
+  passou a ter uma cor por valor.
+- **Uma fusão de consultas derrubou um run publicado.** Juntar `q_modelo` e `q_categoria`
+  estourou o prazo do MCP nas 27 páginas (run 53385), e o relatório saiu sem esses dois
+  componentes do score. Revertida no mesmo dia. A outra fusão (contato e cluster dentro de
+  `q_lojas`) ficou.
+- **Trava de grupo de cliente no cruzamento:** além do whitelabel, a loja precisa estar num
+  grupo ativo que o evento alveja (`event_client_groups`, grupo herdado dos usuários).
+  **Run 53433** ✅ 16min15s: 1.032 veículos, 31 eventos, **31.275 pares cortados pela
+  trava**, modelo e categoria de volta em 1.316 lojas. Números em
+  `context/banco-de-dados/projetos/radar-de-estoque/indicadores.md`.
+- Direção do Thomas para o banco do Radar: consultas diretas, processamento no n8n.

@@ -51,7 +51,33 @@ console.log('\n[1] Fase 1 — dimensionamento');
 const f1 = rodaNo('montar-fase1.js', ctxDe({}));
 const p1 = f1.map((i) => i.json);
 const nomes1 = Array.from(new Set(p1.map((p) => p.queryName)));
-ok(nomes1.length === 10, '10 queries: ' + nomes1.join(', '));
+ok(nomes1.length === 13, '13 queries: ' + nomes1.join(', '));
+/* a trava de grupo (23/09): pares evento x grupo, a conferencia deles e o
+   gabarito de cobertura dos grupos por loja */
+['q_evgr_total', 'q_evento_grupo', 'q_lojas_grupo_total'].forEach(function (n) {
+  ok(nomes1.indexOf(n) >= 0, n + ' presente — trava de grupo de cliente');
+});
+(function () {
+  const eg = p1.find((p) => p.queryName === 'q_evento_grupo').sql;
+  const egt = p1.find((p) => p.queryName === 'q_evgr_total').sql;
+  const lgt = p1.find((p) => p.queryName === 'q_lojas_grupo_total').sql;
+  const base = p1[0].meta.grupo_loja_base || '';
+  ok(eg.indexOf('FROM event_client_groups ecg') > 0 && egt.indexOf('FROM event_client_groups ecg') > 0,
+     'os pares e a contagem leem a mesma tabela');
+  /* o ativo vai marcado, nao filtrado: evento so com grupo inativo nao pode
+     virar evento sem trava */
+  ok(eg.indexOf('AS ativo') > 0 && eg.indexOf('WHERE cg.status') < 0,
+     'q_evento_grupo marca `ativo` em vez de filtrar os inativos');
+  ok(egt.indexOf('status') < 0, 'q_evgr_total conta TODOS os pares, como a coleta traz');
+  ok(base.indexOf('user_clients_group ucg') > 0 && base.indexOf('user_shops us') > 0,
+     'a loja chega no grupo pelo usuario (user_shops -> user_clients_group)');
+  ok(lgt.indexOf(base) > 0, 'a contagem usa o FROM/WHERE que viaja no META, letra por letra');
+  /* medido em 23/09: com join em client_groups a consulta vai de ~4s a 20-36s */
+  ok(base.indexOf('client_groups cg') < 0,
+     '[neg] o FROM/WHERE dos grupos da loja NAO junta client_groups (custa 5x no banco)');
+  ok(p1[0].meta.whitelabels.length === 0 || base.indexOf('s.whitelabel_id IN (') > 0,
+     'os grupos por loja usam o mesmo recorte de canal das outras consultas de loja');
+})();
 ok(nomes1.indexOf('q_ev_total') >= 0,
    'q_ev_total presente — e o que impede q_eventos de truncar calada (18/09)');
 ok(nomes1.indexOf('q_wl_nomes') >= 0,
@@ -180,11 +206,26 @@ const EVWL = [[23885, 7, 'Marketplace'], [23903, 4, 'Trucks2you'], [23903, 7, 'M
    prova que a conferencia de q_evento_wl morde. Sem o branch explicito
    abaixo, o catch-all devolvia colunas erradas, `pares` vinha undefined e o
    guard ficava INERTE no teste -- passando sem nunca ter sido exercitado. */
-function fase2Com(veic, lojas, paresFalsos, nomesBanco, modaMentira) {
+/* respostas da trava de grupo na fase 1. Sem grupo nenhum por padrao, para
+   as provas anteriores a trava continuarem medindo o que mediam; o cenario
+   com grupo tem secao propria. Branch explicito pelo mesmo motivo do
+   q_evwl_total: o catch-all devolveria colunas de whitelabel, `ativo` viria
+   undefined e todo evento viraria "com grupo, nenhum ativo". */
+function respGrupoF1(p, g) {
+  g = g || {};
+  const ev = g.ev || [];
+  if (p.queryName === 'q_evgr_total') return resp(['pares'], [[g.total === undefined ? ev.length : g.total]], p.pagina);
+  if (p.queryName === 'q_evento_grupo') return resp(['evento_id', 'grupo_id', 'grupo', 'ativo'], ev, p.pagina);
+  if (p.queryName === 'q_lojas_grupo_total') return resp(['lojas'], [[g.lojas || 0]], p.pagina);
+  return null;
+}
+function fase2Com(veic, lojas, paresFalsos, nomesBanco, modaMentira, grupos) {
   nomesBanco = nomesBanco || {};
   return rodaNo('montar-fase2.js', ctxDe({
     'Montar Fase 1': f1,
     'MCP Fase 1': p1.map((p) => {
+      const rg = respGrupoF1(p, grupos);
+      if (rg) return rg;
       if (p.queryName === 'q_eventos') return resp(['evento_id', 'evento', 'ev_status', 'ini_display', 'fim_evento'], EVENTOS, p.pagina);
       if (p.queryName === 'q_veic_total') return resp(['veiculos', 'negociacoes', 'eventos'], [[veic, veic, 2]], p.pagina);
       if (p.queryName === 'q_lojas_total') return resp(['lojas', 'ofertas'], [[lojas, 103923]], p.pagina);
@@ -221,20 +262,53 @@ const f2 = fase2Com(168, 1300);
 const p2 = f2.map((i) => i.json);
 const M = p2[0].meta;
 ok(M.pag_veic === 4 && M.pag_lojas === 26, '168 veic -> 4 paginas; 1.300 lojas -> 26');
-/* 4 paginas de veiculo + 8 consultas de loja x 26 = 212 chamadas.
+/* 4 paginas de veiculo + 6 consultas de loja x 26 = 160 chamadas.
    Toda consulta por loja custa PAG_LOJAS, entao este numero E a conta do
    run -- por isso a prova e um valor exato e nao um "menor que".
 
    Historico do numero, que e o historico das decisoes:
      134 = 4 + 5x26   depois que as modas colapsaram os empates no SQL
      212 = 4 + 8x26   com os cinco campos de 11/09
+     138 = 4 + 5x26 + q_lojas maior   em 23/09, fundindo q_contato e
+                      q_cluster em q_lojas (rodou limpo no run 53385) --
+                      MAS a fusao de q_modelo+q_categoria em q_moda,
+                      tentada no mesmo dia, ESTOUROU o prazo do MCP nas 27
+                      paginas ("context deadline exceeded"). Revertida na
+                      hora: modelo e categoria voltaram a ser duas
+                      consultas, entao 160 = 4 + 6x26 -- uma fusao ficou
+                      (q_lojas), a outra nao (moda).
+     186 = 4 + 7x26   em 23/09, a trava de grupo de cliente: q_loja_grupos
+                      (os grupos herdados dos usuarios de cada loja), uma
+                      consulta direta e separada, a pedido do Thomas.
 
-   Foram CINCO pedidos e so TRES consultas novas: o desagio pegou carona na
-   q_perfil (mesma varredura da ULTIMAS) e UF + laudo compartilham uma
-   varredura so. Ingenuamente seriam +130 chamadas; sao +78. */
-ok(p2.length === 4 + 8 * 26, 'fase 2 = ' + (4 + 8 * 26) + ' chamadas — tem ' + p2.length);
+   Foram CINCO pedidos e so TRES consultas novas em 11/09: o desagio pegou
+   carona na q_perfil (mesma varredura da ULTIMAS) e UF + laudo compartilham
+   uma varredura so. Ingenuamente seriam +130 chamadas; foram +78. Em 23/09,
+   +54 delas (contato e cluster) voltaram a 0; as +24 da moda (2x26 -> 1x26)
+   nao sobreviveram ao banco de verdade. */
+ok(p2.length === 4 + 7 * 26, 'fase 2 = ' + (4 + 7 * 26) + ' chamadas — tem ' + p2.length);
+(function () {
+  const lg = p2.filter((x) => x.queryName === 'q_loja_grupos');
+  ok(lg.length === 26, 'q_loja_grupos pagina por PAG_LOJAS (26) — tem ' + lg.length);
+  ok(lg.length && lg[0].sql.indexOf('GROUP_CONCAT(DISTINCT ucg.client_group_id') > 0,
+     'uma linha por loja, grupos numa coluna so: a paginacao continua dimensionada');
+  ok(lg.length && lg[0].sql.indexOf(M.grupo_loja_base === undefined ? p1[0].meta.grupo_loja_base : M.grupo_loja_base) > 0,
+     'q_loja_grupos le o MESMO FROM/WHERE que a contagem da fase 1');
+  ok(Array.isArray(M.evento_grupo), 'os pares evento x grupo atravessam no META');
+})();
+/* [neg] truncar q_evento_grupo tira comprador de veiculo sem erro de SQL */
+(function () {
+  let mordeuGr = false;
+  try {
+    fase2Com(168, 1300, undefined, undefined, undefined,
+      { ev: [[23885, 100, 'G', 1]], total: 9 });
+  } catch (e) { mordeuGr = /q_evento_grupo veio incompleta/.test(String(e.message)); }
+  ok(mordeuGr, '[neg] a fase 2 mata o run se q_evento_grupo vier incompleta');
+})();
 
-/* ── os cinco campos de 2026-09-11 ─────────────────────────────────────── */
+/* ── os cinco campos de 2026-09-11 (contato e cluster desde 23/09 moram na
+   SQL de q_lojas; modelo e categoria continuam em consultas separadas --
+   a fusao delas foi revertida no mesmo dia, ver montar-fase2.js) ────────── */
 (function () {
   const acha = (n) => p2.find((x) => x.queryName === n);
 
@@ -273,31 +347,30 @@ ok(p2.length === 4 + 8 * 26, 'fase 2 = ' + (4 + 8 * 26) + ' chamadas — tem ' +
   ok(ufl.sql.indexOf('GROUP BY sa2.shop_id') > 0,
     'a UF da loja vem de tabela derivada, sem fan-out de endereco');
 
-  /* 4. contato */
-  const cont = acha('q_contato');
-  ok(!!cont, 'q_contato existe');
-  ok(cont.sql.indexOf('MIN(us.user_id)') > 0,
+  /* 4. contato -- fundido em q_lojas desde 23/09 */
+  const lj = acha('q_lojas');
+  ok(!!lj, 'q_lojas existe');
+  ok(lj.sql.indexOf('MIN(us.user_id)') > 0,
     'o e-mail desempata por menor user_id (deterministico entre runs)');
-  ok(cont.sql.indexOf('INNER JOIN users u') > 0, 'o e-mail vem de users');
-  ok(cont.sql.indexOf('AS qt_emails') > 0,
+  ok(lj.sql.indexOf('INNER JOIN users u') > 0, 'o e-mail vem de users');
+  ok(lj.sql.indexOf('AS qt_emails') > 0,
     'a contagem de usuarios viaja: a tela diz "1 de N"');
   ['tel_comercial', 'whatsapp', 'tel_privativo'].forEach(function (c) {
-    ok(cont.sql.indexOf('AS ' + c) > 0, 'telefone: ' + c);
+    ok(lj.sql.indexOf('AS ' + c) > 0, 'telefone: ' + c);
   });
   /* NEGATIVA: o e-mail de shops esta em 5,8% -- se voltar a ser a fonte, o
      campo sai vazio em 19 de cada 20 linhas */
-  ok(cont.sql.indexOf('comercial_email') < 0,
+  ok(lj.sql.indexOf('comercial_email') < 0,
     '[neg] o e-mail NAO vem de shops.comercial_email');
 
-  /* 5. cluster: so as datas cruas; a regra e JS e testavel */
-  const clu = acha('q_cluster');
-  ok(!!clu, 'q_cluster existe');
-  ok(clu.sql.indexOf('AS ult_oferta') > 0 && clu.sql.indexOf('AS ult_acesso') > 0,
-    'o cluster traz as duas datas');
+  /* 5. cluster: so as datas cruas; a regra e JS e testavel -- tambem fundido
+     em q_lojas desde 23/09 */
+  ok(lj.sql.indexOf('AS ult_oferta') > 0 && lj.sql.indexOf('AS ult_acesso') > 0,
+    'q_lojas traz as duas datas do cluster');
   /* "ja ofertou alguma vez" nao pode levar a janela de 6 meses: offers
      alcanca 2020-06-24 e e isso que torna "nunca ofertou" verificavel */
-  const uo = clu.sql.slice(clu.sql.indexOf('AS ult_oferta') - 220,
-                           clu.sql.indexOf('AS ult_oferta'));
+  const uo = lj.sql.slice(lj.sql.indexOf('AS ult_oferta') - 220,
+                          lj.sql.indexOf('AS ult_oferta'));
   ok(uo.indexOf('created_at >=') < 0,
     'ult_oferta NAO leva filtro de janela: a pergunta e "ja ofertou alguma vez"');
 
@@ -305,8 +378,8 @@ ok(p2.length === 4 + 8 * 26, 'fase 2 = ' + (4 + 8 * 26) + ' chamadas — tem ' +
   ok(M.desagio_min === -100 && M.desagio_max === 95,
     'o META publica o corte de outlier do desagio');
 
-  /* toda consulta nova e UMA linha por loja, entao pagina por PAG_LOJAS */
-  ['q_uf_laudo', 'q_contato', 'q_cluster'].forEach(function (n) {
+  /* toda consulta de loja e UMA linha por loja, entao pagina por PAG_LOJAS */
+  ['q_lojas', 'q_uf_laudo', 'q_modelo', 'q_categoria'].forEach(function (n) {
     const paginas = p2.filter((x) => x.queryName === n).length;
     ok(paginas === 26, n + ' pagina por PAG_LOJAS (26), nao por chute — tem ' + paginas);
   });
@@ -314,7 +387,7 @@ ok(p2.length === 4 + 8 * 26, 'fase 2 = ' + (4 + 8 * 26) + ' chamadas — tem ' +
   /* parenteses equilibrados: a SQL viaja como string e nenhum validador
      local olha pra ela. A sonda de 11/09 nasceu com um COALESCE(x,, ) que
      passou no node --check e so morreria no banco. */
-  ['q_perfil', 'q_uf_laudo', 'q_contato', 'q_cluster'].forEach(function (n) {
+  ['q_perfil', 'q_uf_laudo', 'q_lojas'].forEach(function (n) {
     const sql = acha(n).sql;
     const a = sql.split('(').length - 1;
     const b = sql.split(')').length - 1;
@@ -323,7 +396,9 @@ ok(p2.length === 4 + 8 * 26, 'fase 2 = ' + (4 + 8 * 26) + ' chamadas — tem ' +
       n + ': sem virgula dupla nem parentese vazio');
   });
 })();
-/* uma linha por loja: o desempate deixou de depender da ordem de chegada */
+/* uma linha por loja: o desempate deixou de depender da ordem de chegada.
+   Modelo e categoria em consultas SEPARADAS de novo (a fusao delas em
+   q_moda estourou o prazo do MCP no run 53385 e foi revertida). */
 ['q_modelo', 'q_categoria'].forEach(function (nome) {
   const q = p2.find((x) => x.queryName === nome);
   ok(!!q && q.sql.indexOf('MIN(ag.item_id)') > 0,
@@ -385,6 +460,8 @@ try {
   f2Pag = rodaNo('montar-fase2.js', ctxDe({
   'Montar Fase 1': f1,
   'MCP Fase 1': p1.map((p) => {
+    const rg = respGrupoF1(p);
+    if (rg) return rg;
     if (p.queryName === 'q_eventos') return resp(['evento_id', 'evento', 'ev_status', 'ini_display', 'fim_evento'], EVENTOS, p.pagina);
     if (p.queryName === 'q_veic_total') return resp(['veiculos', 'negociacoes', 'eventos'], [[168, 168, 2]], p.pagina);
     if (p.queryName === 'q_lojas_total') return resp(['lojas', 'ofertas'], [[1300, 103923]], p.pagina);
@@ -465,27 +542,36 @@ const MODELO = [[11, 501, 'Onix', 50], [12, 501, 'Onix', 50], [13, 501, 'Onix', 
 const CATEG = [[11, 1, 'Automovel', 80], [12, 1, 'Automovel', 80], [13, 1, 'Automovel', 80], [14, 1, 'Automovel', 80], [15, 1, 'Automovel', 80]];
 /* `laudo` no fim: a coluna nova da q_veiculos. NULL vira 'ausente' no no,
    que e categoria propria e nao a mesma coisa que 'nao_informado'. */
-const COLV = ['neg_id', 'evento_id', 'evento', 'fim_evento', 'anuncio_id', 'vehicle_id', 'valor', 'valor_inicial', 'fipe', 'model_id', 'modelo', 'category_id', 'categoria', 'marca', 'versao', 'anuncio_uuid', 'model_year', 'km', 'loja_id', 'loja_vendedora', 'uf', 'neg_status', 'laudo'];
+const COLV = ['neg_id', 'evento_id', 'evento', 'fim_evento', 'anuncio_id', 'vehicle_id', 'valor', 'valor_inicial', 'fipe', 'model_id', 'modelo', 'category_id', 'categoria', 'marca', 'versao', 'anuncio_uuid', 'model_year', 'km', 'loja_id', 'loja_vendedora', 'uf', 'neg_status', 'laudo', 'vmv', 'qt_ofertas', 'oferta_max'];
 const VEIC = [
   /* v_orfao: SP, perfil identico ao v0 (onde HA lojas boas), mas no evento
      23904, cujo canal nao tem loja alguma. Fica sem par exclusivamente por
-     causa do canal -- e e isso que a prova precisa isolar. */
-  [7, 23904, 'Clube de Associados', '2026-09-11 16:00', 906, 5006, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa9999bbbb8888cccc7777dddd6666', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado'],
-  /* v0: evento 23885 (wl 7), SP  -> elegiveis: 11 e 12                     */
-  [1, 23885, 'Feirao VWFS', '2026-09-10 14:00', 900, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa1111bbbb2222cccc3333dddd4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado'],
-  /* v1: evento 23903 (wl 4 e 7), SP -> elegiveis: 11, 12 e 14              */
-  [2, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 901, 5002, 120000, null, 125000, 502, 'HB20', 1, 'Automovel', 'Hyundai', 'Comfort Plus 1.0', 'bbbb1111cccc2222dddd3333eeee4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado'],
-  /* v2: evento 23885 (wl 7), MG -> elegivel so a 13                        */
-  [3, 23885, 'Feirao VWFS', '2026-09-10 14:00', 902, 5003, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'cccc1111dddd2222eeee3333ffff4444', ANO - 5, 100000, 700, 'Vendedora', 'MG', 1, 'aprovado'],
-  /* v3: evento 23885 (wl 7), RJ -> nenhuma loja no RJ, zero pares          */
-  [4, 23885, 'Feirao VWFS', '2026-09-10 14:00', 903, 5004, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', null, 'dddd1111eeee2222ffff3333aaaa4444', ANO - 5, 100000, 700, 'Vendedora', 'RJ', 1, 'reprovado'],
+     causa do canal -- e e isso que a prova precisa isolar.
+     Farol: nenhuma oferta -> vermelho.                                   */
+  [7, 23904, 'Clube de Associados', '2026-09-11 16:00', 906, 5006, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa9999bbbb8888cccc7777dddd6666', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado', 90000, 0, null],
+  /* v0: evento 23885 (wl 7), SP  -> elegiveis: 11 e 12
+     Farol: teve oferta, mas a maior (80000) nao alcancou o VMV (95000)
+     -> amarelo.                                                          */
+  [1, 23885, 'Feirao VWFS', '2026-09-10 14:00', 900, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'aaaa1111bbbb2222cccc3333dddd4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado', 95000, 2, 80000],
+  /* v1: evento 23903 (wl 4 e 7), SP -> elegiveis: 11, 12 e 14
+     Farol: a maior oferta (120000) alcancou o VMV (115000) -> verde.     */
+  [2, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 901, 5002, 120000, null, 125000, 502, 'HB20', 1, 'Automovel', 'Hyundai', 'Comfort Plus 1.0', 'bbbb1111cccc2222dddd3333eeee4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado', 115000, 1, 120000],
+  /* v2: evento 23885 (wl 7), MG -> elegivel so a 13
+     Farol: teve oferta, mas SEM VMV declarado -- nao da pra afirmar
+     atingido, entao fica amarelo (nao inventa um numero).                */
+  [3, 23885, 'Feirao VWFS', '2026-09-10 14:00', 902, 5003, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'cccc1111dddd2222eeee3333ffff4444', ANO - 5, 100000, 700, 'Vendedora', 'MG', 1, 'aprovado', null, 1, 90000],
+  /* v3: evento 23885 (wl 7), RJ -> nenhuma loja no RJ, zero pares
+     Farol: nenhuma oferta -> vermelho.                                   */
+  [4, 23885, 'Feirao VWFS', '2026-09-10 14:00', 903, 5004, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', null, 'dddd1111eeee2222ffff3333aaaa4444', ANO - 5, 100000, 700, 'Vendedora', 'RJ', 1, 'reprovado', null, 0, null],
   /* v4: SOBRA — mesmo perfil do v0, mas status 11 (Sem Ofertas). Tem que
-     entrar na base, pontuar igual ao v0 e sair MARCADO como sobra.       */
-  [5, 23885, 'Feirao VWFS', '2026-09-10 14:00', 904, 5005, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'eeee1111ffff2222aaaa3333bbbb4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 11, null],
+     entrar na base, pontuar igual ao v0 e sair MARCADO como sobra.
+     Farol: a maior oferta EMPATA com o VMV (100000 = 100000) -> verde,
+     o limite e >=, nao >.                                                */
+  [5, 23885, 'Feirao VWFS', '2026-09-10 14:00', 904, 5005, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'eeee1111ffff2222aaaa3333bbbb4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 11, null, 100000, 3, 100000],
   /* v5: DUPLICATA — mesmo vehicle_id do v0 numa negociacao diferente. O
      SQL ja colapsa por veiculo; se um dia parar, isto pega: tem que ser
      descartado E declarado nas falhas, nunca somado duas vezes.          */
-  [6, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 905, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'ffff1111aaaa2222bbbb3333cccc4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado']
+  [6, 23903, 'Venda Direta IGA', '2026-09-10 16:00', 905, 5001, 100000, null, 105000, 501, 'Onix', 1, 'Automovel', 'Chevrolet', 'LT 1.0 Flex 12V 5p', 'ffff1111aaaa2222bbbb3333cccc4444', ANO - 5, 100000, 700, 'Vendedora', 'SP', 1, 'aprovado', 95000, 2, 80000]
 ];
 /* 6 veiculos unicos: v0..v4 mais o do canal orfao. A sexta LINHA de VEIC e
    a duplicata do v0 de proposito, e tem que ser descartada e declarada --
@@ -538,18 +624,59 @@ const CONTATO = [
   [15, null, '(41) 99999-0015', null, null, 0]
 ];
 
+/* Otimizacao de 2026-09-23: q_contato e q_cluster viraram colunas de
+   q_lojas (rodou limpo no run 53385, ficou). q_modelo e q_categoria
+   chegaram a virar q_moda, mas essa fusao estourou o prazo do MCP no
+   banco de verdade e foi revertida na hora -- continuam duas consultas,
+   como sempre foram. Os literais acima continuam separados por assunto
+   -- mais facil de comentar cada um -- e a fusao (so a de q_lojas)
+   acontece aqui, na hora de simular a resposta do banco. */
+function porShop(arr) {
+  const m = {};
+  arr.forEach((r) => { m[r[0]] = r; });
+  return m;
+}
+const ctPorShop = porShop(CONTATO);
+const clPorShop = porShop(CLUSTER_LINHAS);
+const COL_LOJAS = ['shop_id', 'cnpj', 'loja', 'whitelabel_id', 'whitelabel', 'uf',
+  'tel_comercial', 'whatsapp', 'tel_privativo', 'email', 'qt_emails',
+  'ult_oferta', 'ult_acesso'];
+const LOJAS_MERGED = LOJAS.map((r) => {
+  const ct = ctPorShop[r[0]] || [null, null, null, null, null, 0];
+  const cl = clPorShop[r[0]] || [null, null, null];
+  return r.concat(ct.slice(1), cl.slice(1));
+});
+
 const f2b = fase2Com(6, 5);
 /* nomeado pra ser reusado pela prova negativa de cobertura das modas */
 function respostaDe(p) {
   if (p.queryName === 'q_veiculos') return resp(COLV, VEIC, p.pagina);
-  if (p.queryName === 'q_lojas') return resp(['shop_id', 'cnpj', 'loja', 'whitelabel_id', 'whitelabel', 'uf'], LOJAS, p.pagina);
+  if (p.queryName === 'q_lojas') return resp(COL_LOJAS, LOJAS_MERGED, p.pagina);
   if (p.queryName === 'q_ofertas') return resp(['shop_id', 'qt_ofertas'], OFERTAS, p.pagina);
   if (p.queryName === 'q_perfil') return resp(['shop_id', 'qt_veiculos', 'preco_medio', 'preco_desvio', 'idade_media', 'idade_desvio', 'km_medio', 'km_desvio', 'desagio_n', 'desagio_medio', 'desagio_desvio'], PERFIL, p.pagina);
   if (p.queryName === 'q_modelo') return resp(['shop_id', 'item_id', 'nome', 'n'], MODELO, p.pagina);
   if (p.queryName === 'q_uf_laudo') return resp(COL_UFL, UFL, p.pagina);
-  if (p.queryName === 'q_contato') return resp(COL_CT, CONTATO, p.pagina);
-  if (p.queryName === 'q_cluster') return resp(['shop_id', 'ult_oferta', 'ult_acesso'], CLUSTER_LINHAS, p.pagina);
+  /* sem grupo por padrao: a trava tem cenario proprio */
+  if (p.queryName === 'q_loja_grupos') return resp(['shop_id', 'grupos'], [], p.pagina);
   return resp(['shop_id', 'item_id', 'nome', 'n'], CATEG, p.pagina);
+}
+/* forca ult_oferta/ult_acesso de UMA loja, pra exercitar a cascata de
+   cluster isolada -- desde que ela se fundiu em q_lojas (23/09), nao da
+   mais pra so trocar a resposta de uma consulta inteira: e preciso reescrever
+   as duas ultimas colunas da linha daquela loja, mantendo o resto (nome,
+   cnpj, contato) intacto. */
+function respostaComCluster(shopId, ultOferta, ultAcesso) {
+  return function (p) {
+    if (p.queryName !== 'q_lojas') return respostaDe(p);
+    const linhas = LOJAS_MERGED.map((r) => {
+      if (r[0] !== shopId) return r;
+      const copia = r.slice();
+      copia[copia.length - 2] = ultOferta;
+      copia[copia.length - 1] = ultAcesso;
+      return copia;
+    });
+    return resp(COL_LOJAS, linhas, p.pagina);
+  };
 }
 const respostas = f2b.map((i) => i.json).map(respostaDe);
 const S = rodaNo('montar-html.js', ctxDe({ 'Montar Fase 2': f2b, 'MCP Fase 2': respostas }))[0].json;
@@ -581,6 +708,23 @@ ok(ps11 && ps11.no_relatorio === true && ps11.nome === 'Sem Ofertas',
 const byNeg = {};
 D.veiculos.forEach((v, i) => { byNeg[v.neg_id] = { v: v, i: i }; });
 
+/* ── farol de oferta: os quatro casos, um veiculo por caso ─────────────
+   vermelho (sem oferta), amarelo (oferta abaixo do VMV), verde (oferta
+   alcancou o VMV, no limite E acima dele) e o caso sem VMV declarado --
+   que fica amarelo porque nao da pra confirmar "atingido" sem numero. */
+ok(byNeg[7].v.farol === 'vermelho' && byNeg[7].v.qt_ofertas === 0,
+   'v_orfao sem oferta nenhuma -> farol vermelho');
+ok(byNeg[1].v.farol === 'amarelo' && byNeg[1].v.oferta_max === 80000 && byNeg[1].v.vmv === 95000,
+   'v0 com oferta abaixo do VMV -> farol amarelo');
+ok(byNeg[2].v.farol === 'verde' && byNeg[2].v.oferta_max === 120000 && byNeg[2].v.vmv === 115000,
+   'v1 com oferta acima do VMV -> farol verde');
+ok(byNeg[3].v.farol === 'amarelo' && byNeg[3].v.vmv === null,
+   'v2 com oferta e SEM VMV declarado -> farol amarelo, nao inventa "atingido"');
+ok(byNeg[4].v.farol === 'vermelho' && byNeg[4].v.qt_ofertas === 0,
+   'v3 sem oferta -> farol vermelho, mesmo sem VMV');
+ok(byNeg[5].v.farol === 'verde' && byNeg[5].v.oferta_max === byNeg[5].v.vmv,
+   'v4/sobra com oferta EXATAMENTE no VMV -> farol verde (o limite e >=, nao >)');
+
 /* ── a UF deixou de ser porta (2026-09-11, segunda rodada) ─────────────
    Ate aqui a regra era "mesma UF E mesmo whitelabel". A UF virou
    preferencia ponderada, entao estas assercoes mudaram de conteudo -- nao
@@ -609,6 +753,79 @@ ok(idsDe(byNeg[1].i).indexOf(14) < 0,
   'a loja wl4 NAO aparece em evento que so alveja wl7 — o canal ainda e porta');
 ok(idsDe(byNeg[2].i).indexOf(14) >= 0,
   'e aparece quando o evento alveja wl4 — tem ' + JSON.stringify(idsDe(byNeg[2].i)));
+
+/* ── a trava de grupo de cliente (2026-09-23) ─────────────────────────────
+   Cenario desenhado no papel. O evento 23885 alveja o grupo 100 (ativo) e o
+   200 (inativo); o 23903 nao lista grupo nenhum, entao fica so com a trava de
+   canal. Grupos herdados dos usuarios:
+     11 -> 100          passa
+     12 -> 200          so tem o grupo INATIVO: barrada no 23885
+     13 -> 100,300      passa (o 300 nenhum evento alveja, e nao atrapalha)
+     14 -> (nenhum)     wl4: nem entra no 23885
+     15 -> 100          passa
+   Os veiculos do 23885 sao v0, v2, v3 e v4: cada um perde a loja 12, entao
+   4 pares cortados pelo grupo. */
+const LOJA_GRUPOS = [[11, '100'], [12, '200'], [13, '100,300'], [15, '100']];
+function rodaComGrupo(ev, lojasEsperadas, lojaGrupos) {
+  const g = { ev: ev, lojas: lojasEsperadas === undefined ? lojaGrupos.length : lojasEsperadas };
+  const f2g = fase2Com(6, 5, undefined, undefined, undefined, g);
+  const rs = f2g.map((i) => i.json).map((p) => (p.queryName === 'q_loja_grupos'
+    ? resp(['shop_id', 'grupos'], lojaGrupos, p.pagina) : respostaDe(p)));
+  return rodaNo('montar-html.js', ctxDe({ 'Montar Fase 2': f2g, 'MCP Fase 2': rs }))[0].json;
+}
+(function () {
+  const G = rodaComGrupo([[23885, 100, 'Marketplace', 1], [23885, 200, 'Grupo inativo', 0]],
+    undefined, LOJA_GRUPOS);
+  const DG = G.DADOS;
+  const porNeg = {};
+  DG.veiculos.forEach((v, i) => { porNeg[v.neg_id] = { v: v, i: i }; });
+  const idsG = (vi) => {
+    const r = [];
+    for (let i = 0; i < DG.pares.length; i += 3) if (DG.pares[i] === vi) r.push(DG.lojas[DG.pares[i + 1]].loja_id);
+    return r.sort();
+  };
+  ok(porNeg[1].v.elegiveis === byNeg[1].v.elegiveis - 1,
+     'v0 (23885) perde exatamente uma loja elegivel com a trava: ' +
+     byNeg[1].v.elegiveis + ' -> ' + porNeg[1].v.elegiveis);
+  ok(idsG(porNeg[1].i).indexOf(12) < 0,
+     'a loja 12, so com grupo INATIVO, some do evento que alveja grupo');
+  ok(idsG(porNeg[1].i).indexOf(11) >= 0 && idsG(porNeg[1].i).indexOf(13) >= 0,
+     'lojas com o grupo ativo continuam — ' + JSON.stringify(idsG(porNeg[1].i)));
+  ok(porNeg[2].v.elegiveis === byNeg[2].v.elegiveis,
+     'evento SEM grupo cadastrado (23903) fica so com a trava de canal');
+  ok(JSON.stringify(idsG(porNeg[2].i)) === JSON.stringify(idsDe(byNeg[2].i)),
+     'e ali os pares sao os mesmos de sem a trava — ' + JSON.stringify(idsG(porNeg[2].i)));
+  ok(DG.resumo.cortados_pelo_grupo === 4,
+     '4 pares cortados pelo grupo (um por veiculo do 23885) — tem ' + DG.resumo.cortados_pelo_grupo);
+  ok(DG.resumo.sem_grupo === 0, 'nenhum veiculo fica sem loja por causa do grupo');
+  ok(DG.lojas.every((l) => l.grupos === undefined),
+     'a lista de grupos da loja NAO vai pro array publicado');
+  ok(!G.falhas.some((f) => /grupos de cliente vieram/.test(f)),
+     'cobertura completa nao gera aviso');
+})();
+/* evento cujos grupos estao TODOS inativos: nenhuma loja tem acesso. Nao pode
+   virar evento sem trava (que abriria para o canal inteiro). */
+(function () {
+  const G = rodaComGrupo([[23885, 200, 'Grupo inativo', 0]], undefined, LOJA_GRUPOS);
+  const R = G.DADOS.resumo;
+  const doEvento = G.DADOS.veiculos.filter((v) => v.evento_id === 23885);
+  ok(doEvento.length === 4 && doEvento.every((v) => v.grupo_sem_loja && !v.candidatos),
+     'grupos todos inativos: os 4 veiculos do 23885 ficam sem loja e marcados grupo_sem_loja');
+  ok(R.sem_grupo === 4, 'resumo.sem_grupo = 4 — tem ' + R.sem_grupo);
+  ok(R.sem_loja_na_uf === 0,
+     'e eles NAO caem no aviso de "investigar": a causa e conhecida');
+  ok(G.falhas.some((f) => /^4 veiculo\(s\) com loja no canal do evento, mas nenhuma nos grupos/.test(f)),
+     'o aviso diz a causa: loja no canal, nenhuma no grupo');
+  ok(G.DADOS.veiculos.filter((v) => v.evento_id === 23903).every((v) => !v.grupo_sem_loja),
+     'o evento sem grupo nao e afetado');
+})();
+/* [neg] grupos por loja incompletos: loja que falta perde todo evento com
+   trava, sem erro. So a conferencia contra a contagem da fase 1 pega. */
+(function () {
+  const G = rodaComGrupo([[23885, 100, 'Marketplace', 1]], 9, LOJA_GRUPOS);
+  ok(G.falhas.some((f) => /os grupos de cliente vieram para 4 lojas de 9/.test(f)),
+     '[neg] faltar loja na q_loja_grupos vira aviso nomeado');
+})();
 
 /* a UF NAO e mais porta */
 ok(idsDe(byNeg[1].i).indexOf(13) >= 0,
@@ -787,8 +1004,14 @@ ok(h.indexOf('<!doctype html>') === 0 && h.indexOf('</html>') > 0, 'HTML integro
 ok((h.match(/<script>/g) || []).length === 2, '2 blocos de script');
 ok(!/[a-z-]+:\s*[\d]+,[\d]+(%|px|em)/.test(h), 'nenhum valor CSS com virgula decimal');
 ok(h.indexOf('2d5party') < 0, 'sem o lixo de CSS que eu tinha digitado');
-ok(h.indexOf('mesma UF') > 0 && h.indexOf('whitelabels que o evento alveja') > 0,
-  'a pagina explica a regra de elegibilidade');
+/* checa a regra VIGENTE (whitelabel obrigatorio, UF pesa sem excluir) -- nao
+   mais o "mudou em 11/09" que o glossario tinha e foi removido em 23/09
+   (glossario e so regra atual, changelog mora no README). */
+ok(h.indexOf('duas travas de acesso do evento') > 0 && h.indexOf('grupos de cliente') > 0 &&
+   h.indexOf('não exclui') > 0,
+  'a pagina explica a regra de elegibilidade: canal E grupo, UF so pesa');
+ok(h.indexOf('<dt>Grupo de cliente do evento</dt>') > 0 && h.indexOf('<dt>Sem loja com acesso</dt>') > 0,
+  'o glossario explica o grupo e o KPI de veiculo sem loja com acesso');
 ok(h.indexOf('adição minha') > 0, 'a pagina declara a confianca como adicao minha');
 
 /* [neg] truncamento numa consulta de MODA nao da erro: as lojas cortadas
@@ -923,6 +1146,20 @@ ok(sqlV.indexOf('versions ve') > 0, 'q_veiculos entra em versions');
    esta prova, versao e uuid poderiam vir de outra linha do grupo. */
 ok(/GROUP BY[\s\S]*versao/.test(sqlV) && /GROUP BY[\s\S]*anuncio_uuid/.test(sqlV),
    'GROUP BY lista versao e anuncio_uuid');
+
+/* ── VMV e ofertas da propria negociacao, pro farol ────────────────────── */
+ok(sqlV.indexOf('NULLIF(an.min_sale_price, 0) AS vmv') > 0,
+   'q_veiculos traz o VMV (min_sale_price), NULLIF pro zero nao virar limiar falso');
+ok(/SELECT COUNT\(\*\) FROM offers o WHERE o\.advs_negotiation_id = an\.id/.test(sqlV),
+   'q_veiculos conta as ofertas DESTA negociacao, correlacionada por advs_negotiation_id');
+ok(/SELECT MAX\(o\.price\) FROM offers o WHERE o\.advs_negotiation_id = an\.id/.test(sqlV),
+   'q_veiculos traz a maior oferta DESTA negociacao');
+ok(sqlV.indexOf('o.price > 0') > 0 && sqlV.match(/o\.price > 0/g).length === 2,
+   'as duas subqueries de oferta ignoram preco zero, nas duas ocorrencias');
+ok(/GROUP BY[\s\S]*vmv/.test(sqlV),
+   'GROUP BY lista vmv — coluna simples de `an`, mesmo padrao das outras');
+ok(!/GROUP BY[\s\S]*qt_ofertas/.test(sqlV) && !/GROUP BY[\s\S]*oferta_max/.test(sqlV),
+   'qt_ofertas e oferta_max NAO entram no GROUP BY — sao subquery, nao coluna');
 
 /* o padrao, conferido contra os exemplos do Gui (reuniao de 25/08) */
 const vLink = D.veiculos.find((v) => v.vehicle_id === 5001 && v.link);
@@ -1139,11 +1376,7 @@ ok(semComent.indexOf('${') < 0,
   function faixaDe(ultOferta, ultAcesso) {
     const r = rodaNo('montar-html.js', ctxDe({
       'Montar Fase 2': f2b,
-      'MCP Fase 2': f2b.map((i) => i.json).map(function (p) {
-        if (p.queryName !== 'q_cluster') return respostaDe(p);
-        return resp(['shop_id', 'ult_oferta', 'ult_acesso'],
-          [[11, ultOferta, ultAcesso]], p.pagina);
-      })
+      'MCP Fase 2': f2b.map((i) => i.json).map(respostaComCluster(11, ultOferta, ultAcesso))
     }))[0].json;
     const l = r.DADOS.lojas.filter((x) => x.loja_id === 11)[0];
     return l ? l.cluster : null;
@@ -1169,11 +1402,8 @@ ok(semComent.indexOf('${') < 0,
      tem que ser Ouro, nunca Prata. */
   const noLimite = rodaNo('montar-html.js', ctxDe({
     'Montar Fase 2': f2b,
-    'MCP Fase 2': f2b.map((i) => i.json).map(function (p) {
-      if (p.queryName !== 'q_cluster') return respostaDe(p);
-      return resp(['shop_id', 'ult_oferta', 'ult_acesso'],
-        [[11, iso(MS_INI), iso(MS_AGORA - 300 * DIA_MS)]], p.pagina);
-    })
+    'MCP Fase 2': f2b.map((i) => i.json)
+      .map(respostaComCluster(11, iso(MS_INI), iso(MS_AGORA - 300 * DIA_MS)))
   }))[0].json;
   const lim = noLimite.DADOS.lojas.filter((l) => l.loja_id === 11)[0];
   ok(!!lim && lim.cluster === 2,

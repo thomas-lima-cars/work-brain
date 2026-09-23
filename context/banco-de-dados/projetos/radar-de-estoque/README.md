@@ -11,4 +11,7 @@ O que deveria migrar para cá:
 | `indicadores.md` | Os números de cada run, com a execução de origem |
 | `recortes.md` | UF, loja, evento — e o cuidado com as 4 lojas internas no ranking |
 
+Já existe: [`indicadores.md`](indicadores.md), começando pela medição da
+trava por grupo de cliente (2026-09-23).
+
 ⚠️ **Não copie os números de outro arquivo para cá.** Meça, date e linke.

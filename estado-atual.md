@@ -1,16 +1,18 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-22 (tarde) — links do C6, kit do time e a marca em vetor
+> **Última atualização:** 2026-09-23 (noite) — Radar: farol de oferta e trava de grupo de cliente
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
-  ✅ **Carteira comercial ao vivo** desde 21/09: run **52933**, `ao_vivo:true`, 692/731
-  lojas por CNPJ (**94,7%**), **39 sem responsável**.
-  ✅ **Extrato enxuto** + dica de indicadores na linha do veículo + filtro por responsável.
-  ✅ **Tema vidro**, ✅ **link do anúncio segue o canal** (C6 → `compraveiculos.`),
-  ✅ **marca em SVG, duas larguras**. Tudo transcrito e conferido byte a byte.
-  🔴 **Não roda desde antes do tema vidro** — o próximo run acumula TRÊS mudanças.
+  ✅ **Run 53433** (23/09, 16min15s), tudo transcrito e conferido byte a byte. Novidades:
+  **farol de oferta** (VMV) e o filtro dele; **trava de grupo de cliente** no cruzamento
+  (31.275 pares cortados); modelo/categoria de volta depois da fusão que falhou no 53385.
+  Tempos por nó e números em `context/banco-de-dados/projetos/radar-de-estoque/indicadores.md`.
+  🔴 **O MCP Fase 2 leva ~15 min** (banco a ~4,5s por chamada). O gargalo medido é o
+  `ult_acesso` sobre `access_logs` (3,3 mi linhas, sem índice), refeito nas 27 páginas.
+  Direção do Thomas: **consultas diretas, processamento no n8n, nada de fundir consulta.**
+  ✅ Carteira comercial ao vivo desde 21/09 (39 lojas sem responsável).
 - **design system** — 🔥 `design/tokens/tema.css` é fonte única; dela saem os dois modelos
   **e** o `kit-de-painel.md`, o arquivo único que vai para o time (68 KB, autossuficiente).
   172 provas. ❓ **A fonte segue em aberto** — `dashboard-teste.html` é o laboratório.
@@ -37,6 +39,8 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔴 **Tirar `ult_oferta`/`ult_acesso` de dentro da `q_lojas` (Radar)?** Como subconsulta
+  custa ~30s por passada, como consulta direta ~19s. Proposta de 23/09, sem resposta.
 - 🔴 **Link precisa virar sublinhado.** O acento do tema claro é cinza escuro, e link
   perdeu a cor que o distinguia do texto. Ninguém tem link em texto corrido hoje.
 - 🔵 **Qual fonte?** A DM Sans é a mais parecida com a referência e **não tem algarismos
@@ -60,9 +64,9 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] 🔥 **Rodar o Radar** — acumula tema vidro + links do C6 + logos novas. ~12 min,
-      republica no SharePoint. No run, conferir o evento **Exclusivo C6 Auto** e o bloco
-      de avisos (caso misto = decisão pendente)
+- [ ] **Conferir o Radar publicado (run 53433)** — o evento 23995 deve mostrar só 1 loja
+- [ ] Ajustar a guarda "sem cron" do `build_wf.py` (confunde "cronológica" com cron)
+- [ ] Ver se o **veículo duplicado** do run 53433 se repete (`q_veiculos` não mudou)
 - [ ] 🔥 **Fazer o run do C6 terminar** — tirar as 8 queries `rx_*`, desligar
       `onError: continueRegularOutput` no nó MCP, rodar, montar o HTML
 - [ ] 🔥 **Apagar no SharePoint** as 2 pastas antigas, o arquivo de 18/09 e o
@@ -73,7 +77,7 @@
       Comercial — só os 4 nós do Radar têm essa prova
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
-- [ ] Preencher `context/banco-de-dados/projetos/c6/` e `.../radar-de-estoque/`
+- [ ] Preencher `context/banco-de-dados/projetos/c6/` (o do Radar começou: `indicadores.md`)
 - [ ] Modelo multivariado: só com o que se sabe ANTES da venda (o comprador não vale)
 - [ ] Incluir `laudo` na sonda 10 da Cars2You — rendeu 11,3% na Dealers
 - [ ] Alinhar o controle dos dois analisadores do estudo (`grupo` × `codigo_fipe`)
@@ -98,10 +102,18 @@
 - **Doni** — alinhamento do formato do Pulso de Eventos
 
 ## ⚠️ Alertas críticos
-- 🧪 **"Afirmar antes de medir" é O erro recorrente desta semana — TRÊS vezes em 22/09.**
-  O `tnum` das fontes; uma comparação de logos olhando só o fim do base64; e, a pior,
-  eu repeti quatro vezes que havia 5 commits presos nesta máquina quando
-  `git log origin/main..HEAD` já voltava vazio. **Medir custa uma linha.**
+- 🧪 **"Afirmar antes de medir" é O erro recorrente da semana — três vezes em 22/09, mais
+  duas em 23/09.** A fusão `q_moda` foi ao ar sem medir e derrubou o run 53385; estimei
+  10 a 13 min para o MCP Fase 2 e foram mais de 15. **Com VPN, medir no banco direto antes.**
+- 🧬 **Fundir consultas no MCP pode dobrar o custo em vez de cortar.** Duas agregações
+  independentes numa query só não compartilham a varredura. E subconsulta correlacionada
+  por loja é mais cara que consulta direta. Cada página `OFFSET` refaz tudo.
+- 🔌 **O conector de banco `e34110a1…` NÃO é o cars2you** (tem `removals`, `dispatch`). Para
+  o cars2you, usar `automations/bancos/consulta.py`.
+- 🔒 **Dado pessoal no histórico do git:** e-mail e telefone reais de um contato de loja em
+  commits antigos do `montar-html.js` e do README do Radar. Saiu dos arquivos em 23/09.
+- 🚦 **Disparar o Radar pelo MCP é barrado pelo modo automático** (publica no SharePoint).
+  Quem dispara é o Thomas, pela interface.
 - 🔑 **`git push` liberado em `.claude/settings.local.json`** (`Bash(git push:*)`).
   O arquivo é **ignorado pelo git**, então noutra máquina ele não existe e o push
   volta a pedir prompt. O conteúdo está em `memory/sessions/2026-09-22.md`.

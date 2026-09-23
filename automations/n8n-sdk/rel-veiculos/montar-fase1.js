@@ -332,6 +332,61 @@ push('q_evento_wl',
      nao agregado: pagina vazia nao custa um GROUP BY inteiro. */
   " ORDER BY ew.event_id, ew.whitelabel_id", 8);
 
+/* ── a segunda trava: grupo de cliente ────────
+   Um evento alveja canais (event_whitelabels) E grupos (event_client_groups).
+   O grupo mora no USUARIO, nao na loja: a loja chega nele via user_shops ->
+   user_clients_group e herda a uniao dos grupos de todos os seus usuarios
+   (decisao do Thomas em 2026-09-23: todos, sem cortar super-usuario). Todo
+   grupo listado conta como acesso, inclusive os de nome "Bloqueio" -- a
+   tabela nao tem coluna de tipo. Grupo inativo (status 0) ou apagado nao da
+   acesso -- isso e decidido pelo lado do evento, nao da loja.
+   Medicao e significado em context/banco-de-dados/plataforma/dominios.md.
+
+   Os pares vem TODOS, com a marca `ativo`, em vez de filtrados no SQL: evento
+   cujos grupos estao todos inativos e diferente de evento sem grupo nenhum.
+   O primeiro nao tem comprador; o segundo nao tem a trava. */
+push('q_evgr_total',
+  "SELECT COUNT(*) AS pares" +
+  " FROM event_client_groups ecg" +
+  " INNER JOIN events e ON e.id = ecg.event_id AND" + SELECAO);
+
+/* 8 paginas = 400 pares; com o recorte de 7 dias sao ~160. Numero escolhido
+   e VERIFICADO contra q_evgr_total na fase 2, mesma guarda da q_evento_wl:
+   par que falta tira comprador de um veiculo sem dar erro. */
+push('q_evento_grupo',
+  "SELECT ecg.event_id AS evento_id, ecg.client_group_id AS grupo_id," +
+  " cg.name AS grupo," +
+  " CASE WHEN cg.id IS NOT NULL AND cg.deleted_at IS NULL AND cg.status = 1" +
+  " THEN 1 ELSE 0 END AS ativo" +
+  " FROM event_client_groups ecg" +
+  " INNER JOIN events e ON e.id = ecg.event_id AND" + SELECAO +
+  " LEFT JOIN client_groups cg ON cg.id = ecg.client_group_id" +
+  " ORDER BY ecg.event_id, ecg.client_group_id", 8);
+
+/* o FROM/WHERE dos grupos de cada loja mora AQUI e atravessa pelo META, pra
+   contagem (abaixo) e coleta (q_loja_grupos, fase 2) lerem a MESMA clausula.
+   Duas copias escritas a mao ja divergiram neste projeto (run 50268).
+
+   🔴 Sem join em client_groups e sem filtro "so grupos dos eventos", de
+   proposito. Medido em 23/09: com os dois, o banco comeca pelos grupos e
+   refaz o EXISTS de oferta para cada par loja x grupo -- 20 a 36s por
+   passada, contra ~4,5s assim. Nenhum dos dois decide nada: se o grupo esta
+   ativo vem do lado do EVENTO (`ativo` na q_evento_grupo), e grupo de loja
+   que nenhum evento alveja simplesmente nao casa no Montar HTML. A maior
+   lista medida tem 93 caracteres, longe do teto do GROUP_CONCAT. */
+const GRUPO_LOJA_BASE =
+  " FROM user_shops us" +
+  " INNER JOIN shops s ON s.id = us.shop_id AND s.deleted_at IS NULL" + SO_WL_LOJA +
+  " INNER JOIN users u ON u.id = us.user_id AND u.deleted_at IS NULL" +
+  " INNER JOIN user_clients_group ucg ON ucg.user_id = us.user_id" +
+  " WHERE EXISTS (SELECT 1 FROM offers o WHERE o." + LADO + " = s.id AND" + JANELA_OFERTAS + ")";
+
+/* quantas lojas da base estao em pelo menos um grupo. Gabarito da
+   cobertura da q_loja_grupos: faltar loja ali a deixaria sem grupo, e loja
+   sem grupo perde todo evento com trava -- sem erro, so some. */
+push('q_lojas_grupo_total',
+  "SELECT COUNT(DISTINCT us.shop_id) AS lojas" + GRUPO_LOJA_BASE);
+
 if (PAGE > 50) throw new Error('PAGE > 50: o MCP corta a resposta em 50 linhas');
 
 const META = {
@@ -345,6 +400,7 @@ const META = {
   whitelabels: WHITELABELS,
   wl_esperado: WL_ESPERADO,
   so_wl_loja: SO_WL_LOJA,
+  grupo_loja_base: GRUPO_LOJA_BASE,
   eventos_ids: EVENTOS_IDS,
   horas_adiante: EVENTOS_IDS.length ? null : HORAS_ADIANTE,
   meses_historico: MESES_HISTORICO,

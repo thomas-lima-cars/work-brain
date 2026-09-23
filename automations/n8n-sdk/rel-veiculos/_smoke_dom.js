@@ -212,7 +212,7 @@ function smoke(html) {
   [['t_v', 'tabela de veiculos'], ['t_l', 'tabela de lojas'],
    ['kpis', 'painel de KPIs'], ['f_ev', 'filtro de evento'],
    ['f_wl', 'filtro de whitelabel'], ['f_uf', 'filtro de UF'],
-   ['f_rp', 'filtro de responsável']].forEach(function (p) {
+   ['f_rp', 'filtro de responsável'], ['f_fa', 'filtro de farol de oferta']].forEach(function (p) {
     const el = cache[p[0]];
     if (!el || !el.innerHTML || el.innerHTML.length < 20) erros.push(p[1] + ' saiu vazia');
   });
@@ -345,6 +345,19 @@ function smoke(html) {
     if (sv !== totalV * rpVals.length) {
       erros.push('o filtro de responsável mexeu na lista de veículos: somou ' + sv +
         ', esperado ' + (totalV * rpVals.length) + ' (' + totalV + ' × ' + rpVals.length + ' opções)');
+    }
+  });
+
+  /* Farol PARTICIONA os veiculos -- todo veiculo tem exatamente uma cor,
+     nunca nulo -- e e o espelho do responsavel: nao existe do lado da
+     loja, entao a tabela de lojas fica PARADA (fecha com o total, uma vez
+     por opcao), como a de veiculos fica parada no filtro de responsavel. */
+  const faVals = opcoes(cache['f_fa'].innerHTML).filter(function (v) { return v !== ''; });
+  exercita('f_fa', 'filtro de farol de oferta', function (sv, sl) {
+    if (sv !== totalV) erros.push('a soma dos farois (' + sv + ') nao fecha com o total de veiculos (' + totalV + ')');
+    if (sl !== totalL * faVals.length) {
+      erros.push('o filtro de farol mexeu na lista de lojas: somou ' + sl +
+        ', esperado ' + (totalL * faVals.length) + ' (' + totalL + ' × ' + faVals.length + ' opções)');
     }
   });
 
