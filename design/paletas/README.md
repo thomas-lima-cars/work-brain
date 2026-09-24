@@ -6,8 +6,9 @@ contrastes já medidos.
 | arquivo | estado |
 |---|---|
 | [`cars2you.json`](cars2you.json) | ✅ preenchido e implementado em `../tokens/tema.css` |
+| [`c6.json`](c6.json) | ✅ preenchido e implementado em `../tokens/tema-c6.css` — camada só de cor, por cima do `tema.css` (24/09) |
 | `_modelo.json` | molde — copie pra criar um produto novo |
-| `c6` · `itau` · `dealers` · `lm` · `bradesco` | ⬜ sem paleta declarada |
+| `itau` · `dealers` · `lm` · `bradesco` | ⬜ sem paleta declarada |
 
 ## Por que JSON e não só CSS
 

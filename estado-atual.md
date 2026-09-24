@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-23 (noite) — Radar: farol de oferta e trava de grupo de cliente
+> **Última atualização:** 2026-09-24 (noite) — Painel de Eventos C6 nasce, com representante pela planilha
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -13,7 +13,7 @@
   `ult_acesso` sobre `access_logs` (3,3 mi linhas, sem índice), refeito nas 27 páginas.
   Direção do Thomas: **consultas diretas, processamento no n8n, nada de fundir consulta.**
   ✅ Carteira comercial ao vivo desde 21/09 (39 lojas sem responsável).
-- **design system** — 🔥 `design/tokens/tema.css` é fonte única; dela saem os dois modelos
+- **design system** — 🔥 `design/tokens/tema.css` é fonte única (produto com cara própria = camada de cor `tema-<produto>.css`, o C6 foi o primeiro); dela saem os dois modelos
   **e** o `kit-de-painel.md`, o arquivo único que vai para o time (68 KB, autossuficiente).
   172 provas. ❓ **A fonte segue em aberto** — `dashboard-teste.html` é o laboratório.
 - **bancos (cars2you + dealers)** — 🔥 acesso direto, só leitura. **Depende de VPN.**
@@ -23,7 +23,13 @@
   🔴 **O maior efeito de preço vive num campo de TEXTO:** `REPASSE` (35,7%) contra
   `TRADICIONAL` (28,7%) — 7,0 p.p., t = 40,7, maior que km, cluster ou comprador.
   Pendente antigo: Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
-- **c6** — 🔥 **Parado há 17 dias no mesmo ponto: falta um run que termine.**
+- **Painel de Eventos C6** — 🔥 wf `VelPJDX8USP9WIeT` (pessoal), pasta
+  `automations/n8n-sdk/painel-eventos-c6/`. WL 43, abertos + 30 dias: veículos, ofertas,
+  ranking de lojas e de **representantes** (planilha `LojasAtivas_C6.xlsx` por CNPJ), lojas
+  novas. 5 consultas em `JSON_ARRAYAGG`, run em segundos. 102 provas; nós conferidos byte a
+  byte. 🔴 **Falta a planilha no SharePoint** (`Painel de Eventos C6/_dados/`) — sem ela o run
+  cai. Upload desligado até a validação. Números em `projetos/c6/indicadores.md`.
+- **c6 (relatório de base)** — 🔥 **Parado há 18 dias no mesmo ponto: falta um run que termine.**
   Lote 2 pronto e provado. Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas
   eram do Raio-X, oculto. Workflow `QImk2D4HdzIqHZe9`.
 - **bradesco** — _(estado a preencher)_
@@ -39,6 +45,9 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔵 **Representante com CNPJ repartido entre filiais:** fica o mais frequente, empate →
+  Sem Representante. Regra minha (35 CNPJs na planilha, nenhum no painel hoje) — confirmar.
+- 🔵 **Painel de Eventos C6 ganha cron?** Hoje manual, como o Radar.
 - 🔴 **Tirar `ult_oferta`/`ult_acesso` de dentro da `q_lojas` (Radar)?** Como subconsulta
   custa ~30s por passada, como consulta direta ~19s. Proposta de 23/09, sem resposta.
 - 🔴 **Link precisa virar sublinhado.** O acento do tema claro é cinza escuro, e link
@@ -64,6 +73,8 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] 🔥 **Subir `LojasAtivas_C6.xlsx`** em `Painel de Eventos C6/_dados/` (site N8N) → eu valido
+      o run e religo o `Subir no SharePoint` → primeira publicação e link para o C6
 - [ ] **Conferir o Radar publicado (run 53433)** — o evento 23995 deve mostrar só 1 loja
 - [ ] Ajustar a guarda "sem cron" do `build_wf.py` (confunde "cronológica" com cron)
 - [ ] Ver se o **veículo duplicado** do run 53433 se repete (`q_veiculos` não mudou)
@@ -102,6 +113,9 @@
 - **Doni** — alinhamento do formato do Pulso de Eventos
 
 ## ⚠️ Alertas críticos
+- 📦 **O teto de 50 linhas do MCP tem saída:** `COUNT(*)` + `JSON_ARRAYAGG` numa linha só
+  (130 KB provados no run 53605). Antes de montar fase 1/fase 2 paginada, medir se cabe assim.
+- 🕐 **`offers.created_at` é hora de Brasília** (medido 24/09), como as datas de evento.
 - 🧪 **"Afirmar antes de medir" é O erro recorrente da semana — três vezes em 22/09, mais
   duas em 23/09.** A fusão `q_moda` foi ao ar sem medir e derrubou o run 53385; estimei
   10 a 13 min para o MCP Fase 2 e foram mais de 15. **Com VPN, medir no banco direto antes.**

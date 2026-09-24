@@ -14,6 +14,7 @@
 | `automations/bancos/` | **Acesso direto aos bancos** (Cars2You e Dealers): conexão, runner somente-leitura, gerador de schema | Consultar banco fora do n8n |
 | `automations/precificacao/` | O estudo de precificação sobre as duas bases | Mexer no estudo |
 | `automations/n8n-sdk/rel-veiculos/` | **Radar de Estoque** — o relatório de veículos em evento × lojas compradoras. A pasta ainda tem o nome antigo | Mexer no Radar |
+| `automations/n8n-sdk/painel-eventos-c6/` | **Painel de Eventos C6** — eventos do WL 43 (abertos + 30 dias), veículos, ofertas, ranking de lojas e representantes (planilha do C6 no SharePoint, por CNPJ), lojas novas. Workflow `VelPJDX8USP9WIeT`, 5 consultas empacotadas em JSON, HTML no SharePoint | Mexer no painel do C6 |
 | `automations/n8n-sdk/carteira-comercial/` | **Quem responde por cada loja** — lê a planilha da área comercial no SharePoint e publica `carteira-comercial.json`, que o Radar consome. Roda 6h, falha alto de propósito | Mexer na carteira, ou quando o Radar disser que a carteira está velha |
 | `design/regras-de-layout.md` | 📐 **O que já foi decidido sobre layout** — anatomia do cartão, KPI, gráfico, glossário, tema, tabela | **Antes de ajustar visual de qualquer painel** — a decisão já pode estar tomada |
 | `design/kit-de-painel.md` | 📦 **O padrão num arquivo só, para levar para fora** — contrato, esqueleto, regras e o `tema.css` inteiro embutido. Gerado por `monta-kit.js`; quem recebe não precisa deste repo | Compartilhar o padrão com o time ou com outro projeto |
@@ -88,7 +89,7 @@ Onde mora cada coisa:
 | O que é venda, deságio, FIPE | `context/banco-de-dados/projetos/precificacao/definicoes.md` |
 | Estado do dia | `estado-atual.md` |
 | O que roda sozinho | `automations/crons.md` |
-| Cor, fonte, forma de painel | `design/tokens/tema.css` |
+| Cor, fonte, forma de painel | `design/tokens/tema.css` (e a camada de cor do produto, `tema-<produto>.css`) |
 | Regra de layout já decidida | `design/regras-de-layout.md` |
 | Paleta e logo de um produto | `design/paletas/<produto>.json` e `design/marca/<produto>/` |
 

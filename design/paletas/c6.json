@@ -1,0 +1,45 @@
+{
+  "produto": "c6",
+  "rotulo": "C6 Bank",
+  "atualizado": "2026-09-24",
+  "origem": "pedido do Thomas em 24/09 ao abrir o Painel de Eventos C6: 'substituir os tons de azul por cinza tendo como base #242424, que é a cor do C6'. Logos entregues em Downloads/Logos C6 (C6_Preto.svg e C6_Branco.svg)",
+  "pensada_para": "os dois temas",
+  "implementacao": "design/tokens/tema-c6.css — camada só de cor, carregada DEPOIS de tema.css",
+
+  "marca": {
+    "cinza_c6": { "hex": "#242424", "rgb": [36, 36, 36], "papel": "tinta da logo preta; texto, acento e preenchimento de dado no tema claro; superfície secundária no escuro" },
+    "branco":   { "hex": "#FFFFFF", "rgb": [255, 255, 255], "papel": "tinta da logo branca (tema escuro); ícone vazado dentro do chip no claro" }
+  },
+
+  "derivados": {
+    "_nota": "NÃO vieram do C6. Só o #242424 foi dado; a escala de cinza em volta dele e as cores de estado foram montadas aqui. Levar à marca antes de tratar como oficial.",
+    "campo_claro":   { "hex": "#DCDCDC", "papel": "fundo da página no claro — o #D8E1E9 da Cars2You sem o azul" },
+    "texto_2_claro": { "hex": "#595959", "papel": "texto secundário no claro", "contraste_sobre_DCDCDC": 5.11 },
+    "texto_3_claro": { "hex": "#737373", "papel": "de-ênfase no claro, só sobre superfície", "contraste_sobre_E3E3E3": 3.69 },
+    "fundo_escuro":  { "hex": "#111111", "papel": "fundo da página no escuro" },
+    "acento_escuro": { "hex": "#D6D6D6", "papel": "acento e dado no escuro", "contraste_sobre_111111": 12.99 },
+    "estados": { "_": "positivo, negativo e atenção seguem os da Cars2You (#0C6E4B/#35C08A, #7F1112/#EF5B60, #6F4047/#C98A92): são de estado, não de marca, e o pedido foi trocar só o azul" }
+  },
+
+  "contraste_medido": {
+    "_metodo": "WCAG 2.1 com design/_contraste.js. Planos: canto escuro do cartão claro (#E3E3E3), campo claro (#DCDCDC), superfície escura (#1A1A1A)",
+    "242424_sobre_E3E3E3": 12.10,
+    "242424_sobre_DCDCDC": 11.32,
+    "595959_sobre_DCDCDC": 5.11,
+    "0C6E4B_sobre_DCDCDC": 4.57,
+    "FFFFFF_sobre_242424": 15.52,
+    "EDEDED_sobre_111111": 16.13,
+    "A8A8A8_sobre_1A1A1A": 7.32,
+    "767676_sobre_1A1A1A": 3.83,
+    "_leitura": "O #242424 como texto dá 11-12:1, mais duro que o 7,9:1 que a Cars2You escolheu para não endurecer a página. Ficou assim porque é a tinta da logo — marca e letra na mesma cor. Se pesar na tela, o ajuste é clarear o --texto, não a marca."
+  },
+
+  "logo": {
+    "pasta": "design/marca/c6/",
+    "formato": "SVG vetorial, uma cor sólida por arquivo. UMA arte por tema, sem versão curta: a marca é o próprio monograma",
+    "claro": "logo-c6-preto.svg",
+    "escuro": "logo-c6-branco.svg",
+    "caixa": "43,26 x 22,87 (1,89:1), medida com getBBox em 24/09; o viewBox recorta com meio ponto de folga",
+    "_nota_caixa": "Os originais vêm num canvas de 80 x 60 com o desenho no meio. Sem recortar, a 26px de altura a marca ficaria com ~11px de desenho. Originais preservados em _original-*.svg"
+  }
+}

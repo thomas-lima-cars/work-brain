@@ -87,10 +87,11 @@ parece legível sobre branco e dá **3,89:1** — reprova em texto normal.
 
 ## Em aberto
 
-- 🔵 **Paleta por produto além da Cars2You.** Hoje só ela tem tema
-  implementado. Um segundo produto com cara própria vira decisão: bloco de
-  override no `tema.css`, ou gerar CSS a partir dos JSON. Não inventar antes
-  de precisar.
+- ✅ **Paleta por produto — resolvido em 24/09 com o C6.** O produto com cara
+  própria ganha uma **camada de cor**, `tokens/tema-<produto>.css`, carregada
+  **depois** do `tema.css`: redefine só token de cor, nos dois temas, e herda
+  forma e componente de graça. Ver regra 10e em `regras-de-layout.md`. Os
+  modelos e o kit continuam só Cars2You.
 - 🔵 **O verde não é da marca.** A paleta entregue não tem cor de "subiu", e
   painel precisa. Os três derivados estão marcados como tais em
   [`paletas/cars2you.json`](paletas/cars2you.json) — levar à equipe.

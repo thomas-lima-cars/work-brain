@@ -104,3 +104,30 @@
   `width:30,4%` — vírgula decimal é CSS inválido. As barras estão zeradas hoje.
 - Pedido novo, adiado a pedido: **tabela de ativação por safra** (% que logou/ofertou/
   comprou dentro de 30-60-90-180 dias do cadastro). Queries e sonda prontas.
+
+## 2026-09-24
+- **Projeto novo: Painel de Eventos C6** — separado do relatório de base/coorte (que segue
+  parado). Monitora os eventos do canal: publicados, com/sem oferta, vendidos, arremates por
+  loja, ranking de lojas e de gestores, lojas novas. Workflow **`VelPJDX8USP9WIeT`** (pessoal),
+  código em `automations/n8n-sdk/painel-eventos-c6/`.
+- **Decisões do Thomas:** recorte = eventos que alvejam o **WL 43**, abertos + encerrados nos
+  últimos 30 dias; arremate = **venda confirmada** (2, 3, 7); loja nova = cadastro do WL 43 na
+  janela do evento; pontuação = **1 por veículo ofertado + 10 por arremate**; layout do modelo
+  com os azuis trocados por cinza base `#242424`, logos do C6 (preta no claro, branca no
+  escuro).
+- **Consultar o mínimo:** 5 consultas, cada uma devolvendo a tabela inteira numa linha
+  (`JSON_ARRAYAGG`) — sem paginação. Run 53605 em segundos; números em
+  `context/banco-de-dados/projetos/c6/indicadores.md`.
+- **Medido no caminho** (em `dominios.md`): `offers.created_at` está em hora de Brasília; a
+  maior parte dos lances cai **depois** do fim oficial (prorrogação); em toda venda do C6 a
+  oferta vencedora é a maior; nenhuma loja do WL 43 tem key account.
+- 🔴 **Pendência:** gestor da conta vazio no canal inteiro — o ranking de gestores espera o
+  campo ser preenchido ou outra fonte.
+- 🔵 A primeira publicação no SharePoint fica com o Thomas (nó ligado, run de validação feito
+  com ele desligado).
+- **Tarde — o responsável virou representante comercial.** Sai o key account (vazio no canal),
+  entra o `USUARIO_GP` da planilha `LojasAtivas_C6.xlsx`, cruzada pelo CNPJ; sem CNPJ na
+  planilha ou sem representante → "Sem Representante". A planilha é lida do SharePoint a cada
+  run (`Painel de Eventos C6/_dados/`). CNPJ com mais de um representante (filiais) fica com o
+  mais frequente; empate → Sem Representante — decisão minha, a revisar se o Thomas preferir
+  outra regra. Upload desligado até o run de validação com a planilha.

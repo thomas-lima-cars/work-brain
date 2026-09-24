@@ -6,7 +6,7 @@ variações, ícone, imagem de capa, selo de parceiro.
 ```
 marca/
 ├── cars2you/    ✅ logo azul + logo branca
-├── c6/          ⬜ vazia
+├── c6/          ✅ monograma preto + branco (SVG), desde 24/09
 ├── itau/        ⬜ vazia
 ├── dealers/     ⬜ vazia
 ├── lm/          ⬜ vazia

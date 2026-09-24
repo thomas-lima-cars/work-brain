@@ -481,6 +481,25 @@ de gráfico, ponto, barra de ranking. Uma cor por página, na parte que importa.
 texto corrido. Onde houver link em texto, ele precisa se anunciar por
 **sublinhado** — não há mais diferença de cor para carregar esse trabalho.
 
+### 10e. Produto com cara própria: camada de cor, não tema novo (24/09/2026)
+
+Painel de outro produto (o primeiro foi o C6) carrega **`tema.css` e, depois
+dele, `tema-<produto>.css`**. A camada só redefine **token de cor** — fundo,
+superfície, texto, acento, sombra, brilho — e nunca forma, espaçamento ou
+componente. Correção de layout feita no `tema.css` chega no painel do produto
+sem ninguém lembrar dele.
+
+🔴 **A camada redefine o MESMO conjunto de tokens nos dois blocos**
+(`:root,[data-tema="claro"]` e `[data-tema="escuro"]`). Os dois seletores têm
+a mesma especificidade e vale o último: um token redefinido só no bloco claro
+da camada venceria o bloco **escuro** do `tema.css`, que vem antes, e o valor
+claro vazaria para o tema escuro.
+
+Os tokens de marca que o `tema.css` cita por nome (`--marca-azul`,
+`--marca-azul-claro`) também são redefinidos, para nenhuma cor da Cars2You
+vazar. No C6 o painel foi varrido no navegador atrás de qualquer cor azulada
+computada, nos dois temas: zero.
+
 ## 11. Como o arquivo é produzido
 
 **Modelo é gerado de uma fonte só**, nunca mantido em duplicata:

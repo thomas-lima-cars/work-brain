@@ -6,6 +6,9 @@
 O que deveria migrar para cá, no mesmo formato do
 [`precificacao/`](../precificacao/):
 
+✅ **`indicadores.md` existe desde 2026-09-24** — eventos do WL 43, desfecho
+das negociações, lojas novas por mês e o custo do Painel de Eventos C6.
+
 | arquivo | o que traria |
 |---|---|
 | `definicoes.md` | O que é "cadastro ativo", "aderência", a regra **VMV = FIPE × 0,75** (conferida em 15/09: a moda fica em 0,5–0,8×, o que a sustenta) |

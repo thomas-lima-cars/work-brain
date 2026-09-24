@@ -93,9 +93,71 @@ Ver `automations/n8n-sdk/rel-veiculos/montar-fase1.js`, que faz a aritmética
 sobre o epoch e lê com `getUTC*` — assim o fuso do processo (também UTC) não
 interfere.
 
+✅ **`offers.created_at` também está em Brasília** — medido em 2026-09-24 por
+conexão direta: `NOW()` devolveu **17:22**, a oferta mais recente do banco
+estava gravada às **14:22**, e o relógio local marcava 14:22. Oferta e evento
+estão no mesmo fuso, então "a última oferta antes do evento" é comparação
+direta de `offers.created_at < events.start_date_offer`, sem ajuste.
+
 ⚠️ Não sei se **todas** as colunas de data do banco seguem essa convenção. O
-que está medido é `events.finish_date_event` e `events.start_date_display`.
-Para outras tabelas, medir antes de comparar com `NOW()`.
+que está medido é `events.finish_date_event`, `events.start_date_display` e
+`offers.created_at`. `shops.created_at` é gravado pela mesma aplicação e
+presumivelmente segue a mesma regra, mas **não foi medido**. Para outras
+tabelas, medir antes de comparar com `NOW()`.
+
+## A maior parte dos lances cai DEPOIS do fim oficial do evento
+
+Medido em 2026-09-24 nos 17 eventos C6 Auto com fim desde 20/08. Em todos
+os encerrados há oferta com `created_at > finish_date_event` — no 23957,
+**408 dos 506 lances** —, e em nenhum passa de 3 horas depois do fim. É a
+**prorrogação**: o pregão estende enquanto há disputa no fim.
+
+Consequência: "evento encerrado" não é "`agora > finish_date_event`". Durante
+a prorrogação o evento passou do horário e ainda recebe lance, e as
+negociações seguem em `status = 1`. O Painel de Eventos C6 chama esse estado
+de **Encerrando**. Nenhuma oferta aparece **antes** de `start_date_offer`.
+
+## O desfecho de uma negociação do C6
+
+Medido em 2026-09-24 sobre os 55 eventos C6 Auto com fim desde 01/06 (números
+em [`projetos/c6/indicadores.md`](../projetos/c6/indicadores.md)):
+
+- Em **toda** venda (2, 3, 7) a oferta vencedora (`offer_actual_id`) é a de
+  **maior valor** da negociação, e existe transação para ela.
+- `14` (Vendedor rejeitou) **guarda** o `offer_actual_id` em quase todos os
+  casos, sem transação: houve vencedor do pregão e o vendedor recusou. Quem
+  conta "vencedor do pregão" pega esses; quem conta "venda" não.
+- `18` (Venda cancelada) tem `offer_actual_id` **e** transação: a venda
+  chegou a ser transacionada e caiu depois.
+- `11` nunca tem oferta vencedora. `1` pode ter (poucos casos).
+- Em nenhum lance do C6 o `buyer_shop_id` é nulo: todo comprador do canal é
+  loja.
+
+## Quem responde por uma loja em `shops`
+
+Medido em 2026-09-24 por conexão direta, `information_schema` e contagem.
+
+`shops` tem **50 colunas** (o diagrama mostrava 37). **Não existe coluna de
+quem cadastrou a loja** — há `created_at`, sem autor. O único rastro de autor
+é `deleted_by` (FK para `users`), que diz quem **apagou**.
+
+As FKs de `shops` para `users` são quatro:
+
+| coluna | o que é |
+|---|---|
+| `key_account_id` | o key account da loja — o usuário tem o papel **"Key Account"** (`roles.id = 24`, via `model_has_roles`) |
+| `business_consultant_id` | consultor comercial |
+| `business_consultant_2_id` | segundo consultor |
+| `deleted_by` | quem apagou a loja |
+
+`users` não tem coluna de tipo: o papel mora no Spatie (`roles` +
+`model_has_roles`).
+
+🔴 **`key_account_id` é quase vazio.** Das 23.282 lojas, **19.797 (85%)** não
+têm key account, e as preenchidas estão em só dois canais — Marketplace
+Cars2You (7) e Trucks2you (4), com 21 key accounts distintos. Um deles
+concentra 2.269 lojas; "Master" (id 1) e "Suporte Cars2You" aparecem como key
+account de 34 lojas cada, com cara de conta de sistema. No canal C6 (43), zero.
 
 ## O catálogo `models` tem nomes duplicados em duas faixas de id
 

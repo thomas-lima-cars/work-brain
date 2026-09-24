@@ -50,6 +50,26 @@ no `FROM`, `EXISTS`, `CASE`, `COALESCE`, `MAX`, `COUNT`, `AVG`, `STDDEV_SAMP`, `
 comparar com o que a coleta trouxe. Sem gabarito, coleta truncada passa por completa —
 foi o que aconteceu na 49799.
 
+### ✅ Contornar o teto de 50 linhas: a tabela inteira numa linha (2026-09-24)
+
+`SELECT COUNT(*) AS total, JSON_ARRAYAGG(JSON_ARRAY(...)) AS linhas FROM ...` devolve **uma
+linha**, com a tabela toda num JSON — não há paginação, e o `total` da mesma varredura é o
+gabarito. O relatório de evento C6 de produção já fazia isso; o **Painel de Eventos C6**
+(`painel-eventos-c6/`) provou um pacote de **130 KB** (2.100 lances) passando inteiro pelo
+MCP, e o run todo em segundos. Números em
+`context/banco-de-dados/projetos/c6/indicadores.md`.
+
+⚠️ `JSON_ARRAYAGG` não garante ordem: ordenar no JS. E quando a coleta cabe em poucas
+consultas assim, **paginar por `OFFSET` deixa de ser o padrão** — vale medir antes de montar
+fase 1/fase 2 como no Radar.
+
+
+## Painel de Eventos C6 (2026-09-24)
+
+Workflow **`VelPJDX8USP9WIeT`** (pessoal do Thomas). Eventos do WL 43 abertos e encerrados
+nos últimos 30 dias, ranking de lojas e representantes (planilha do C6, por CNPJ), lojas novas. Cinco consultas empacotadas
+em JSON, HTML no SharePoint. Código, provas e decisões em
+[`painel-eventos-c6/`](painel-eventos-c6/README.md).
 
 ## Lojas ofertantes por UF e whitelabel (2026-09-09)
 
