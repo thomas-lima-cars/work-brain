@@ -44,7 +44,10 @@ function emLinhas(css, largura) {
   return partes;
 }
 
-const ler = (...p) => fs.readFileSync(path.join(DESIGN, ...p), 'utf8');
+/* o checkout do git grava CRLF aqui (core.autocrlf): sem normalizar, o bloco
+   injetado e o que a prova recalcula divergem só no fim de linha */
+const semCR = (s) => s.split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+const ler = (...p) => semCR(fs.readFileSync(path.join(DESIGN, ...p), 'utf8'));
 const css = compacta(ler('tokens', 'tema.css')) + compacta(ler('tokens', 'tema-c6.css'));
 recusa(css, 'tema.css + tema-c6.css');
 
@@ -70,7 +73,7 @@ function troca(fonte, marca, conteudo) {
 module.exports = { blocoTema, blocoLogos, alvo: ALVO };
 
 if (require.main === module) {
-  let fonte = fs.readFileSync(ALVO, 'utf8');
+  let fonte = semCR(fs.readFileSync(ALVO, 'utf8'));
   fonte = troca(fonte, 'TEMA', blocoTema);
   fonte = troca(fonte, 'LOGOS', blocoLogos);
   fs.writeFileSync(ALVO, fonte, 'utf8');

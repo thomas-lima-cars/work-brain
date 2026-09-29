@@ -152,7 +152,7 @@ export default workflow('painel-eventos-c6', 'Painel de Eventos C6')
 """
 
 destino = os.path.join(AQUI, "painel-eventos-c6.wf.ts")
-with open(destino, "w", encoding="utf-8") as f:
+with open(destino, "w", encoding="utf-8", newline=chr(10)) as f:
     f.write(code)
 
 print("gerado:", destino, "·", len(code), "bytes")

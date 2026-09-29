@@ -32,7 +32,8 @@ design/
 │   ├── _fonte/dashboard.html   molde (edite AQUI)
 │   ├── monta-modelos.js        molde + tema → os dois arquivos
 │   ├── dashboard-claro.html    ⚙️ gerado — não editar
-│   └── dashboard-escuro.html   ⚙️ gerado — não editar
+│   ├── dashboard-escuro.html   ⚙️ gerado — não editar
+│   └── dashboard-escuro-c6.html ⚙️ gerado — escuro do C6, amarelo #FFC000
 ├── marca/<produto>/       logos e imagens, por produto
 ├── paletas/<produto>.json paleta e contrastes medidos, por produto
 ├── referencias/           o que inspirou; não entra em painel

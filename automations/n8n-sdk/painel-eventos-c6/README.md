@@ -1,12 +1,15 @@
 # Painel de Eventos C6
 
 > Eventos do Canal de vendas C6 Auto: o que foi publicado, o que recebeu
-> oferta, o que vendeu, quem ofertou e arrematou, e quais lojas novas
-> entraram no canal. Ranking de lojas e de representantes comerciais por pontuação.
+> oferta, o que vendeu, quem acessou, ofertou e arrematou, e como as lojas
+> novas estão ativando. Rankings de representantes e de lojas, funil de
+> ativação, acessos por dia e por hora, pátios e score de veículo, com
+> filtros numa gaveta lateral.
 
-Workflow n8n **`VelPJDX8USP9WIeT`** — "Painel de Eventos C6", no projeto
+Workflow n8n **`53RGtYzUzMoVtxpJ`** — "Painel de Eventos C6", no projeto
 **pessoal do Thomas** (a pedido, "pessoal por enquanto"). Criado em
-2026-09-24. Gatilho manual. Publica em
+2026-09-29 com a versão 3; o `VelPJDX8USP9WIeT` (24/09) e o
+`8051egvfncc3unuT` (28/09) foram **arquivados**. Gatilho manual. Publica em
 `Painel de Eventos C6/painel-eventos-c6.html` no site N8N do SharePoint.
 
 ```
@@ -14,121 +17,128 @@ Rodar → Baixar Representantes → Ler Representantes → Montar Consultas → 
       → Montar Painel → Virar Arquivo → Subir no SharePoint
 ```
 
-## As regras (decididas pelo Thomas em 2026-09-24)
+🔴 **Ainda não publicou.** O run 54794 (29/09) caiu no Baixar Representantes
+com 404: a planilha não está no SharePoint. Ver Pendências.
+
+## As regras (decididas pelo Thomas)
 
 | | |
 |---|---|
-| **Recorte** | Eventos que alvejam o **whitelabel 43** (Canal de vendas C6 Auto) com fim de **30 dias atrás em diante** — abertos, agendados e encerrados recentes. Seletor por evento na tela |
-| **Vendido / arremate** | Negociação em status **2, 3 ou 7**. Arrematante = loja da oferta vencedora (`offer_actual_id`) |
-| **Pontuação** | **1 ponto por veículo ofertado + 10 por arremate**, por evento. Vários lances no mesmo carro valem 1 ponto |
-| **Loja nova** | Loja do WL 43 com `shops.created_at` dentro da janela do evento (início das ofertas → fim) |
-| **Representante** | `USUARIO_GP` da planilha de lojas ativas do C6, cruzada pelo CNPJ da loja. CNPJ fora da planilha ou sem representante → **"Sem Representante"**. Desde 24/09 — antes era o key account, vazio no canal inteiro. Ver a seção abaixo |
+| **Recorte** (24/09) | Eventos que alvejam o **whitelabel 43** (Canal de vendas C6 Auto) com fim de **30 dias atrás em diante** — abertos, agendados e encerrados recentes |
+| **Período** (28/09) | Do **menor início ao maior fim** dos eventos filtrados. Acesso e cadastro fora dele **não contam** |
+| **Vendido / arremate** (24/09) | Negociação em status **2, 3 ou 7**. Arrematante = loja da oferta vencedora (`offer_actual_id`) |
+| **Pontuação da loja** (28/09) | **Só loja nova pontua**: 10 por arremate + 1 por dia com acesso no período. As outras aparecem com "—". Substituiu o "1 por veículo ofertado + 10 por arremate" de 24/09 |
+| **Score do veículo** (28/09) | Lojas distintas que abriram o anúncio no horário do evento × 1 + lances × 5 + 10 se alguma oferta alcançou o VMV |
+| **Loja nova** | Loja do WL 43 com `shops.created_at` dentro do período |
+| **Aprovada** (28/09) | `shops.situation = 3` |
+| **Engajamento** (28/09) | Lojas novas que acessaram o canal no período ÷ cadastradas |
+| **Participações/lojista** (28/09) | Pares (loja, veículo) com lance ÷ ofertantes |
+| **% conversão / % VMV do pátio** | Sobre os veículos do pátio (escolha minha, a confirmar) |
+| **% VMV do veículo** | Maior oferta ÷ VMV (escolha minha, a confirmar) |
+| **Representante** | `USUARIO_GN` ou `USUARIO_GP` da planilha de lojas ativas do C6, cruzada pelo CNPJ. Fora da planilha ou vazio na coluna → **"Sem Representante"**. Padrão da tela: **Usuário GN** (29/09) |
+| **Rankings** (29/09) | Representantes: só quem tem loja nova. Lojas: só quem acessou no período. Padrão: **Todos lojistas** |
 
-O recorte é por **whitelabel**, não pela loja vendedora como no relatório de
-evento de produção (`ehsqQo6hiPDRf58I`, trava em `shop_id = 104754`). A loja
-vendedora viaja como coluna e o painel avisa se aparecer outra que não a
-104754. Hoje todos os eventos do WL 43 são dela.
+## Os filtros (29/09)
 
-## Consultar o mínimo: cinco chamadas, uma linha cada
+Numa gaveta com aba na lateral esquerda (regra 5c do design), nesta ordem:
+Evento, Lojistas (Todos / Somente novos), Coluna do representante (GN / GP),
+Representante, Data, Pátio, Status do veículo, Limpar.
 
-Pedido explícito: consultar o banco o mínimo necessário, puxando as tabelas
-de forma completa e processando no n8n. Cada consulta devolve **uma linha
-só**, com a tabela inteira empacotada:
+| filtro | recorta | não mexe em |
+|---|---|---|
+| Pátio, Status do veículo | os **veículos** — e tudo que nasce deles: lances, ofertantes, compradores, rankings, pátios, degraus do funil que dependem de anúncio | acesso ao canal (dias, gráficos, "logaram") |
+| Representante | as **lojas**, pela coluna ativa | a lista de veículos (como o Responsável do Radar) |
+| Data | o **período**, para aquele dia: acessos, cadastros, lances e vendas pela data da oferta vencedora | a lista de veículos |
+| clique num dia do gráfico | só o gráfico de acessos por hora | o resto |
+
+Nenhum filtro recalcula score, ofertas ou farol de um veículo: são do
+veículo inteiro, calculados no nó.
+
+## Consultar o mínimo: sete chamadas, uma linha cada
+
+Cada consulta devolve **uma linha só**, com a tabela inteira empacotada:
 
 ```sql
 SELECT COUNT(*) AS total, JSON_ARRAYAGG(JSON_ARRAY(<colunas>)) AS linhas FROM ...
 ```
 
-O teto de 50 linhas do MCP deixa de existir e não há paginação. É o padrão
-do nó SQL Lotes do relatório de evento C6 em produção. O `total` sai da mesma
-varredura: se o pacote chegar menor, o Montar Painel **derruba o run** em vez
-de publicar meia tabela (há prova sabotando uma linha).
+O teto de 50 linhas do MCP deixa de existir e não há paginação. O `total`
+sai da mesma varredura: se o pacote chegar menor, o Montar Painel **derruba o
+run** em vez de publicar meia tabela (há prova sabotando uma linha).
 
 | consulta | o que traz |
 |---|---|
 | `eventos` | id, nome, status, início, fim, canais |
-| `veiculos` | uma linha por negociação: status, vencedora, VMV, FIPE, placa, chassi, marca/modelo/versão, anos, km, laudo |
+| `veiculos` | uma linha por negociação: status, vencedora, VMV, FIPE, marca/modelo/versão, anos, km, **pátio**. Placa, chassi e laudo **saíram da consulta** em 28/09 |
 | `ofertas` | todo lance das negociações do recorte |
-| `lojas` | quem ofertou ∪ lojas do WL 43 cadastradas na janela, com o CNPJ (chave do cruzamento — não chega ao HTML) |
-| `ult_anterior` | última oferta de cada loja antes de cada evento em que ofertou |
+| `lojas` | quem ofertou ∪ lojas do WL 43 cadastradas na janela, com situação e CNPJ (chave do cruzamento — não chega ao HTML) |
+| `acessos_anuncio` | (evento, anúncio, loja), cortado no horário do **próprio evento**, com a **máscara dos dias** do evento em que abriu (`BIT_OR(1 << DATEDIFF)`) — é o que deixa o filtro de Data cortar o acesso a anúncio |
+| `acessos_p0`, `acessos_p1` | loja × dia × hora com a contagem, dentro do período do recorte, **em partes** pelo resto do id da loja |
 
-Linhas, tamanho de cada pacote e tempo — por consulta e do run inteiro no
-n8n — estão em
+Linhas, tamanho de cada pacote e tempo estão em
 [`indicadores.md`](../../../context/banco-de-dados/projetos/c6/indicadores.md).
-O maior pacote passou inteiro pelo MCP no primeiro run, e o run todo leva
-segundos, não os minutos do Radar. O teto de tamanho do MCP **não é
-conhecido**: se o recorte crescer muito (janela maior, evento gigante), a
-guarda do `total` é quem avisa — o run cai em vez de publicar meia tabela.
 
-Toda agregação — contagens, pontuação, ranking, deságio, farol, estado do
-evento, lojas novas — é feita no JavaScript, a partir dessas cinco tabelas.
-Nenhuma consulta foi fundida com outra.
+### Por que o acesso chega assim
+
+O bruto da janela são ~35 mil linhas de `access_logs` — não passa pelo MCP.
+O filtro de Representante precisa saber **de quem** é cada acesso por hora,
+então o grão é loja × dia × hora; inteiro ele passa de 200 KB, e em duas
+partes cada uma fica abaixo dos 130 KB que o MCP já provou passar. Se uma
+parte engordar, é subir `PARTES_ACESSO` no Montar Consultas — o Montar Painel
+junta quantas vierem, e parte que faltar derruba o run.
+
+O corte do período é **por hora cheia**: num evento que começa às 17:13, o
+acesso das 17:05 entra (está no glossário). O acesso a anúncio é cortado no
+minuto, no SQL, porque o join é por igualdade no `event_id`; cruzar cada
+acesso com cada evento por faixa de data passou de 5 minutos e foi abandonado.
 
 ### O cálculo mora numa função só
 
-`calcula(D, sel)` monta KPIs, rankings e tabelas para o recorte escolhido
-(`'todos'` ou um evento). Ela roda **no nó** — para o `resumo` que as provas
-conferem — e **na página**, pelo `toString()`. Não há uma conta no servidor e
-outra no navegador para divergirem.
+`calcula(D, sel, F)` monta KPIs, rankings, gráficos, funil e tabelas para o
+evento escolhido e os filtros. Ela roda **no nó** — para o `resumo` que as
+provas conferem — e **na página**, pelo `toString()`. Não há uma conta no
+servidor e outra no navegador para divergirem. As ofertas viajam cruas para a
+página porque os filtros recortam ofertas, e recorte de agregado não fecha.
 
 ## A tela
 
-Topo com a logo do C6, título, seletor de evento e troca de tema. Quatro
-KPIs (publicados, com oferta, lojas ofertantes, novos lojistas), ranking de
-lojas e de representantes, tabela de eventos (clicável — seleciona o evento),
-veículos, lojas ofertantes, lojas novas no canal, glossário e rodapé.
+Topo com a logo do C6, título, avisos e troca de tema. Quatro KPIs, cada
+percentual com barra: **Veículos publicados** (% de anúncios acessados;
+vendidos e com VMV atingido), **Com ofertas** (% dos publicados; ofertantes e
+lances/lojista), **Vendidos** (quantidade e valor na mesma linha, % dos
+publicados; compradores e participações/lojista), **Novos lojistas** (% de
+engajamento; ofertaram e compraram).
 
-| coluna pedida | de onde sai |
-|---|---|
-| Modelo | marca + modelo + versão, com ano fab./modelo |
-| Placa, chassi | `vehicles.plate`, `vehicles.chassi` — pedido explícito; nada de documento de pessoa entra |
-| Link do anúncio | `{host}/anuncio/veiculo/{marca}/{modelo}/{versão}/{uuid}`, host `compraveiculos.cars2you.com.br` (vitrine do C6), padrão do Radar |
-| Quantidade de ofertas | lances na negociação daquele evento |
-| Última oferta | lance de maior `id`, com a hora |
-| VMV | `an.min_sale_price` |
-| FIPE | `advertisements.fipe_price` (a do anúncio — ver `definicoes.md`) |
-| Deságio | `1 − valor ÷ FIPE`; valor = venda se vendeu, senão a última oferta. Marcado fora de 20%–120% da FIPE |
-| Laudo cautelar | `vehicle_precautionary_reports.situation` — "sem veredito" ≠ "sem laudo" |
-| Data de cadastro da loja | `shops.created_at` |
-| Última oferta antes do evento | `MAX(offers.created_at)` da loja com `created_at < início do evento`, em qualquer evento da plataforma |
+Depois: ranking de representantes e de lojas (tabelas ordenáveis, pontuação
+decrescente); funil de ativação (regra 3b do design) ao lado dos **acessos
+únicos por dia**, que preenche a altura do cartão; acessos por hora na linha
+inteira, do primeiro ao último horário com acesso; pátios na linha inteira;
+veículos (score crescente, % VMV com barra, e no Resultado o arrematante com
+o selo "novo" e o representante); glossário e rodapé. A tabela de eventos e
+as tabelas de lojas saíram em 28/09.
 
 ### Design
 
 O tema é o do brain (`design/tokens/tema.css`) com a **camada do C6** por cima
-(`design/tokens/tema-c6.css`): só token de cor, os azuis trocados por cinzas
-com base no `#242424`. Logos em `design/marca/c6/`, uma por tema, recortadas
-pela caixa medida com `getBBox`. Paleta e contraste em
-`design/paletas/c6.json`.
+(`design/tokens/tema-c6.css`): no claro, cinzas com base no `#242424`; no
+escuro, detalhes em **amarelo #FFC000**, só em cor chapada (sem degradê). O
+funil é cinza no escuro. O farol "oferta abaixo do VMV" é amarelo
+(`--farol-abaixo`). Modelo avulso: `design/modelos/dashboard-escuro-c6.html`.
 
-Diferenças do modelo, de propósito:
-- **tabelas densas alinhadas à esquerda, números à direita** (regra 8, exceção);
-- **no telefone o seletor de evento desce para linha própria** — ao lado do
-  título ele comia 143 dos 375px e o topo ia a 140px de altura. É o mesmo
-  defeito que o `estado-atual.md` registra no modelo (decisão em aberto).
-
-## O representante comercial (2026-09-24)
-
-A pedido do Thomas, o responsável pela loja deixou de ser o key account (vazio
-no canal inteiro) e passou a ser o **representante da planilha de lojas
-ativas do C6** — coluna `USUARIO_GP`, cruzada pelo CNPJ.
+## O representante comercial
 
 | | |
 |---|---|
 | Onde mora | `Painel de Eventos C6/_dados/LojasAtivas_C6.xlsx`, site N8N. Quem atualiza **substitui o arquivo no mesmo caminho** |
 | Como é lida | `Baixar Representantes` (HTTP, arquivo) → `Ler Representantes` (Extract from File, **primeira aba**, tudo como texto). Em série, antes das consultas: em ramo paralelo o nó roda tarde demais (Radar, run 52930) |
 | Chave | CNPJ, só dígitos, completado a 14. `shops.cnpj` entra na consulta de lojas e **não chega ao HTML** |
-| Fora da planilha / sem representante | "Sem Representante" |
+| Colunas | `USUARIO_GN` e `USUARIO_GP` — as duas obrigatórias. O GN vem vazio em 63% das linhas (dado, não defeito) |
 | CNPJ com mais de um representante | fica o que aparece em **mais linhas**; empate → "Sem Representante". Os dois viram aviso |
 | Planilha ausente, truncada ou sem as colunas | **o run cai** — publicar todo mundo "Sem Representante" seria uma tela plausível e errada |
 
 A aba não é fixada pelo nome porque o nome é o de um job do BigQuery
-(`bquxjob_…`) e muda a cada exportação. O perfil da planilha de 24/09 está em
-[`indicadores.md`](../../../context/banco-de-dados/projetos/c6/indicadores.md).
-
-`resumo.representantes`, na saída do Montar Painel, conta por qual caminho
-cada loja passou (`unico`, `maioria`, `empate`, `fora_planilha`,
-`vazio_planilha`, `sem_cnpj`). Sem isso, "a planilha não tem a loja" e "o CNPJ
-não veio do banco" dariam a mesma tela.
+(`bquxjob_…`) e muda a cada exportação. `resumo.representantes`, na saída do
+Montar Painel, conta por qual caminho cada loja passou, por coluna.
 
 ## Ciclo de trabalho
 
@@ -137,12 +147,18 @@ python coleta_local.py                     # coleta real pela conexão direta (V
 node _aplica-modelo.js                     # tema + logos para dentro do Montar Painel
 for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
 python _planilha_local.py                  # planilha no formato do n8n → dados-planilha-local.json
-node prova-local.js                        # 102 provas
+node prova-local.js                        # 205 provas
 node monta_local.js                        # regera saida-local.html sem n8n
 python build_wf.py                         # painel-eventos-c6.wf.ts
 ```
 
-E **depois de sincronizar com o n8n, antes de rodar**:
+Para olhar a página: o `saida-local.html` passou de 600 KB e o navegador
+interno não abre mais o arquivo direto — use o servidor de prévia
+(`previa-radar` em `.claude/launch.json`) em
+`http://localhost:8777/automations/n8n-sdk/painel-eventos-c6/saida-local.html`.
+
+**Nada vai ao n8n sem a aprovação final do Thomas.** Depois de sincronizar,
+antes de rodar:
 
 ```bash
 python _confere_transcricao.py <dump-do-get_workflow_details>
@@ -155,37 +171,43 @@ python _confere_transcricao.py <dump-do-get_workflow_details>
 | `_aplica-modelo.js` | injeta `tema.css` + `tema-c6.css` e as duas logos nos blocos `TEMA`/`LOGOS` |
 | `_roda_no.js` | roda um nó Code fora do n8n, com `$()` de mentira |
 | `coleta_local.py` | roda o SQL exato do nó pela conexão direta e grava no formato do MCP |
-| `_planilha_local.py` | converte a planilha no que o nó Ler Representantes entrega (tudo texto, célula vazia omitida) |
-| `prova-local.js` | 102 provas — as de antes mais o cruzamento de representante caso a caso, CNPJ que não vaza, e planilha ausente/truncada/sem coluna derrubando o run — sem barra invertida, blocos frescos, soma dos eventos = total, cruzamento com medição independente, pontuação recalculada do cru, HTML offline e sem PII de pessoa, BOM, pacote sabotado derruba o run, nó enxuto = nó original |
+| `_planilha_local.py` | converte a planilha no que o nó Ler Representantes entrega |
+| `prova-local.js` | 205 provas: consultas, pacotes, período e dias refeitos do cru, pontuação e score de toda loja e todo veículo refeitos do cru, funil, pátios, cada filtro refeito do cru, representante caso a caso, CNPJ que não vaza, planilha ausente/truncada derrubando o run, layout (ordem dos cartões e da gaveta), nó enxuto = nó original |
 | `_confere_transcricao.py` | compara o código no n8n com `n8n/*.js`, byte a byte |
-| `build_wf.py` | gera o `.wf.ts` |
+| `build_wf.py` | gera o `.wf.ts` (em LF) |
 
 `dados-*.json` e `saida-*.html` ficam fora do git (`.gitignore`): têm nome real
-de loja e placa.
+de loja.
+
+### Fim de linha
+
+O repo tem `core.autocrlf=true`: o checkout grava CRLF. O injetor, o
+`_enxuga.js` e as provas normalizam para LF ao ler — sem isso a prova "bloco
+TEMA igual ao do injetor" cai só por fim de linha (aconteceu em 28/09).
 
 ### Por que o código vai cru e sem comentário
 
-O nó do painel tem 52 KB e é transmitido à API **por extenso**. Pela
+O nó do painel tem 87 KB enxuto e é transmitido à API **por extenso**. Pela
 `update_workflow` ele iria dentro de JSON, com cada aspa dupla escapada à mão
 — centenas de atributos HTML. Pela criação a partir de código ele vai cru,
 dentro de um literal de template, e o gerador barra as três coisas que
-quebrariam o literal (barra invertida, crase, `${`). Tirar o comentário cortou
-7 KB da transmissão sem mudar comportamento: a prova confere que o nó enxuto
-calcula o mesmo resumo, gera a mesma marcação e embute o mesmo dado.
+quebrariam o literal (barra invertida, crase, `${`). Por isso cada versão
+nova é um workflow novo, e o anterior é arquivado.
 
-Primeira sincronização (24/09): os três nós **idênticos byte a byte**.
+Sincronizações: 24/09, 28/09 e 29/09 — as três **idênticas byte a byte**.
 
 ## Pendências
 
 - 🔴 **Subir a planilha no SharePoint.** O workflow lê
   `Painel de Eventos C6/_dados/LojasAtivas_C6.xlsx` no site N8N. Sem ela o run
-  cai no primeiro nó — de propósito.
-- 🔵 **Primeira publicação no SharePoint** — o upload está **desligado** até o
-  run de validação com a planilha. Depois de ligado, quem dispara é o Thomas.
-- 🔵 **Sem cron.** Manual, como o Radar. Se for rodar sozinho, o C6 fecha 16h
-  ou 20h com prorrogação de até ~1h20 depois do fim oficial.
-- ❓ **Evento 23995 "Evento Exclusivo C6 Auto – Setembro"** — 1 hora de
-  duração (30/09 17:13–18:13), 8 veículos, `situation = 1`. Tem cara de teste
-  ou preparação. Entra no painel como Agendado.
+  cai no primeiro nó — de propósito (run 54794, 29/09, 404).
+- 🔵 **Primeira publicação** — logo depois da planilha: rodar o
+  `53RGtYzUzMoVtxpJ` (upload ligado) e mandar o link ao C6.
+- ❓ Confirmar: % do pátio sobre os veículos do pátio; % VMV pela maior
+  oferta; desempate de representante por maioria.
+- 🔵 **Sem cron.** Manual. Se for rodar sozinho, o C6 fecha 16h ou 20h com
+  prorrogação de até ~1h20 depois do fim oficial.
+- 🔵 O `catalogo-relatorios/relatorios.json` (de outra sessão, ainda fora do
+  git) cita o workflow antigo `VelPJDX8USP9WIeT`.
 - 🔵 Mudar a pasta ou o nome do arquivo depois **abre pasta nova** e deixa a
-  antiga órfã (upload por path) — o Radar já tem duas assim.
+  antiga órfã (upload por path).

@@ -6,6 +6,7 @@ Dois arquivos, mesmo molde, uma linha de diferença: o `data-tema` do `<html>`.
 |---|---|---|
 | `dashboard-claro.html` | claro | **padrão.** A paleta foi pensada pra ele. Imprime melhor, e é o que a maioria abre no trabalho |
 | `dashboard-escuro.html` | escuro, com vidro | tela grande, painel de parede, apresentação |
+| `dashboard-escuro-c6.html` | escuro do **C6**: `tema.css` + `tema-c6.css`, detalhes em amarelo #FFC000, logos do C6 | painel do C6 (28/09) |
 
 Os dois trazem um botão que troca o tema ao vivo — dá pra mostrar as duas
 opções numa reunião sem abrir outro arquivo.

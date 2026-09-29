@@ -17,7 +17,12 @@ const OFERTAS_DO_RECORTE =
   " INNER JOIN advertisement_negotiations an ON an.id = o.advs_negotiation_id AND an.deleted_at IS NULL" +
   " INNER JOIN events e ON e.id = an.event_id AND" + EVENTO +
   " WHERE o.deleted_at IS NULL";
-const DATA = (col) => "DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
+const ACESSOS_DO_RECORTE =
+  " FROM access_logs al" +
+  " WHERE al.whitelabel_id = " + WL_C6 + " AND al.shop_id IS NOT NULL" +
+  " AND al.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")" +
+  " AND al.created_at <= (SELECT MAX(e.finish_date_event) FROM events e WHERE" + EVENTO + ")";
+const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
 const TABELAS = [
   {
     nome: 'eventos',
@@ -42,6 +47,7 @@ const TABELAS = [
         " LEFT JOIN brands b ON b.id = v.brand_id" +
         " LEFT JOIN models m ON m.id = v.model_id" +
         " LEFT JOIN versions ver ON ver.id = v.version_id" +
+        " LEFT JOIN shop_stocks ss ON ss.id = a.shop_stock_id" +
         " WHERE an.deleted_at IS NULL",
     cols: [
       ['neg', 'an.id'],
@@ -54,16 +60,13 @@ const TABELAS = [
       ['vencedora', 'an.offer_actual_id'],
       ['vmv', 'NULLIF(an.min_sale_price, 0)'],
       ['fipe', 'NULLIF(a.fipe_price, 0)'],
-      ['placa', 'v.plate'],
-      ['chassi', 'v.chassi'],
       ['marca', 'b.name'],
       ['modelo', 'm.name'],
       ['versao', 'ver.name'],
       ['ano_fab', 'v.manufacture_year'],
       ['ano_mod', 'v.model_year'],
       ['km', 'NULLIF(v.km, 0)'],
-      ['laudo', "(SELECT MAX(vpr.situation) FROM vehicle_precautionary_reports vpr" +
-                " WHERE vpr.vehicle_id = a.vehicle_id AND vpr.deleted_at IS NULL)"],
+      ['patio', 'ss.name'],
       ['anuncio_apagado', 'a.deleted_at IS NOT NULL']
     ]
   },
@@ -98,17 +101,37 @@ const TABELAS = [
     ]
   },
   {
-    nome: 'ult_anterior',
-    de: " FROM (SELECT DISTINCT an.event_id AS ev, o.buyer_shop_id AS loja, e.start_date_offer AS ini" +
-        OFERTAS_DO_RECORTE + " AND o.buyer_shop_id IS NOT NULL) p",
+    nome: 'acessos_anuncio',
+    de: " FROM (SELECT e.id AS ev, al.advertisement_id AS anuncio, al.shop_id AS loja," +
+        " BIT_OR(1 << DATEDIFF(al.created_at, e.start_date_offer)) AS dias" +
+        " FROM events e INNER JOIN access_logs al ON al.event_id = e.id" +
+        " AND al.whitelabel_id = " + WL_C6 + " AND al.advertisement_id IS NOT NULL AND al.shop_id IS NOT NULL" +
+        " AND al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event" +
+        " WHERE" + EVENTO + " GROUP BY e.id, al.advertisement_id, al.shop_id) x",
     cols: [
-      ['evento', 'p.ev'],
-      ['loja', 'p.loja'],
-      ['ult', "(SELECT " + DATA('MAX(o2.created_at)') + " FROM offers o2" +
-              " WHERE o2.buyer_shop_id = p.loja AND o2.deleted_at IS NULL AND o2.created_at < p.ini)"]
+      ['evento', 'x.ev'],
+      ['anuncio', 'x.anuncio'],
+      ['loja', 'x.loja'],
+      ['dias', 'x.dias']
     ]
   }
 ];
+const PARTES_ACESSO = 2;
+for (let p = 0; p < PARTES_ACESSO; p++) {
+  TABELAS.push({
+    nome: 'acessos_p' + p,
+    de: " FROM (SELECT al.shop_id AS loja, DATE_FORMAT(al.created_at, '%y%m%d') AS dia," +
+        " HOUR(al.created_at) AS hora, COUNT(*) AS n" + ACESSOS_DO_RECORTE +
+        " AND MOD(al.shop_id, " + PARTES_ACESSO + ") = " + p +
+        " GROUP BY al.shop_id, DATE_FORMAT(al.created_at, '%y%m%d'), HOUR(al.created_at)) x",
+    cols: [
+      ['loja', 'x.loja'],
+      ['dia', 'x.dia'],
+      ['hora', 'x.hora'],
+      ['n', 'x.n']
+    ]
+  });
+}
 function temJanela(sql) {
   const u = String(sql).toUpperCase();
   return u.indexOf('OVER (') >= 0 || u.indexOf('OVER(') >= 0;
@@ -124,7 +147,7 @@ const itens = TABELAS.map((t, i) => {
       sql: sql,
       cols: t.cols.map((c) => c[0]),
       idx: i,
-      meta: { wl: WL_C6, dias_janela: DIAS_JANELA, piso: PISO, agora_br: AGORA_BR }
+      meta: { wl: WL_C6, dias_janela: DIAS_JANELA, piso: PISO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO }
     }
   };
 });

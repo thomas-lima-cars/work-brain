@@ -131,3 +131,28 @@
   run (`Painel de Eventos C6/_dados/`). CNPJ com mais de um representante (filiais) fica com o
   mais frequente; empate → Sem Representante — decisão minha, a revisar se o Thomas preferir
   outra regra. Upload desligado até o run de validação com a planilha.
+
+## 2026-09-28/29
+- **Painel de Eventos C6, versão 3** — pedido grande do Thomas, feito em rodadas e conferido
+  no navegador a cada uma. Saíram placa, chassi, laudo, deságio, a tabela de eventos e as
+  tabelas de lojas. Entraram: KPIs com barra (anúncios acessados, com ofertas, vendidos com
+  valor na linha, engajamento dos novos), rankings ordenáveis (representantes antes das lojas),
+  **funil de ativação** dos novos (cadastrados → aprovados → logaram → acessaram → ofertaram →
+  compraram), acessos únicos por dia e por hora (total × novos, clique no dia filtra a hora),
+  pátios, **score do veículo**, e uma **gaveta de filtros** (evento, lojistas, coluna GN/GP,
+  representante, data, pátio, status).
+- **Decisões do Thomas:** pontuação só para loja nova (10/arremate + 1/dia com acesso);
+  acesso só conta no **período do filtro** (menor início → maior fim); score = lojas que abriram
+  o anúncio × 1 + lances × 5 + 10 se VMV atingido; aprovada = `situation = 3`; participações
+  ÷ ofertantes; rankings só com loja nova (representantes) e só com acesso (lojas); padrões
+  **Todos lojistas** e **Usuário GN**; escuro com detalhes **#FFC000**, sem degradê; funil
+  cinza no escuro. O padrão de funil virou a regra 3b do design.
+- **Escolhas minhas, a confirmar:** % do pátio sobre os veículos do pátio; % VMV pela maior
+  oferta.
+- **Medido:** `access_logs` em hora de Brasília; rotas (`/bem-vindo` = logou; anúncio sempre
+  com `event_id`); um anúncio com 575 acessos de uma loja só → o score conta lojas. Números em
+  `context/banco-de-dados/projetos/c6/indicadores.md`.
+- **n8n:** workflow novo **`53RGtYzUzMoVtxpJ`**, idêntico byte a byte ao local, upload ligado.
+  `VelPJDX8USP9WIeT` e `8051egvfncc3unuT` arquivados. O run 54794 caiu com 404: a planilha
+  `LojasAtivas_C6.xlsx` ainda não está no SharePoint — **nada publicado**.
+- Regra nova do Thomas: **nada vai ao n8n sem a aprovação final dele**.

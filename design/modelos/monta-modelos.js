@@ -4,7 +4,8 @@
        node design/modelos/monta-modelos.js
 
    Entra:  _fonte/dashboard.html + ../tokens/tema.css + ../marca/cars2you/*.svg
-   Sai:    dashboard-claro.html + dashboard-escuro.html
+   Sai:    dashboard-claro.html + dashboard-escuro.html (+ o laboratório de
+           fonte e dashboard-escuro-c6.html, com a camada do C6)
 
    ── POR QUE GERAR EM VEZ DE MANTER OS DOIS NA MÃO ─────────────────────────
    Dois arquivos irmãos editados à mão divergem — e sempre o mesmo jeito: o
@@ -40,8 +41,9 @@ const FONTE = ler(path.join(AQUI, '_fonte', 'dashboard.html'));
    Base64 e não o SVG cru no `src`: o arquivo tem `#` (nas cores) e aspas, que
    numa data URI sem codificar quebram o atributo. Base64 custa ~33% de bytes
    e não depende de acertar escape nenhum — e são 4 KB, não 400. */
-const uri = arquivo => 'data:image/svg+xml;base64,' +
-  fs.readFileSync(path.join(DESIGN, 'marca', 'cars2you', arquivo)).toString('base64');
+const uriDe = (marca, arquivo) => 'data:image/svg+xml;base64,' +
+  fs.readFileSync(path.join(DESIGN, 'marca', marca, arquivo)).toString('base64');
+const uri = arquivo => uriDe('cars2you', arquivo);
 
 /* Quatro artes: duas larguras × duas cores.
      extensa  a marca escrita por extenso — 933 × 168 (5,55:1), para a web
@@ -88,6 +90,17 @@ const TEMAS = [
   { tema: 'claro',  arquivo: 'dashboard-teste.html',
     titulo: 'Modelo de painel — laboratório de fonte',
     extra: CSS_DM_SANS, extraJs: JS_TESTE },
+  /* C6, escuro com detalhes em amarelo #FFC000 (pedido do Thomas, 28/09).
+     Mesmo molde: a diferença é a camada de cor do C6 depois do tema.css
+     (regra 10e) e a marca do C6 — uma arte por tema, sem versão curta, então
+     a curta é a mesma. Quem abrir e trocar para o claro vê o C6 claro. */
+  { tema: 'escuro', arquivo: 'dashboard-escuro-c6.html',
+    titulo: 'Modelo de painel — C6, tema escuro',
+    extra: ler(path.join(DESIGN, 'tokens', 'tema-c6.css')),
+    logos: {
+      claro: uriDe('c6', 'logo-c6-preto.svg'), escuro: uriDe('c6', 'logo-c6-branco.svg')
+    },
+    alt: 'C6 Bank' },
 ];
 
 let falhou = false;
@@ -96,10 +109,12 @@ for (const t of TEMAS) {
   let html = FONTE;
   html = troca(html, '/*__CSS__*/', CSS + (t.extra || ''));
   html = troca(html, '/*__EXTRA__*/', t.extraJs || '');
-  html = troca(html, '__LOGO_CLARO_EXTENSA__', LOGO_CLARO_EXTENSA);
-  html = troca(html, '__LOGO_CLARO_CURTA__', LOGO_CLARO_CURTA);
-  html = troca(html, '__LOGO_ESCURO_EXTENSA__', LOGO_ESCURO_EXTENSA);
-  html = troca(html, '__LOGO_ESCURO_CURTA__', LOGO_ESCURO_CURTA);
+  const lg = t.logos || null;
+  html = troca(html, '__LOGO_CLARO_EXTENSA__', lg ? lg.claro : LOGO_CLARO_EXTENSA);
+  html = troca(html, '__LOGO_CLARO_CURTA__', lg ? lg.claro : LOGO_CLARO_CURTA);
+  html = troca(html, '__LOGO_ESCURO_EXTENSA__', lg ? lg.escuro : LOGO_ESCURO_EXTENSA);
+  html = troca(html, '__LOGO_ESCURO_CURTA__', lg ? lg.escuro : LOGO_ESCURO_CURTA);
+  if (t.alt) html = troca(html, 'alt="Cars2You"', 'alt="' + t.alt + '"');
   html = troca(html, '__TITULO__', t.titulo);
   html = troca(html, '__TEMA__', t.tema);
 

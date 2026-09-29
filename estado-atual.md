@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-24 (noite) — Painel de Eventos C6 nasce, com representante pela planilha
+> **Última atualização:** 2026-09-29 (madrugada) — Painel de Eventos C6 versão 3: filtros, funil, acessos; esperando a planilha
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -23,12 +23,13 @@
   🔴 **O maior efeito de preço vive num campo de TEXTO:** `REPASSE` (35,7%) contra
   `TRADICIONAL` (28,7%) — 7,0 p.p., t = 40,7, maior que km, cluster ou comprador.
   Pendente antigo: Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
-- **Painel de Eventos C6** — 🔥 wf `VelPJDX8USP9WIeT` (pessoal), pasta
-  `automations/n8n-sdk/painel-eventos-c6/`. WL 43, abertos + 30 dias: veículos, ofertas,
-  ranking de lojas e de **representantes** (planilha `LojasAtivas_C6.xlsx` por CNPJ), lojas
-  novas. 5 consultas em `JSON_ARRAYAGG`, run em segundos. 102 provas; nós conferidos byte a
-  byte. 🔴 **Falta a planilha no SharePoint** (`Painel de Eventos C6/_dados/`) — sem ela o run
-  cai. Upload desligado até a validação. Números em `projetos/c6/indicadores.md`.
+- **Painel de Eventos C6** — 🔥 **versão 3** no wf `53RGtYzUzMoVtxpJ` (pessoal, upload ligado,
+  idêntico byte a byte ao local); `VelPJDX8USP9WIeT` e `8051egvfncc3unuT` arquivados. Pasta
+  `automations/n8n-sdk/painel-eventos-c6/`. KPIs com barra, rankings (representantes GN/GP e
+  lojas), funil de ativação, acessos por dia e hora, pátios, score de veículo, gaveta de
+  filtros. 7 consultas (acesso em 2 partes para caber no MCP). 205 provas.
+  🔴 **Run 54794 caiu com 404: falta `LojasAtivas_C6.xlsx` no SharePoint** — nada publicado.
+  Números em `projetos/c6/indicadores.md`; regras no README da pasta.
 - **c6 (relatório de base)** — 🔥 **Parado há 18 dias no mesmo ponto: falta um run que termine.**
   Lote 2 pronto e provado. Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas
   eram do Raio-X, oculto. Workflow `QImk2D4HdzIqHZe9`.
@@ -48,6 +49,8 @@
 - 🔵 **Representante com CNPJ repartido entre filiais:** fica o mais frequente, empate →
   Sem Representante. Regra minha (35 CNPJs na planilha, nenhum no painel hoje) — confirmar.
 - 🔵 **Painel de Eventos C6 ganha cron?** Hoje manual, como o Radar.
+- 🔵 **Painel C6 — duas escolhas minhas:** % conversão/VMV do pátio sobre os veículos do
+  pátio; % VMV do veículo pela maior oferta. Confirmar.
 - 🔴 **Tirar `ult_oferta`/`ult_acesso` de dentro da `q_lojas` (Radar)?** Como subconsulta
   custa ~30s por passada, como consulta direta ~19s. Proposta de 23/09, sem resposta.
 - 🔴 **Link precisa virar sublinhado.** O acento do tema claro é cinza escuro, e link
@@ -73,8 +76,11 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] 🔥 **Subir `LojasAtivas_C6.xlsx`** em `Painel de Eventos C6/_dados/` (site N8N) → eu valido
-      o run e religo o `Subir no SharePoint` → primeira publicação e link para o C6
+- [ ] 🔥 **Subir `LojasAtivas_C6.xlsx`** em `Painel de Eventos C6/_dados/` (site N8N) → eu rodo
+      o `53RGtYzUzMoVtxpJ` (upload já ligado) → primeira publicação e link para o C6
+- [ ] Atualizar o id do Painel C6 no `catalogo-relatorios/relatorios.json` (ainda cita o
+      arquivado `VelPJDX8USP9WIeT`; a pasta é de outra sessão e está fora do git)
+- [ ] Levar a regra 3b (funil) ao `kit-de-painel.md` do time
 - [ ] **Conferir o Radar publicado (run 53433)** — o evento 23995 deve mostrar só 1 loja
 - [ ] Ajustar a guarda "sem cron" do `build_wf.py` (confunde "cronológica" com cron)
 - [ ] Ver se o **veículo duplicado** do run 53433 se repete (`q_veiculos` não mudou)
@@ -88,15 +94,11 @@
       Comercial — só os 4 nós do Radar têm essa prova
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
-- [ ] Preencher `context/banco-de-dados/projetos/c6/` (o do Radar começou: `indicadores.md`)
-- [ ] Modelo multivariado: só com o que se sabe ANTES da venda (o comprador não vale)
-- [ ] Incluir `laudo` na sonda 10 da Cars2You — rendeu 11,3% na Dealers
-- [ ] Alinhar o controle dos dois analisadores do estudo (`grupo` × `codigo_fipe`)
-- [ ] Levar o achado `REPASSE`/`TRADICIONAL` a quem decide o modelo de dados
-- [ ] Confirmar `motor nao funciona` numa amostra nova — t = 4,1, abaixo do corte de
-      Bonferroni (4,8) que 32 mil testes exigem
-- [ ] Entender por que `ipva pago` aparece com **mais** deságio (+2,5 p.p.)
-- [ ] Sonda da assinatura do Agile (`km NULL` + VMV = venda) no resto da base
+- [ ] **Estudo de precificação:** multivariado só com o que se sabe antes da venda · `laudo`
+      na sonda 10 (rendeu 11,3% na Dealers) · alinhar os analisadores (`grupo` × `codigo_fipe`)
+      · levar `REPASSE`/`TRADICIONAL` a quem decide o modelo · `motor nao funciona` numa
+      amostra nova (t = 4,1 < 4,8 de Bonferroni) · por que `ipva pago` tem +2,5 p.p. · a
+      assinatura do Agile no resto da base
 - [ ] Tabela de ativação por safra do C6 · 4 rankings por whitelabel sem solução
 - [ ] Decodificar `situation`/`status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`
 - [ ] Higiene n8n: arquivar `a6fNNTUYYayehNIn` + os 3 TEMP do C6 + o "Testes"
@@ -113,9 +115,17 @@
 - **Doni** — alinhamento do formato do Pulso de Eventos
 
 ## ⚠️ Alertas críticos
+- 🛑 **Nada vai ao n8n sem a aprovação final do Thomas** (28/09) — criar, atualizar ou rodar.
+  Preparar local, mostrar a tela, perguntar.
+- ↩️ **`core.autocrlf=true`: o checkout grava CRLF.** Script que compara texto exato (injetor,
+  provas) tem que normalizar — a prova do tema caiu só por fim de linha em 28/09. E
+  `open(..., "w")` do Python no Windows grava CRLF: usar `newline=chr(10)`.
+- 🖥️ **O navegador interno não abre HTML local acima de ~600 KB** — usar o servidor
+  `previa-radar` (`.claude/launch.json`, porta 8777), que serve qualquer arquivo do repo.
+- 🕐 **`access_logs.created_at` também é hora de Brasília** (medido 28/09). E cruzar cada
+  acesso com cada evento por faixa de data passou de 5 min — cortar por `event_id`.
 - 📦 **O teto de 50 linhas do MCP tem saída:** `COUNT(*)` + `JSON_ARRAYAGG` numa linha só
   (130 KB provados no run 53605). Antes de montar fase 1/fase 2 paginada, medir se cabe assim.
-- 🕐 **`offers.created_at` é hora de Brasília** (medido 24/09), como as datas de evento.
 - 🧪 **"Afirmar antes de medir" é O erro recorrente da semana — três vezes em 22/09, mais
   duas em 23/09.** A fusão `q_moda` foi ao ar sem medir e derrubou o run 53385; estimei
   10 a 13 min para o MCP Fase 2 e foram mais de 15. **Com VPN, medir no banco direto antes.**
@@ -124,8 +134,7 @@
   por loja é mais cara que consulta direta. Cada página `OFFSET` refaz tudo.
 - 🔌 **O conector de banco `e34110a1…` NÃO é o cars2you** (tem `removals`, `dispatch`). Para
   o cars2you, usar `automations/bancos/consulta.py`.
-- 🔒 **Dado pessoal no histórico do git:** e-mail e telefone reais de um contato de loja em
-  commits antigos do `montar-html.js` e do README do Radar. Saiu dos arquivos em 23/09.
+- 🔒 **Dado pessoal no histórico do git** (contato de loja, commits antigos do Radar).
 - 🚦 **Disparar o Radar pelo MCP é barrado pelo modo automático** (publica no SharePoint).
   Quem dispara é o Thomas, pela interface.
 - 🔑 **`git push` liberado em `.claude/settings.local.json`** (`Bash(git push:*)`).
@@ -134,39 +143,27 @@
 - 📤 **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único
   parâmetro, `setNodeParameter` é tudo-ou-nada, e um envio truncado gravaria um nó
   quebrado por cima do que funciona. O caminho é o Thomas colar e eu conferir.
-- 📏 **Caractere ≠ byte.** O `_confere_transcricao.py` conta CARACTERES (232.868); o
-  Node conta BYTES UTF-8 (236.373). O mesmo arquivo, duas réguas.
 - 🎨 **A PONTE do Radar vem DEPOIS do TEMA e ganha no empate de especificidade.** Apagar
   uma regra só no `tema.css` pode não chegar no relatório — e não quebra nada, só não
   muda. Aconteceu com o fundo do `.topo`.
-- 🖼️ **SVG sem `viewBox` não escala** — a arte é CORTADA, não reduzida. Cinco dos seis
-  arquivos da marca chegaram assim. Medir a caixa com `getBBox`, nunca estimar.
 - 📐 **Medir contraste contra branco não descreve mais a tela.** O cartão tem degradê; o
   pior plano é o canto superior esquerdo (`#E3E8EC`). Texto direto no campo (`#D8E1E9`)
   só com `--texto-2` ou mais forte.
-- 📚 **Antes de abrir o banco, leia `context/banco-de-dados/README.md`.** Número medido
-  tem fonte única em `projetos/<projeto>/indicadores.md` — não recalcular.
-- 🔒 **Guarda de tamanho no `/salve`:** arquivo acima de 1 MB no stage para o commit. E
-  conferir o que está sendo APAGADO, não só o que entra.
+- 📚 **Antes de abrir o banco, leia `context/banco-de-dados/README.md`**; número medido tem
+  fonte única em `projetos/<projeto>/indicadores.md`. **Guarda do `/salve`:** nada acima de
+  1 MB no stage, e conferir o que está sendo APAGADO.
 - 🔑 **A credencial da Dealers está em `~/.dealers-dlc.env`, FORA do repo.** Não mover.
-- 🧪 **Achado de uma base não é achado da outra.** `REPASSE` não existe na Dealers.
-- 🔌 **O acesso direto ao banco depende de VPN.** Se as duas falham juntas, é rede.
-- 📄 **`node --check` não valida JS de navegador, e o smoke pode validar o arquivo
-  ANTIGO** se o gerador falhar e o HTML anterior continuar em disco.
+- 📄 **`node --check` não valida JS de navegador**, e o smoke pode validar o HTML ANTIGO.
 - 🕐 **O banco responde em UTC; as datas dos eventos estão em hora de Brasília.** E
   `Date.parse` de texto sem fuso lê como hora local — uma carteira de 12 dias virou 11.
 - 📋 **A lista de nós a transcrever sai do `git diff`, NUNCA da memória** — e confira com
   `_confere_transcricao.py` ANTES de rodar.
-- 🔤 **`Get-Content` sem `-Encoding UTF8` lê UTF-8 como ANSI**, sem erro nenhum.
 - 🔒 **Microsoft 365 conecta mas cai em Conditional Access** (`AADSTS53003`).
 - 📏 **Duas sondas da mesma amostra precisam do MESMO `WHERE`** — cada uma acerta o
   próprio gabarito, com o seu número errado. Aconteceu em 15/09: 4.127 contra 4.582.
-- 🔢 **`table_rows` do InnoDB é estimativa e erra.** Contar com `COUNT(*)`.
 - 🚨 **A entrega do C6 não saiu, e já são 17 dias.** É avaliação de skill (ata 2026-09-02).
 - 🐛 **Bug no relatório de PRODUÇÃO do C6:** 12 barras com `width:30,4%` — vírgula
   decimal é CSS inválido, as barras estão zeradas hoje.
-- ⚠️ **`saida-teste-local.html` NÃO é compartilhável** — dado 100% sintético.
-- ⚠️ **As páginas do estudo têm nome real de loja e dado comercial.** Repo privado.
 - **Não rodar/ativar `ZIwusfx9IK1Owpg1`** (6 destinatários reais + cron 08h) nem
   `GgjVZlU04wvJzLbK` (`MODO='producao'`, gatilho 08h).
 

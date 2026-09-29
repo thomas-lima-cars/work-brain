@@ -90,6 +90,87 @@ Coleta local com o SQL do nó (17 eventos, 399 lojas no painel):
 Das **113 lojas que ofertaram, 111 têm representante** e 2 ficaram Sem
 Representante. 22 representantes aparecem no ranking.
 
+## Funil das lojas novas do WL 43 (2026-09-28)
+
+Conexão direta. Lojas do WL 43 não apagadas com cadastro desde 20/08/2026;
+"logou" e "acessou anúncio" em qualquer data (ver `access_logs.route` em
+`dominios.md`), "ofertou" em qualquer evento.
+
+| `situation` | lojas | logaram | acessaram anúncio | ofertaram |
+|---:|---:|---:|---:|---:|
+| 3 | 292 | 255 | 111 | 10 |
+| 5 | 11 | 0 | 0 | 0 |
+
+"Aprovado" no painel = `situation = 3` (Thomas, 28/09). Nenhuma loja fora do 3
+logou.
+
+## Pátios dos eventos do C6 (2026-09-28)
+
+422 negociações nos eventos do recorte com fim desde 29/08: **100% com
+`advertisements.shop_stock_id`**, 22 pátios, todos com nome ("HUB Suzano/SP"
+133, "HUB São Jose dos Pinhais/PR" 43, "HUB Goiania/GO" 37…, e cinco "DC - …").
+Dois ids diferentes têm o **mesmo nome** ("HUB Varzea Grande/MT", 109849 e
+109848): o painel agrupa pelo nome.
+
+## Painel de Eventos C6 — pacotes de acesso (2026-09-28)
+
+Conexão direta, eventos do recorte com fim desde 29/08, acessos do WL 43 entre
+o menor início e o maior fim desses eventos.
+
+| pacote | linhas | JSON | tempo |
+|---|---:|---:|---:|
+| loja × dia, com máscara das horas (`BIT_OR(1 << HOUR)`) e contagem | 3.491 | 105 KB | 4,8s |
+| dia × hora, contagem | 603 | 11,8 KB | 4,7s |
+| evento × anúncio × loja, distinto, dentro do intervalo do próprio evento | 4.071 | 101 KB | 3,2s |
+
+Sem resumo, o bruto seria 34.767 acessos. `USUARIO_GN` da planilha:
+vazio em 19.321 das 30.718 linhas (63%), 250 valores distintos.
+
+⚠️ Esses três pacotes foram **substituídos em 29/09** (tabela abaixo): o
+filtro de Representante precisa saber de quem é cada acesso por hora.
+
+## Painel de Eventos C6 — as sete consultas da versão 3 (2026-09-29)
+
+`coleta_local.py` (SQL exato do nó), conexão direta, eventos com fim desde
+30/08. Uma linha por consulta.
+
+| consulta | linhas | pacote | tempo |
+|---|---:|---:|---:|
+| `eventos` | 16 | 1,6 KB | 0,28s |
+| `veiculos` | 415 | 81,8 KB | 0,57s |
+| `ofertas` | 1.857 | 114,8 KB | 0,45s |
+| `lojas` | 315 | 25,2 KB | 0,60s |
+| `acessos_anuncio` (com máscara dos dias) | 4.006 | 108,8 KB | 0,46s |
+| `acessos_p0` (loja × dia × hora, id par) | 4.459 | 116,1 KB | 1,95s |
+| `acessos_p1` (id ímpar) | 3.416 | 89,2 KB | 2,29s |
+
+Loja × dia × hora inteiro daria ~205 KB — acima dos 130 KB que o MCP já
+provou passar, por isso as duas partes. A página gerada tem 700 KB.
+
+### O painel com essa coleta (sem filtro)
+
+| medida | valor |
+|---|---:|
+| veículos publicados / com oferta / vendidos | 415 / 192 / 161 |
+| volume vendido | R$ 6.980.500 |
+| anúncios acessados | 370 (89%) |
+| com VMV atingido | 31 |
+| lances / ofertantes / compradores | 1.857 / 111 / 63 |
+| lojas que acessaram o canal no período | 555 |
+| acessos no período (todas / lojas novas) | 34.281 / 2.577 |
+| funil dos novos: cadastrados → aprovados → logaram → acessaram → ofertaram → compraram | 213 → 213 → 192 → 82 → 9 → 4 |
+| pátios | 21 |
+
+Representante nas 315 lojas do painel: **GP** 298 únicos, 9 vazios na
+planilha, 8 fora dela; **GN** 141 únicos, 166 vazios, 8 fora.
+
+## Painel de Eventos C6 — runs no n8n (2026-09-28/29)
+
+| run | workflow | resultado |
+|---|---|---|
+| 54781 | `8051egvfncc3unuT` (arquivado) | disparado com upload desligado; o resultado não foi lido (leitura barrada pela permissão) |
+| 54794 | `53RGtYzUzMoVtxpJ` | **erro em 1,2s**: 404 no Baixar Representantes — `LojasAtivas_C6.xlsx` não está no SharePoint |
+
 ## Painel de Eventos C6 — custo das consultas (2026-09-24)
 
 SQL exato do nó `Montar Consultas`, rodado pela conexão direta

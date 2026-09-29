@@ -1,12 +1,12 @@
 /* ══════════════════════════════════════════════════════════════════════
    NÓ "Montar Consultas" — Painel de Eventos C6
 
-   Monta as cinco consultas do painel. Cada uma devolve UMA linha só:
+   Monta as sete consultas do painel. Cada uma devolve UMA linha só:
 
        SELECT COUNT(*) AS total, JSON_ARRAYAGG(JSON_ARRAY(...)) AS linhas
 
    A tabela inteira viaja empacotada num JSON, então o teto de 50 linhas
-   do MCP não corta nada e não existe paginação — cinco chamadas por run,
+   do MCP não corta nada e não existe paginação — sete chamadas por run,
    e não dezenas. O padrão é o do relatório de evento C6 em produção
    ("ehsqQo6hiPDRf58I", nó SQL Lotes), que já roda assim desde 26/08.
 
@@ -45,7 +45,7 @@ const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agor
 const PISO = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(),
   agora.getUTCDate() - DIAS_JANELA))) + ' 00:00:00';
 
-/* o recorte de evento, escrito uma vez só e reusado nas cinco consultas.
+/* o recorte de evento, escrito uma vez só e reusado em todas as consultas.
    Cinco cópias à mão seriam cinco chances de uma divergir das outras. */
 const EVENTO =
   " e.deleted_at IS NULL AND e.finish_date_event >= '" + PISO + "'" +
@@ -59,9 +59,17 @@ const OFERTAS_DO_RECORTE =
   " INNER JOIN events e ON e.id = an.event_id AND" + EVENTO +
   " WHERE o.deleted_at IS NULL";
 
-const DATA = (col) => "DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
+/* acessos de loja ao canal dentro do período do recorte inteiro: do menor
+   início ao maior fim. O índice começa por whitelabel_id (~4s por passada) */
+const ACESSOS_DO_RECORTE =
+  " FROM access_logs al" +
+  " WHERE al.whitelabel_id = " + WL_C6 + " AND al.shop_id IS NOT NULL" +
+  " AND al.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")" +
+  " AND al.created_at <= (SELECT MAX(e.finish_date_event) FROM events e WHERE" + EVENTO + ")";
 
-/* ── as cinco tabelas ─────────────────────────────────────────────────
+const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
+
+/* ── as sete tabelas ─────────────────────────────────────────────────
    "cols" é a fonte única da ordem: dela saem o JSON_ARRAY daqui e o
    decodificador do Montar Painel (que recebe as chaves no item). */
 const TABELAS = [
@@ -91,6 +99,7 @@ const TABELAS = [
         " LEFT JOIN brands b ON b.id = v.brand_id" +
         " LEFT JOIN models m ON m.id = v.model_id" +
         " LEFT JOIN versions ver ON ver.id = v.version_id" +
+        " LEFT JOIN shop_stocks ss ON ss.id = a.shop_stock_id" +
         " WHERE an.deleted_at IS NULL",
     cols: [
       ['neg', 'an.id'],
@@ -106,20 +115,19 @@ const TABELAS = [
       /* FIPE do ANÚNCIO, não do veículo — mais preenchida e contemporânea
          da oferta (context/banco-de-dados/projetos/precificacao/definicoes.md) */
       ['fipe', 'NULLIF(a.fipe_price, 0)'],
-      /* placa e chassi a pedido do Thomas (2026-09-24): o painel é do C6,
-         dono dos veículos. Nada de documento de pessoa entra. */
-      ['placa', 'v.plate'],
-      ['chassi', 'v.chassi'],
+      /* placa, chassi e laudo saíram em 2026-09-28 (Thomas: "oculte todas as
+         placas e chassis"; laudo saiu da tabela). Saem da CONSULTA, não só da
+         tela: dado que não vem não vaza. */
       ['marca', 'b.name'],
       ['modelo', 'm.name'],
       ['versao', 'ver.name'],
       ['ano_fab', 'v.manufacture_year'],
       ['ano_mod', 'v.model_year'],
       ['km', 'NULLIF(v.km, 0)'],
-      /* um laudo por veículo (medido na sonda 50346); o MAX só resume a
-         linha. nao_informado = laudo SEM veredito, não ausência de laudo */
-      ['laudo', "(SELECT MAX(vpr.situation) FROM vehicle_precautionary_reports vpr" +
-                " WHERE vpr.vehicle_id = a.vehicle_id AND vpr.deleted_at IS NULL)"],
+      /* o pátio onde o carro está: 100% preenchido nos eventos do C6
+         (medido em 2026-09-28). O nome, não o id — dois ids têm o mesmo nome
+         ("HUB Varzea Grande/MT") e o painel agrupa pelo nome */
+      ['patio', 'ss.name'],
       ['anuncio_apagado', 'a.deleted_at IS NOT NULL']
     ]
   },
@@ -160,22 +168,64 @@ const TABELAS = [
       ['cnpj', 's.cnpj']
     ]
   },
+  /* ── os acessos (2026-09-28/29) ───────────────────────────────────────
+     Vêm de access_logs, que grava em hora de Brasília como as ofertas. O
+     bruto da janela são ~35 mil linhas: não passa pelo MCP, então cada
+     pacote chega RESUMIDO — mas no grão mais fino que o painel precisa, e o
+     corte por evento e pelos filtros é feito na página. Medido em
+     context/banco-de-dados/projetos/c6/indicadores.md.
+
+     Regra do Thomas (28/09): acesso só conta DENTRO do período do filtro —
+     do menor início ao maior fim dos eventos escolhidos. Aqui entra o
+     período do recorte inteiro; a página corta o do evento. */
   {
-    /* a última oferta de cada loja ANTES de cada evento em que ela ofertou.
-       Um par (evento, loja) por linha, e o MAX vai pelo índice de
-       offers.buyer_shop_id. Oferta e evento no mesmo fuso (Brasília), então
-       a comparação é direta. Qualquer evento conta, não só os do C6. */
-    nome: 'ult_anterior',
-    de: " FROM (SELECT DISTINCT an.event_id AS ev, o.buyer_shop_id AS loja, e.start_date_offer AS ini" +
-        OFERTAS_DO_RECORTE + " AND o.buyer_shop_id IS NOT NULL) p",
+    /* quem abriu cada anúncio, por evento, com a máscara dos DIAS do evento
+       em que abriu (bit k = k dias depois do dia de início). A máscara é o
+       que deixa o filtro de Data cortar o acesso a anúncio. Todo acesso a
+       anúncio traz o event_id (0 sem, em 14.619 — medido em 28/09), e o
+       corte é pelo horário do PRÓPRIO evento, no minuto. Uma linha por
+       (evento, anúncio, loja): o score conta lojas, não cliques — um anúncio
+       teve 575 acessos de uma loja só. Join por igualdade no event_id; por
+       faixa de data ele passou de 5 min. */
+    nome: 'acessos_anuncio',
+    de: " FROM (SELECT e.id AS ev, al.advertisement_id AS anuncio, al.shop_id AS loja," +
+        " BIT_OR(1 << DATEDIFF(al.created_at, e.start_date_offer)) AS dias" +
+        " FROM events e INNER JOIN access_logs al ON al.event_id = e.id" +
+        " AND al.whitelabel_id = " + WL_C6 + " AND al.advertisement_id IS NOT NULL AND al.shop_id IS NOT NULL" +
+        " AND al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event" +
+        " WHERE" + EVENTO + " GROUP BY e.id, al.advertisement_id, al.shop_id) x",
     cols: [
-      ['evento', 'p.ev'],
-      ['loja', 'p.loja'],
-      ['ult', "(SELECT " + DATA('MAX(o2.created_at)') + " FROM offers o2" +
-              " WHERE o2.buyer_shop_id = p.loja AND o2.deleted_at IS NULL AND o2.created_at < p.ini)"]
+      ['evento', 'x.ev'],
+      ['anuncio', 'x.anuncio'],
+      ['loja', 'x.loja'],
+      ['dias', 'x.dias']
     ]
   }
 ];
+
+/* ── acessos ao canal: loja × dia × hora, em PARTES ─────────────────────
+   O filtro de Representante (29/09) precisa saber de QUEM é cada acesso
+   por hora, então o pacote é loja × dia × hora com a contagem. Inteiro ele
+   passa de 200 KB; em duas partes (resto da divisão do id da loja) cada uma
+   fica abaixo dos 130 KB que o MCP já provou passar — 119 e 91 KB em 29/09.
+   Se a janela crescer e uma parte engordar, é subir PARTES_ACESSO: o Montar
+   Painel junta quantas vierem e confere pelo meta. */
+const PARTES_ACESSO = 2;
+for (let p = 0; p < PARTES_ACESSO; p++) {
+  TABELAS.push({
+    nome: 'acessos_p' + p,
+    de: " FROM (SELECT al.shop_id AS loja, DATE_FORMAT(al.created_at, '%y%m%d') AS dia," +
+        " HOUR(al.created_at) AS hora, COUNT(*) AS n" + ACESSOS_DO_RECORTE +
+        " AND MOD(al.shop_id, " + PARTES_ACESSO + ") = " + p +
+        " GROUP BY al.shop_id, DATE_FORMAT(al.created_at, '%y%m%d'), HOUR(al.created_at)) x",
+    cols: [
+      ['loja', 'x.loja'],
+      ['dia', 'x.dia'],
+      ['hora', 'x.hora'],
+      ['n', 'x.n']
+    ]
+  });
+}
 
 /* ── guardas ────────────────────────────────────────────────────────── */
 function temJanela(sql) {
@@ -194,7 +244,7 @@ const itens = TABELAS.map((t, i) => {
       sql: sql,
       cols: t.cols.map((c) => c[0]),
       idx: i,
-      meta: { wl: WL_C6, dias_janela: DIAS_JANELA, piso: PISO, agora_br: AGORA_BR }
+      meta: { wl: WL_C6, dias_janela: DIAS_JANELA, piso: PISO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO }
     }
   };
 });

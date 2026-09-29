@@ -7,7 +7,7 @@
 > Cada regra traz o **porquê** — regra sem motivo é a primeira a ser revertida
 > por engano. Onde há prova automática, está dito qual.
 >
-> Última atualização: **2026-09-18**.
+> Última atualização: **2026-09-29** (regra 3b, funil).
 
 ---
 
@@ -67,6 +67,64 @@ contra o espaço por ponto. `{rotulos:true|false}` força na mão e vence a
 decisão automática.
 
 **O eixo X fica nos dois casos** — ele diz *quando*, não *quanto*.
+
+## 3b. Funil (29/09/2026)
+
+Decidido com o Thomas no Painel de Eventos C6, em quatro rodadas. Implementação
+de referência: `funil()` em `automations/n8n-sdk/painel-eventos-c6/montar-painel.js`.
+
+**Anatomia — três colunas e as faixas empilhadas:**
+
+```
+ Cadastrados   [██████████████ 213 ██████████████]   100%
+                             ↓ 100,0%
+ Aprovados      [████████████ 213 ████████████]      100%
+                             ↓ 90,1%
+ Logaram          [█████████ 192 █████████]           90%
+```
+
+| peça | regra |
+|---|---|
+| **título da etapa** | coluna à **esquerda**, alinhado ao meio da faixa |
+| **número** | **dentro** da faixa, centrado |
+| **percentual sobre a 1ª etapa** | coluna à **direita**, fora da faixa |
+| **passagem entre etapas** | entre as faixas, centrado, pequeno e em de-ênfase (`↓ 42,7%` = esta etapa ÷ a anterior) |
+| **forma** | trapézio do topo da etapa ao topo da seguinte — o contorno de funil sai da própria sequência; a última estreita 6% |
+| **balão** | número, % sobre a 1ª etapa e % sobre a anterior |
+
+**Largura: mínimo somado em todas as etapas + parte proporcional.**
+
+```
+largura = MIN + (ÁREA − MIN) × (etapa ÷ primeira etapa)
+MIN     = 3 × 7,4 + 16 = 38,2   (cabe um número de 3 dígitos a 13px, com folga)
+```
+
+- 100% ocupa a área inteira; 0% fica no mínimo; as faixas continuam
+  **proporcionais entre si** — a ordem das larguras é sempre a dos números.
+- Foi a quinta versão. As anteriores erraram de jeitos que valem lembrar:
+  **piso fixo** (`max(44%, %)`) deixou as três últimas etapas do mesmo tamanho
+  e o funil virou um cano; **piso alto + resto** (`44% + 56% × %`) afunilava,
+  mas a largura não seguia o percentual; **proporcional puro** deixou a etapa
+  de 2% com 9px e o número caiu para fora; **máximo entre mínimo e %** cortava
+  a proporção justamente onde ela importa, embaixo, onde as etapas pequenas
+  ficavam todas no mínimo.
+- Número com 4 dígitos ou mais que não caiba: vai logo depois da faixa, na
+  mesma linha, na cor de texto. Nunca cortado.
+
+**Cor — contraste baixo, faixa não é bloco cheio:**
+
+| tema | faixa | contorno | texto dentro |
+|---|---|---|---|
+| claro | acento a 20% sobre o cartão | acento a 45% | `--texto` |
+| escuro | **cinza** `rgba(255,255,255,.09)` — nunca o amarelo do C6 | `rgba(255,255,255,.20)` | `--texto` |
+
+O funil em bloco cheio (acento sólido, texto na cor da superfície) foi a
+primeira versão e saiu no mesmo dia: pesava mais que todo o resto da tela.
+No escuro o acento de marca fica para dado e controle; o funil é cinza.
+
+**Posição:** cartão ao lado de um gráfico, e o gráfico vizinho **preenche a
+altura** que o funil define (a caixa cresce com a linha da grade e o SVG a
+ocupa por `position:absolute`).
 
 ## 4. Glossário
 
@@ -499,6 +557,12 @@ Os tokens de marca que o `tema.css` cita por nome (`--marca-azul`,
 `--marca-azul-claro`) também são redefinidos, para nenhuma cor da Cars2You
 vazar. No C6 o painel foi varrido no navegador atrás de qualquer cor azulada
 computada, nos dois temas: zero.
+
+**O escuro do C6 tem detalhes em amarelo #FFC000 (28/09)** — acento, dado,
+chip, botão ativo, linha marcada. Só **cor chapada**: degradê amarelo (o
+brilho do cartão) saiu no mesmo dia, a pedido. O texto continua cinza, e peça
+grande de baixo contraste (o funil) fica cinza. Token novo da camada:
+`--serie-2` (segunda série de gráfico) e `--farol-abaixo` — nos dois blocos.
 
 ## 11. Como o arquivo é produzido
 

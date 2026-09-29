@@ -99,9 +99,13 @@ estava gravada às **14:22**, e o relógio local marcava 14:22. Oferta e evento
 estão no mesmo fuso, então "a última oferta antes do evento" é comparação
 direta de `offers.created_at < events.start_date_offer`, sem ajuste.
 
+✅ **`access_logs.created_at` e `user_access.created_at` também** — medido em
+2026-09-28 por conexão direta: `NOW()` devolveu 02:08 do dia 29, o último
+acesso estava às **23:08 do dia 28**, e o relógio local marcava 23:08.
+
 ⚠️ Não sei se **todas** as colunas de data do banco seguem essa convenção. O
-que está medido é `events.finish_date_event`, `events.start_date_display` e
-`offers.created_at`. `shops.created_at` é gravado pela mesma aplicação e
+que está medido é `events.finish_date_event`, `events.start_date_display`,
+`offers.created_at`, `access_logs.created_at` e `user_access.created_at`. `shops.created_at` é gravado pela mesma aplicação e
 presumivelmente segue a mesma regra, mas **não foi medido**. Para outras
 tabelas, medir antes de comparar com `NOW()`.
 
@@ -508,6 +512,32 @@ No MCP, onde cada página `OFFSET` refaz o agregado inteiro, isso se multiplica
 pelo número de páginas. Com 27 páginas são ~6 minutos só para a data do último
 acesso. Para comparação, o mesmo agregado sobre `offers` (740 mil linhas, todo
 o histórico) leva ~5s.
+
+## `access_logs.route` — o que cada acesso é
+
+Medido em **2026-09-28** por conexão direta, nos acessos do WL 43 desde
+29/08 (34.767 acessos, 556 lojas, 3 sem loja).
+
+| rota | o que é | `advertisement_id` / `event_id` |
+|---|---|---|
+| `/bem-vindo` | a tela depois do login — 10.475 acessos, 532 lojas | vazios |
+| `/anuncios/veiculos` (com ou sem `?event=…`) | a vitrine | vazios, **mesmo com o evento na URL** |
+| `/evento/{id}` | a página do evento | só `event_id` |
+| `/anuncio/veiculo/{marca}/{modelo}/…` | o anúncio | **os dois**, sempre |
+
+Conclusões práticas:
+- **"Logou" = qualquer linha de `access_logs` da loja no WL.** O `/bem-vindo`
+  sozinho pega 96% das lojas que aparecem.
+- **"Acessou um anúncio" = linha com `advertisement_id`.** Nenhum acesso a
+  anúncio veio sem `event_id` na janela (0 de 14.619), então dá para saber de
+  qual evento veio o acesso ao carro.
+- 🚨 **Acesso bruto engana.** Um anúncio teve 575 acessos de **uma loja só**.
+  Para medir interesse, contar **lojas distintas**, não linhas.
+- O índice `idx_access_logs_whitelabel_adv_event` começa por
+  `whitelabel_id`: filtrar por WL + data varre ~1,46 milhão de linhas e leva
+  **~4s**. Cruzar cada acesso com o intervalo de cada evento por `BETWEEN`
+  (join por faixa de data) passou de **5 minutos** e foi abandonado. Cortar
+  pelo `event_id` (igualdade) leva 3s.
 
 ## Ainda sem decodificar
 

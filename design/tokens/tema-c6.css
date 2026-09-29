@@ -26,7 +26,9 @@
        texto    #EDEDED                                   16,13 (#111)
        texto-2  #A8A8A8                                    7,32
        texto-3  #767676                                    3,83 — de-ênfase
-       acento   #D6D6D6                                   12,99 (#111)
+       acento   #FFC000                                   10,60 (#1A1A1A) — amarelo, 28/09
+       #1A1A1A sobre o botão ativo #FFC000: 10,60
+       serie-2  #7A7A7A        3,34 (#E3E3E3)                  4,05 (#1A1A1A)
        positivo #35C08A · negativo #EF5B60 · atenção #C98A92: 7,51 · 5,25 · 6,24
    Branco sobre o chip #242424: 15,52:1.
 
@@ -65,6 +67,15 @@
   --acento-cheio:   #242424;
   --acento-veu:     rgba(36,36,36,.08);
 
+  /* a segunda série de gráfico (o "Total" ao lado dos "Novos"): cinza
+     médio, 3,34:1 sobre o canto do cartão. Legenda sempre presente */
+  --serie-2:        #7A7A7A;
+
+  /* o farol "oferta abaixo do VMV" é amarelo (Thomas, 28/09). No claro o
+     #FFC000 some (1,57:1 sobre #FAFAFA): vai o mesmo amarelo escurecido,
+     3,12:1 — passa o 3:1 de marca não textual. Tem legenda no glossário */
+  --farol-abaixo:   #B8860B;
+
   --positivo:       #0C6E4B;
   --negativo:       #7F1112;
   --atencao:        #6F4047;
@@ -85,8 +96,13 @@
 [data-tema="escuro"]{
   color-scheme: dark;
 
-  --marca-azul:       #D6D6D6;
-  --marca-azul-claro: #D6D6D6;
+  /* os detalhes do escuro são AMARELO #FFC000 (Thomas, 28/09): acento,
+     dado, chip, botão ativo, linha marcada. O texto continua cinza — o
+     amarelo é detalhe, não tinta da página. 10,60:1 sobre #1A1A1A.
+     Amarelo só em cor CHAPADA: degradê amarelo (o brilho do cartão) saiu
+     no mesmo dia, a pedido — o brilho segue neutro, como era. */
+  --marca-azul:       #FFC000;
+  --marca-azul-claro: #FFC000;
 
   --fundo:          #111111;
   --fundo-veu:      radial-gradient(900px 500px at 8% -8%,
@@ -103,9 +119,12 @@
   --texto-2:        #A8A8A8;
   --texto-3:        #767676;
 
-  --acento:         #D6D6D6;
-  --acento-cheio:   #D6D6D6;
-  --acento-veu:     rgba(255,255,255,.10);
+  --acento:         #FFC000;
+  --acento-cheio:   #FFC000;
+  --acento-veu:     rgba(255,192,0,.13);
+
+  --serie-2:        #7A7A7A;
+  --farol-abaixo:   #FFC000;
 
   --positivo:       #35C08A;
   --negativo:       #EF5B60;

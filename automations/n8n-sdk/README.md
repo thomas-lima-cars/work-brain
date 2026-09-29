@@ -64,12 +64,15 @@ consultas assim, **paginar por `OFFSET` deixa de ser o padrão** — vale medir 
 fase 1/fase 2 como no Radar.
 
 
-## Painel de Eventos C6 (2026-09-24)
+## Painel de Eventos C6 (2026-09-24, versão 3 em 29/09)
 
-Workflow **`VelPJDX8USP9WIeT`** (pessoal do Thomas). Eventos do WL 43 abertos e encerrados
-nos últimos 30 dias, ranking de lojas e representantes (planilha do C6, por CNPJ), lojas novas. Cinco consultas empacotadas
-em JSON, HTML no SharePoint. Código, provas e decisões em
-[`painel-eventos-c6/`](painel-eventos-c6/README.md).
+Workflow **`53RGtYzUzMoVtxpJ`** (pessoal do Thomas; o `VelPJDX8USP9WIeT` e o
+`8051egvfncc3unuT` foram arquivados). Eventos do WL 43 abertos e encerrados nos
+últimos 30 dias: KPIs, rankings de representantes (GN/GP da planilha do C6, por
+CNPJ) e de lojas, funil de ativação, acessos por dia e hora, pátios, score de
+veículo, filtros em gaveta. Sete consultas empacotadas em JSON — o acesso ao
+canal em duas partes, para caber no MCP. HTML no SharePoint. Código, provas e
+decisões em [`painel-eventos-c6/`](painel-eventos-c6/README.md).
 
 ## Lojas ofertantes por UF e whitelabel (2026-09-09)
 

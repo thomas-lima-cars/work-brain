@@ -41,7 +41,7 @@ module.exports = { enxuga };
 
 if (require.main === module) {
   const nome = process.argv[2];
-  const fonte = fs.readFileSync(path.join(__dirname, nome), 'utf8');
+  const fonte = fs.readFileSync(path.join(__dirname, nome), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
   const pasta = path.join(__dirname, 'n8n');
   if (!fs.existsSync(pasta)) fs.mkdirSync(pasta);
   const saida = enxuga(fonte);

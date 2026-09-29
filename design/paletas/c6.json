@@ -17,7 +17,9 @@
     "texto_2_claro": { "hex": "#595959", "papel": "texto secundário no claro", "contraste_sobre_DCDCDC": 5.11 },
     "texto_3_claro": { "hex": "#737373", "papel": "de-ênfase no claro, só sobre superfície", "contraste_sobre_E3E3E3": 3.69 },
     "fundo_escuro":  { "hex": "#111111", "papel": "fundo da página no escuro" },
-    "acento_escuro": { "hex": "#D6D6D6", "papel": "acento e dado no escuro", "contraste_sobre_111111": 12.99 },
+    "acento_escuro": { "hex": "#FFC000", "papel": "acento e dado no escuro — AMARELO desde 28/09 (pedido do Thomas), só em cor chapada: o degradê amarelo do brilho saiu no mesmo dia. Era #D6D6D6", "contraste_sobre_1A1A1A": 10.60, "texto_1A1A1A_sobre_ele": 10.60 },
+    "serie_2": { "hex": "#7A7A7A", "papel": "segunda série de gráfico (Total ao lado de Novos), nos dois temas", "contraste_sobre_E3E3E3": 3.34, "contraste_sobre_1A1A1A": 4.05, "_validador": "dataviz validate_palette: CVD e visão normal ΔE ~30 nos dois temas; reprova só faixa de luminosidade e croma — paleta de marca monocromática, aceita de propósito, com legenda sempre visível" },
+    "farol_abaixo": { "claro": "#B8860B", "escuro": "#FFC000", "papel": "farol oferta abaixo do VMV, amarelo (29/09). No claro o #FFC000 dá 1,57:1 sobre #FAFAFA e some; #B8860B dá 3,12:1" },
     "estados": { "_": "positivo, negativo e atenção seguem os da Cars2You (#0C6E4B/#35C08A, #7F1112/#EF5B60, #6F4047/#C98A92): são de estado, não de marca, e o pedido foi trocar só o azul" }
   },
 
