@@ -42,14 +42,25 @@ for nome, arq in NOS.items():
     print("   local: %r" % local[max(0, i - 40):i + 40])
     print("   n8n:   %r" % remoto[max(0, i - 40):i + 40])
 
-for nome in ("Baixar Representantes", "Ler Representantes"):
+for nome, esperada in (("Ler Representantes", "3CErbnlGy2b5sFT5"), ("Ler Nomes", "2yD9cWG0J98sFFll")):
     n = por_nome.get(nome)
     if not n:
         falhou = True
         print("✗ %s não existe no workflow" % nome)
         continue
-    print("  %s: %s credencial=%s" % (nome, json.dumps(n["parameters"], ensure_ascii=False)[:160],
-                                      list((n.get("credentials") or {}).values())))
+    par = n["parameters"]
+    tabela = (par.get("dataTableId") or {}).get("value")
+    print("  %s: %s tabela=%s returnAll=%s alwaysOutputData=%s" %
+          (nome, n["type"], tabela, par.get("returnAll"), n.get("alwaysOutputData")))
+    if n["type"] != "n8n-nodes-base.dataTable" or tabela != esperada or par.get("returnAll") is not True             or n.get("alwaysOutputData") is not True:
+        falhou = True
+        print("✗ %s não lê a tabela %s inteira" % (nome, esperada))
+    if nome == "Ler Nomes" and n.get("executeOnce") is not True:
+        falhou = True
+        print("✗ Ler Nomes sem executeOnce: roda uma vez por linha da carteira (run 55187)")
+if "Baixar Representantes" in por_nome:
+    falhou = True
+    print("✗ o Baixar Representantes (planilha do SharePoint) ainda está no workflow")
 con = wf.get("connections", {})
 cadeia, atual = [], "Rodar"
 while atual and len(cadeia) < 12:
@@ -57,9 +68,9 @@ while atual and len(cadeia) < 12:
     saidas = con.get(atual, {}).get("main", [[]])
     atual = saidas[0][0]["node"] if saidas and saidas[0] else None
 print("  cadeia: " + " → ".join(cadeia))
-if cadeia[:4] != ["Rodar", "Baixar Representantes", "Ler Representantes", "Montar Consultas"]:
+if cadeia[:4] != ["Rodar", "Ler Representantes", "Ler Nomes", "Montar Consultas"]:
     falhou = True
-    print("✗ a planilha não está em série antes das consultas")
+    print("✗ carteira e nomes não estão em série antes das consultas")
 
 sub = por_nome["Subir no SharePoint"]
 print("  Subir no SharePoint: disabled=%s credencial=%s" %

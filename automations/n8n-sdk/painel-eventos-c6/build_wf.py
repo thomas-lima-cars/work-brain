@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Gera o SDK do Painel de Eventos C6.
 
-    Rodar -> Baixar Representantes -> Ler Representantes -> Montar Consultas -> MCP Consultas -> Montar Painel -> Virar Arquivo -> Subir no SharePoint
+    Rodar -> Ler Representantes -> Ler Nomes -> Montar Consultas -> MCP Consultas -> Montar Painel -> Virar Arquivo -> Subir no SharePoint
 
     node _aplica-modelo.js && for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
     node prova-local.js
@@ -36,9 +36,14 @@ MCP_CRED = ("MCP Cars2You Readonly - BD SQL", "Cc8CxzVDwvA3EysZ")
 SP_CRED = ("Microsoft SharePoint Conta PowerBI/Automações", "AOTm9J6pFcF0DS6g")
 DRIVE = "b!WIoPIE-Ra0WlwvYnLSod44VOGNL5_GRNoDqrqsWDT53xop-CS7vvT4Ura4LiRKaM"
 SP_BASE = "https://automakers.sharepoint.com/sites/N8N/_api/v2.0/drives/" + DRIVE + "/root:/"
-# a planilha de lojas ativas do C6 com o representante (USUARIO_GP). Quem
-# atualiza e substitui o arquivo neste caminho -- o nome e fixo.
-PLANILHA = "Painel%20de%20Eventos%20C6/_dados/LojasAtivas_C6.xlsx"
+# a carteira de lojas do C6 com o representante (GN_Usuario, GP_Usuario), na
+# tabela de dados do projeto Cars2You. Quem atualiza troca as LINHAS desta
+# tabela -- o id e fixo; tabela nova pede trocar o id aqui.
+TABELA_REPS = ("3CErbnlGy2b5sFT5", "Carteira C6 - Lojas (base 17-08-2026)")
+# o nome de cada representante (Usuario, Papel, Nome), mesmo projeto
+TABELA_NOMES = ("2yD9cWG0J98sFFll", "Carteira C6 - Gerentes")
+# as duas tabelas moram no projeto Cars2You, e o workflow tambem
+PROJETO = "yAo7DiqDfz6XfXyv"
 
 
 def no_code(var, nome, x, code):
@@ -61,37 +66,49 @@ const rodar = trigger({{
   config: {{ name: 'Rodar', position: [0, 0] }}
 }});
 
-/* a planilha de representantes comerciais, lida a cada run. EM SERIE e antes
-   das consultas, nunca em ramo paralelo: na ordem de execucao v1 o n8n roda a
-   cadeia principal inteira primeiro, e o no paralelo ainda nao existe quando
-   o Montar Painel o procura (medido no Radar, run 52930). Sem onError: sem
-   planilha, o run cai -- publicar todo mundo "Sem Representante" seria uma
-   tela plausivel e errada. */
-const baixarReps = node({{
-  type: 'n8n-nodes-base.httpRequest',
-  version: 4.2,
-  config: {{
-    name: 'Baixar Representantes',
-    position: [224, 0],
-    parameters: {{
-      url: '{SP_BASE}{PLANILHA}:/content',
-      authentication: 'predefinedCredentialType',
-      nodeCredentialType: 'microsoftSharePointOAuth2Api',
-      options: {{ response: {{ response: {{ responseFormat: 'file' }} }} }}
-    }},
-    credentials: {{ microsoftSharePointOAuth2Api: newCredential('{SP_CRED[0]}', '{SP_CRED[1]}') }}
-  }}
-}});
-
-/* primeira aba, sem sheetName: o nome da aba e o de um job do BigQuery e muda
-   a cada exportacao. readAsString para o CNPJ nao virar numero. */
+/* a carteira de representantes comerciais do C6, lida a cada run da tabela
+   de dados do n8n (projeto Cars2You). Uma linha por loja: CNPJ, GN_Usuario,
+   GP_Usuario e outras. EM SERIE e antes das consultas, nunca em ramo
+   paralelo: na ordem de execucao v1 o n8n roda a cadeia principal inteira
+   primeiro, e o no paralelo ainda nao existe quando o Montar Painel o
+   procura (medido no Radar, run 52930). alwaysOutputData: tabela vazia
+   segue adiante como um item vazio e o Montar Painel derruba o run pelo
+   piso de linhas -- sem isso a cadeia pararia calada, sem painel e sem erro. */
 const lerReps = node({{
-  type: 'n8n-nodes-base.extractFromFile',
+  type: 'n8n-nodes-base.dataTable',
   version: 1.1,
   config: {{
     name: 'Ler Representantes',
+    position: [224, 0],
+    alwaysOutputData: true,
+    parameters: {{
+      resource: 'row',
+      operation: 'get',
+      dataTableId: {{ __rl: true, mode: 'id', value: '{TABELA_REPS[0]}', cachedResultName: '{TABELA_REPS[1]}' }},
+      returnAll: true
+    }}
+  }}
+}});
+
+/* o nome de cada representante, para a tela nao mostrar o usuario. Nome e
+   cosmetico: sem ele o Montar Painel mostra o usuario e avisa.
+   executeOnce: o no recebe as 30 mil linhas da carteira, e sem isso roda uma
+   vez POR LINHA -- 280 x 30.719 itens derrubaram o run 55187 (30/09) por
+   falta de memoria. */
+const lerNomes = node({{
+  type: 'n8n-nodes-base.dataTable',
+  version: 1.1,
+  config: {{
+    name: 'Ler Nomes',
     position: [448, 0],
-    parameters: {{ operation: 'xlsx', options: {{ headerRow: true, readAsString: true }} }}
+    alwaysOutputData: true,
+    executeOnce: true,
+    parameters: {{
+      resource: 'row',
+      operation: 'get',
+      dataTableId: {{ __rl: true, mode: 'id', value: '{TABELA_NOMES[0]}', cachedResultName: '{TABELA_NOMES[1]}' }},
+      returnAll: true
+    }}
   }}
 }});
 
@@ -142,8 +159,8 @@ const subir = node({{
 
 export default workflow('painel-eventos-c6', 'Painel de Eventos C6')
   .add(rodar)
-  .to(baixarReps)
   .to(lerReps)
+  .to(lerNomes)
   .to(consultas)
   .to(mcp)
   .to(painel)
@@ -158,7 +175,8 @@ with open(destino, "w", encoding="utf-8", newline=chr(10)) as f:
 print("gerado:", destino, "·", len(code), "bytes")
 assert code.count("mcpClient") == 1, "esperado 1 no MCP"
 assert code.count("n8n-nodes-base.code") == 3, "esperados 3 nos Code"
-assert code.count("extractFromFile") == 1, "esperado 1 no de leitura da planilha"
+assert code.count("n8n-nodes-base.dataTable") == 2, "esperados 2 nos de tabela: carteira e nomes"
+assert "extractFromFile" not in code and "LojasAtivas" not in code, "a planilha do SharePoint saiu"
 assert "scheduleTrigger" not in code, "sem gatilho automatico"
 assert "gmail" not in code.lower() and "microsoftOutlook" not in code, "sem e-mail"
-print("checagens: 8 nos, 1 MCP, 1 planilha, sem cron, sem e-mail")
+print("checagens: 8 nos, 1 MCP, 2 tabelas de dados, sem cron, sem e-mail")

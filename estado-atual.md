@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-29 (madrugada) — Painel de Eventos C6 versão 3: filtros, funil, acessos; esperando a planilha
+> **Última atualização:** 2026-09-30 (manhã) — Painel de Eventos C6 publicado (versão 5, run 55191), representantes pelas tabelas de dados do n8n
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -23,12 +23,11 @@
   🔴 **O maior efeito de preço vive num campo de TEXTO:** `REPASSE` (35,7%) contra
   `TRADICIONAL` (28,7%) — 7,0 p.p., t = 40,7, maior que km, cluster ou comprador.
   Pendente antigo: Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
-- **Painel de Eventos C6** — 🔥 **versão 3** no wf `53RGtYzUzMoVtxpJ` (pessoal, upload ligado,
-  idêntico byte a byte ao local); `VelPJDX8USP9WIeT` e `8051egvfncc3unuT` arquivados. Pasta
-  `automations/n8n-sdk/painel-eventos-c6/`. KPIs com barra, rankings (representantes GN/GP e
-  lojas), funil de ativação, acessos por dia e hora, pátios, score de veículo, gaveta de
-  filtros. 7 consultas (acesso em 2 partes para caber no MCP). 205 provas.
-  🔴 **Run 54794 caiu com 404: falta `LojasAtivas_C6.xlsx` no SharePoint** — nada publicado.
+- **Painel de Eventos C6** — ✅ **publicado** (run 55191, 30/09, 15 s) no wf
+  `0Ndif0UK2UjTfaIN`, **projeto Cars2You**. Versão 5: cinco KPIs (com Performance
+  financeira), rankings de usuários GP e GN + lojas com primeiro/último acesso, score 0–100,
+  filtros Usuário GP/GN. Representantes pelas **tabelas de dados** "Carteira C6 - Lojas" e
+  "- Gerentes" (nome no lugar do login). 237 provas. Falta **mandar o link ao C6**.
   Números em `projetos/c6/indicadores.md`; regras no README da pasta.
 - **c6 (relatório de base)** — 🔥 **Parado há 18 dias no mesmo ponto: falta um run que termine.**
   Lote 2 pronto e provado. Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas
@@ -76,10 +75,13 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] 🔥 **Subir `LojasAtivas_C6.xlsx`** em `Painel de Eventos C6/_dados/` (site N8N) → eu rodo
-      o `53RGtYzUzMoVtxpJ` (upload já ligado) → primeira publicação e link para o C6
-- [ ] Atualizar o id do Painel C6 no `catalogo-relatorios/relatorios.json` (ainda cita o
-      arquivado `VelPJDX8USP9WIeT`; a pasta é de outra sessão e está fora do git)
+- [ ] 🔥 **Mandar o link do Painel C6 ao C6** — `Painel de Eventos C6/painel-eventos-c6.html`, site N8N
+- [ ] **Arquivar pela interface** `6o9MSr1CriZ1VUBa` e `53RGtYzUzMoVtxpJ` (versões velhas do
+      painel) — o modo automático barra o `archive_workflow`
+- [ ] Linhas de teste do Caio nas duas tabelas da carteira C6 ("apagar antes de produção") —
+      o painel já as ignora; apagar é com o Caio
+- [ ] Atualizar o id do Painel C6 (`0Ndif0UK2UjTfaIN`) no `catalogo-relatorios/relatorios.json`
+      (pasta de outra sessão, fora do git)
 - [ ] Levar a regra 3b (funil) ao `kit-de-painel.md` do time
 - [ ] **Conferir o Radar publicado (run 53433)** — o evento 23995 deve mostrar só 1 loja
 - [ ] Ajustar a guarda "sem cron" do `build_wf.py` (confunde "cronológica" com cron)
@@ -117,6 +119,9 @@
 ## ⚠️ Alertas críticos
 - 🛑 **Nada vai ao n8n sem a aprovação final do Thomas** (28/09) — criar, atualizar ou rodar.
   Preparar local, mostrar a tela, perguntar.
+- 🔁 **Nó de tabela de dados (e todo nó de leitura) roda uma vez POR ITEM de entrada.** Em
+  série depois da carteira (30.719 itens), o Ler Nomes derrubou o run 55187 por memória.
+  `executeOnce: true`. Configuração de nó muda pela `update_workflow`, sem tocar no código.
 - ↩️ **`core.autocrlf=true`: o checkout grava CRLF.** Script que compara texto exato (injetor,
   provas) tem que normalizar — a prova do tema caiu só por fim de linha em 28/09. E
   `open(..., "w")` do Python no Windows grava CRLF: usar `newline=chr(10)`.
@@ -146,9 +151,6 @@
 - 🎨 **A PONTE do Radar vem DEPOIS do TEMA e ganha no empate de especificidade.** Apagar
   uma regra só no `tema.css` pode não chegar no relatório — e não quebra nada, só não
   muda. Aconteceu com o fundo do `.topo`.
-- 📐 **Medir contraste contra branco não descreve mais a tela.** O cartão tem degradê; o
-  pior plano é o canto superior esquerdo (`#E3E8EC`). Texto direto no campo (`#D8E1E9`)
-  só com `--texto-2` ou mais forte.
 - 📚 **Antes de abrir o banco, leia `context/banco-de-dados/README.md`**; número medido tem
   fonte única em `projetos/<projeto>/indicadores.md`. **Guarda do `/salve`:** nada acima de
   1 MB no stage, e conferir o que está sendo APAGADO.
@@ -159,8 +161,6 @@
 - 📋 **A lista de nós a transcrever sai do `git diff`, NUNCA da memória** — e confira com
   `_confere_transcricao.py` ANTES de rodar.
 - 🔒 **Microsoft 365 conecta mas cai em Conditional Access** (`AADSTS53003`).
-- 📏 **Duas sondas da mesma amostra precisam do MESMO `WHERE`** — cada uma acerta o
-  próprio gabarito, com o seu número errado. Aconteceu em 15/09: 4.127 contra 4.582.
 - 🚨 **A entrega do C6 não saiu, e já são 17 dias.** É avaliação de skill (ata 2026-09-02).
 - 🐛 **Bug no relatório de PRODUÇÃO do C6:** 12 barras com `width:30,4%` — vírgula
   decimal é CSS inválido, as barras estão zeradas hoje.

@@ -164,12 +164,51 @@ provou passar, por isso as duas partes. A página gerada tem 700 KB.
 Representante nas 315 lojas do painel: **GP** 298 únicos, 9 vazios na
 planilha, 8 fora dela; **GN** 141 únicos, 166 vazios, 8 fora.
 
+## Carteira de representantes no n8n — tabelas de dados (2026-09-30)
+
+A planilha virou duas **tabelas de dados** no projeto Cars2You do n8n. Contadas
+pela API de tabelas (filtro + `count`), em 30/09:
+
+| medida | valor |
+|---|---:|
+| "Carteira C6 - Lojas (base 17-08-2026)" (`3CErbnlGy2b5sFT5`) | 30.719 linhas |
+| — iguais à planilha de 24/09 (mesma primeira e última linha) | 30.718 |
+| — linha de teste ("LOJA TESTE CAIO", `Base_Data` = "TESTE - apagar antes de produção") | 1 |
+| linhas com `GN_Usuario` vazio (tabela / planilha) | 19.321 / 19.321 |
+| linhas com `GP_Usuario` vazio (tabela / planilha) | 1.190 / 1.189 — a diferença é a linha de teste |
+| "Carteira C6 - Gerentes" (`2yD9cWG0J98sFFll`) | 280 linhas: 249 GN + 30 GP + 1 de teste do Caio |
+| usuários distintos na carteira (GN / GP / nos dois papéis) | 249 / 30 / 0 — todos com nome na tabela de gerentes |
+
+O `Nome` é o usuário com a inicial maiúscula (RAFAEL.CONTESSOTO → Rafael
+Contessoto); `Qtd_Lojas` bate com a contagem na carteira (conferido em 6
+usuários).
+
 ## Painel de Eventos C6 — runs no n8n (2026-09-28/29)
 
 | run | workflow | resultado |
 |---|---|---|
 | 54781 | `8051egvfncc3unuT` (arquivado) | disparado com upload desligado; o resultado não foi lido (leitura barrada pela permissão) |
 | 54794 | `53RGtYzUzMoVtxpJ` | **erro em 1,2s**: 404 no Baixar Representantes — `LojasAtivas_C6.xlsx` não está no SharePoint |
+| 55187 (30/09) | `0Ndif0UK2UjTfaIN` | **caiu em 0,8s, falta de memória**: o Ler Nomes (tabela de dados) rodou uma vez por item de entrada — 30.719 × 280 |
+| 55191 (30/09) | `0Ndif0UK2UjTfaIN` | ✅ **15 s**, primeira publicação: 732.180 bytes no SharePoint |
+
+### O painel publicado no run 55191 (2026-09-30, 11:01, sem filtro)
+
+| medida | valor |
+|---|---:|
+| eventos / veículos publicados / com oferta / vendidos | 16 / 417 / 200 / 158 |
+| ofertas / lojas no cadastro do painel | 1.882 / 318 |
+| valor vendido | R$ 6.821.500 |
+| vendido ÷ soma dos VMV publicados | 34,3% |
+| arremate ÷ FIPE (vendidos com FIPE) / ÷ VMV (vendidos com VMV) | 65,3% / 87,5% |
+| funil dos novos: cadastrados → aprovados → logaram → acessaram → ofertaram → compraram | 215 → 214 → 192 → 82 → 9 → 4 |
+| representante GP: único / vazio na carteira / fora dela | 300 / 9 / 9 |
+| representante GN: único / vazio na carteira / fora dela | 143 / 166 / 9 |
+| linhas da carteira ignoradas (sem `Base_Data` de data) | 1 |
+
+Score do veículo na coleta local de 29/09: maior bruto **353**; com peso 100 no
+VMV e escala 0–100 inteira, 25 veículos com 1 ou 2 acessos cairiam em 0 junto
+com os 44 sem atividade — por isso uma casa decimal.
 
 ## Painel de Eventos C6 — custo das consultas (2026-09-24)
 

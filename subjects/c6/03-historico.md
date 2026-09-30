@@ -156,3 +156,25 @@
   `VelPJDX8USP9WIeT` e `8051egvfncc3unuT` arquivados. O run 54794 caiu com 404: a planilha
   `LojasAtivas_C6.xlsx` ainda não está no SharePoint — **nada publicado**.
 - Regra nova do Thomas: **nada vai ao n8n sem a aprovação final dele**.
+
+## 2026-09-30
+- **Painel de Eventos C6 publicado** — run 55191, workflow **`0Ndif0UK2UjTfaIN`**, no projeto
+  **Cars2You** do n8n (é onde moram as tabelas que ele lê). 732 KB em
+  `Painel de Eventos C6/painel-eventos-c6.html`, site N8N.
+- **Representantes saíram da planilha** e passaram a vir de duas **tabelas de dados do n8n**:
+  "Carteira C6 - Lojas" (CNPJ, GN, GP) e "Carteira C6 - Gerentes" (o nome de cada usuário). A
+  tela mostra o nome, não o login. Linha sem `Base_Data` de data é ignorada — a tabela tem uma
+  linha de teste do Caio que daria representante a um CNPJ real.
+- **Versão 5, pedidos do Thomas:** score com VMV peso 100 e escala 0–100 sobre o maior da
+  coleta; cartão **Performance financeira** (vendido ÷ VMV de todos os publicados; arremate ÷
+  FIPE e ÷ VMV); valor fora do cartão Vendidos; Novos lojistas com acessaram/ofertaram/
+  compraram; rankings de **usuários GP e GN** lado a lado e o de lojas na linha inteira, com
+  GP, GN, primeiro e último acesso; filtros **Usuário GP** e **Usuário GN** no lugar do botão
+  GN/GP e do Representante; % FIPE nos veículos; "% C/ VMV atingido" no pátio.
+- **Escolhas do Thomas nas dúvidas:** score sobre o maior da coleta (fixo); % FIPE só de quem
+  vendeu; Resultado com GP e GN; Performance financeira logo depois de Vendidos. **Minha:** uma
+  casa decimal no score.
+- **Erro corrigido:** o run 55187 caiu por memória — nó de tabela de dados roda uma vez por item
+  de entrada; `executeOnce` resolveu.
+- Falta: mandar o link ao C6; arquivar `6o9MSr1CriZ1VUBa` e `53RGtYzUzMoVtxpJ` (o modo
+  automático barra o arquivamento).

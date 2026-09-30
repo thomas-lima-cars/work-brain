@@ -64,12 +64,12 @@ consultas assim, **paginar por `OFFSET` deixa de ser o padrão** — vale medir 
 fase 1/fase 2 como no Radar.
 
 
-## Painel de Eventos C6 (2026-09-24, versão 3 em 29/09)
+## Painel de Eventos C6 (2026-09-24, versão 5 em 30/09)
 
-Workflow **`53RGtYzUzMoVtxpJ`** (pessoal do Thomas; o `VelPJDX8USP9WIeT` e o
-`8051egvfncc3unuT` foram arquivados). Eventos do WL 43 abertos e encerrados nos
-últimos 30 dias: KPIs, rankings de representantes (GN/GP da planilha do C6, por
-CNPJ) e de lojas, funil de ativação, acessos por dia e hora, pátios, score de
+Workflow **`0Ndif0UK2UjTfaIN`** (projeto Cars2You, publicado no run 55191; o
+`6o9MSr1CriZ1VUBa` e o `53RGtYzUzMoVtxpJ` faltam arquivar; o `VelPJDX8USP9WIeT` e o `8051egvfncc3unuT` foram arquivados). Eventos do WL 43 abertos e encerrados nos
+últimos 30 dias: KPIs, rankings de representantes (GN/GP das tabelas de dados do
+C6, por CNPJ, pelo nome) e de lojas, funil de ativação, acessos por dia e hora, pátios, score de
 veículo, filtros em gaveta. Sete consultas empacotadas em JSON — o acesso ao
 canal em duas partes, para caber no MCP. HTML no SharePoint. Código, provas e
 decisões em [`painel-eventos-c6/`](painel-eventos-c6/README.md).

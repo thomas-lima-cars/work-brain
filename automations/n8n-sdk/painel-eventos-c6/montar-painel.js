@@ -23,11 +23,16 @@
    Pontuação da loja   SÓ loja nova pontua: 10 por arremate + 1 por dia com
                        acesso no período. As outras ficam com zero. (28/09)
    Score do veículo    lojas distintas que abriram o anúncio no período × 1
-                       + lances × 5 + 10 se alguma oferta alcançou o VMV.
+                       + lances × 5 + 100 se alguma oferta alcançou o VMV,
+                       em 0 a 100 sobre o maior da coleta. (28/09; peso 100
+                       e escala 0-100 em 30/09)
+   Performance fin.    vendido ÷ soma do VMV de todos os publicados; arremate
+                       ÷ FIPE e ÷ VMV só dos vendidos que têm cada um. (30/09)
    Aprovada            shops.situation = 3. (28/09)
-   Representante       USUARIO_GP ou USUARIO_GN da planilha de lojas ativas
-                       do C6, cruzado pelo CNPJ. Fora da planilha ou vazio
-                       vira "Sem Representante". (24/09; GN em 28/09)
+   Representante       GP_Usuario ou GN_Usuario da carteira de lojas do C6
+                       (tabela de dados do n8n), cruzado pelo CNPJ. Fora da
+                       carteira ou vazio vira "Sem Representante". (24/09;
+                       GN em 28/09; tabela no lugar da planilha em 30/09)
 
    ⚠️ Sem barra invertida, crase ou cifrão-chave neste arquivo: ele viaja pro
    n8n como string.
@@ -201,7 +206,7 @@ const WL_VITRINE_C6 = [43, 48];   /* canais servidos por compraveiculos.cars2you
 const STATUS_VENDA = [2, 3, 7];
 const SITUACAO_APROVADA = 3;
 const PONTOS = { arremate: 10, dia: 1 };
-const PESO_SCORE = { acesso: 1, oferta: 5, vmv: 10 };
+const PESO_SCORE = { acesso: 1, oferta: 5, vmv: 100 };
 
 /* domínio completo em context/banco-de-dados/plataforma/dominios.md */
 const STATUS_NOME = {
@@ -256,25 +261,26 @@ for (let p = 0; p < PARTES; p++) nomesAcesso.push('acessos_p' + p);
   if (!T[k]) throw new Error('A consulta ' + k + ' nao veio do Montar Consultas');
 });
 
-/* ── 1b. a planilha de representantes comerciais ──────────────────────
-   Lida a cada run do SharePoint pelos nós "Baixar Representantes" e "Ler
-   Representantes" (Extract from File, primeira aba — o nome da aba é o de
-   um job do BigQuery e muda a cada exportação). Uma linha por loja do C6:
-   NR_CNPJ, CD_LOJA, USUARIO_GN, USUARIO_GP e outras.
+/* ── 1b. a carteira de representantes comerciais ─────────────────────
+   Lida a cada run da tabela de dados "Carteira C6 - Lojas" do n8n (projeto
+   Cars2You) pelo nó "Ler Representantes". Uma linha por loja do C6: CNPJ,
+   Cod_Loja, GN_Usuario, GP_Usuario, Rede, Regional, Filial e Base_Data.
+   Até 29/09 vinha de uma planilha no SharePoint; a tabela é a mesma base
+   (30.719 linhas contra 30.718 da planilha, primeira linha idêntica).
 
    Duas colunas de representante, uma por botão na tela (28/09). O GN vem
-   vazio em 63% das linhas da planilha de 24/09 — é do dado, não do nó.
+   vazio em 63% das linhas — é do dado, não do nó.
 
-   Planilha que não veio, ou veio sem as colunas, DERRUBA o run: publicar o
+   Carteira que não veio, ou veio sem as colunas, DERRUBA o run: publicar o
    painel com todo mundo "Sem Representante" seria uma tela plausível e
    errada, que ninguém notaria.
 
    CNPJ com mais de um representante (filiais com o mesmo CNPJ, 35 na
-   planilha de 24/09): fica o que aparece em MAIS linhas; empate vira Sem
-   Representante e conta nos avisos. Atribuir o errado é pior que deixar
-   sem. */
-const COL_CNPJ = 'NR_CNPJ';
-const COL_REP = { gp: 'USUARIO_GP', gn: 'USUARIO_GN' };
+   base): fica o que aparece em MAIS linhas; empate vira Sem Representante
+   e conta nos avisos. Atribuir o errado é pior que deixar sem. */
+const COL_CNPJ = 'CNPJ';
+const COL_REP = { gp: 'GP_Usuario', gn: 'GN_Usuario' };
+const COL_BASE = 'Base_Data';
 const SEM_REP = 'Sem Representante';
 const MIN_LINHAS_PLANILHA = 1000;
 
@@ -291,24 +297,39 @@ const cnpjDe = (v) => { const d = soDigitos(v); return d ? d.padStart(14, '0') :
 
 const planilha = $('Ler Representantes').all().map((i) => i.json);
 if (planilha.length === 1 && planilha[0] && planilha[0].error !== undefined) {
-  throw new Error('A planilha de representantes nao veio: ' + JSON.stringify(planilha[0].error).slice(0, 200));
+  throw new Error('A carteira de representantes nao veio: ' + JSON.stringify(planilha[0].error).slice(0, 200));
 }
-/* as colunas variam POR LINHA: o Extract from File descarta célula vazia,
-   então procurar numa linha só daria falso negativo */
+/* procura a coluna em todas as linhas, não numa só: a tabela vazia chega
+   como um item vazio (alwaysOutputData), e uma linha sem a chave não prova
+   que a coluna sumiu */
 const temCol = {};
-[COL_CNPJ, COL_REP.gp, COL_REP.gn].forEach((c) => {
+[COL_CNPJ, COL_REP.gp, COL_REP.gn, COL_BASE].forEach((c) => {
   temCol[c] = planilha.some((l) => l && l[c] !== undefined);
 });
-if (!temCol[COL_CNPJ] || !temCol[COL_REP.gp] || !temCol[COL_REP.gn]) {
-  throw new Error('A planilha de representantes veio sem as colunas ' + JSON.stringify(temCol) +
-    '. Foi reorganizada?');
+if (!temCol[COL_CNPJ] || !temCol[COL_REP.gp] || !temCol[COL_REP.gn] || !temCol[COL_BASE]) {
+  throw new Error('A carteira de representantes veio sem as colunas ' + JSON.stringify(temCol) +
+    '. A tabela foi reorganizada?');
 }
 if (planilha.length < MIN_LINHAS_PLANILHA) {
-  throw new Error('A planilha de representantes tem so ' + planilha.length + ' linhas, abaixo do piso de ' +
-    MIN_LINHAS_PLANILHA + ' — leitura truncada ou arquivo trocado.');
+  throw new Error('A carteira de representantes tem so ' + planilha.length + ' linhas, abaixo do piso de ' +
+    MIN_LINHAS_PLANILHA + ' — leitura truncada ou tabela trocada.');
 }
 const votos = { gp: {}, gn: {} };
+/* linha cuja Base_Data não é uma data NÃO é da carteira e fica de fora:
+   em 30/09 a tabela tinha uma, "LOJA TESTE CAIO", com Base_Data "TESTE -
+   apagar antes de produção" — ela daria representante a um CNPJ real. Vira
+   aviso. A data da base (a mais recente entre as válidas; hoje todas
+   2026-08-17) vai para o rodapé da tela. */
+const ehData = (v) => {
+  if (v.length !== 10 || v.charAt(4) !== '-' || v.charAt(7) !== '-') return false;
+  return soDigitos(v).length === 8;
+};
+let baseReps = '';
+let linhasFora = 0;
 planilha.forEach((l) => {
+  const b = String(l[COL_BASE] === null || l[COL_BASE] === undefined ? '' : l[COL_BASE]).trim().slice(0, 10);
+  if (!ehData(b)) { linhasFora++; return; }
+  if (b > baseReps) baseReps = b;
   const c = cnpjDe(l[COL_CNPJ]);
   if (c.length !== 14) return;
   ['gp', 'gn'].forEach((q) => {
@@ -318,6 +339,10 @@ planilha.forEach((l) => {
     if (rep) votos[q][c][rep] = (votos[q][c][rep] || 0) + 1;
   });
 });
+if (planilha.length - linhasFora < MIN_LINHAS_PLANILHA) {
+  throw new Error('A carteira de representantes tem so ' + (planilha.length - linhasFora) +
+    ' linhas com Base_Data valida (' + linhasFora + ' sem data) — a coluna mudou de formato?');
+}
 function representanteDo(q, cnpj) {
   if (!cnpj) return { rep: SEM_REP, motivo: 'sem_cnpj' };
   const v = votos[q][cnpj];
@@ -326,6 +351,37 @@ function representanteDo(q, cnpj) {
   if (!reps.length) return { rep: SEM_REP, motivo: 'vazio_planilha' };
   if (reps.length > 1 && v[reps[0]] === v[reps[1]]) return { rep: SEM_REP, motivo: 'empate' };
   return { rep: reps[0], motivo: reps.length > 1 ? 'maioria' : 'unico' };
+}
+/* o NOME do representante, da tabela de dados "Carteira C6 - Gerentes" (nó
+   "Ler Nomes"): Usuario, Papel (GN/GP), Nome. A carteira traz o usuário
+   (RAFAEL.CONTESSOTO); a tela mostra o nome (Rafael Contessoto) (30/09).
+   Em 30/09 os 249 GN e os 30 GP da carteira tinham nome, nenhum usuário
+   nos dois papéis. Nome é cosmético: usuário sem nome aparece como usuário
+   e vira aviso — o run não cai por isso. Dois usuários com o mesmo nome no
+   mesmo papel levam o usuário entre parênteses, para não virarem um só no
+   ranking. */
+const gerentes = $('Ler Nomes').all().map((i) => i.json);
+const nomeDe = { gp: {}, gn: {} };
+gerentes.forEach((g) => {
+  const u = String(g.Usuario === null || g.Usuario === undefined ? '' : g.Usuario).trim().toUpperCase();
+  const n = String(g.Nome === null || g.Nome === undefined ? '' : g.Nome).trim();
+  const q = String(g.Papel === null || g.Papel === undefined ? '' : g.Papel).trim().toLowerCase();
+  if (u && n && nomeDe[q]) nomeDe[q][u] = n;
+});
+['gp', 'gn'].forEach((q) => {
+  const quem = {};
+  Object.keys(nomeDe[q]).forEach((u) => { const n = nomeDe[q][u]; (quem[n] = quem[n] || []).push(u); });
+  Object.keys(quem).forEach((n) => {
+    if (quem[n].length > 1) quem[n].forEach((u) => { nomeDe[q][u] = n + ' (' + u + ')'; });
+  });
+});
+const semNome = { gp: {}, gn: {} };
+function nomeDoRep(q, rep) {
+  if (rep === SEM_REP) return rep;
+  const n = nomeDe[q][rep.toUpperCase()];
+  if (n) return n;
+  semNome[q][rep] = 1;
+  return rep;
 }
 const zeraConta = () => ({ unico: 0, maioria: 0, empate: 0, fora_planilha: 0, vazio_planilha: 0, sem_cnpj: 0 });
 const contaRep = { gp: zeraConta(), gn: zeraConta() };
@@ -365,7 +421,7 @@ const lojas = T.lojas.map((l) => {
   contaRep.gn[gn.motivo]++;
   return {
     id: num(l.id), nome: l.nome, wl: num(l.wl), situacao: num(l.situacao), cadastro: l.cadastro,
-    apagada: num(l.apagada) === 1, gp: gp.rep, gn: gn.rep
+    apagada: num(l.apagada) === 1, gp: nomeDoRep('gp', gp.rep), gn: nomeDoRep('gn', gn.rep)
   };
 });
 const lojaPorId = {};
@@ -446,15 +502,26 @@ T.veiculos.forEach((r) => {
     vmv: vmv, fipe: num(r.fipe),
     /* % do VMV: a MAIOR oferta sobre o VMV — a mesma que decide o farol */
     pvmv: maior && vmv ? maior.valor / vmv : null,
-    score: acessos * PESO_SCORE.acesso + ofs.length * PESO_SCORE.oferta +
+    /* score bruto; vira 0-100 logo abaixo, sobre o maior da coleta */
+    bruto: acessos * PESO_SCORE.acesso + ofs.length * PESO_SCORE.oferta +
       (farol === 'atingiu' ? PESO_SCORE.vmv : 0),
     status: status, vendido: vendido,
     venc: venc ? venc.id : null,
     venda: venc ? venc.valor : null,
     arrematante: venc ? venc.loja : null,
+    /* % FIPE: o ARREMATE sobre a FIPE, só de quem vendeu (Thomas, 30/09) */
+    pfipe: venc && num(r.fipe) ? venc.valor / num(r.fipe) : null,
     farol: farol
   });
 });
+/* score de 0 a 100 (Thomas, 30/09): o bruto dividido pelo MAIOR bruto da
+   coleta inteira. Fixo como o resto do veículo: filtro nenhum muda a nota —
+   o melhor veículo da coleta tem 100, e um veículo não muda de nota ao
+   trocar de evento na tela. */
+const maiorBruto = veiculos.reduce((m, v) => Math.max(m, v.bruto), 0);
+/* uma casa decimal: com o maior bruto em 353 (30/09), o inteiro jogaria
+   para 0 os 25 veículos com um ou dois acessos, empatados com os parados */
+veiculos.forEach((v) => { v.score = maiorBruto ? Math.round(1000 * v.bruto / maiorBruto) / 10 : 0; });
 
 /* ── 8. as ofertas que viajam para a página ────────────────────────────
    [id, negociação, loja, valor, quando] — cruas, porque os filtros (pátio,
@@ -493,23 +560,34 @@ const TEXTO_AVISO = {
   loja_sem_cadastro: 'lance(s) de loja sem cadastro na tabela de lojas',
   loja_outro_canal: 'lance(s) de loja de outro canal',
   loja_apagada: 'lance(s) de loja apagada',
-  rep_maioria_gp: 'loja(s) com mais de um USUARIO_GP para o mesmo CNPJ na planilha — ficou o que aparece em mais linhas',
-  rep_empate_gp: 'loja(s) com empate de USUARIO_GP para o mesmo CNPJ na planilha — ficaram Sem Representante',
-  rep_maioria_gn: 'loja(s) com mais de um USUARIO_GN para o mesmo CNPJ na planilha — ficou o que aparece em mais linhas',
-  rep_empate_gn: 'loja(s) com empate de USUARIO_GN para o mesmo CNPJ na planilha — ficaram Sem Representante',
-  rep_sem_cnpj: 'loja(s) sem CNPJ no banco — ficaram Sem Representante'
+  rep_maioria_gp: 'loja(s) com mais de um Usuário GP para o mesmo CNPJ na carteira — ficou o que aparece em mais linhas',
+  rep_empate_gp: 'loja(s) com empate de Usuário GP para o mesmo CNPJ na carteira — ficaram Sem Representante',
+  rep_maioria_gn: 'loja(s) com mais de um Usuário GN para o mesmo CNPJ na carteira — ficou o que aparece em mais linhas',
+  rep_empate_gn: 'loja(s) com empate de Usuário GN para o mesmo CNPJ na carteira — ficaram Sem Representante',
+  rep_sem_cnpj: 'loja(s) sem CNPJ no banco — ficaram Sem Representante',
+  rep_linha_fora: 'linha(s) da carteira sem data de base válida (Base_Data) — ignoradas; linha de teste?',
+  rep_sem_nome_gp: 'Usuário(s) GP sem nome na tabela de gerentes — aparece o usuário',
+  rep_sem_nome_gn: 'Usuário(s) GN sem nome na tabela de gerentes — aparece o usuário'
 };
-/* fora da planilha e sem representante na planilha são a regra pedida, não
+/* fora da carteira e sem representante na carteira são a regra pedida, não
    defeito: vão para o resumo, não para os avisos */
 ['gp', 'gn'].forEach((q) => {
   if (contaRep[q].maioria) conta['rep_maioria_' + q] = contaRep[q].maioria;
   if (contaRep[q].empate) conta['rep_empate_' + q] = contaRep[q].empate;
 });
 if (contaRep.gp.sem_cnpj) conta.rep_sem_cnpj = contaRep.gp.sem_cnpj;
+if (linhasFora) conta.rep_linha_fora = linhasFora;
+['gp', 'gn'].forEach((q) => {
+  const n = Object.keys(semNome[q]).length;
+  if (n) conta['rep_sem_nome_' + q] = n;
+});
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
+if (!Object.keys(nomeDe.gp).length && !Object.keys(nomeDe.gn).length) {
+  avisos.push('A tabela de nomes dos representantes veio vazia — aparecem os usuários');
+}
 
 const DADOS = {
-  agora: AGORA, piso: META.piso, wl: META.wl, dias: META.dias_janela, sem_rep: SEM_REP,
+  agora: AGORA, piso: META.piso, wl: META.wl, dias: META.dias_janela, sem_rep: SEM_REP, base_reps: baseReps,
   pontos: PONTOS, peso: PESO_SCORE, aprovada: SITUACAO_APROVADA,
   status_nome: STATUS_NOME,
   eventos: eventos, veiculos: veiculos, lojas: lojas, ofertas: ofertas,
@@ -527,10 +605,11 @@ const DADOS = {
                     degraus do funil que dependem de anúncio. O acesso ao
                     canal (dias com acesso, gráficos, "logaram") não é de
                     veículo e não muda.
-     rep (+ col)    as LOJAS, pela coluna GN/GP ativa. Rankings, novos,
-                    funil, acessos e lances só das lojas daquele
-                    representante. A lista de veículos continua inteira —
-                    como o Responsável do Radar de Estoque.
+     gp, gn         as LOJAS, pelo Usuário GP e pelo Usuário GN (30/09;
+                    os dois juntos se somam). Rankings, novos, funil,
+                    acessos e lances só das lojas daquele representante. A
+                    lista de veículos continua inteira — como o Responsável
+                    do Radar de Estoque.
      dia            o PERÍODO, encolhido para aquele dia: acessos,
                     cadastros, lances e vendas (pela data da oferta
                     vencedora) daquele dia. A lista de veículos continua.
@@ -539,7 +618,6 @@ const DADOS = {
    ══════════════════════════════════════════════════════════════════════ */
 function calcula(D, sel, F) {
   F = F || {};
-  const col = F.col || 'gn';
   const evs = sel === 'todos' ? D.eventos : D.eventos.filter((e) => e.id === sel);
   const noRecorte = {};
   evs.forEach((e) => { noRecorte[e.id] = e; });
@@ -561,9 +639,10 @@ function calcula(D, sel, F) {
   const vPorAnuncio = {};
   Vf.forEach((v) => { vPorNeg[v.neg] = v; vPorAnuncio[v.ev + '|' + v.anuncio] = v; });
 
-  /* as lojas: o representante, na coluna ativa. Loja que não está no
+  /* as lojas: pelo Usuário GP e pelo Usuário GN. Loja que não está no
      cadastro do painel não tem representante conhecido e sai do filtro */
-  const lojaOk = (id) => !F.rep || (!!lojaPorId[id] && lojaPorId[id][col] === F.rep);
+  const lojaOk = (id) => (!F.gp && !F.gn) || (!!lojaPorId[id] &&
+    (!F.gp || lojaPorId[id].gp === F.gp) && (!F.gn || lojaPorId[id].gn === F.gn));
 
   /* o período: do menor início ao maior fim dos eventos do filtro (Thomas,
      28/09). Com Data, encolhe para aquele dia */
@@ -612,6 +691,10 @@ function calcula(D, sel, F) {
   /* acessos ao canal */
   const diasDaLoja = {};
   const lojasDoDia = {};
+  /* primeiro e último acesso da loja no período, na hora cheia: a coleta
+     guarda o acesso por loja × dia × hora ("aammdd" + "hh") */
+  const acIni = {};
+  const acFim = {};
   const porHoraT = [];
   const porHoraN = [];
   for (let h = 0; h < 24; h++) { porHoraT.push(0); porHoraN.push(0); }
@@ -619,6 +702,9 @@ function calcula(D, sel, F) {
     if (!horaOk(a[1], a[2]) || !lojaOk(a[0])) return;
     (diasDaLoja[a[0]] || (diasDaLoja[a[0]] = {}))[a[1]] = 1;
     (lojasDoDia[a[1]] || (lojasDoDia[a[1]] = {}))[a[0]] = 1;
+    const quando = a[1] + (a[2] < 10 ? '0' : '') + a[2];
+    if (!acIni[a[0]] || quando < acIni[a[0]]) acIni[a[0]] = quando;
+    if (!acFim[a[0]] || quando > acFim[a[0]]) acFim[a[0]] = quando;
     if (F.dia_hora && a[1] !== F.dia_hora) return;
     porHoraT[a[2]] += a[3];
     if (ehNova[a[0]]) porHoraN[a[2]] += a[3];
@@ -679,13 +765,14 @@ function calcula(D, sel, F) {
       loja: id, nome: l.nome || ('loja ' + id), nova: nova,
       gp: l.gp || D.sem_rep, gn: l.gn || D.sem_rep,
       acessos: dias, lances: a.lances, veic: Object.keys(a.negs).length, arrem: a.arrem,
+      pri: acIni[id] || null, ult: acFim[id] || null,
       /* só loja nova pontua (Thomas, 28/09) */
       pontos: nova ? a.arrem * D.pontos.arremate + dias * D.pontos.dia : 0
     };
   }).sort((x, y) => y.pontos - x.pontos || y.arrem - x.arrem || y.lances - x.lances ||
     y.acessos - x.acessos || String(x.nome).localeCompare(String(y.nome)));
 
-  /* representantes, pelas duas colunas da planilha. "Sem Representante" é
+  /* representantes, pelas duas colunas da carteira. "Sem Representante" é
      um grupo como os outros, mas vai sempre para o fim */
   const semRep = (g) => (g.representante === D.sem_rep ? 1 : 0);
   const agrupa = (q) => {
@@ -767,6 +854,15 @@ function calcula(D, sel, F) {
     publicados: Vf.length,
     vendidos: vendidos.length,
     volume: soma(vendidos, (v) => v.venda),
+    /* performance financeira (Thomas, 30/09): o vendido sobre o VMV de
+       TODOS os publicados do recorte, vendidos ou não; e o arremate sobre a
+       FIPE e sobre o VMV, só dos vendidos que têm cada um */
+    vmv_publicados: soma(Vf, (v) => v.vmv),
+    pc_vendido_vmv: soma(Vf, (v) => v.vmv) ? soma(vendidos, (v) => v.venda) / soma(Vf, (v) => v.vmv) : null,
+    pc_arrem_fipe: soma(vendidos.filter((v) => v.fipe), (v) => v.fipe)
+      ? soma(vendidos.filter((v) => v.fipe), (v) => v.venda) / soma(vendidos.filter((v) => v.fipe), (v) => v.fipe) : null,
+    pc_arrem_vmv: soma(vendidos.filter((v) => v.vmv), (v) => v.vmv)
+      ? soma(vendidos.filter((v) => v.vmv), (v) => v.venda) / soma(vendidos.filter((v) => v.vmv), (v) => v.vmv) : null,
     vmv_atingido: vmvAt.length,
     acessados: Vf.filter((v) => acessoVeic[v.neg]).length,
     com_oferta: comOferta.length,
@@ -780,6 +876,7 @@ function calcula(D, sel, F) {
     novas: novas.length,
     novas_logaram: funil[2][1],
     engajamento: novas.length ? funil[2][1] / novas.length : null,
+    novas_acessaram: funil[3][1],
     novas_ofertaram: funil[4][1],
     novas_compraram: funil[5][1],
     lojas_acessaram: Object.keys(diasDaLoja).length,
@@ -832,18 +929,22 @@ function APP(D, LOGO) {
   const semRepHtml = (r) => (r !== D.sem_rep ? esc(r) : '<span class="dim">' + esc(D.sem_rep) + '</span>');
 
   let sel = 'todos';
-  /* padrões pedidos em 29/09: Todos lojistas e Usuário GN */
+  /* padrão pedido em 29/09: Todos lojistas */
   let soNovas = false;
-  /* os filtros: col é o botão GN/GP; rep, dia, patio e farol vêm da gaveta;
-     dia_hora, do clique no gráfico por dia */
-  const F = { col: 'gn', rep: '', dia: '', patio: '', farol: '', dia_hora: '' };
+  /* os filtros: gp, gn, dia, patio e farol vêm da gaveta; dia_hora, do
+     clique no gráfico por dia. O botão Usuário GN / Usuário GP saiu em
+     30/09: há um ranking e um filtro para cada coluna */
+  const F = { gp: '', gn: '', dia: '', patio: '', farol: '', dia_hora: '' };
+  const FILTROS = ['gp', 'gn', 'dia', 'patio', 'farol'];
+  /* "aammddhh" -> "dd/mm hh h", o primeiro e o último acesso da loja */
+  const quandoCod = (c) => (c ? c.slice(4, 6) + '/' + c.slice(2, 4) + ' ' + c.slice(6, 8) + 'h' : null);
 
   /* ── tabela ordenável ────────────────────────────────────────────────
      Clique no título ordena pela coluna; clique de novo inverte. Vazio vai
      sempre para o fim, nos dois sentidos. "fixo" prende uma linha no fim
      (Sem Representante) qualquer que seja a ordem. */
   const ordem = {
-    lojas: { k: 'pontos', dir: -1 }, reps: { k: 'pontos', dir: -1 },
+    lojas: { k: 'pontos', dir: -1 }, rgp: { k: 'pontos', dir: -1 }, rgn: { k: 'pontos', dir: -1 },
     veic: { k: 'score', dir: 1 }, patios: { k: 'veiculos', dir: -1 }
   };
   const TABELAS = {};
@@ -1065,19 +1166,20 @@ function APP(D, LOGO) {
     return el.value;
   }
   function montaFiltros() {
-    const base = calcula(D, sel, { col: F.col });
-    const reps = {};
-    D.lojas.forEach((l) => { reps[l[F.col]] = 1; });
-    const listaReps = Object.keys(reps).filter((r) => r !== D.sem_rep).sort().concat(reps[D.sem_rep] ? [D.sem_rep] : []);
-    F.rep = opcoes('f-rep', listaReps.map((r) => [r, r]), 'Todos os representantes', F.rep);
-    $('#f-rep-rot').textContent = 'Representante (' + (F.col === 'gn' ? 'Usuário GN' : 'Usuário GP') + ')';
+    const base = calcula(D, sel, {});
+    ['gp', 'gn'].forEach((q) => {
+      const reps = {};
+      D.lojas.forEach((l) => { reps[l[q]] = 1; });
+      const lista = Object.keys(reps).filter((r) => r !== D.sem_rep).sort().concat(reps[D.sem_rep] ? [D.sem_rep] : []);
+      F[q] = opcoes('f-' + q, lista.map((r) => [r, r]), 'Todos os usuários ' + q.toUpperCase(), F[q]);
+    });
     F.dia = opcoes('f-dia', base.dias_periodo.map((c) => [c, diaCod(c) + '/' + c.slice(0, 2)]), 'Todas as datas', F.dia);
     F.patio = opcoes('f-patio', base.patios_evento.map((p) => [p, p]), 'Todos os pátios', F.patio);
     F.farol = opcoes('f-farol', [['sem', FAROL.sem], ['abaixo', FAROL.abaixo], ['atingiu', FAROL.atingiu]], 'Todos os status', F.farol);
     if (F.dia_hora && base.dias_periodo.indexOf(F.dia_hora) < 0) F.dia_hora = '';
   }
   function contaFiltros() {
-    const n = ['rep', 'dia', 'patio', 'farol'].filter((k) => F[k]).length + (sel === 'todos' ? 0 : 1);
+    const n = FILTROS.filter((k) => F[k]).length + (sel === 'todos' ? 0 : 1);
     const b = $('#aba-n');
     b.textContent = n ? String(n) : '';
     b.hidden = !n;
@@ -1091,7 +1193,7 @@ function APP(D, LOGO) {
   $('#fecha').addEventListener('click', () => gaveta(false));
   $('#veu').addEventListener('click', () => gaveta(false));
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') gaveta(false); });
-  [['f-rep', 'rep'], ['f-dia', 'dia'], ['f-patio', 'patio'], ['f-farol', 'farol']].forEach((p) => {
+  [['f-gp', 'gp'], ['f-gn', 'gn'], ['f-dia', 'dia'], ['f-patio', 'patio'], ['f-farol', 'farol']].forEach((p) => {
     $('#' + p[0]).addEventListener('change', (ev) => {
       F[p[1]] = ev.target.value;
       if (p[1] === 'dia') F.dia_hora = '';
@@ -1099,11 +1201,11 @@ function APP(D, LOGO) {
     });
   });
   $('#limpar').addEventListener('click', () => {
-    F.rep = ''; F.dia = ''; F.patio = ''; F.farol = ''; F.dia_hora = '';
+    FILTROS.forEach((k) => { F[k] = ''; });
+    F.dia_hora = '';
     sel = 'todos';
     $('#f-evento').value = 'todos';
     alterna('seg-lojas', 'todas', (v) => { soNovas = v === 'novas'; });
-    alterna('seg-reps', 'gn', (v) => { F.col = v; });
     montaFiltros();
     render();
   });
@@ -1117,7 +1219,7 @@ function APP(D, LOGO) {
     $('#sub').textContent = (ev
       ? ev.nome + ' · ' + dt(ev.ini) + ' → ' + dt(ev.fim) + ' · ' + ev.estado
       : 'Canal de vendas C6 Auto · ' + D.eventos.length + ' eventos · ' + dt(R.periodo[0]) + ' → ' + dt(R.periodo[1])) +
-      (['rep', 'dia', 'patio', 'farol'].some((x) => F[x]) ? ' · com filtros' : '');
+      (FILTROS.some((x) => F[x]) ? ' · com filtros' : '');
 
     /* KPIs: todo percentual logo abaixo do número grande leva barra */
     const pcBar = (idTxt, idBar, x, rot) => {
@@ -1132,39 +1234,52 @@ function APP(D, LOGO) {
     pcBar('#k-of-pc', '#k-of-bar', k.publicados ? k.com_oferta / k.publicados : null, 'dos publicados');
     $('#k-of-lj').textContent = nf(k.ofertantes);
     $('#k-of-lpl').textContent = n1(k.lances_por_lojista);
-    /* quantidade e valor das vendas na mesma linha (Thomas, 28/09) */
-    $('#k-vd').innerHTML = nf(k.vendidos) + '<span class="kpi-val-2">' + rs(k.volume) + '</span>';
+    /* o valor saiu do cartão (30/09): vai para a Performance financeira */
+    $('#k-vd').textContent = nf(k.vendidos);
     pcBar('#k-vd-pc', '#k-vd-bar', k.publicados ? k.vendidos / k.publicados : null, 'dos publicados');
     $('#k-vd-comp').textContent = nf(k.compradores);
     $('#k-vd-ppl').textContent = n1(k.part_por_lojista);
+    /* performance financeira (30/09): o valor vendido e três razões */
+    $('#k-pf').textContent = rs(k.volume);
+    pcBar('#k-pf-pc', '#k-pf-bar', k.pc_vendido_vmv, 'da soma dos VMV publicados');
+    const pcPe = (id, x) => { $(id).innerHTML = (x === null ? '—' : pc(x)) + trilho(x); };
+    pcPe('#k-pf-fipe', k.pc_arrem_fipe);
+    pcPe('#k-pf-vmv', k.pc_arrem_vmv);
     $('#k-nv').textContent = nf(k.novas);
     pcBar('#k-nv-pc', '#k-nv-bar', k.engajamento, 'de engajamento');
+    $('#k-nv-ac').textContent = nf(k.novas_acessaram);
     $('#k-nv-of').textContent = nf(k.novas_ofertaram);
     $('#k-nv-cp').textContent = nf(k.novas_compraram);
 
-    /* ranking de representantes: só quem tem loja NOVA (Thomas, 29/09) */
-    const reps = R.representantes[F.col].filter((g) => g.novas > 0);
-    const nReps = reps.filter((g) => g.representante !== D.sem_rep).length;
-    $('#n-reps').textContent = nReps + (nReps === 1 ? ' representante · ' : ' representantes · ') +
-      (F.col === 'gn' ? 'Usuário GN' : 'Usuário GP');
-    tabela('reps', [
-      { k: 'representante', t: 'Representante', h: (g) => semRepHtml(g.representante) },
-      /* na coluna Lojas o número principal é o de lojas NOVAS (Thomas,
-         28/09); o total vai embaixo, e a ordenação é pelas novas */
-      { k: 'novas', t: 'Lojas', n: true, h: (g) => nf(g.novas) + '<span class="dim sub">novas, de ' + nf(g.lojas) + '</span>' },
-      { k: 'acessos', t: 'Acessos', n: true, h: (g) => nf(g.acessos) },
-      { k: 'lances', t: 'Ofertas', n: true, h: (g) => nf(g.lances) },
-      { k: 'veic', t: 'Veículos', n: true, h: (g) => nf(g.veic) },
-      { k: 'arrem', t: 'Arremates', n: true, h: (g) => nf(g.arrem) },
-      { k: 'pontos', t: 'Pontos', n: true, cls: 'forte', h: (g) => nf(g.pontos) }
-    ], reps, (g) => g.representante === D.sem_rep);
+    /* rankings de representantes, um por coluna (30/09): só quem tem loja
+       NOVA (Thomas, 29/09) */
+    ['gp', 'gn'].forEach((q) => {
+      const reps = R.representantes[q].filter((g) => g.novas > 0);
+      const nReps = reps.filter((g) => g.representante !== D.sem_rep).length;
+      $('#n-r' + q).textContent = nReps + (nReps === 1 ? ' usuário' : ' usuários');
+      tabela('r' + q, [
+        { k: 'representante', t: 'Usuário ' + q.toUpperCase(), h: (g) => semRepHtml(g.representante) },
+        /* na coluna Lojas o número principal é o de lojas NOVAS (Thomas,
+           28/09); o total vai embaixo, e a ordenação é pelas novas */
+        { k: 'novas', t: 'Lojas', n: true, h: (g) => nf(g.novas) + '<span class="dim sub">novas, de ' + nf(g.lojas) + '</span>' },
+        { k: 'acessos', t: 'Acessos', n: true, h: (g) => nf(g.acessos) },
+        { k: 'lances', t: 'Ofertas', n: true, h: (g) => nf(g.lances) },
+        { k: 'veic', t: 'Veículos', n: true, h: (g) => nf(g.veic) },
+        { k: 'arrem', t: 'Arremates', n: true, h: (g) => nf(g.arrem) },
+        { k: 'pontos', t: 'Pontos', n: true, cls: 'forte', h: (g) => nf(g.pontos) }
+      ], reps, (g) => g.representante === D.sem_rep);
+    });
 
-    /* ranking de lojas: só quem acessou no período (Thomas, 29/09) */
+    /* ranking de lojas: só quem acessou no período (Thomas, 29/09), na
+       linha inteira, com GP, GN, primeiro e último acesso (30/09) */
     const lojasVis = R.lojas.filter((r) => r.acessos > 0 && (!soNovas || r.nova));
     $('#n-lojas').textContent = lojasVis.length + (lojasVis.length === 1 ? (soNovas ? ' loja nova' : ' loja') : (soNovas ? ' lojas novas' : ' lojas'));
     tabela('lojas', [
-      { k: 'nome', t: 'Loja', h: (r) => esc(r.nome) + (r.nova && !soNovas ? ' <span class="tag ok">nova</span>' : '') +
-        '<span class="dim sub">' + semRepHtml(r[F.col]) + '</span>' },
+      { k: 'nome', t: 'Loja', h: (r) => esc(r.nome) + (r.nova && !soNovas ? ' <span class="tag ok">nova</span>' : '') },
+      { k: 'gp', t: 'Usuário GP', h: (r) => semRepHtml(r.gp) },
+      { k: 'gn', t: 'Usuário GN', h: (r) => semRepHtml(r.gn) },
+      { k: 'pri', t: 'Primeiro acesso', n: true, h: (r) => esc(quandoCod(r.pri) || '—') },
+      { k: 'ult', t: 'Último acesso', n: true, h: (r) => esc(quandoCod(r.ult) || '—') },
       { k: 'acessos', t: 'Acessos', n: true, h: (r) => nf(r.acessos) },
       { k: 'lances', t: 'Ofertas', n: true, h: (r) => nf(r.lances) },
       { k: 'veic', t: 'Veículos', n: true, h: (r) => nf(r.veic) },
@@ -1201,7 +1316,7 @@ function APP(D, LOGO) {
       { k: 'oferta', t: 'C/ oferta', n: true, h: (p) => nf(p.oferta) },
       { k: 'conversao', t: '% conversão', n: true, h: (p) => pc(p.conversao) },
       { k: 'vmv', t: 'C/ VMV atingido', n: true, h: (p) => nf(p.vmv) },
-      { k: 'pc_vmv', t: '% VMV atingido', n: true, h: (p) => pc(p.pc_vmv) }
+      { k: 'pc_vmv', t: '% C/ VMV atingido', n: true, h: (p) => pc(p.pc_vmv) }
     ], R.patios);
 
     /* veículos: no Resultado, o arrematante com o selo de loja nova e o
@@ -1215,15 +1330,19 @@ function APP(D, LOGO) {
       { k: 'qtd', t: 'Ofertas', n: true, h: (v) => nf(v.qtd) },
       { k: 'ult', t: 'Última oferta', n: true, h: (v) => rs(v.ult) + (v.ult_quando ? '<span class="dim sub">' + dt(v.ult_quando) + '</span>' : '') },
       { k: 'fipe', t: 'FIPE', n: true, h: (v) => rs(v.fipe) },
+      /* % FIPE: arremate ÷ FIPE, só de quem vendeu (30/09) */
+      { k: 'pfipe', t: '% FIPE', n: true, cls: 'c-vmv', h: (v) => (v.pfipe === null ? '<span class="dim">—</span>'
+        : '<span class="vmv">' + trilho(v.pfipe) + '<span class="num">' + pc0(v.pfipe) + '</span></span>') },
       { k: 'pvmv', t: '% VMV', n: true, cls: 'c-vmv', h: (v) => (v.pvmv === null ? '<span class="dim">—</span>'
         : '<span class="vmv' + (v.pvmv >= 1 ? ' ok' : '') + '">' + trilho(v.pvmv) + '<span class="num">' + pc0(v.pvmv) + '</span></span>') },
-      { k: 'score', t: 'Score', n: true, cls: 'forte', h: (v) => nf(v.score) },
+      { k: 'score', t: 'Score', n: true, cls: 'forte', h: (v) => n1(v.score) },
       { k: 'status', t: 'Resultado', v: (v) => D.status_nome[v.status] || '', h: (v) => {
         if (v.arrematante === null) return tagStatus(v);
         const l = lojaPorId[v.arrematante] || {};
         return tagStatus(v) + '<span class="dim sub">' + esc(l.nome || ('loja ' + v.arrematante)) +
-          (R.nova[v.arrematante] ? ' <span class="tag ok">novo</span>' : '') +
-          ' · ' + semRepHtml(l[F.col] || D.sem_rep) + '</span>';
+          (R.nova[v.arrematante] ? ' <span class="tag ok">novo</span>' : '') + '</span>' +
+          /* os dois representantes, sem o botão GN/GP (30/09) */
+          '<span class="dim sub">GP ' + semRepHtml(l.gp || D.sem_rep) + ' · GN ' + semRepHtml(l.gn || D.sem_rep) + '</span>';
       } }
     ], R.veiculos);
   }
@@ -1238,14 +1357,6 @@ function APP(D, LOGO) {
     const b = ev.target.closest('button[data-v]');
     if (!b) return;
     alterna('seg-lojas', b.getAttribute('data-v'), (v) => { soNovas = v === 'novas'; });
-    render();
-  });
-  $('#seg-reps').addEventListener('click', (ev) => {
-    const b = ev.target.closest('button[data-v]');
-    if (!b) return;
-    /* trocar de coluna troca a lista de representantes do filtro */
-    alterna('seg-reps', b.getAttribute('data-v'), (v) => { F.col = v; F.rep = ''; });
-    montaFiltros();
     render();
   });
   /* clique num dia do gráfico por dia: filtra o gráfico por hora */
@@ -1308,7 +1419,7 @@ function APP(D, LOGO) {
   $('#gloss-n').textContent = D.glossario.length + ' termos';
   $('#gerado').textContent = dt(D.agora);
   $('#base').textContent = D.eventos.length + ' eventos do Canal de vendas C6 Auto (whitelabel ' + D.wl +
-    ') com fim desde ' + dia(D.piso);
+    ') com fim desde ' + dia(D.piso) + (D.base_reps ? ' · carteira de representantes de ' + dia(D.base_reps) : '');
 
   /* tema: nasce no do arquivo, troca ao vivo, não é gravado */
   const ICO = {
@@ -1349,18 +1460,21 @@ DADOS.glossario = [
   ['Compradores', 'Lojas distintas que arremataram pelo menos um veículo.'],
   ['Lances/lojista', 'Lances do recorte divididos pelos ofertantes.'],
   ['Participações/lojista', 'Participação é cada veículo em que a loja deu lance (vários lances no mesmo carro contam uma vez). Soma das participações dividida pelos ofertantes.'],
-  ['Novos lojistas', 'Lojas do canal C6 cadastradas dentro do período.'],
+  ['Novos lojistas', 'Lojas do canal C6 cadastradas dentro do período. Embaixo, quantas delas acessaram algum anúncio, ofertaram e compraram no recorte.'],
+  ['Performance financeira', 'O valor total vendido no recorte. Logo abaixo, esse valor dividido pela soma dos VMV de todos os veículos publicados, vendidos ou não. No pé, a soma dos arremates dividida pela soma da FIPE (só dos vendidos com FIPE) e pela soma dos VMV (só dos vendidos com VMV).'],
   ['Engajamento', 'Novos lojistas que acessaram o canal no período divididos pelos cadastrados.'],
   ['Acessos da loja', 'Dias em que a loja acessou o canal C6 dentro do período, qualquer tela. O corte do período é por hora cheia: num evento que começa às 17:13, o acesso das 17:05 entra. O ranking de lojas mostra só quem acessou.'],
   ['Pontuação', 'Só loja nova pontua: ' + PONTOS.arremate + ' pontos por arremate e ' + PONTOS.dia +
-    ' ponto por dia com acesso no período. As demais aparecem no ranking com "—". O ranking de representantes soma a pontuação das lojas de cada um e mostra só quem tem loja nova.'],
-  ['Representante comercial', 'Usuário GP ou Usuário GN (escolhido no painel de filtros) da planilha de lojas ativas do C6, cruzada pelo CNPJ da loja. CNPJ fora da planilha, ou sem representante naquela coluna, fica como "Sem Representante". CNPJ com mais de um representante (filiais) fica com o que aparece em mais linhas; empate fica Sem Representante.'],
+    ' ponto por dia com acesso no período. As demais aparecem no ranking com "—". Os rankings de usuários GP e GN somam a pontuação das lojas de cada um e mostram só quem tem loja nova.'],
+  ['Usuário GP e Usuário GN', 'Os dois representantes comerciais da loja na carteira de lojas do C6, cruzada pelo CNPJ da loja. Cada um tem o seu ranking e o seu filtro. Aparece o nome da tabela de gerentes do C6; quem não tem nome lá aparece pelo usuário. CNPJ fora da carteira, ou sem representante naquela coluna, fica como "Sem Representante". CNPJ com mais de um representante (filiais) fica com o que aparece em mais linhas; empate fica Sem Representante.'],
   ['Acessos do veículo', 'Lojas distintas que abriram o anúncio dentro do horário do evento. Uma loja que abriu dez vezes conta uma.'],
   ['Score do veículo', 'Acessos × ' + PESO_SCORE.acesso + ' + ofertas × ' + PESO_SCORE.oferta + ' + ' + PESO_SCORE.vmv +
-    ' se alguma oferta atingiu o VMV. A tabela abre pelo menor score: os veículos que menos engajaram. Score, ofertas e farol são do veículo inteiro: os filtros escolhem quais veículos aparecem, não os recalculam.'],
+    ' se alguma oferta atingiu o VMV, levado para uma escala de 0 a 100: 100 é o veículo de maior score da coleta inteira. A tabela abre pelo menor score: os veículos que menos engajaram. Score, ofertas e farol são do veículo inteiro: os filtros escolhem quais veículos aparecem, não os recalculam.'],
   ['% VMV', 'A maior oferta do veículo dividida pelo VMV. 100% ou mais = VMV atingido.'],
-  ['Resultado', 'O status da negociação e, quando vendeu, a loja arrematante — com o selo "novo" se é loja nova do período — e o representante dela.'],
-  ['Pátio', 'Onde o veículo está (o estoque do anúncio). C/ acesso: veículos que alguma loja abriu. % conversão: veículos com oferta sobre os veículos do pátio. % VMV atingido: veículos com VMV atingido sobre os veículos do pátio.'],
+  ['% FIPE', 'O valor do arremate dividido pela FIPE do veículo. Só para quem vendeu e tem FIPE; os demais ficam com "—".'],
+  ['Resultado', 'O status da negociação e, quando vendeu, a loja arrematante — com o selo "novo" se é loja nova do período — e os usuários GP e GN dela.'],
+  ['Primeiro e último acesso', 'O primeiro e o último acesso da loja ao canal dentro do período, na hora cheia (a coleta guarda o acesso por hora).'],
+  ['Pátio', 'Onde o veículo está (o estoque do anúncio). C/ acesso: veículos que alguma loja abriu. % conversão: veículos com oferta sobre os veículos do pátio. % C/ VMV atingido: veículos com VMV atingido sobre os veículos do pátio.'],
   ['Acessos únicos por dia', 'Lojas distintas que acessaram o canal em cada dia do período — total e só as novas. Clicar num dia mostra as horas daquele dia no gráfico por hora; clicar de novo volta a todos os dias.'],
   ['Acessos por hora', 'Todos os acessos do período ao canal, somados por hora do dia — o total e só os das lojas novas —, do primeiro ao último horário com acesso.'],
   ['Funil de ativação', 'Os novos lojistas do período, etapa por etapa: o título à esquerda, o percentual sobre os cadastrados à direita, e a largura da faixa seguindo esse percentual: uma largura mínima (para o número caber dentro) somada em todas as etapas, mais a parte proporcional. Entre as faixas, a passagem de uma etapa para a seguinte. Aprovado: cadastro na situação 3, a de loja operante. Logaram: acessaram o canal no período. Acessaram: abriram algum anúncio de evento do filtro. Ofertaram e compraram: no recorte.'],
@@ -1386,9 +1500,15 @@ const CSS_PAINEL = [
   /* KPI: o percentual e a barra logo abaixo do número grande */
   '.kpi-pc{display:flex;flex-direction:column;gap:5px;margin-top:2px}',
   '.kpi-pc .txt{font-size:11.5px;font-weight:600;color:var(--texto-2)}',
-  '.kpi-val-2{font-size:15px;font-weight:650;color:var(--texto-2);margin-left:10px;letter-spacing:0}',
   '.trilho{display:block;height:6px;border-radius:3px;background:var(--acento-veu);overflow:hidden;min-width:40px}',
   '.trilho i{display:block;height:100%;border-radius:3px;background:var(--acento-cheio)}',
+  /* percentual no pé do cartão também leva barra (regra do pedido de 28/09) */
+  '.kpi-pe .trilho{height:4px;margin-top:5px;min-width:0}',
+  /* cinco cartões na linha (30/09): 5, depois 3, 2 e 1 conforme a largura */
+  '.g4.g5{grid-template-columns:repeat(5,minmax(0,1fr))}',
+  '@media (max-width:1400px){.g4.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}',
+  '@media (max-width:900px){.g4.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+  '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
   /* segmentado: o par de botões acima de cada ranking */
   '.seg{display:inline-flex;padding:2px;gap:2px;border-radius:var(--r-p);background:var(--superficie-2);border:1px solid var(--borda)}',
   '.seg button{font:inherit;font-size:12px;font-weight:600;color:var(--texto-2);background:transparent;border:0;',
@@ -1473,6 +1593,7 @@ const ICONE = {
   veiculo: '<path d="M3 13l2-5a2 2 0 012-1h10a2 2 0 012 1l2 5v5h-3M6 18H3v-5h18"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/>',
   oferta: '<path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
   vendido: '<path d="M20 6L9 17l-5-5"/>',
+  financeiro: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
   nova: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
   rank: '<path d="M4 6h16"/><path d="M4 12h11"/><path d="M4 18h6"/>',
   pessoa: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>',
@@ -1532,39 +1653,44 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="claro"><head><meta ch
   '<div class="cartao-topo">' + chip('filtros') + '<h2>Filtros</h2>' +
   '<button id="fecha" class="fechar" type="button" aria-label="Fechar filtros">×</button></div>' +
   '<div class="filtros">' +
-  /* ordem pedida em 29/09: evento, lojistas, coluna do representante, e só
-     então representante, data, pátio e status */
+  /* ordem pedida em 29/09, com os dois filtros de usuário no lugar do botão
+     GN/GP e do Representante (30/09): evento, lojistas, Usuário GP, Usuário
+     GN, data, pátio e status */
   filtro('f-evento', 'Evento') +
   '<div class="fg"><span class="rot-fg" id="seg-lojas-rot">Lojistas</span>' +
   seg('seg-lojas', 'Lojistas', [['todas', 'Todos lojistas'], ['novas', 'Somente novos']], 'todas') + '</div>' +
-  '<div class="fg"><span class="rot-fg" id="seg-reps-rot">Coluna do representante</span>' +
-  seg('seg-reps', 'Coluna do representante', [['gn', 'Usuário GN'], ['gp', 'Usuário GP']], 'gn') + '</div>' +
-  filtro('f-rep', 'Representante') + filtro('f-dia', 'Data') + filtro('f-patio', 'Pátio') +
+  filtro('f-gp', 'Usuário GP') + filtro('f-gn', 'Usuário GN') + filtro('f-dia', 'Data') + filtro('f-patio', 'Pátio') +
   filtro('f-farol', 'Status do veículo') +
   '<div class="fg"><button class="ctrl" id="limpar" type="button">Limpar filtros</button></div>' +
   '</div>' +
   '<p class="nota"><b>Pátio</b> e <b>status do veículo</b> recortam os veículos: KPIs, rankings, pátios, funil e a lista de veículos acompanham. ' +
-  '<b>Evento</b> escolhe o recorte inteiro. <b>Lojistas</b> vale só para o ranking de lojas. <b>Representante</b> recorta as lojas, pela coluna GN ou GP escolhida acima dele. <b>Data</b> encolhe o período para aquele dia. ' +
-  'Representante e Data não mudam a lista de veículos, e nenhum filtro recalcula o score, as ofertas ou o farol de um veículo.</p>' +
+  '<b>Evento</b> escolhe o recorte inteiro. <b>Lojistas</b> vale só para o ranking de lojas. <b>Usuário GP</b> e <b>Usuário GN</b> recortam as lojas; os dois juntos se somam. <b>Data</b> encolhe o período para aquele dia. ' +
+  'Usuários e Data não mudam a lista de veículos, e nenhum filtro recalcula o score, as ofertas ou o farol de um veículo.</p>' +
   '</div></aside>' +
   '<main class="area">' +
-  '<section class="g4" aria-label="Indicadores">' +
+  '<section class="g4 g5" aria-label="Indicadores">' +
   kpiCard('veiculo', 'Veículos publicados', 'k-pub', meioPc('k-pub-pc', 'k-pub-bar'),
     [['Vendidos', 'k-pub-vend'], ['Com VMV atingido', 'k-pub-vmv']]) +
   kpiCard('oferta', 'Com ofertas', 'k-of', meioPc('k-of-pc', 'k-of-bar'),
     [['Ofertantes', 'k-of-lj'], ['Lances/lojista', 'k-of-lpl']]) +
   kpiCard('vendido', 'Vendidos', 'k-vd', meioPc('k-vd-pc', 'k-vd-bar'),
     [['Compradores', 'k-vd-comp'], ['Participações/lojista', 'k-vd-ppl']]) +
+  /* Performance financeira logo depois de Vendidos (Thomas, 30/09) */
+  kpiCard('financeiro', 'Performance financeira', 'k-pf', meioPc('k-pf-pc', 'k-pf-bar'),
+    [['Arremate / FIPE', 'k-pf-fipe'], ['Arremate / VMV', 'k-pf-vmv']]) +
   kpiCard('nova', 'Novos lojistas', 'k-nv', meioPc('k-nv-pc', 'k-nv-bar'),
-    [['Ofertaram', 'k-nv-of'], ['Compraram', 'k-nv-cp']]) +
+    [['Acessaram', 'k-nv-ac'], ['Ofertaram', 'k-nv-of'], ['Compraram', 'k-nv-cp']]) +
   '</section>' +
   /* ordem pedida em 28 e 29/09: representantes antes das lojas; funil à
      esquerda dos acessos únicos por dia; acessos por hora e pátios abaixo,
      cada um na linha inteira */
+  /* 30/09: um ranking por coluna de representante, lado a lado, e o de
+     lojas embaixo, na linha inteira */
   '<section class="g2i">' +
-  cartaoOrdenavel('pessoa', 'Ranking de representantes', 'n-reps', 'reps', 'medio') +
-  cartaoOrdenavel('rank', 'Ranking de lojas', 'n-lojas', 'lojas', 'medio') +
+  cartaoOrdenavel('pessoa', 'Ranking de usuários GP', 'n-rgp', 'rgp', 'medio') +
+  cartaoOrdenavel('pessoa', 'Ranking de usuários GN', 'n-rgn', 'rgn', 'medio') +
   '</section>' +
+  cartaoOrdenavel('rank', 'Ranking de lojas', 'n-lojas', 'lojas', 'medio') +
   '<section class="g2i">' +
   '<article class="cartao c-flex">' + topoCartao('funil', 'Funil de ativação dos novos cadastros', 'n-funil') +
   '<div class="funil-g" id="funil"></div></article>' +
@@ -1590,11 +1716,12 @@ const resumo = {
   eventos: eventos.length, veiculos: veiculos.length, ofertas: ofertas.length,
   lojas_cadastro: lojas.length,
   acessos: { loja_dia_hora: acessos.length, partes: PARTES, anuncio: acessoAnuncio.length },
-  /* quantas lojas casaram com a planilha e por qual caminho — sem isso,
-     "a planilha não tem a loja" e "o CNPJ não veio do banco" dariam a
+  /* quantas lojas casaram com a carteira e por qual caminho — sem isso,
+     "a carteira não tem a loja" e "o CNPJ não veio do banco" dariam a
      mesma tela, toda em Sem Representante */
   representantes: {
-    linhas_planilha: planilha.length, cnpjs_planilha: Object.keys(votos.gp).length,
+    linhas_planilha: planilha.length, cnpjs_planilha: Object.keys(votos.gp).length, base: baseReps, linhas_fora: linhasFora,
+    nomes: { gp: Object.keys(nomeDe.gp).length, gn: Object.keys(nomeDe.gn).length, sem_nome_gp: Object.keys(semNome.gp), sem_nome_gn: Object.keys(semNome.gn) },
     gp: contaRep.gp, gn: contaRep.gn
   },
   kpi: todos.kpi,
