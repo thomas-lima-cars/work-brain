@@ -59,6 +59,8 @@ preenchimento nas duas**. Exemplos encontrados em 17/09:
 
 Uma coluna morta numa base não é "efeito zero" — é **ausência de medida**.
 
+⚠️ **`vehicles.cluster_id` mudou de taxonomia em 2025** (C1–C6 até abr/25, G1–G17 a partir de mar/25, sem sobreposição). Detalhe e medição em [`projetos/vendas-iga/indicadores.md`](../projetos/vendas-iga/indicadores.md).
+
 ## Texto livre
 
 `vehicles.description` é `TEXT` digitado à mão, preenchida em ~98%.
@@ -93,3 +95,12 @@ consecutivos criados no mesmo dia.
 Não são lances fora da curva: são **lançamentos de outra natureza**. A
 assinatura (`km NULL` + VMV = preço de venda) nunca foi procurada no resto da
 base — pendência aberta.
+
+🧪 **Contas de teste vendendo em produção — medido em 14/10/2026.** Vendedores
+(`shops`) com nome de teste aparecem como comitente de vendas reais nas duas
+bases, na amostra de 100 modelos × 12 meses do preditivo: "Teste Cars2you v3 -
+novo" e "Teste Concessionária A" (Cars2You, 5 vendas), "Dealers Club - Teste 1"
+e "Tutorial Dealers Club - Teste" (Dealers, 19). Razão venda/FIPE média de
+0,56 a 0,76 — não destoa a ponto de saltar no olho. **Filtro por nome**
+(`teste|tutorial` em `shops.name`) no `preditivo/modelo-preco.py`. Não se sabe
+se há conta de teste sem "teste" no nome.

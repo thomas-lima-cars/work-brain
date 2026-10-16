@@ -16,3 +16,14 @@
 - Relatórios vão também pra destinatários externos @itau-unibanco.com.br.
 - Esperando **Gui**: aprovação pra readicionar `fernando.tuunelis` no e-mail do Relatório.
 - Doc completo: `automations/n8n-flows/cars2you-iga-automacoes.md`.
+
+## 2026-10-08 a 13 (sem `/salve` na época)
+- Nasce o **Estudo de Vendas IGA** (`automations/estudo-vendas-iga/`): HTML estático, sem
+  n8n. Pergunta: a venda do IGA caiu por deságio baixo, e os compradores mudaram? Resposta da v2:
+  o êxito se move pela demanda, não pelo pedido. Números em
+  `context/banco-de-dados/projetos/vendas-iga/indicadores.md`.
+
+## 2026-10-15
+- Tabela de compradores do estudo: ordena pela coluna clicada, mostra todas as lojas com compra
+  em 12 meses (não só as 50 maiores) e o gráfico mês a mês soma todas elas sem seleção.
+- Re-extraído do banco: manchetes iguais às de 08/10 (série segue até set/26).

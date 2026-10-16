@@ -85,3 +85,31 @@ __pycache__/
 # Config pessoal do Claude Code nesta maquina (permissoes). Nao versionar:
 # permissao e decisao de quem senta na maquina, nao do repositorio.
 .claude/settings.local.json
+
+# amostra anonimizada de estudo (derivada de base real)
+automations/bancos/amostra-estudo-*.xlsx
+
+# Estudo de Vendas IGA: coleta bruta e resultados tem nome de loja compradora
+automations/estudo-vendas-iga/dados-*.json
+automations/estudo-vendas-iga/compradores-*.json
+automations/estudo-vendas-iga/resultados.json
+automations/estudo-vendas-iga/estudo-vendas-iga.html
+
+# Laudos cautelares: PDFs de ~17 MB cada. As listas (.csv) tambem ficam fora:
+# trazem placa e o link do laudo de cada carro (regeraveis por baixa-laudos.py)
+automations/precificacao/laudos/**/*.pdf
+automations/precificacao/laudos/**/*.csv
+automations/precificacao/laudos/textos-vendas/
+
+# Modelo preditivo: saida regeravel do modelo-preco.py, passa de 1 MB
+automations/precificacao/preditivo/resultado-modelo.json
+automations/precificacao/preditivo/laudos-url.json
+# Relatorio preditivo: regeravel por monta-relatorio.js, passa de 1 MB
+automations/precificacao/preditivo/relatorio-preditivo.html
+automations/precificacao/preditivo/evento.json
+
+# Painel de Precificacao: dado real de comitente (coleta local) e saida; modelo exportado passa de 1 MB
+automations/n8n-sdk/painel-precificacao/dados-local.json
+automations/n8n-sdk/painel-precificacao/saida-local.html
+automations/precificacao/preditivo/modelo.json
+automations/precificacao/preditivo/modelo-gabarito.json

@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-09-30 (manhã) — Painel de Eventos C6 publicado (versão 5, run 55191), representantes pelas tabelas de dados do n8n
+> **Última atualização:** 2026-10-15 (tarde) — Estudo de Vendas IGA: tabela de compradores com todas as lojas e ordenação por coluna; re-extraído do banco, manchetes iguais. Em 14/10: modelo preditivo, Painel de Precificação, Análise de Base. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -19,7 +19,12 @@
 - **bancos (cars2you + dealers)** — 🔥 acesso direto, só leitura. **Depende de VPN.**
   🔴 **O `schema.md` documenta 149 tabelas e o banco tem 193.** Faltam 44 desde 09/09.
   ❓ **O objetivo do acesso à Dealers segue sem ser declarado.**
-- **cars2you** — 🔥 estudo de precificação entregue em quatro páginas.
+- **Painel de Precificação** — 🔥 nasceu em 14/10. wf `gzc0zOKMF4vCbXGH` (projeto Cars2You),
+  pasta `automations/n8n-sdk/painel-precificacao/`. Não vendidos dos últimos 30 dias: preço do
+  **modelo preditivo** (`automations/precificacao/preditivo/`) × VMV do cliente. Execução 61975 ✅
+  publicada; fuso em Brasília; **agendamento 7h desligado, espera ok**. VMV = R$ 100.000 tratado
+  como provisório (`plataforma/dominios.md`). Re-treino mensal fora do n8n (README da pasta).
+- **cars2you** — 🔥 estudo de precificação entregue em quatro páginas, mais duas de laudo (14/10).
   🔴 **O maior efeito de preço vive num campo de TEXTO:** `REPASSE` (35,7%) contra
   `TRADICIONAL` (28,7%) — 7,0 p.p., t = 40,7, maior que km, cluster ou comprador.
   Pendente antigo: Pulso de Eventos (`20LeyMLjrAKeKVeS`), alinhar com Doni.
@@ -32,6 +37,15 @@
 - **c6 (relatório de base)** — 🔥 **Parado há 18 dias no mesmo ponto: falta um run que termine.**
   Lote 2 pronto e provado. Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas
   eram do Raio-X, oculto. Workflow `QImk2D4HdzIqHZe9`.
+- **Estudo de Vendas IGA** — 🔥 HTML estático (sem n8n), pasta `automations/estudo-vendas-iga/`,
+  frente `itau`. Tabela de compradores (15/10): todas as lojas com compra em 12 meses, ordena pela
+  coluna clicada; gráfico mês a mês soma todas sem seleção. Re-extraído em 15/10; série até set/26.
+  Números em `projetos/vendas-iga/indicadores.md`. ❓ Incluir quem parou há mais de 12 meses?
+- **Análise de Base de Clientes, 6 canais** — ✅ reconstruída em 14/10 no projeto **pessoal** do
+  Thomas, wf `XkRFB5dYc1EFWZkN` (inativo, manual), pasta `automations/n8n-sdk/analise-base-geral/`.
+  Reproduz o HTML "Versão A" (o gerador original não existe em lugar nenhum); 84 chamadas, ~3 min,
+  e-mail só para o Thomas. Base 22.484 em 14/10 (fonte: README da pasta). ❓ Falta o Thomas
+  confirmar o anexo ("Dados até 14/10/2026 12:03"); evolução/coorte/UF ainda sem conferência no banco.
 - **bradesco** — _(estado a preencher)_
 
 ## ⚙️ Rodando em produção (sem demanda ativa minha)
@@ -45,6 +59,8 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
+  quem comprou nos últimos 12 meses; nos meses antigos o gráfico conta menos que o total do IGA.
 - 🔵 **Representante com CNPJ repartido entre filiais:** fica o mais frequente, empate →
   Sem Representante. Regra minha (35 CNPJs na planilha, nenhum no painel hoje) — confirmar.
 - 🔵 **Painel de Eventos C6 ganha cron?** Hoje manual, como o Radar.
@@ -75,6 +91,9 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] 🔥 **Ligar o agendamento do Painel de Precificação** (com ok) e rodar para publicar a
+      versão com o VMV provisório — o SharePoint ainda mostra a execução 61975
+- [ ] Confirmar com quem cadastra que VMV = R$ 100.000 é provisório (maioria C6 Bank Lojista)
 - [ ] 🔥 **Mandar o link do Painel C6 ao C6** — `Painel de Eventos C6/painel-eventos-c6.html`, site N8N
 - [ ] **Arquivar pela interface** `6o9MSr1CriZ1VUBa` e `53RGtYzUzMoVtxpJ` (versões velhas do
       painel) — o modo automático barra o `archive_workflow`
@@ -94,6 +113,8 @@
 - [ ] **Distribuir o `design/kit-de-painel.md` ao time** — 68 KB, autossuficiente
 - [ ] Conferir a transcrição do `tratar-carteira.js` contra o workflow Carteira
       Comercial — só os 4 nós do Radar têm essa prova
+- [ ] Novembro: `ULTIMO = "2026-10"` no `analise.py` do estudo do IGA e rodar o fluxo de novo
+- [ ] Destino do `WorkBrain.zip` (raiz), solto fora do git
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
 - [ ] **Estudo de precificação:** multivariado só com o que se sabe antes da venda · `laudo`
@@ -155,6 +176,8 @@
   fonte única em `projetos/<projeto>/indicadores.md`. **Guarda do `/salve`:** nada acima de
   1 MB no stage, e conferir o que está sendo APAGADO.
 - 🔑 **A credencial da Dealers está em `~/.dealers-dlc.env`, FORA do repo.** Não mover.
+- 🚫 **VMV e valor da venda nunca entram no modelo preditivo** — ele existe para ser confrontado
+  com eles. Workflow n8n novo nasce em UTC: **acertar o fuso** antes de ligar gatilho de horário.
 - 📄 **`node --check` não valida JS de navegador**, e o smoke pode validar o HTML ANTIGO.
 - 🕐 **O banco responde em UTC; as datas dos eventos estão em hora de Brasília.** E
   `Date.parse` de texto sem fuso lê como hora local — uma carteira de 12 dias virou 11.

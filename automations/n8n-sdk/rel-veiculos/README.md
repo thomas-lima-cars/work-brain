@@ -769,6 +769,37 @@ apontar pra um anúncio apagado, `qt_ofertas` mudaria de valor sem aviso. Não m
 VPN pro banco estava fora do ar); não fundir sem medir. Dado o que aconteceu com a
 moda, vale medir com ainda mais cuidado antes de tentar.
 
+### 🛒 Compras da loja: a oferta vencedora, marcada na `q_ofertas` (2026-09-25)
+
+Pedido do Thomas: volume e valor de compra das lojas nos últimos 6 meses. **Não é consulta
+nova.** A `q_ofertas` já percorre todas as ofertas da loja na janela, e agora marca qual
+delas venceu:
+
+```sql
+COUNT(*) AS qt_ofertas, COUNT(anv.id) AS qt_compras,
+SUM(CASE WHEN anv.id IS NOT NULL THEN o.price ELSE 0 END) AS vl_compras
+... LEFT JOIN advertisement_negotiations anv ON anv.id = o.advs_negotiation_id
+      AND anv.offer_actual_id = o.id AND anv.deleted_at IS NULL AND anv.status IN (2,3,7)
+```
+
+| decisão | por quê |
+|---|---|
+| entra pela **PK** (`advs_negotiation_id`, NOT NULL, indexada em `offers`) | `an.offer_actual_id` **não tem índice** — o join pelo outro lado varreria as negociações |
+| `LEFT`, não `INNER` | um `INNER` sumiria com toda oferta que não venceu e mudaria `qt_ofertas` |
+| venda = 2, 3, 7; valor = `offers.price` da vencedora | a mesma regra de `definicoes.md` |
+| **não** confere se é a última negociação do veículo | exigiria `NOT EXISTS` por oferta, o formato que estoura o MCP. Venda que caiu e voltou a evento ainda conta (~2,6% no estudo de 14/09). Declarado no glossário |
+| **não entra no score** | é exibição. Prova: os pares saem idênticos com e sem as colunas |
+
+Na tela: a linha `compras 6m: N veículo(s) · R$ X` no resumo do extrato, e a coluna
+**Compras 6m** na tabela de lojas (quantidade e valor numa só — duas colunas estouravam a
+largura em 1.280px: 696px de tabela numa caixa de 603). Verbete **Compras** no glossário.
+
+Zero chamadas a mais no MCP. Sem VPN em 25/09, **a medição foi o próprio run**: o 53859,
+contra o 53827 do mesmo dia. Custou +24s no run inteiro, a `q_ofertas` passou limpa nas 27
+páginas, e o `qt_ofertas` não duplicou. Números em
+[`radar-de-estoque/indicadores.md`](../../../context/banco-de-dados/projetos/radar-de-estoque/indicadores.md).
+O `_mede-compras.sql` fica para a conferência por conexão direta.
+
 ## A tela
 
 Duas telas no mesmo arquivo, alternadas pelo botão do cabeçalho:

@@ -1,0 +1,191 @@
+{
+  "atualizado": "2026-09-25",
+  "fonte": "inventário do n8n (projeto Cars2You, 35 workflows, lido em 25/09/2026) e documentação do work-brain",
+  "n8n_base": "https://cars2you.app.n8n.cloud/workflow/",
+  "operacoes": [
+    { "id": "geral",    "nome": "Geral",           "desc": "Relatórios que atravessam várias operações: canais da Cars2You, do C6 e do Lance Fácil BTB juntos." },
+    { "id": "cars2you", "nome": "Cars2You",        "desc": "O marketplace próprio (canais 4 Trucks2you e 7 Marketplace) e os estudos sobre a base da Cars2You." },
+    { "id": "c6",       "nome": "C6",              "desc": "Evento Exclusivo C6 Auto, canal 43 e loja C6 Bank Lojista. Apartado do IGA por decisão de 26/08." },
+    { "id": "itau",     "nome": "Itaú · IGA",      "desc": "Venda Direta IGA, loja Itaú Unibanco no canal 7. Evento cerca de uma vez por semana, fecha às 16h." },
+    { "id": "lm",       "nome": "LM",              "desc": "LM Transportes Interestaduais. Manda a planilha de estoque ativo quase todo dia." },
+    { "id": "btb",      "nome": "Lance Fácil BTB", "desc": "Canais 62 (BTB) e 65 (BTB Associados)." },
+    { "id": "dealers",  "nome": "Dealers",         "desc": "Dealers Club: mesma plataforma, banco próprio. Acesso aberto em 17/09, ainda sem relatório recorrente." }
+  ],
+  "relatorios": [
+    {
+      "ops": ["geral"], "nome": "Radar de Estoque", "wf": "8fiTFsjWG9RQinz8",
+      "mostra": "Para cada veículo em evento, as lojas com mais chance de comprar. Clicando numa loja, os veículos que combinam com ela, o contato e as compras dos últimos 6 meses.",
+      "formato": "HTML interativo", "quando": "Todo dia às 07h", "modo": "agendado",
+      "onde": "SharePoint, site N8N › Radar de Estoque", "para": "Área comercial",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["geral"], "nome": "Auditoria de Estoque por Loja", "wf": "vxyzWHfrcIR2gdsd",
+      "mostra": "Ranking de lojas, matriz de situação × status e envelhecimento do estoque nos canais da Cars2You, do C6 e do BTB.",
+      "formato": "HTML anexo", "quando": "Todo dia às 08h", "modo": "agendado",
+      "onde": "E-mail (Outlook)", "para": "Lista fixa da auditoria",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["geral"], "nome": "Pulso de Eventos no Ar", "wf": "20LeyMLjrAKeKVeS",
+      "mostra": "Os eventos no ar até 7 dias à frente, separados em leves e pesados, com semáforo, êxito e quantos já chegaram ao VMV.",
+      "formato": "Mensagem de WhatsApp", "quando": "A cada 2h, das 8h às 20h, segunda a sábado", "modo": "agendado",
+      "onde": "WhatsApp", "para": "Donizeti, Caio, Thais, Alexandre e Tuunelis",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["geral"], "nome": "Carteira Comercial", "wf": "ksZI8cqSbexqLOre", "insumo": true,
+      "mostra": "Quem responde por cada loja. Lê a planilha da área comercial e publica o arquivo que o Radar de Estoque usa no filtro de responsável.",
+      "formato": "JSON (insumo)", "quando": "Desenhado para rodar todo dia às 06h", "modo": "agendado",
+      "onde": "SharePoint, site N8N › Radar de Estoque › _dados", "para": "Radar de Estoque",
+      "situacao": "verificar", "nota": "Aparece inativo no n8n em 25/09. Sem ele, a carteira do Radar envelhece."
+    },
+    {
+      "ops": ["cars2you", "dealers"], "nome": "Estudo de precificação", "wf": null,
+      "mostra": "Deságio contra a FIPE por modelo, km, idade e texto do anúncio, nas duas bases. Quatro páginas.",
+      "formato": "HTML (4 páginas)", "quando": "Estudo, sem recorrência", "modo": "manual",
+      "onde": "work-brain › automations/precificacao", "para": "A definir: e-mail de envio em revisão",
+      "situacao": "validacao"
+    },
+    {
+      "ops": ["cars2you"], "nome": "Cars2You — Envia Relatório", "wf": "TKxpirO9fUg5KYcY",
+      "mostra": "Workflow ativo com as etiquetas relatórios e cars2you. O conteúdo ainda não foi documentado no brain.",
+      "formato": "A documentar", "quando": "Tem um gatilho ativo", "modo": "agendado",
+      "onde": "A documentar", "para": "A documentar",
+      "situacao": "verificar"
+    },
+    {
+      "ops": ["cars2you"], "nome": "Lojas ofertantes — 6 meses", "wf": "LZL3mxfbMIz4avyx",
+      "mostra": "Perfil das lojas que ofertaram nos últimos 6 meses, por UF e canal. Foi a base do perfil de compra do Radar de Estoque.",
+      "formato": "HTML", "quando": "Manual", "modo": "manual",
+      "onde": "Execução no n8n", "para": "Uso interno",
+      "situacao": "parado", "nota": "Substituído pelo Radar de Estoque."
+    },
+    {
+      "ops": ["c6"], "nome": "Relatório de Evento C6 Lojistas", "wf": "ehsqQo6hiPDRf58I",
+      "mostra": "O resultado do pregão de cada Evento Exclusivo C6 Auto: lotes, ofertas, ofertantes, valor contra o VMV e audiência.",
+      "formato": "HTML", "quando": "No fim de cada evento (gatilho a cada 10 min, 16h–23h, seg–sáb)", "modo": "evento",
+      "onde": "SharePoint › Relatorios C6 Lojistas, e-mail e WhatsApp", "para": "7 pessoas por e-mail, 5 por WhatsApp",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["c6"], "nome": "Planilha de Evento C6 Lojistas", "wf": "lXJNM4hbE92vEDsu",
+      "mostra": "Duas planilhas do evento: a completa, com comprador, para o time e a montagem; e a do banco, sem comprador.",
+      "formato": "2 arquivos .xlsx", "quando": "No fim de cada evento", "modo": "evento",
+      "onde": "E-mail", "para": "Time C6, montagem, Caio e Mattera",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["c6"], "nome": "Remanescentes C6 Lojistas", "wf": "f2DWD6yFNuLg5AE4",
+      "mostra": "Lotes do pregão que passaram por vários eventos sem receber oferta. Placa mascarada, laudo cautelar, sem dado de comprador.",
+      "formato": "Arquivo .txt e mensagem", "quando": "No fim de cada evento", "modo": "evento",
+      "onde": "SharePoint e WhatsApp", "para": "Caio, Donizeti, Thais e Tuunelis",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["c6"], "nome": "Lista C6 Lojistas", "wf": "mbVChvuhLQ2hPRzh",
+      "mostra": "A vitrine do evento para o lojista: catálogo no ar, calendário do banco e chamada para cadastro.",
+      "formato": "HTML", "quando": "Na véspera de cada evento", "modo": "evento",
+      "onde": "E-mail", "para": "Lojistas do C6",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["c6"], "nome": "Análise de base de cadastros C6", "wf": "f6Bw2iiuaWECy9Uz",
+      "mostra": "Retrato da base de lojistas cadastrados, no mesmo layout da análise que era feita à mão.",
+      "formato": "HTML por e-mail", "quando": "Semanal", "modo": "agendado",
+      "onde": "E-mail", "para": "Time do C6",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["c6"], "nome": "Painel de Eventos C6", "wf": "VelPJDX8USP9WIeT",
+      "mostra": "Eventos do canal 43 abertos e dos últimos 30 dias: veículos, ofertas, ranking de lojas e de representantes, lojas novas.",
+      "formato": "HTML interativo", "quando": "Manual", "modo": "manual",
+      "onde": "SharePoint › Painel de Eventos C6 (upload desligado)", "para": "C6",
+      "situacao": "validacao", "nota": "Falta subir a planilha de lojas ativas do C6 para o primeiro run."
+    },
+    {
+      "ops": ["c6"], "nome": "Base de clientes C6 — 100% da base", "wf": "QImk2D4HdzIqHZe9",
+      "mostra": "Relatório de base de clientes com filtro por canal na página inteira.",
+      "formato": "HTML", "quando": "Manual", "modo": "manual",
+      "onde": "Execução no n8n", "para": "C6",
+      "situacao": "construcao", "nota": "Falta um run que termine."
+    },
+    {
+      "ops": ["itau"], "nome": "Relatório de Evento IGA", "wf": "sYcHnaeVjLRCll9H",
+      "mostra": "O resultado de cada evento IGA: veículos, estoque, acessos e ofertas, no template do SharePoint.",
+      "formato": "HTML", "quando": "No fim de cada evento (gatilho seg–sex 16h–19h, sáb 12h–15h)", "modo": "evento",
+      "onde": "SharePoint › Relatórios, e-mail e WhatsApp", "para": "Time Cars2You e Itaú",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["itau"], "nome": "Resultado VD IGA", "wf": "UmqceMdN4BSTREMj",
+      "mostra": "Fechamento do evento: o resumo no corpo do e-mail com a planilha anexa, e um PDF de uma página no WhatsApp.",
+      "formato": ".xlsx e PDF", "quando": "No fim de cada evento", "modo": "evento",
+      "onde": "E-mail e WhatsApp", "para": "11 pessoas por e-mail, 5 por WhatsApp",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["itau"], "nome": "Remanescentes do Evento IGA", "wf": "yoskRxyXhtjn4vhI",
+      "mostra": "Carros que ficaram sem oferta, em mensagens por UF, com placa mascarada, preço de referência e laudo.",
+      "formato": "Mensagens de WhatsApp", "quando": "No fim de cada evento", "modo": "evento",
+      "onde": "WhatsApp, por grupo de UF", "para": "Grupos de UF",
+      "situacao": "parado", "nota": "Desligado no gatilho de fim de evento."
+    },
+    {
+      "ops": ["itau"], "nome": "Lista IGA — Venda Direta", "wf": "59vKExikX8ZGV9ra",
+      "mostra": "A lista de cada evento de Venda Direta para o lojista, com leves e pesados em listas separadas.",
+      "formato": "HTML", "quando": "Manual, por formulário", "modo": "manual",
+      "onde": "E-mail e WhatsApp", "para": "Em teste: só o Caio",
+      "situacao": "validacao"
+    },
+    {
+      "ops": ["itau"], "nome": "Cockpit Comprador IGA", "wf": "dgxa0pkeFhQVqJ5X",
+      "mostra": "O painel do comprador: a loja pede pelo formulário com e-mail e CNPJ e recebe o próprio histórico do ano.",
+      "formato": "HTML por e-mail", "quando": "Quando o comprador pede", "modo": "manual",
+      "onde": "E-mail do solicitante", "para": "Compradores autorizados",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["itau"], "nome": "IGA — Controle de cadastros diários", "wf": "DVpaCz02psdgKb5J",
+      "mostra": "Os cadastros do dia anterior vindos das campanhas VD IGA, por região.",
+      "formato": "E-mail", "quando": "Todo dia às 08h", "modo": "agendado",
+      "onde": "E-mail", "para": "Time de operações",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["itau"], "nome": "IGA — Análise de base de cadastros", "wf": "mgDSyxuO0Mzjkrfy",
+      "mostra": "Retrato semanal da base de clientes do IGA, no layout da análise que era feita à mão.",
+      "formato": "HTML por e-mail", "quando": "Semanal", "modo": "agendado",
+      "onde": "E-mail", "para": "Time do IGA",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["lm"], "nome": "Lista LM", "wf": "8YnGmVUvl6BmrKKb",
+      "mostra": "O estoque ativo da LM, um veículo por linha, com filtros de tipo, UF e laudo. O botão de proposta leva ao anúncio na plataforma.",
+      "formato": "HTML", "quando": "Depois de subir os carros no evento do dia", "modo": "manual",
+      "onde": "SharePoint › Lista LM - Disparo HTML, e-mail e WhatsApp", "para": "Lojistas",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["lm"], "nome": "Estoque LM", "wf": "noemX4AA7FFxafYZ", "insumo": true,
+      "mostra": "Recebe a planilha da LM e registra quem entrou, quem permanece (com dias em estoque e queda de preço) e quem saiu.",
+      "formato": "Tabela no n8n (insumo)", "quando": "A cada planilha recebida", "modo": "manual",
+      "onde": "Data Table Estoque LM, no n8n", "para": "Lista LM",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["btb"], "nome": "BTB — Controle de cadastros diários", "wf": "oJPNgFxQZXQLDa06",
+      "mostra": "Os cadastros do dia anterior no canal Lance Fácil BTB.",
+      "formato": "E-mail", "quando": "Diário", "modo": "agendado",
+      "onde": "E-mail", "para": "Operação",
+      "situacao": "producao"
+    },
+    {
+      "ops": ["btb"], "nome": "BTB Associados — Controle de cadastros diários", "wf": "K8XX09IOxufdhilb",
+      "mostra": "Os cadastros do dia anterior no canal Lance Fácil BTB Associados.",
+      "formato": "E-mail", "quando": "Diário", "modo": "agendado",
+      "onde": "E-mail", "para": "Operação",
+      "situacao": "producao"
+    }
+  ]
+}

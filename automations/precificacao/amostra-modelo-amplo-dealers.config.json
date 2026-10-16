@@ -1,0 +1,623 @@
+{
+  "nome": "top20-modelos-12m-AMPLO-DEALERS",
+  "descricao": "Mesmas definicoes do estudo da Cars2You, sobre wl_dlc_prd. Os 20 modelos foram re-derivados nesta base, nao copiados.",
+  "base": "dealers",
+  "gerado_em": "2026-09-17 00:00 (Brasilia)",
+  "chave": "marca + nome do modelo, normalizados (UPPER/TRIM)",
+  "modelos": [
+    {
+      "marca": "CHEVROLET",
+      "modelo": "ONIX",
+      "vendas": 626,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "GOL",
+      "vendas": 537,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "POLO",
+      "vendas": 461,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "HB20",
+      "vendas": 331,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "KA",
+      "vendas": 274,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "COROLLA",
+      "vendas": 228,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "SANDERO",
+      "vendas": 206,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "SAVEIRO",
+      "vendas": 204,
+      "ids": 2
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "ARGO",
+      "vendas": 200,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "VOYAGE",
+      "vendas": 200,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "KWID",
+      "vendas": 190,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "T-CROSS",
+      "vendas": 167,
+      "ids": 1
+    },
+    {
+      "marca": "JEEP",
+      "modelo": "RENEGADE",
+      "vendas": 165,
+      "ids": 2
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "MOBI",
+      "vendas": 161,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "FOX",
+      "vendas": 160,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "VIRTUS",
+      "vendas": 152,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "UNO",
+      "vendas": 151,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "PRISMA",
+      "vendas": 139,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "HILUX",
+      "vendas": 134,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "STRADA",
+      "vendas": 126,
+      "ids": 2
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "TORO",
+      "vendas": 124,
+      "ids": 2
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "HB20S",
+      "vendas": 122,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "FIESTA",
+      "vendas": 119,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "PALIO",
+      "vendas": 109,
+      "ids": 1
+    },
+    {
+      "marca": "JEEP",
+      "modelo": "COMPASS",
+      "vendas": 107,
+      "ids": 2
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "NIVUS",
+      "vendas": 97,
+      "ids": 2
+    },
+    {
+      "marca": "PEUGEOT",
+      "modelo": "208",
+      "vendas": 94,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "DUSTER",
+      "vendas": 93,
+      "ids": 2
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "CRUZE",
+      "vendas": 93,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "LOGAN",
+      "vendas": 91,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "ECOSPORT",
+      "vendas": 90,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "TRACKER",
+      "vendas": 90,
+      "ids": 2
+    },
+    {
+      "marca": "HONDA",
+      "modelo": "CIVIC",
+      "vendas": 81,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "CRONOS",
+      "vendas": 80,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "S10",
+      "vendas": 74,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "SPIN",
+      "vendas": 74,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "AMAROK",
+      "vendas": 71,
+      "ids": 2
+    },
+    {
+      "marca": "NISSAN",
+      "modelo": "KICKS",
+      "vendas": 69,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "YARIS",
+      "vendas": 68,
+      "ids": 1
+    },
+    {
+      "marca": "CITROEN",
+      "modelo": "C3",
+      "vendas": 67,
+      "ids": 2
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "CRETA",
+      "vendas": 66,
+      "ids": 1
+    },
+    {
+      "marca": "NISSAN",
+      "modelo": "VERSA",
+      "vendas": 66,
+      "ids": 1
+    },
+    {
+      "marca": "HONDA",
+      "modelo": "HR-V",
+      "vendas": 65,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "UP!",
+      "vendas": 65,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "COROLLA CROSS",
+      "vendas": 64,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "KA+",
+      "vendas": 63,
+      "ids": 1
+    },
+    {
+      "marca": "TOYOTA",
+      "modelo": "ETIOS",
+      "vendas": 63,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "HB 20S",
+      "vendas": 49,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "GRAND SIENA",
+      "vendas": 49,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "JETTA",
+      "vendas": 48,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "CELTA",
+      "vendas": 48,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "FOCUS",
+      "vendas": 47,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "FIORINO",
+      "vendas": 46,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "RANGER",
+      "vendas": 45,
+      "ids": 1
+    },
+    {
+      "marca": "CITROEN",
+      "modelo": "C4 CACTUS",
+      "vendas": 42,
+      "ids": 1
+    },
+    {
+      "marca": "HONDA",
+      "modelo": "CITY",
+      "vendas": 40,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "COBALT",
+      "vendas": 37,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "PUNTO",
+      "vendas": 36,
+      "ids": 1
+    },
+    {
+      "marca": "HONDA",
+      "modelo": "FIT",
+      "vendas": 36,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "IX35",
+      "vendas": 34,
+      "ids": 2
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "SIENA",
+      "vendas": 34,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "CLASSIC",
+      "vendas": 32,
+      "ids": 1
+    },
+    {
+      "marca": "FORD",
+      "modelo": "FUSION",
+      "vendas": 31,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "MONTANA",
+      "vendas": 29,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "GOLF",
+      "vendas": 27,
+      "ids": 1
+    },
+    {
+      "marca": "PEUGEOT",
+      "modelo": "2008",
+      "vendas": 24,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "TUCSON",
+      "vendas": 23,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "CAPTUR",
+      "vendas": 23,
+      "ids": 1
+    },
+    {
+      "marca": "PEUGEOT",
+      "modelo": "207",
+      "vendas": 23,
+      "ids": 1
+    },
+    {
+      "marca": "AUDI",
+      "modelo": "Q3",
+      "vendas": 22,
+      "ids": 2
+    },
+    {
+      "marca": "KIA",
+      "modelo": "SPORTAGE",
+      "vendas": 22,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "I30",
+      "vendas": 22,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "AGILE",
+      "vendas": 22,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "IDEA",
+      "vendas": 21,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "CLIO",
+      "vendas": 21,
+      "ids": 1
+    },
+    {
+      "marca": "BMW",
+      "modelo": "320I",
+      "vendas": 20,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "CROSSFOX",
+      "vendas": 19,
+      "ids": 1
+    },
+    {
+      "marca": "NISSAN",
+      "modelo": "MARCH",
+      "vendas": 19,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "SPACEFOX",
+      "vendas": 17,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "NOVO",
+      "vendas": 17,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "DOBLÒ",
+      "vendas": 16,
+      "ids": 2
+    },
+    {
+      "marca": "CAOA CHERY",
+      "modelo": "TIGGO 5X",
+      "vendas": 16,
+      "ids": 1
+    },
+    {
+      "marca": "CITROEN",
+      "modelo": "AIRCROSS",
+      "vendas": 16,
+      "ids": 1
+    },
+    {
+      "marca": "CITROEN",
+      "modelo": "C4 LOUNGE",
+      "vendas": 16,
+      "ids": 1
+    },
+    {
+      "marca": "NISSAN",
+      "modelo": "FRONTIER",
+      "vendas": 16,
+      "ids": 2
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "CORSA",
+      "vendas": 15,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "JOY PLUS",
+      "vendas": 15,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "TIGUAN",
+      "vendas": 14,
+      "ids": 1
+    },
+    {
+      "marca": "BMW",
+      "modelo": "X1",
+      "vendas": 14,
+      "ids": 1
+    },
+    {
+      "marca": "CHEVROLET",
+      "modelo": "JOY",
+      "vendas": 14,
+      "ids": 1
+    },
+    {
+      "marca": "VOLKSWAGEN",
+      "modelo": "TAOS",
+      "vendas": 14,
+      "ids": 2
+    },
+    {
+      "marca": "MITSUBISHI",
+      "modelo": "ASX",
+      "vendas": 14,
+      "ids": 1
+    },
+    {
+      "marca": "PEUGEOT",
+      "modelo": "308",
+      "vendas": 14,
+      "ids": 1
+    },
+    {
+      "marca": "NISSAN",
+      "modelo": "SENTRA",
+      "vendas": 13,
+      "ids": 1
+    },
+    {
+      "marca": "RENAULT",
+      "modelo": "FLUENCE",
+      "vendas": 13,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "PULSE",
+      "vendas": 13,
+      "ids": 1
+    },
+    {
+      "marca": "KIA",
+      "modelo": "CERATO",
+      "vendas": 12,
+      "ids": 1
+    },
+    {
+      "marca": "MITSUBISHI",
+      "modelo": "L200",
+      "vendas": 12,
+      "ids": 1
+    },
+    {
+      "marca": "FIAT",
+      "modelo": "UNO MILLE",
+      "vendas": 12,
+      "ids": 1
+    },
+    {
+      "marca": "HYUNDAI",
+      "modelo": "HB20X",
+      "vendas": 12,
+      "ids": 1
+    }
+  ],
+  "excluir_categorias": [
+    "Motocicleta",
+    "Caminhao",
+    "Onibus",
+    "Reboque",
+    "Semireboque"
+  ],
+  "janela_meses": 12,
+  "corte_razao": [
+    0.2,
+    1.2
+  ],
+  "elegiveis": 9077,
+  "vendas_esperadas": 8383
+}

@@ -1,0 +1,277 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Análise de Base de Clientes | Cars2You</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap');
+:root{--ink:#0f172a;--ink2:#1e293b;--sub:#475569;--faint:#94a3b8;--bg:#f1f5f9;--card:#fff;--line:#e2e8f0;--line-soft:#f1f5f9;--th-bg:#f8fafc;--track:#eef1f6;--row-hover:#f8fafc;--brand:#1e289b;--brand2:#161d73;--brand-soft:#e3e6ff;--good:#047857;--warn:#b45309;--bad:#b91c1c;--amber:#c8791a;--amber2:#e3a13f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',-apple-system,'Segoe UI',sans-serif;font-size:13px;line-height:1.6}
+.page{max-width:1180px;margin:0 auto;padding:0 24px 64px}
+.header{background:linear-gradient(135deg,var(--brand2) 0%,var(--brand) 100%);margin:0 -24px 0;padding:28px 40px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header-left{display:flex;align-items:center;gap:18px}
+.header-logo{background:#fff;padding:7px 13px;border-radius:7px;display:inline-flex;align-items:center;line-height:0}
+.header-logo img{height:26px;display:block}
+.header-divider{width:1px;height:42px;background:rgba(255,255,255,.25)}
+.header-title h1{font-family:'Oswald',sans-serif;font-size:23px;font-weight:600;color:#fff;letter-spacing:.2px;margin:0}
+.header-title p{margin:3px 0 0;font-size:11.5px;color:rgba(255,255,255,.72)}
+.header-meta{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:10.5px;font-weight:600;color:rgba(255,255,255,.9)}
+.header-bar{height:4px;background:linear-gradient(90deg,var(--amber) 0%,var(--amber2) 100%);margin:0 -24px 0}
+.filtro{background:var(--card);border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;margin:0 -24px 32px;padding:16px 40px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.filtro label{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2)}
+select{font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;padding:9px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:290px;cursor:pointer}
+select:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+.fchip{font-size:10.5px;font-weight:600;color:var(--sub);background:var(--brand-soft);border-radius:20px;padding:5px 13px}
+.sec{margin-bottom:40px}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:16px}
+.sec-title{font-family:'Oswald',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2)}
+.sec-line{flex:1;height:1px;background:var(--line)}
+.sec-note{font-size:10.5px;color:var(--faint);margin-top:-8px;margin-bottom:16px;max-width:940px;line-height:1.65}
+.i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--line);color:var(--faint);font-size:9px;font-weight:700;cursor:help;font-style:normal;vertical-align:1px;flex-shrink:0}
+.i:hover{background:var(--brand2);color:#fff;border-color:var(--brand2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--brand))}
+.kpi-label{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:5px}
+.kpi-value{font-family:'Oswald',sans-serif;font-size:26.5px;font-weight:600;color:var(--ink);line-height:1.15;margin:5px 0 3px}
+.kpi-sub{font-size:10.5px;color:var(--faint)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.card-t{font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:var(--ink);letter-spacing:.02em;display:flex;align-items:center;gap:6px}
+.card-s{font-size:10.5px;color:var(--faint);margin:2px 0 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.chart{position:relative;height:230px}
+.chart-sm{position:relative;height:190px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 0;font-size:10.5px;color:var(--sub)}
+.ldot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse}
+th{background:var(--th-bg);color:var(--brand2);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th.gh{text-align:center;background:var(--brand-soft)}
+th.r,td.r{text-align:right}
+td{padding:9px 14px;font-size:12px;border-bottom:1px solid var(--line-soft);color:var(--ink2);white-space:nowrap}
+tbody tr:hover{background:var(--row-hover)}
+.mono{font-family:'Oswald',sans-serif;font-weight:500;font-variant-numeric:tabular-nums}
+.parcial{color:var(--ink)}
+.pmark{color:var(--amber);font-weight:700;margin-left:2px}
+.fun{display:flex;flex-direction:column;gap:8px}
+.fun-r{display:flex;align-items:center;gap:12px}
+.fun-l{width:104px;font-size:11.5px;color:var(--sub);flex-shrink:0}
+.fun-b{flex:1;height:28px;background:var(--track);border-radius:6px;overflow:hidden}
+.fun-f{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 10px;color:#fff;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600}
+.fun-p{width:118px;text-align:right;font-size:10.5px;color:var(--faint);flex-shrink:0}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:10.5px;color:var(--faint);text-align:center}
+@media print{body{background:#fff}.sec{break-inside:avoid}}</style></head><body><div class="page">
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo"><img src="data:image/png;base64,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" alt="Cars2You"></div>
+    <div class="header-divider"></div>
+    <div class="header-title"><h1>Análise de Base de Clientes</h1>
+    <p>Visão geral dos canais &middot; Marketplace, Trucks2you, C6 (Auto + Colaboradores), Lance Fácil BTB (+ Associados)</p></div>
+  </div>
+  <div class="header-meta">
+    <span class="pill">Dados até {{DATA}}</span>
+    <span class="pill">{{N_CANAIS}} canais &middot; {{TOTAL}} clientes</span>
+    <span class="pill">Confidencial</span>
+  </div>
+</div>
+<div class="header-bar"></div>
+<div class="filtro">
+  <label for="fwl">Canal</label>
+  <select id="fwl">{{OPCOES}}</select>
+  <span class="fchip" id="chipBase">{{TOTAL}} clientes</span>
+</div>
+<div id="app"></div>
+<footer>Cars2You &middot; dados do sistema até {{DATA}} &middot; uso interno</footer>
+</div>
+<script>
+var D = /*__DADOS__*/;
+var MON=D.MON, MESES=D.meses, SITU=D.SITU, TIPS=D.TIPS;
+var BRAND='#1e289b', BRAND2='#161d73', AMBER='#c8791a', AMBER2='#e3a13f', GOOD='#047857', GREY='#cbd5e1';
+var GR='#e2e8f0', TK='#94a3b8';
+function br(n){return (Number(n)||0).toLocaleString('pt-BR');}
+function pct1(n){return (Number(n)||0).toFixed(1).replace('.',',');}
+function money(n){n=Number(n)||0;if(n>=1e9)return 'R$ '+(n/1e9).toFixed(2).replace('.',',')+' bi';if(n>=1e6)return 'R$ '+(n/1e6).toFixed(1).replace('.',',')+' mi';if(n>=1e3)return 'R$ '+Math.round(n/1e3)+' mil';return 'R$ '+br(Math.round(n));}
+function fmtD(d){if(!d)return '—';var s=String(d).slice(0,10).split('-');return s.length===3?s[2]+'/'+s[1]+'/'+s[0]:String(d);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+/* Largura de barra e valor CSS: sempre PONTO decimal. A virgula fica no texto. */
+function w(q,t){return (t?(Number(q)/Number(t)*100):0).toFixed(1);}
+function ic(k){var t=TIPS[k];return t?' <i class="i" title="'+esc(t)+'">i</i>':'';}
+var charts=[];
+function destroyCharts(){charts.forEach(function(c){try{c.destroy();}catch(e){}});charts=[];}
+
+/* Base, login, lances e volume sao somaveis entre canais. Ofertantes e
+   compradores NAO: a mesma pessoa pode estar em dois canais e seria contada
+   duas vezes - por isso o aviso aparece quando o filtro esta em todos. */
+function agrega(sel){
+  var wls = sel==='todos' ? D.ordem : [sel];
+  var o={kpi:{base:0,comLogin:0,semLogin:0,ofertantes:0,compradores:0,ofertas:0,negociacoes:0,volume:0,ultima:null},
+    situacao:{},recencia:{login:{},oferta:{},compra:{}},evolucao:{},volume:{},coorteAcum:{},coorteJanela:{},uf:{},top:[],multi:wls.length>1};
+  wls.forEach(function(k){
+    var d=D.canais[k]; if(!d) return;
+    ['base','comLogin','semLogin','ofertantes','compradores','ofertas','negociacoes','volume'].forEach(function(f){o.kpi[f]+=Number(d.kpi[f])||0;});
+    if(d.kpi.ultima&&(!o.kpi.ultima||String(d.kpi.ultima)>String(o.kpi.ultima)))o.kpi.ultima=d.kpi.ultima;
+    Object.keys(d.situacao).forEach(function(s){o.situacao[s]=(o.situacao[s]||0)+d.situacao[s];});
+    ['login','oferta','compra'].forEach(function(t){Object.keys(d.recencia[t]).forEach(function(f){o.recencia[t][f]=(o.recencia[t][f]||0)+d.recencia[t][f];});});
+    Object.keys(d.evolucao).forEach(function(m){if(!o.evolucao[m])o.evolucao[m]={};Object.keys(d.evolucao[m]).forEach(function(tp){if(!o.evolucao[m][tp])o.evolucao[m][tp]={qtd:0,novos:0};o.evolucao[m][tp].qtd+=d.evolucao[m][tp].qtd;o.evolucao[m][tp].novos+=d.evolucao[m][tp].novos;});});
+    Object.keys(d.volume).forEach(function(m){if(!o.volume[m])o.volume[m]={valor:0,qtd:0};o.volume[m].valor+=d.volume[m].valor;o.volume[m].qtd+=d.volume[m].qtd;});
+    Object.keys(d.coorteAcum).forEach(function(m){var c=d.coorteAcum[m];var a=o.coorteAcum[m]||{mes:m,cadastrados:0,acessaram:0,ofertaram:0,compraram:0,sem_interacao:0};['cadastrados','acessaram','ofertaram','compraram','sem_interacao'].forEach(function(f){a[f]+=Number(c[f])||0;});o.coorteAcum[m]=a;});
+    Object.keys(d.coorteJanela).forEach(function(m){var c=d.coorteJanela[m];var F=['cadastrados','ac30','ac60','ac90','ac180','of30','of60','of90','of180','cp30','cp60','cp90','cp180','mad30','mad60','mad90','mad180'];var a=o.coorteJanela[m]||{mes:m};F.forEach(function(f){a[f]=(Number(a[f])||0)+(Number(c[f])||0);});o.coorteJanela[m]=a;});
+    Object.keys(d.uf).forEach(function(u){o.uf[u]=(o.uf[u]||0)+d.uf[u];});
+    (d.top||[]).forEach(function(t){o.top.push(t);});
+  });
+  o.top.sort(function(a,b){return (Number(b.compras)||0)-(Number(a.compras)||0);});
+  o.top=o.top.slice(0,10);
+  return o;
+}
+
+function sec(t,tip,nota,corpo){return '<div class="sec"><div class="sec-head"><div class="sec-title">'+t+'</div><div class="sec-line"></div></div>'+(nota?'<div class="sec-note">'+nota+ic(tip)+'</div>':'')+corpo+'</div>';}
+function kpi(label,valor,sub,cor,tip){return '<div class="kpi" style="--accent:'+(cor||BRAND)+'"><div class="kpi-label">'+label+ic(tip)+'</div><div class="kpi-value">'+valor+'</div><div class="kpi-sub">'+(sub||'')+'</div></div>';}
+
+function barOpts(stacked,horiz){return{responsive:true,maintainAspectRatio:false,indexAxis:horiz?'y':'x',
+  plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){return c.dataset.label+': '+br(c.parsed[horiz?'x':'y']);}}}},
+  scales:{x:{stacked:!!stacked,grid:{color:GR,drawBorder:false},ticks:{color:TK,font:{size:10}},border:{display:false}},
+          y:{stacked:!!stacked,grid:{color:GR,drawBorder:false},ticks:{color:TK,font:{size:10}},border:{display:false}}}};}
+
+function render(sel){
+  destroyCharts();
+  var d=agrega(sel), k=d.kpi, out='';
+  document.getElementById('chipBase').textContent = br(k.base)+' clientes';
+  var aviso = d.multi ? ' Com mais de um canal somado, ofertantes e compradores podem contar a mesma pessoa duas vezes, porque um cliente pode estar em dois canais.' : '';
+
+  out += sec('Panorama da Base','base','Números de topo do canal selecionado.'+aviso,
+    '<div class="kpi-grid">'+
+    kpi('Clientes na base',br(k.base),'',BRAND,'base')+
+    kpi('Com login',br(k.comLogin),pct1(k.base?k.comLogin/k.base*100:0)+'% da base',GOOD,'comLogin')+
+    kpi('Sem login',br(k.semLogin),pct1(k.base?k.semLogin/k.base*100:0)+'% da base',GREY,'semLogin')+
+    kpi('Ofertantes',br(k.ofertantes),'',BRAND2,'ofertantes')+
+    kpi('Compradores',br(k.compradores),'',AMBER,'compradores')+
+    kpi('Lances dados',br(k.ofertas),'',BRAND2,'ofertas')+
+    kpi('Compras',br(k.negociacoes),'última em '+fmtD(k.ultima),AMBER,'negociacoes')+
+    kpi('Volume',money(k.volume),'',GOOD,'volume')+
+    '</div>');
+
+  var F=[['Base',k.base,'#475569'],['Acessaram',k.comLogin,BRAND],['Ofertaram',k.ofertantes,BRAND2],['Compraram',k.compradores,AMBER]];
+  var fh='<div class="card"><div class="fun">';
+  F.forEach(function(f,i){var ant=i?F[i-1][1]:f[1];
+    fh+='<div class="fun-r"><div class="fun-l">'+f[0]+'</div><div class="fun-b"><div class="fun-f" style="width:'+w(f[1],k.base)+'%;background:'+f[2]+'">'+br(f[1])+'</div></div><div class="fun-p">'+(i?pct1(ant?f[1]/ant*100:0)+'% da etapa acima':'100%')+'</div></div>';});
+  fh+='</div></div>';
+  out += sec('Funil de Conversão','funil','Cada etapa contém a anterior.'+aviso,fh);
+
+  out += sec('Cadastros por Situação','situacao','',
+    '<div class="card"><div class="card-t">Distribuição da base por situação cadastral</div>'+
+    '<div class="card-s">Cada faixa é exclusiva e a soma fecha o total da base.</div>'+
+    '<div class="chart-sm"><canvas id="cSitu"></canvas></div><div class="legend" id="lSitu"></div></div>');
+
+  out += sec('Recência — Há Quanto Tempo Sem Agir','recencia','Conta apenas quem já fez a ação ao menos uma vez.',
+    '<div class="card"><div class="card-t">Tempo desde a última ação</div>'+
+    '<div class="card-s">Barras empilhadas: cada linha soma 100% de quem já fez aquela ação.</div>'+
+    '<div class="chart-sm"><canvas id="cRec"></canvas></div>'+
+    '<div class="legend"><span><span class="ldot" style="background:'+GOOD+'"></span>0–30 dias</span><span><span class="ldot" style="background:'+BRAND+'"></span>31–90</span><span><span class="ldot" style="background:'+AMBER2+'"></span>91–180</span><span><span class="ldot" style="background:'+GREY+'"></span>mais de 180</span></div></div>');
+
+  out += sec('Evolução Mensal','evolucao','Pessoas diferentes por mês, não ações.',
+    '<div class="grid2">'+
+    '<div class="card"><div class="card-t">Acessos por mês</div><div class="card-s">Parte clara: quem acessou pela primeira vez naquele mês.</div><div class="chart-sm"><canvas id="cLogin"></canvas></div>'+
+    '<div class="legend"><span><span class="ldot" style="background:'+AMBER+'"></span>Novos</span><span><span class="ldot" style="background:'+BRAND+'"></span>Recorrentes</span></div></div>'+
+    '<div class="card"><div class="card-t">Ofertas e compras por mês</div><div class="card-s">Clientes diferentes que ofertaram e que compraram.</div><div class="chart-sm"><canvas id="cOfCp"></canvas></div>'+
+    '<div class="legend"><span><span class="ldot" style="background:'+BRAND2+'"></span>Ofertaram</span><span><span class="ldot" style="background:'+AMBER+'"></span>Compraram</span></div></div>'+
+    '</div>');
+
+  out += sec('Volume Financeiro','volumeMes','Valor pago nas compras concluídas em cada mês.',
+    '<div class="card"><div class="card-t">Volume por mês</div><div class="card-s">Somente compras concluídas.</div><div class="chart-sm"><canvas id="cVol"></canvas></div></div>');
+
+  out += sec('Novos Cadastrados — O Que Fizeram Depois','coorteAcum','As faixas são exclusivas e somam o total de cada mês: quem comprou aparece só em Compraram.',
+    '<div class="card"><div class="card-t">Entradas na base, por desfecho</div>'+
+    '<div class="card-s">Sem limite de prazo — conta se a pessoa fez aquilo em algum momento.</div>'+
+    '<div class="chart"><canvas id="cCoorte"></canvas></div>'+
+    '<div class="legend"><span><span class="ldot" style="background:'+AMBER+'"></span>Compraram</span><span><span class="ldot" style="background:'+BRAND2+'"></span>Ofertaram, sem comprar</span><span><span class="ldot" style="background:'+BRAND+'"></span>Só acessaram</span><span><span class="ldot" style="background:'+GREY+'"></span>Nunca interagiram</span></div></div>');
+
+  var cj=Object.keys(d.coorteJanela).sort(), parcial=false;
+  if(cj.length){
+    var jh='<div class="tw"><table><thead><tr><th rowspan="2">Mês do cadastro</th><th class="r" rowspan="2">Cadastrados</th><th colspan="4" class="gh">Acessaram em até</th><th colspan="4" class="gh">Ofertaram em até</th><th colspan="4" class="gh">Compraram em até</th></tr><tr>';
+    for(var z=0;z<3;z++) jh+='<th class="r">30d</th><th class="r">60d</th><th class="r">90d</th><th class="r">180d</th>';
+    jh+='</tr></thead><tbody>';
+    cj.slice().reverse().forEach(function(m){var r=d.coorteJanela[m];var tot=Number(r.cadastrados)||0;
+      /* Mostra sempre o numero real. Quem acessa no dia seguinte ja conta em ate
+         30 dias - nao precisa esperar o prazo. Se parte da coorte ainda nao
+         completou a janela, o valor e um piso e ganha asterisco. */
+      var c=function(v,jan,campo){var comp=Number(r[campo])||0;var faltam=tot-comp;
+        if(faltam<=0) return '<td class="r mono">'+br(v)+'</td>';
+        parcial=true;
+        return '<td class="r mono parcial" title="'+faltam+' de '+tot+' cadastrados ainda não completaram '+jan+' dias, então este número ainda pode subir">'+br(v)+'<span class="pmark">*</span></td>';};
+      jh+='<tr><td class="mono">'+rot(m)+'</td><td class="r mono"><b>'+br(tot)+'</b></td>'+
+        c(r.ac30,30,'mad30')+c(r.ac60,60,'mad60')+c(r.ac90,90,'mad90')+c(r.ac180,180,'mad180')+
+        c(r.of30,30,'mad30')+c(r.of60,60,'mad60')+c(r.of90,90,'mad90')+c(r.of180,180,'mad180')+
+        c(r.cp30,30,'mad30')+c(r.cp60,60,'mad60')+c(r.cp90,90,'mad90')+c(r.cp180,180,'mad180')+'</tr>';});
+    jh+='</tbody></table></div>';
+    var nj='Contado a partir da data do próprio cadastro. Doze colunas não cabem em gráfico legível, então esta fica como tabela.';
+    if(parcial) nj+=' O asterisco marca mês em que parte dos cadastrados ainda não completou o prazo da coluna: o número já aconteceu e só pode subir.';
+    out += sec('Velocidade de Ativação por Coorte','coorteJanela',nj,jh);
+  }
+
+  out += sec('Distribuição Geográfica','uf','Estado da loja vinculada ao cliente.',
+    '<div class="card"><div class="card-t">Clientes por estado</div><div class="card-s">Quem tem loja em mais de um estado aparece em cada um.</div><div class="chart"><canvas id="cUf"></canvas></div></div>');
+
+  if(d.top.length){
+    var th='<div class="tw"><table><thead><tr><th>#</th><th>Cliente</th><th>Loja</th><th class="r">Compras</th><th class="r">Valor</th><th class="r">Última</th></tr></thead><tbody>';
+    d.top.forEach(function(t,i){th+='<tr><td class="mono">'+(i+1)+'</td><td>'+esc(t.nome)+'</td><td style="color:var(--faint)">'+esc(t.loja||'—')+'</td><td class="r mono">'+br(t.compras)+'</td><td class="r mono">'+money(t.valor)+'</td><td class="r mono">'+fmtD(t.ultima)+'</td></tr>';});
+    th+='</tbody></table></div>';
+    out += sec('Top 10 Clientes por Compras','top',d.multi?'União dos dez primeiros de cada canal, reordenada. Nomes são dado sensível: não circular fora do time.':'Nomes são dado sensível: não circular fora do time.',th);
+  }
+
+  document.getElementById('app').innerHTML=out;
+  desenha(d);
+}
+
+function rot(m){var N=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var p=String(m).split('-');return p.length===2?N[Number(p[1])-1]+'/'+p[0].slice(2):String(m);}
+function serie(obj,campo,sub){return MESES.map(function(m){var r=obj[m];if(!r)return 0;return sub?(Number((r[sub]||{})[campo])||0):(Number(r[campo])||0);});}
+
+function desenha(d){
+  var sk=Object.keys(d.situacao).sort();
+  var CORES={'1':'#94a3b8','2':'#e3a13f','3':'#047857','4':'#b91c1c','5':'#475569','6':'#c8791a'};
+  if(sk.length){
+    charts.push(new Chart(document.getElementById('cSitu'),{type:'bar',data:{labels:['Base'],datasets:sk.map(function(s){
+      return {label:s+' · '+(SITU[s]||'?'),data:[d.situacao[s]],backgroundColor:CORES[s]||BRAND,borderRadius:3};
+    })},options:barOpts(true,true)}));
+    document.getElementById('lSitu').innerHTML=sk.map(function(s){
+      return '<span><span class="ldot" style="background:'+(CORES[s]||BRAND)+'"></span>'+(SITU[s]||'?')+': '+br(d.situacao[s])+'</span>';}).join('');
+  }
+
+  var FX=['00-30d','31-90d','91-180d','180d+'], CR=[GOOD,BRAND,AMBER2,GREY];
+  var linhas=[['login','Parou de logar'],['oferta','Parou de ofertar'],['compra','Parou de comprar']];
+  charts.push(new Chart(document.getElementById('cRec'),{type:'bar',data:{labels:linhas.map(function(l){return l[1];}),
+    datasets:FX.map(function(f,i){return {label:f,data:linhas.map(function(l){return d.recencia[l[0]][f]||0;}),backgroundColor:CR[i],borderRadius:3};})},
+    options:barOpts(true,true)}));
+
+  charts.push(new Chart(document.getElementById('cLogin'),{type:'bar',data:{labels:MON,datasets:[
+    {label:'Novos',data:serie(d.evolucao,'novos','login'),backgroundColor:AMBER,borderRadius:3},
+    {label:'Recorrentes',data:MESES.map(function(m){var e=(d.evolucao[m]||{}).login||{qtd:0,novos:0};return Math.max(0,(e.qtd||0)-(e.novos||0));}),backgroundColor:BRAND,borderRadius:3}
+  ]},options:barOpts(true)}));
+
+  charts.push(new Chart(document.getElementById('cOfCp'),{type:'bar',data:{labels:MON,datasets:[
+    {label:'Ofertaram',data:serie(d.evolucao,'qtd','oferta'),backgroundColor:BRAND2,borderRadius:3},
+    {label:'Compraram',data:serie(d.evolucao,'qtd','compra'),backgroundColor:AMBER,borderRadius:3}
+  ]},options:barOpts(false)}));
+
+  charts.push(new Chart(document.getElementById('cVol'),{type:'bar',data:{labels:MON,datasets:[
+    {label:'Volume',data:MESES.map(function(m){return (d.volume[m]||{}).valor||0;}),backgroundColor:GOOD,borderRadius:3}
+  ]},options:(function(){var o=barOpts(false);o.plugins.tooltip.callbacks.label=function(c){return 'Volume: '+money(c.parsed.y);};o.scales.y.ticks.callback=function(v){return money(v);};return o;})()}));
+
+  /* Faixas exclusivas: quem comprou nao reaparece em acessou, senao a pilha
+     passaria do total de cadastrados do mes. */
+  charts.push(new Chart(document.getElementById('cCoorte'),{type:'bar',data:{labels:MON,datasets:[
+    {label:'Compraram',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Number(r.compraram)||0;}),backgroundColor:AMBER,borderRadius:3},
+    {label:'Ofertaram, sem comprar',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Math.max(0,(Number(r.ofertaram)||0)-(Number(r.compraram)||0));}),backgroundColor:BRAND2,borderRadius:3},
+    {label:'Só acessaram',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Math.max(0,(Number(r.acessaram)||0)-(Number(r.ofertaram)||0));}),backgroundColor:BRAND,borderRadius:3},
+    {label:'Nunca interagiram',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Number(r.sem_interacao)||0;}),backgroundColor:GREY,borderRadius:3}
+  ]},options:barOpts(true)}));
+
+  var ufs=Object.keys(d.uf).sort(function(a,b){return d.uf[b]-d.uf[a];}).slice(0,15);
+  charts.push(new Chart(document.getElementById('cUf'),{type:'bar',data:{labels:ufs,datasets:[
+    {label:'Clientes',data:ufs.map(function(u){return d.uf[u];}),backgroundColor:BRAND,borderRadius:3}
+  ]},options:barOpts(false,true)}));
+}
+
+document.getElementById('fwl').addEventListener('change',function(){render(this.value);});
+render('todos');
+</script></body></html>

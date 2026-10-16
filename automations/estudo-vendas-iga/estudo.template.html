@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudo de Vendas IGA</title>
+<!--
+  ============================================================================
+  ESTUDO DE VENDAS IGA — gerado. NÃO EDITE o arquivo de saída.
+  Edite estudo.template.html e rode:   node monta-estudo.js
+  Entra: este molde + resultados.json (analise.py) + design/tokens/tema.css
+         + design/tokens/tema-iga.css + design/marca/iga/*.svg
+  Autossuficiente: CSS embutido, logos em data URI, zero rede (regra 1 do kit).
+
+  O Python entrega AGREGADOS por (cluster × mês). Todo KPI, gráfico, texto e tabela
+  é recalculado AQUI, no navegador, para os clusters que o leitor marcar.
+  ============================================================================
+-->
+<style>/*__CSS__*/
+
+/* ── só o que este estudo tem a mais que o molde. Nenhuma cor solta: tudo é token. ── */
+.g2e{ display:grid; gap:var(--gap); grid-template-columns:1fr 1fr }
+.g2e > .cartao{ min-width:0 }
+@media(max-width:900px){ .g2e{ grid-template-columns:1fr } }
+.secao{ margin:6px 2px -4px; font-size:12.5px; font-weight:650; letter-spacing:.06em;
+        text-transform:uppercase; color:var(--texto-2) }
+.leg{ display:flex; flex-wrap:wrap; gap:4px 16px; margin:0 0 6px; font-size:12px; color:var(--texto-2) }
+.leg span::before{ content:""; display:inline-block; width:14px; height:3px; border-radius:2px;
+                   margin-right:6px; vertical-align:middle }
+.leg .l1::before{ background:var(--acento-cheio) } .leg .l2::before{ background:var(--serie-2) }
+.graf .s1{ fill:none; stroke:var(--acento-cheio); stroke-width:2.25; stroke-linejoin:round; stroke-linecap:round }
+.graf .s2{ fill:none; stroke:var(--serie-2); stroke-width:2.25; stroke-linejoin:round; stroke-linecap:round }
+.graf .p2{ fill:var(--serie-2) }
+.graf .hit{ fill:transparent }
+.graf .zero{ stroke:var(--borda-forte); stroke-width:1 }
+.graf .bar{ fill:var(--serie-2) }
+.graf .bar.neg{ fill:var(--serie-2) }
+.nota{ margin:8px 0 0; font-size:12px; color:var(--texto-2); line-height:1.45 }
+.vazio{ margin:0; padding:26px 0; text-align:center; color:var(--texto-3); font-size:13px }
+.concl{ list-style:none; margin:0; padding:0; display:grid; gap:12px; counter-reset:c }
+.concl li{ display:grid; grid-template-columns:28px 1fr; gap:10px; counter-increment:c }
+.concl li::before{ content:counter(c); width:24px; height:24px; border-radius:50%; display:grid;
+                   place-items:center; font-size:12px; font-weight:700; color:var(--superficie);
+                   background:var(--acento); margin-top:1px }
+.concl strong{ display:block; font-size:14px; margin-bottom:2px }
+.concl span{ color:var(--texto-2); font-size:13px; line-height:1.5 }
+.hb{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px }
+.hb li{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; align-items:baseline }
+.hb .nome{ font-size:13px } .hb .val{ font-size:13px; font-weight:650 }
+.hb .barra{ grid-column:1/-1; display:block; height:7px; border-radius:4px; background:var(--acento-veu); overflow:hidden }
+.hb .barra i{ display:block; height:100%; border-radius:4px; background:var(--acento-cheio) }
+.hb .sub{ grid-column:1/-1; font-size:11px; color:var(--texto-3); margin-top:-2px }
+td.esq, th.esq{ text-align:left }
+.dobra{ padding:0 }
+.dobra > summary{ cursor:pointer; list-style:none; padding:18px; border-radius:var(--r-g) }
+.dobra > summary::-webkit-details-marker{ display:none }
+.dobra[open] > summary{ border-radius:var(--r-g) var(--r-g) 0 0 }
+.dobra .seta{ color:var(--texto-3); font-size:11px; transition:transform .15s }
+.dobra[open] .seta{ transform:rotate(180deg) }
+.dobra .corpo{ padding:0 18px 18px 62px; color:var(--texto-2); font-size:13px; line-height:1.55 }
+.dobra .corpo h3{ font-size:13px; color:var(--texto); margin:14px 0 4px }
+.dobra .corpo h3:first-child{ margin-top:0 }
+.dobra .corpo ul{ margin:4px 0; padding-left:18px }
+@media(max-width:620px){ .dobra .corpo{ padding-left:18px } }
+
+/* filtro de cluster: um <details> que abre um painel por cima */
+.filtro{ position:relative }
+.filtro > summary{ list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px }
+.filtro > summary::-webkit-details-marker{ display:none }
+.filtro .painel{ position:absolute; right:0; top:calc(100% + 8px); z-index:30; width:min(420px,92vw);
+                 padding:14px; border-radius:var(--r-m); background:var(--superficie);
+                 border:1px solid var(--borda-forte); box-shadow:var(--sombra) }
+.filtro .painel h3{ margin:0 0 8px; font-size:12.5px; color:var(--texto-2); font-weight:650 }
+.filtro .grade{ max-height:52vh; overflow:auto }
+.filtro .gt{ display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:650; color:var(--texto); margin:8px 0 4px }
+.filtro .gt button{ font:inherit; font-size:11.5px; font-weight:500; cursor:pointer; color:var(--texto-2); background:none; border:0; text-decoration:underline }
+.filtro .gl{ display:grid; grid-template-columns:repeat(4,1fr); gap:2px 8px }
+.filtro label{ display:flex; align-items:center; gap:6px; font-size:12.5px; cursor:pointer; padding:2px 0 }
+.filtro .acoes{ display:flex; gap:8px; margin-top:10px }
+.filtro .acoes button{ font:inherit; font-size:12px; cursor:pointer; color:var(--texto); background:var(--superficie-2);
+                       border:1px solid var(--borda-forte); border-radius:var(--r-p); padding:5px 10px }
+.filtro input[type=checkbox]{ accent-color:var(--acento-cheio) }
+.sel{ font:inherit; font-size:13px; color:var(--texto); background:var(--superficie-2);
+      border:1px solid var(--borda-forte); border-radius:var(--r-p); padding:6px 8px }
+.barra-ctrl{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:0 0 12px; font-size:12.5px; color:var(--texto-2) }
+.barra-ctrl label{ display:flex; gap:6px; align-items:center }
+.seg{ display:inline-flex; border:1px solid var(--borda-forte); border-radius:var(--r-p); overflow:hidden }
+.seg button{ font:inherit; font-size:12px; padding:5px 10px; cursor:pointer; color:var(--texto-2); background:transparent; border:0 }
+.seg button[aria-pressed=true]{ background:var(--acento); color:var(--superficie); font-weight:650 }
+
+.graf .rot{ font-size:8px; font-weight:600; fill:var(--texto) }
+.graf .rot.peq{ font-size:7.5px }
+td.chk, th.chk{ width:30px; text-align:center }
+tr.marcada td{ background:var(--acento-veu) }
+input[type=checkbox]{ accent-color:var(--acento-cheio) }
+.leg .lb::before{ background:var(--texto-3); opacity:.6; height:9px !important; border-radius:2px }
+.graf .barx{ fill:var(--texto-3); opacity:.6 }
+.rolo-v{ max-height:340px; overflow:auto; margin:0 -18px; padding:0 18px }
+.rolo-v thead th{ position:sticky; top:0; z-index:2; background:var(--superficie-2) }
+/* título ordenável: botão dentro do th (o mesmo do Painel de Eventos C6) */
+button.ord{ font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; display:inline-flex; gap:4px;
+            align-items:center; white-space:nowrap; text-align:inherit }
+button.ord.at{ color:var(--texto) }
+button.ord:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
+.seta-ord{ font-size:9px; min-width:8px }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-in">
+    <span class="marca">
+      <img class="logo logo-extensa" id="logo" src="" alt="IGA">
+      <img class="logo logo-curta" id="logo-curta" src="" alt="IGA">
+    </span>
+    <div class="topo-tit">
+      <h1>Estudo de Vendas IGA</h1>
+      <p class="sub" id="sub">—</p>
+    </div>
+    <div class="topo-acoes">
+      <details class="filtro" id="filtro">
+        <summary class="ctrl" aria-label="Filtrar por cluster"><span id="filtro-rot">Cluster: todos</span><span aria-hidden="true">▾</span></summary>
+        <div class="painel">
+          <h3>Clusters (marque um ou mais; nenhum = todos)</h3>
+          <div class="grade" id="filtro-grade"></div>
+          <div class="acoes"><button type="button" id="filtro-limpa">Todos</button><button type="button" id="filtro-fecha">Fechar</button></div>
+        </div>
+      </details>
+      <button class="ctrl so-icone" id="b-tema" type="button" aria-label="Mudar o tema"></button>
+    </div>
+  </div>
+</header>
+
+<main class="area">
+
+  <section class="g4" aria-label="Indicadores" id="kpis"></section>
+
+  <article class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9"/></svg></span>
+      <h2>O que o estudo mostra</h2>
+      <span class="dir"><span class="tag" id="concl-n">—</span></span>
+    </div>
+    <ol class="concl" id="concl"></ol>
+  </article>
+
+  <p class="secao">1 · Desempenho ao longo do tempo</p>
+  <article class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+      <h2>Veículos publicados e vendidos</h2><span class="dir"><span class="tag">únicos no mês</span></span>
+    </div>
+    <div class="leg"><span class="l2">Publicados</span><span class="l1">Vendidos</span><span class="lb">% vendidos ÷ publicados (êxito)</span></div>
+    <svg class="graf" id="g-vol" viewBox="0 0 800 330" role="img" aria-label="Veículos publicados e vendidos por mês, com barras do percentual vendidos sobre publicados"></svg>
+  </article>
+
+  <p class="secao">2 · Causa raiz: o preço contra a FIPE</p>
+  <article class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 4-6"/></svg></span>
+      <h2>% sobre a FIPE mês a mês: IGA e mercado</h2><span class="dir"><span class="tag">mesmos veículos</span></span>
+    </div>
+    <div class="barra-ctrl">
+      <span>IGA:</span>
+      <span class="seg" role="group" aria-label="Veículos do IGA por oferta recebida">
+        <button type="button" data-of="todos" aria-pressed="true">Todos</button>
+        <button type="button" data-of="com" aria-pressed="false">Com oferta</button>
+        <button type="button" data-of="sem" aria-pressed="false">Sem oferta</button>
+      </span>
+    </div>
+    <div class="leg"><span class="l2">IGA (venda, ou VMV se não vendeu)</span><span class="l1">Esperado de mercado para os mesmos veículos</span><span class="lb">Diferença, em p.p. (barras)</span></div>
+    <svg class="graf" id="g-cl" viewBox="0 0 800 330" role="img" aria-label="Percentual sobre a FIPE por mês: IGA e esperado de mercado, com a diferença em barras"></svg>
+    <p class="nota" id="n-hm-nota"></p>
+  </article>
+
+  <article class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 4-6"/></svg></span>
+      <h2>Êxito e % sobre a FIPE, por mês</h2>
+    </div>
+    <div class="leg"><span class="l1">Êxito (vendidos ÷ publicados)</span><span class="l2">% sobre a FIPE do IGA (venda ou VMV)</span></div>
+    <svg class="graf" id="g-ped" viewBox="0 0 800 250" role="img" aria-label="Êxito e percentual sobre a FIPE do IGA, por mês"></svg>
+    <p class="nota" id="n-ped"></p>
+  </article>
+
+  <p class="secao">3 · Mudança de comportamento dos compradores</p>
+  <article class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M17 4.5a3.5 3.5 0 010 7M22 20c0-3-2-5-5-5.7"/></svg></span>
+      <h2>Compradores por mês</h2>
+    </div>
+    <div class="leg"><span class="l2">Compraram no mês</span><span class="l1">Recorrentes (compraram no mês e em 6 dos 12 anteriores)</span></div>
+    <svg class="graf" id="g-comp" viewBox="0 0 800 250" role="img" aria-label="Compradores ativos e recorrentes por mês"></svg>
+  </article>
+
+  <article class="cartao" id="comparacao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h10M4 17h16"/><circle cx="17" cy="7" r="2.5"/><circle cx="8" cy="17" r="2.5"/></svg></span>
+      <h2>Comparação personalizada</h2><span class="dir"><span class="tag" id="n-cmp">—</span></span>
+    </div>
+    <div class="barra-ctrl">
+      <label>De <select class="sel" id="cmp-de" aria-label="Mês inicial"></select></label>
+      <label>Até <select class="sel" id="cmp-ate" aria-label="Mês final"></select></label>
+      <span class="seg" role="group" aria-label="Atalhos de período">
+        <button type="button" data-n="3" aria-pressed="false">3 meses</button>
+        <button type="button" data-n="6" aria-pressed="false">6 meses</button>
+        <button type="button" data-n="12" aria-pressed="false">12 meses</button>
+        <button type="button" data-n="0" aria-pressed="false">Toda a série</button>
+      </span>
+      <label><input type="checkbox" id="cmp-ativas" checked> Só lojas ativas</label>
+      <button type="button" class="sel" id="cmp-limpa">Limpar seleção</button>
+    </div>
+    <div class="rolo rolo-v">
+      <table>
+        <thead><tr id="th-cmp"></tr></thead>
+        <tbody id="tb-cmp"></tbody>
+      </table>
+    </div>
+    <p class="nota" id="n-tab-cmp"></p>
+  </article>
+
+  <article class="cartao">
+    <div class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+      <h2>Vendas mês a mês</h2><span class="dir"><span class="tag" id="n-cmp-graf">—</span></span>
+    </div>
+    <svg class="graf" id="g-cmp" viewBox="0 0 800 150" role="img" aria-label="Número de veículos comprados por mês pelas lojas marcadas, ou por todas as lojas da tabela"></svg>
+    <p class="nota" id="n-cmp-nota"></p>
+  </article>
+
+  <details class="cartao dobra" id="metodo">
+    <summary class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg></span>
+      <h2>Como foi medido, e o que o estudo não prova</h2>
+      <span class="dir"><span class="seta" aria-hidden="true">▾</span></span>
+    </summary>
+    <div class="corpo" id="metodo-corpo"></div>
+  </details>
+
+  <details class="cartao gloss" id="gloss">
+    <summary class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h13"/></svg></span>
+      <h2>Glossário</h2>
+      <span class="dir"><span class="tag" id="gloss-n">—</span><span class="seta" aria-hidden="true">▾</span></span>
+    </summary>
+    <dl id="gloss-lista"></dl>
+  </details>
+
+  <p class="rodape" id="rodape">—</p>
+
+</main>
+
+<script>
+const DADOS = /*__DADOS__*/{};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf = (n, d) => Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d||0, maximumFractionDigits:d||0});
+const pc = (x, d) => x == null ? '—' : nf(100 * x, d === undefined ? 0 : d) + '%';
+const pp = (x, d) => x == null ? '—' : (x > 0.00005 ? '+' : x < -0.00005 ? '−' : '') + nf(Math.abs(100 * x), d === undefined ? 1 : d) + ' p.p.';
+const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const rotMes = m => MES[Number(m.slice(5, 7)) - 1] + '/' + m.slice(2, 4);
+const soma = (a, f) => a.reduce((t, x) => t + (f ? f(x) : x), 0);
+
+const R = DADOS.res;
+const MESES = R.meses, NM = MESES.length, NC = R.clusters.length;
+const MT = R.meses_todos, OFF = MT.length - NM;           // meses_todos começa 15 meses antes: o histórico das janelas de recorrência
+const MINIMO = 5;                                            // média mensal com menos que isto de base vira lacuna
+const Z = n => new Array(n).fill(0);
+
+$('#sub').textContent = DADOS.sub;
+$('#rodape').innerHTML = 'Atualizado em ' + esc(DADOS.gerado_br) + ' · ' + esc(DADOS.rodape);
+
+/* ============================================================================
+   FILTRO DE CLUSTER
+   ========================================================================== */
+const SEL = new Set();
+let OFERTA = 'todos';                                      // filtro do cartão de % sobre a FIPE: todos | com | sem oferta
+const idxSel = () => (SEL.size ? R.clusters.map((c, i) => i).filter(i => SEL.has(i)) : R.clusters.map((c, i) => i));
+const GRUPOS = [
+  { rot: 'Classificação antiga (C1–C6)', ids: R.clusters.map((c, i) => i).filter(i => /^C\d+$/.test(R.clusters[i])) },
+  { rot: 'Classificação nova (G1–G17)', ids: R.clusters.map((c, i) => i).filter(i => /^G\d+$/.test(R.clusters[i])) },
+  { rot: 'Outros', ids: R.clusters.map((c, i) => i).filter(i => !/^[CG]\d+$/.test(R.clusters[i])) }
+];
+$('#filtro-grade').innerHTML = '<p class="nota" style="margin:0 0 8px">' + esc(DADOS.cluster_nota) + '</p>' + GRUPOS.map((g, k) =>
+  '<div class="grupo"><div class="gt"><span>' + esc(g.rot) + '</span><button type="button" data-g="' + k + '">marcar grupo</button></div><div class="gl">' +
+  g.ids.map(i => '<label><input type="checkbox" data-i="' + i + '"> ' + esc(R.clusters[i]) + '</label>').join('') + '</div></div>').join('');
+function rotuloFiltro() {
+  const n = SEL.size;
+  $('#filtro-rot').textContent = n === 0 ? 'Cluster: todos' : n <= 2 ? 'Cluster: ' + [...SEL].sort((a, b) => a - b).map(i => R.clusters[i]).join(', ') : 'Cluster: ' + n + ' selecionados';
+}
+$('#filtro-grade').addEventListener('click', e => {
+  const b = e.target.closest('button[data-g]');
+  if (!b) return;
+  const ids = GRUPOS[Number(b.dataset.g)].ids, todos = ids.every(i => SEL.has(i));
+  ids.forEach(i => { if (todos) SEL.delete(i); else SEL.add(i); });
+  document.querySelectorAll('#filtro-grade input').forEach(c => { c.checked = SEL.has(Number(c.dataset.i)); });
+  rotuloFiltro(); render();
+});
+$('#filtro-grade').addEventListener('change', e => {
+  if (!e.target.dataset.i) return;
+  const i = Number(e.target.dataset.i);
+  if (e.target.checked) SEL.add(i); else SEL.delete(i);
+  rotuloFiltro(); render();
+});
+$('#filtro-limpa').addEventListener('click', () => {
+  SEL.clear(); document.querySelectorAll('#filtro-grade input').forEach(c => { c.checked = false; });
+  rotuloFiltro(); render();
+});
+$('#filtro-fecha').addEventListener('click', () => { $('#filtro').open = false; });
+
+/* ============================================================================
+   CÁLCULO — tudo a partir dos agregados cluster × mês
+   ========================================================================== */
+function soma2(mat, ci) {                                 // soma, sobre os clusters escolhidos, de uma matriz [cluster][mês]
+  const o = Z(NM);
+  ci.forEach(c => { for (let m = 0; m < NM; m++) o[m] += mat[c][m]; });
+  return o;
+}
+const razao = (a, b, min) => (b >= (min || 1) ? a / b : null);
+
+/* compradores: contagem por comprador × mês (histórico inteiro), só dos clusters escolhidos */
+function compradores(ci) {
+  const ok = new Set(ci), C = R.compr, mapa = new Map();
+  C.linhas.forEach(l => {
+    if (!ok.has(l[2])) return;
+    let v = mapa.get(l[0]);
+    if (!v) { v = new Int16Array(MT.length); mapa.set(l[0], v); }
+    v[l[1]] += l[3];
+  });
+  return mapa;
+}
+
+function calcula() {
+  const ci = idxSel(), c = R.cel;
+  const S = { pub: soma2(c.pub, ci), vend: soma2(c.vend, ci), vol: soma2(c.vol, ci), nf: soma2(c.nf, ci), sf: soma2(c.sf, ci),
+              ng: soma2(c.ng, ci), sg: soma2(c.sg, ci), so: soma2(c.so, ci), np: soma2(c.np, ci), sp: soma2(c.sp, ci) };
+  S.exito = S.pub.map((p, m) => razao(S.vend[m], p, 1));
+  S.pctIga = S.nf.map((n, m) => razao(S.sf[m], n, MINIMO));
+  S.pctPar = S.np.map((n, m) => razao(S.sp[m], n, MINIMO));
+  S.gap = S.ng.map((n, m) => razao(S.sg[m], n, MINIMO));
+  const gr = OFERTA === 'com' ? ['c'] : OFERTA === 'sem' ? ['s'] : ['c', 's'];
+  const gs = pre => { const o = Z(NM); gr.forEach(g => soma2(c[pre + g], ci).forEach((v, m) => { o[m] += v; })); return o; };
+  S.gn = gs('ng'); S.go = gs('so'); S.ge = gs('se');
+  S.obsG = S.gn.map((n, m) => razao(S.go[m], n, MINIMO));
+  S.espG = S.gn.map((n, m) => razao(S.ge[m], n, MINIMO));
+  S.gapG = S.gn.map((n, m) => razao(S.go[m] - S.ge[m], n, MINIMO));
+  S.ci = ci;
+  S.buy = compradores(ci);
+  return S;
+}
+
+/* janelas fixas de comparação, em meses (índice sobre MESES) */
+const idxMes = m => MESES.indexOf(m);
+const JAN = [
+  { rot: 'jan–jun/24', de: idxMes('2024-01'), ate: idxMes('2024-06') },
+  { rot: 'jul/24–mar/25', de: idxMes('2024-07'), ate: idxMes('2025-03') },
+  { rot: 'out/25–mar/26', de: idxMes('2025-10'), ate: idxMes('2026-03') },
+  { rot: 'abr–set/26', de: idxMes('2026-04'), ate: idxMes('2026-09') }
+];
+const faixa = (a, de, ate) => { let s = 0; for (let m = de; m <= ate; m++) s += a[m]; return s; };
+const exitoJ = (S, j) => razao(faixa(S.vend, j.de, j.ate), faixa(S.pub, j.de, j.ate), 20);   // janela com menos de 20 veículos não vira percentual
+
+/* recorrente (09/10): comprou no mês E em ao menos 6 dos 12 meses anteriores */
+const ehRecorrente = (v, t) => {
+  if (!(v[t] > 0)) return false;
+  let n = 0;
+  for (let k = Math.max(t - 12, 0); k < t; k++) if (v[k] > 0) n++;
+  return n >= 6;
+};
+function recorrencia(S) {
+  const comp = Z(NM), fiel = Z(NM), ret = new Array(NM).fill(null);
+  const vals = [...S.buy.values()];
+  for (let m = 0; m < NM; m++) {
+    const t = m + OFF;
+    let ativos = 0, fieis = 0, voltaram = 0;
+    vals.forEach(v => {
+      if (v[t] > 0) ativos++;
+      if (ehRecorrente(v, t)) {
+        fieis++;
+        if (t + 3 < MT.length) { let volta = false; for (let k = t + 1; k <= t + 3; k++) if (v[k] > 0) volta = true; if (volta) voltaram++; }
+      }
+    });
+    comp[m] = ativos; fiel[m] = fieis;
+    if (t + 3 < MT.length && fieis >= MINIMO) ret[m] = voltaram / fieis;
+  }
+  return { comp, fiel, ret };
+}
+function quemParou(S) {
+  const fim = MT.length - 1, b0 = fim - 15, b1 = fim - 4, r0 = fim - 3;
+  const lin = [];
+  let fieisBase = 0;
+  S.buy.forEach((v, b) => {
+    let fiel = false, meses = 0, base = 0, rec = 0, ult = -1;
+    for (let k = b0; k <= b1; k++) { if (v[k] > 0) meses++; base += v[k]; if (!fiel && ehRecorrente(v, k)) fiel = true; }
+    if (!fiel) return;
+    fieisBase++;
+    for (let k = r0; k <= fim; k++) rec += v[k];
+    for (let k = fim; k >= 0; k--) if (v[k] > 0) { ult = k; break; }
+    if (rec === 0) lin.push({ b, meses, base, ult });
+  });
+  lin.sort((x, y) => y.base - x.base);
+  return { lin, fieisBase, b0, b1, r0, fim };
+}
+const nomeDe = b => R.compr.nomes[b] || ('loja ' + R.compr.ids[b]);
+const detDe = b => R.compr.det[String(R.compr.ids[b])];
+
+/* ============================================================================
+   GRÁFICOS — sem biblioteca. Série contínua e densa: eixo Y com grade e SEM
+   rótulo em cada ponto (regra 3 do kit). Todos com os MESMOS 45 meses no X.
+   ========================================================================== */
+const W = 800, H = 250;
+function escala(vals, o) {
+  const v = vals.filter(x => x != null);
+  if (!v.length) return [0, 1, 0.25];
+  let mx = Math.max.apply(null, v), mn = Math.min.apply(null, v);
+  if (o.zero) mn = Math.min(0, mn);
+  const bruto = (mx - mn || Math.abs(mx) || 1) / 4;
+  const mag = Math.pow(10, Math.floor(Math.log10(bruto))), m = bruto / mag;
+  const passo = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * mag;
+  return [o.zero && mn >= 0 ? 0 : Math.floor(mn / passo) * passo, Math.ceil(mx / passo) * passo, passo];
+}
+function eixoY(p, lo, hi, passo, y, f, L, R_) {
+  for (let val = lo; val <= hi + passo * 1e-6; val += passo) {
+    const yy = y(val);
+    p.push('<line class="linha-grade" x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + (W - R_) + '" y2="' + yy.toFixed(1) + '"/>' +
+           '<text class="eixo" x="' + (L - 8) + '" y="' + (yy + 3.5).toFixed(1) + '" text-anchor="end">' + esc(f(val)) + '</text>');
+  }
+}
+function eixoX(p, x, passo) {
+  MESES.forEach((m, i) => { if (i % passo === 0) p.push('<text class="eixo" x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(rotMes(m)) + '</text>'); });
+}
+function linhas(svg, series, o) {
+  o = o || {};
+  const f = o.f || (x => nf(x)), fr = o.fr || f;
+  const L = o.rotulos ? 14 : 52, Rr = 14, T = o.rotulos ? 24 : 14, B = o.rotulos ? 38 : 30, iw = W - L - Rr, ih = H - T - B;
+  let [lo, hi, passo] = escala([].concat.apply([], series.map(s => s.v)), o);
+  if (o.rotulos) { const ex = (hi - lo) * 0.07; hi += ex; if (!(o.zero && lo === 0)) lo -= ex; }
+  const x = i => L + iw * i / (NM - 1);
+  const y = v => T + ih - ih * (v - lo) / ((hi - lo) || 1);
+  const p = [];
+  if (o.rotulos) for (let val = Math.ceil(lo / passo) * passo; val <= hi; val += passo) p.push('<line class="linha-grade" x1="' + L + '" y1="' + y(val).toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + y(val).toFixed(1) + '"/>');
+  else eixoY(p, lo, hi, passo, y, f, L, Rr);
+  series.forEach(s => {
+    let d = '', abre = false;
+    s.v.forEach((val, i) => { if (val == null) { abre = false; return; } d += (abre ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(val).toFixed(1); abre = true; });
+    if (d) p.push('<path class="' + s.c + '" d="' + d + '"/>');
+  });
+  if (o.rotulos) series.forEach(s => s.v.forEach((val, i) => { if (val == null) return;
+    p.push('<text class="rot peq" x="' + x(i).toFixed(1) + '" y="' + (y(val) + (s.rot === 'baixo' ? 13 : -7)).toFixed(1) + '" text-anchor="middle">' + esc(fr(val)) + '</text>'); }));
+  eixoX(p, x, 3);
+  MESES.forEach((m, i) => {
+    const tip = series.map(s => s.v[i] == null ? null : (s.n ? s.n + ': ' : '') + f(s.v[i])).filter(Boolean);
+    if (!tip.length) return;
+    const yy = Math.min.apply(null, series.map(s => s.v[i] == null ? 1e9 : y(s.v[i])));
+    p.push('<circle class="hit" cx="' + x(i).toFixed(1) + '" cy="' + yy.toFixed(1) + '" r="7"><title>' + esc(rotMes(m) + ' · ' + tip.join(' · ')) + '</title></circle>');
+  });
+  svg.innerHTML = p.join('');
+}
+/* barras mensais com rótulo no topo. vals pode ser negativo (diferença) ou só positivo (contagem); dim = meses esmaecidos */
+function barrasMes(svg, vals, f, titulos, o) {
+  o = o || {};
+  const Hh = Number(svg.getAttribute('viewBox').split(' ')[3]) || H;
+  const L = 14, Rr = 14, T = 24, B = 34, iw = W - L - Rr, ih = Hh - T - B;
+  const v = vals.filter(x => x != null);
+  const mx = Math.max.apply(null, v.concat([0.0001])), mn = Math.min.apply(null, v.concat([0]));
+  const sim = mn < 0;
+  const topo = mx * 1.12 || 1, base = sim ? mn * 1.12 : 0;
+  const y = val => T + ih - ih * (val - base) / ((topo - base) || 1);
+  const x = i => L + iw * (i + 0.5) / NM, bw = Math.min(iw / NM * 0.72, 22);
+  const p = [];
+  p.push('<line class="zero" x1="' + L + '" y1="' + y(0).toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + y(0).toFixed(1) + '"/>');
+  vals.forEach((val, i) => {
+    if (val == null) return;
+    const y0 = y(0), y1 = y(val), dim = o.dim && o.dim[i];
+    p.push('<rect class="bar' + (val < 0 ? ' neg' : '') + '" style="' + (dim ? 'opacity:.3' : '') + '" x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + Math.min(y0, y1).toFixed(1) + '" width="' + bw.toFixed(1) +
+           '" height="' + Math.max(Math.abs(y1 - y0), 1).toFixed(1) + '" rx="1.5"><title>' + esc(titulos[i]) + '</title></rect>');
+    p.push('<text class="rot peq" x="' + x(i).toFixed(1) + '" y="' + (val >= 0 ? y1 - 5 : y1 + 12).toFixed(1) + '" text-anchor="middle">' + esc(f(val)) + '</text>');
+  });
+  MESES.forEach((m, i) => { if (i % 3 === 0) p.push('<text class="eixo" x="' + x(i).toFixed(1) + '" y="' + (Hh - 8) + '" text-anchor="middle">' + esc(rotMes(m)) + '</text>'); });
+  svg.innerHTML = p.join('');
+}
+/* publicados e vendidos (linhas, no alto) + êxito em % (barras, embaixo), no mesmo gráfico */
+function volumeExito(svg, S) {
+  const H2 = 330, L = 14, Rr = 14, T = 22, iw = W - L - Rr;
+  const linT = T, linB = T + 168, barT = T + 214, barB = H2 - 30;
+  const x = i => L + iw * i / (NM - 1);
+  const mx = Math.max.apply(null, S.pub.concat([1])) * 1.1;
+  const y = v => linB - (linB - linT) * v / mx;
+  const ex = S.exito, mxe = Math.max.apply(null, ex.filter(v => v != null).concat([0.0001])) * 1.12;
+  const yb = v => barB - (barB - barT) * v / mxe;
+  const p = [];
+  [0, 0.5, 1].forEach(k => p.push('<line class="linha-grade" x1="' + L + '" y1="' + (linB - (linB - linT) * k).toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + (linB - (linB - linT) * k).toFixed(1) + '"/>'));
+  p.push('<line class="zero" x1="' + L + '" y1="' + barB + '" x2="' + (W - Rr) + '" y2="' + barB + '"/>');
+  const bw = Math.min(iw / NM * 0.7, 20);
+  ex.forEach((v, i) => {
+    if (v == null) return;
+    p.push('<rect class="barx" x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + yb(v).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(barB - yb(v), 1).toFixed(1) + '" rx="1.5"><title>' +
+           esc(rotMes(MESES[i]) + ': êxito ' + pc(v, 1) + ' (' + nf(S.vend[i]) + ' de ' + nf(S.pub[i]) + ')') + '</title></rect>');
+    p.push('<text class="rot peq" x="' + x(i).toFixed(1) + '" y="' + (yb(v) - 4).toFixed(1) + '" text-anchor="middle">' + esc(pc(v, 0)) + '</text>');
+  });
+  [[S.pub, 's2', 'cima'], [S.vend, 's1', 'baixo']].forEach(([a, c, pos]) => {
+    p.push('<path class="' + c + '" d="' + a.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join('') + '"/>');
+    a.forEach((v, i) => p.push('<text class="rot peq" x="' + x(i).toFixed(1) + '" y="' + (y(v) + (pos === 'baixo' ? 11 : -6)).toFixed(1) + '" text-anchor="middle">' + esc(kfmt(v)) + '</text>' +
+      '<circle class="hit" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="6"><title>' + esc(rotMes(MESES[i]) + ': ' + nf(v) + (c === 's2' ? ' publicados' : ' vendidos')) + '</title></circle>'));
+  });
+  MESES.forEach((m, i) => { if (i % 3 === 0) p.push('<text class="eixo" x="' + x(i).toFixed(1) + '" y="' + (H2 - 8) + '" text-anchor="middle">' + esc(rotMes(m)) + '</text>'); });
+  svg.innerHTML = p.join('');
+}
+/* % sobre a FIPE: IGA e esperado de mercado (linhas) + diferença em p.p. (barras), no mesmo gráfico */
+function pctDif(svg, S) {
+  const H2 = 330, L = 14, Rr = 14, T = 22, iw = W - L - Rr;
+  const linT = T, linB = T + 168, barT = T + 206, barB = H2 - 30;
+  const x = i => L + iw * i / (NM - 1);
+  const vs = S.obsG.concat(S.espG).filter(v => v != null);
+  if (!vs.length) { svg.innerHTML = '<text class="eixo" x="400" y="150" text-anchor="middle">Sem dados neste filtro</text>'; return; }
+  const mxl = Math.max.apply(null, vs), mnl = Math.min.apply(null, vs), fol = (mxl - mnl || 0.1) * 0.15;
+  const y = v => linB - (linB - linT) * (v - (mnl - fol)) / ((mxl + fol) - (mnl - fol));
+  const dv = S.gapG.filter(v => v != null), ext = Math.max.apply(null, dv.map(Math.abs).concat([0.0001])) * 1.2;
+  const yz = (barT + barB) / 2, yb = v => yz - (barB - barT) / 2 * v / ext;
+  const p = [];
+  [0, 0.5, 1].forEach(k => p.push('<line class="linha-grade" x1="' + L + '" y1="' + (linB - (linB - linT) * k).toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + (linB - (linB - linT) * k).toFixed(1) + '"/>'));
+  p.push('<line class="zero" x1="' + L + '" y1="' + yz.toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + yz.toFixed(1) + '"/>');
+  const bw = Math.min(iw / NM * 0.7, 20);
+  S.gapG.forEach((v, i) => {
+    if (v == null) return;
+    p.push('<rect class="bar" x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + Math.min(yz, yb(v)).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(Math.abs(yb(v) - yz), 1).toFixed(1) + '" rx="1.5"><title>' +
+           esc(rotMes(MESES[i]) + ': ' + pp(v) + ' (' + nf(S.gn[i]) + ' veículos)') + '</title></rect>');
+    p.push('<text class="rot peq" x="' + x(i).toFixed(1) + '" y="' + (v >= 0 ? yb(v) - 4 : yb(v) + 10).toFixed(1) + '" text-anchor="middle">' + esc((v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(100 * v), 1)) + '</text>');
+  });
+  [[S.espG, 's1', 'baixo', 'Esperado'], [S.obsG, 's2', 'cima', 'IGA']].forEach(([a, c, pos, nome]) => {
+    let d = '', abre = false;
+    a.forEach((v, i) => { if (v == null) { abre = false; return; } d += (abre ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); abre = true; });
+    if (d) p.push('<path class="' + c + '" d="' + d + '"/>');
+    a.forEach((v, i) => { if (v == null) return;
+      p.push('<text class="rot peq" x="' + x(i).toFixed(1) + '" y="' + (y(v) + (pos === 'baixo' ? 11 : -6)).toFixed(1) + '" text-anchor="middle">' + esc(pc(v, 0)) + '</text>' +
+        '<circle class="hit" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="6"><title>' + esc(rotMes(MESES[i]) + ' · ' + nome + ': ' + pc(v, 1)) + '</title></circle>'); });
+  });
+  MESES.forEach((m, i) => { if (i % 3 === 0) p.push('<text class="eixo" x="' + x(i).toFixed(1) + '" y="' + (H2 - 8) + '" text-anchor="middle">' + esc(rotMes(m)) + '</text>'); });
+  svg.innerHTML = p.join('');
+}
+const kfmt = x => (x >= 1000 ? nf(x / 1000, 1) + 'k' : nf(x));
+
+/* ============================================================================
+   TABELAS
+   ========================================================================== */
+const linhaTab = cels => '<tr>' + cels.join('') + '</tr>';
+const td = (v, cls) => '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(v) + '</td>';
+const tdn = v => td(v, 'num');
+const mesAll = k => (k < 0 ? '—' : rotMes(MT[k]));
+const ultimas12 = () => ({ de: MT.length - 12, ate: MT.length - 1, ant0: MT.length - 24, ant1: MT.length - 13 });
+
+/* comparação personalizada: período livre; a seleção de lojas filtra o gráfico de vendas mês a mês */
+const optMes = () => MESES.map((m, i) => '<option value="' + i + '">' + esc(rotMes(m)) + '</option>').join('');
+$('#cmp-de').innerHTML = optMes(); $('#cmp-ate').innerHTML = optMes();
+let CMP = { de: NM - 6, ate: NM - 1 };
+const SELB = new Set();                                   // lojas marcadas na tabela
+$('#cmp-de').value = CMP.de; $('#cmp-ate').value = CMP.ate;
+/* colunas da tabela; clicar no título ordena por ela (n = numérica: o 1º clique vem do maior para o menor) */
+const COLS_CMP = [
+  { k: 'nome', t: 'Loja compradora', esq: 1, v: l => nomeDe(l.b) },
+  { k: 'n12', t: 'Compras, últimos 12 meses', n: 1, v: l => l.n12 },
+  { k: 'n', t: 'Compras no período', n: 1, v: l => l.n },
+  { k: 'm', t: 'Média mensal do período', n: 1, v: l => l.n },
+  { k: 'n3', t: 'Compras, últimos 3 meses', n: 1, v: l => l.n3 },
+  { k: 'm3', t: 'Média mensal, últimos 3 meses', n: 1, v: l => l.n3 },
+  { k: 'vh', t: 'Variação histórica', n: 1, v: l => l.vh },
+  { k: 'ult', t: 'Última compra', n: 1, data: 1, v: l => (l.ult < 0 ? null : l.ult) },
+];
+let ORD_CMP = { k: 'n12', dir: -1 };                      // padrão: quem mais comprou em 12 meses primeiro
+function ordenaCmp(top) {
+  const c = COLS_CMP.find(x => x.k === ORD_CMP.k), d = ORD_CMP.dir;
+  return top.map((l, i) => [l, i]).sort((a, b) => {
+    const x = c.v(a[0]), y = c.v(b[0]), vx = x == null, vy = y == null;
+    if (vx || vy) return vx === vy ? a[1] - b[1] : (vx ? 1 : -1);   // "—" sempre no fim
+    if (x === y) return a[1] - b[1];
+    return d * (typeof x === 'string' ? x.localeCompare(y, 'pt-BR') : x - y);
+  }).map(p => p[0]);
+}
+function cabecalhoCmp() {
+  $('#th-cmp').innerHTML = '<th class="chk"></th>' + COLS_CMP.map(c => {
+    const at = c.k === ORD_CMP.k;
+    return '<th' + (c.esq ? ' class="esq"' : '') + (at ? ' aria-sort="' + (ORD_CMP.dir > 0 ? 'ascending' : 'descending') + '"' : '') + '>' +
+      '<button type="button" class="ord' + (at ? ' at' : '') + '" data-k="' + c.k + '">' + esc(c.t) +
+      '<span class="seta-ord" aria-hidden="true">' + (at ? (ORD_CMP.dir > 0 ? '▲' : '▼') : '') + '</span></button></th>';
+  }).join('');
+}
+function tabelaComparacao(S) {
+  let de = CMP.de, ate = CMP.ate;
+  if (de > ate) { const t = de; de = ate; ate = t; }
+  const dA = de + OFF, aA = ate + OFF, nm = ate - de + 1, t3 = MT.length - 3, lin = [];
+  const soAtivas = $('#cmp-ativas').checked, t12 = MT.length - 12;
+  S.buy.forEach((v, b) => {
+    if (soAtivas && !R.compr.ativa[b]) return;
+    let n = 0, n3 = 0, n12 = 0, ult = -1;
+    for (let k = dA; k <= aA; k++) n += v[k];
+    for (let k = t3; k < MT.length; k++) n3 += v[k];
+    for (let k = t12; k < MT.length; k++) n12 += v[k];
+    for (let k = MT.length - 1; k >= 0; k--) if (v[k] > 0) { ult = k; break; }
+    if (n12 > 0) lin.push({ b, n, n3, n12, ult, vh: n > 0 ? (n3 / 3) / (n / nm) - 1 : null });
+  });
+  lin.sort((a, b) => b.n12 - a.n12 || b.n - a.n);
+  const top = ordenaCmp(lin);                // a tabela mostra todas, na ordem da coluna escolhida
+  const tot = soma(top, l => l.n);
+  const colOrd = COLS_CMP.find(x => x.k === ORD_CMP.k);
+  const rotOrd = ORD_CMP.k === 'vh' && ORD_CMP.dir > 0
+    ? 'ordenadas da menor variação para a maior (quem mais desacelerou aparece primeiro; −100% = não comprou nos últimos 3 meses; "—" = não comprou no período escolhido)'
+    : 'ordenadas por "' + colOrd.t + '", ' + (colOrd.data ? (ORD_CMP.dir > 0 ? 'da mais antiga para a mais recente' : 'da mais recente para a mais antiga') : colOrd.n ? (ORD_CMP.dir > 0 ? 'do menor para o maior' : 'do maior para o menor') : (ORD_CMP.dir > 0 ? 'de A a Z' : 'de Z a A')) +
+      ' (−100% = não comprou nos últimos 3 meses; "—" = não comprou no período escolhido, e vai sempre para o fim)';
+  cabecalhoCmp();
+  $('#n-cmp').textContent = rotMes(MESES[de]) + ' a ' + rotMes(MESES[ate]);
+  $('#tb-cmp').innerHTML = top.length ? top.map((l, i) =>
+    '<tr class="' + (SELB.has(l.b) ? 'marcada' : '') + '"><td class="chk"><input type="checkbox" data-b="' + l.b + '"' + (SELB.has(l.b) ? ' checked' : '') + ' aria-label="Filtrar o gráfico por ' + esc(nomeDe(l.b)) + '"></td>' +
+    td(nomeDe(l.b), 'esq') + tdn(nf(l.n12)) + tdn(nf(l.n)) + tdn(nf(l.n / nm, 1)) + tdn(nf(l.n3)) + tdn(nf(l.n3 / 3, 1)) +
+    tdn(l.vh == null ? '—' : (l.vh > 0.0005 ? '+' : l.vh < -0.0005 ? '−' : '') + nf(Math.abs(100 * l.vh)) + '%') + tdn(mesAll(l.ult)) + '</tr>').join('')
+    : '<tr><td colspan="9" class="vazio">Nenhuma loja com compra nos últimos 12 meses neste filtro.</td></tr>';
+  $('#n-tab-cmp').textContent = 'As ' + nf(lin.length) + ' lojas que compraram do IGA nos últimos 12 meses (' + rotMes(MT[t12]) + ' a ' + rotMes(MT[MT.length - 1]) + '), ' + rotOrd + '. Clique no título de uma coluna para ordenar por ela; outro clique inverte. Juntas compraram ' + nf(tot) +
+    ' veículos no período (' + nm + ' meses). "Compras, últimos 3 meses" = ' + rotMes(MT[t3]) + ' a ' + rotMes(MT[MT.length - 1]) +
+    '. Variação histórica = (média de compras por mês nos últimos 3 meses ÷ média por mês do período selecionado) − 1: +25% = a loja comprou 25% mais por mês no último trimestre do que na média do período. Marque lojas para filtrar o gráfico abaixo.' + (soAtivas ? DADOS.notas.ativas : '');
+  document.querySelectorAll('#comparacao .seg button').forEach(b => {
+    const n = Number(b.dataset.n), d0 = n === 0 ? 0 : NM - n;
+    b.setAttribute('aria-pressed', String(CMP.de === d0 && CMP.ate === NM - 1));
+  });
+  graficoCompras(S, top, de, ate);
+}
+function graficoCompras(S, top, de, ate) {
+  const noTop = new Set(top.map(l => l.b));
+  const escolhidas = [...SELB].filter(b => noTop.has(b));
+  const alvo = escolhidas.length ? escolhidas : top.map(l => l.b);
+  const serie = MESES.map((m, k) => soma(alvo, b => S.buy.get(b)[k + OFF]));
+  $('#n-cmp-graf').textContent = escolhidas.length ? escolhidas.length + (escolhidas.length === 1 ? ' loja marcada' : ' lojas marcadas') : 'as ' + nf(alvo.length) + ' lojas da tabela';
+  barrasMes($('#g-cmp'), serie, nf, MESES.map((m, k) => rotMes(m) + ': ' + nf(serie[k]) + ' veículos'), { dim: MESES.map((m, k) => k < de || k > ate) });
+  $('#n-cmp-nota').textContent = (escolhidas.length ? escolhidas.map(nomeDe).join(', ') : 'Todas as ' + nf(alvo.length) + ' lojas da tabela (nenhuma marcada)') + '. Número de veículos comprados do IGA por mês; os meses fora do período escolhido ficam esmaecidos.';
+}
+$('#cmp-de').addEventListener('change', e => { CMP.de = Number(e.target.value); render(); });
+$('#cmp-ate').addEventListener('change', e => { CMP.ate = Number(e.target.value); render(); });
+document.querySelectorAll('#comparacao .seg button').forEach(b => b.addEventListener('click', () => {
+  const n = Number(b.dataset.n);
+  CMP = { de: n === 0 ? 0 : NM - n, ate: NM - 1 };
+  $('#cmp-de').value = CMP.de; $('#cmp-ate').value = CMP.ate; render();
+}));
+$('#tb-cmp').addEventListener('change', e => {
+  const b = e.target.dataset.b;
+  if (b === undefined) return;
+  if (e.target.checked) SELB.add(Number(b)); else SELB.delete(Number(b));
+  render();
+});
+document.querySelectorAll('[data-of]').forEach(b => b.addEventListener('click', () => {
+  OFERTA = b.dataset.of;
+  document.querySelectorAll('[data-of]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  render();
+}));
+$('#th-cmp').addEventListener('click', e => {
+  const b = e.target.closest('button.ord');
+  if (!b) return;
+  const c = COLS_CMP.find(x => x.k === b.dataset.k);
+  if (ORD_CMP.k === c.k) ORD_CMP.dir = -ORD_CMP.dir;
+  else ORD_CMP = { k: c.k, dir: c.n ? -1 : 1 };
+  render();
+});
+$('#cmp-ativas').addEventListener('change', () => render());
+$('#cmp-limpa').addEventListener('click', () => { SELB.clear(); render(); });
+
+/* ============================================================================
+   KPIs, ACHADOS E O RESTO
+   ========================================================================== */
+const ICO = {
+  exito:'<path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/>',
+  vend:'<path d="M5 17h14l-1.5-6h-11z"/><circle cx="8" cy="19" r="1.6"/><circle cx="16" cy="19" r="1.6"/><path d="M6.5 11l1.2-3.5h8.6L17.5 11"/>',
+  pct:'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  par:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M17 4.5a3.5 3.5 0 010 7M22 20c0-3-2-5-5-5.7"/>'
+};
+const cls = (v, bomSubir) => (v == null || Math.abs(v) < 0.0005 ? 'neutro' : ((v > 0) === bomSubir ? 'sobe' : 'desce'));
+const sinal = (v, fmt) => (v == null ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v)));
+
+function kpis(S, P) {
+  const a = { de: NM - 12, ate: NM - 1 }, b = { de: NM - 24, ate: NM - 13 };
+  const ex = j => razao(faixa(S.vend, j.de, j.ate), faixa(S.pub, j.de, j.ate), 1);
+  const ex12 = ex(a), ex12p = ex(b), v12 = faixa(S.vend, a.de, a.ate), v12p = faixa(S.vend, b.de, b.ate);
+  const pb12 = faixa(S.pub, a.de, a.ate), vol12 = faixa(S.vol, a.de, a.ate);
+  const pf = j => razao(faixa(S.so, j.de, j.ate), faixa(S.ng, j.de, j.ate), MINIMO), pf12 = pf(a), pf12p = pf(b);
+  const pr12 = razao(faixa(S.so, a.de, a.ate) - faixa(S.sg, a.de, a.ate), faixa(S.ng, a.de, a.ate), MINIMO);
+  const gp = j => razao(faixa(S.sg, j.de, j.ate), faixa(S.ng, j.de, j.ate), MINIMO), gp12 = gp(a);
+  const dEx = ex12 != null && ex12p != null ? ex12 - ex12p : null, dV = v12p ? v12 / v12p - 1 : null, dPf = pf12 != null && pf12p != null ? pf12 - pf12p : null;
+  const K = [
+    { ico: 'exito', rot: 'Êxito, 12 meses', val: pc(ex12, 1), cls: cls(dEx, true), delta: dEx == null ? '—' : pp(dEx) + ' vs. 12 meses anteriores',
+      pe: [['Vendidos', nf(v12)], ['Publicados', nf(pb12)]] },
+    { ico: 'vend', rot: 'Vendidos, 12 meses', val: nf(v12), cls: cls(dV, true), delta: dV == null ? '—' : sinal(dV, x => nf(100 * x, 1) + '%') + ' vs. 12 meses anteriores',
+      pe: [['Volume vendido', 'R$ ' + nf(vol12 / 1e6, 1) + ' mi'], ['Compraram no último mês', nf(S.rec.comp[NM - 1])]] },
+    { ico: 'pct', rot: '% sobre a FIPE nas vendas, 12 meses', val: pc(pf12, 1), cls: cls(dPf, true), delta: dPf == null ? '—' : pp(dPf) + ' vs. 12 meses anteriores',
+      pe: [['Esperado de mercado', pc(pr12, 1)], ['IGA vs. esperado', pp(gp12)]] },
+    { ico: 'par', rot: 'Recorrentes que pararam', val: nf(P.lin.length) + ' de ' + nf(P.fieisBase), cls: 'desce',
+      delta: P.fieisBase ? pc(P.lin.length / P.fieisBase, 0) + ' dos recorrentes sem comprar há 4 meses' : '—',
+      pe: [['Compras deles na base', nf(soma(P.lin, l => l.base))], ['Janela-base', rotMes(MT[P.b0]) + ' a ' + rotMes(MT[P.b1])]] }
+  ];
+  $('#kpis').innerHTML = K.map(k =>
+    '<article class="cartao"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICO[k.ico] +
+    '</svg></span><span class="kpi-rot">' + esc(k.rot) + '</span></div><p class="kpi-val num">' + esc(k.val) + '</p>' +
+    '<p class="kpi-delta ' + k.cls + '">' + (k.cls === 'sobe' ? '<span aria-hidden="true">▲</span> ' : k.cls === 'desce' ? '<span aria-hidden="true">▼</span> ' : '') + esc(k.delta) + '</p>' +
+    '<dl class="kpi-pe">' + k.pe.map(p => '<div><dt>' + esc(p[0]) + '</dt><dd class="num">' + esc(p[1]) + '</dd></div>').join('') + '</dl></article>').join('');
+  return { ex12, ex12p, v12, v12p, pb12, pf12, pr12, gp12 };
+}
+
+function achados(S, P, K) {
+  const ex = JAN.map(j => exitoJ(S, j));
+  const nGapMeses = S.gap.filter(x => x != null).length, nGapPos = S.gap.filter(x => x != null && x > 0).length;
+  const g = (de, ate) => razao(faixa(S.sg, de, ate), faixa(S.ng, de, ate), MINIMO);
+  const gAnt = g(NM - 24, NM - 13), gTodo = g(0, NM - 1);
+  const det = P.lin.map(l => detDe(l.b)).filter(Boolean);
+  const nDet = det.length;
+  const out = [];
+  const exv = ex.filter(x => x != null);
+  out.push([exv.length < 2 ? 'O êxito não tem base suficiente neste filtro.' : 'O êxito foi de ' + pc(Math.min.apply(null, exv)) + ' a ' + pc(Math.max.apply(null, exv)) + ' entre os períodos comparados.',
+    'Vendidos ÷ publicados (únicos no mês): ' + JAN.map((j, i) => pc(ex[i]) + ' em ' + j.rot).join(', ').replace(/, ([^,]*)$/, ' e $1') +
+    '. Nos últimos 12 meses foram ' + nf(K.pb12) + ' veículos publicados e ' + nf(K.v12) + ' vendidos; nos 12 anteriores, ' + nf(K.v12p) + ' vendidos.']);
+  out.push(['Nas vendas, o IGA fica acima da FIPE que veículos comparáveis alcançaram.',
+    'Nas vendas, o IGA fica ' + pp(K.gp12) + ' sobre a FIPE em relação ao esperado de mercado para veículo comparável (mesmo modelo, idade, quilometragem e cluster) nos últimos 12 meses' +
+    (gAnt != null ? ' (' + pp(gAnt) + ' nos 12 anteriores)' : '') + '; em ' + nGapPos + ' dos ' + nGapMeses + ' meses a diferença é positiva' +
+    (gTodo != null ? ', média da série ' + pp(gTodo) : '') + '. Nos últimos 12 meses o IGA vendeu a ' + pc(K.pf12, 1) + ' da FIPE; o mercado teria obtido ' + pc(K.pr12, 1) + ' para os mesmos veículos.']);
+  out.push([P.fieisBase ? nf(P.lin.length) + ' de ' + nf(P.fieisBase) + ' compradores recorrentes pararam de comprar do IGA (' + pc(P.lin.length / P.fieisBase, 0) + ').' : 'Sem compradores recorrentes neste filtro.',
+    'Dos ' + nf(P.fieisBase) + ' compradores que foram recorrentes em algum mês entre ' + rotMes(MT[P.b0]) + ' e ' + rotMes(MT[P.b1]) + ', ' + nf(P.lin.length) +
+    ' não compraram de ' + rotMes(MT[P.r0]) + ' a ' + rotMes(MT[P.fim]) + '.' +
+    (nDet ? ' ' + nf(det.filter(d => d[3] > 0).length) + ' de ' + nf(nDet) + ' ainda acessam o canal e ' + nf(det.filter(d => d[1] === 0).length) + ' não fizeram nenhuma oferta ao IGA nesse período.' : '')]);
+  $('#concl').innerHTML = out.map(c => '<li><div><strong>' + esc(c[0]) + '</strong><span>' + esc(c[1].replace(/p\.p\.\./g, 'p.p.')) + '</span></div></li>').join('');
+  $('#concl-n').textContent = out.length + ' achados';
+}
+
+/* ============================================================================
+   RENDER — chamado a cada filtro
+   ========================================================================== */
+function render() {
+  const S = calcula();
+  S.rec = recorrencia(S);
+  const P = quemParou(S);
+  const K = kpis(S, P);
+
+  volumeExito($('#g-vol'), S);
+  pctDif($('#g-cl'), S);
+  $('#n-hm-nota').textContent = DADOS.notas.pct;
+  linhas($('#g-ped'), [{ c: 's1', v: S.exito, n: 'Êxito', rot: 'baixo' }, { c: 's2', v: S.pctIga, n: '% sobre a FIPE', rot: 'cima' }], { f: x => pc(x, 0), rotulos: true });
+  $('#n-ped').textContent = DADOS.notas.ped;
+
+  linhas($('#g-comp'), [{ c: 's2', v: S.rec.comp, n: 'Compraram no mês', rot: 'cima' }, { c: 's1', v: S.rec.fiel, n: 'Recorrentes', rot: 'baixo' }], { f: x => nf(x), zero: true, rotulos: true });
+
+  tabelaComparacao(S);
+  achados(S, P, K);
+}
+
+/* ── método e glossário ── */
+$('#metodo-corpo').innerHTML = DADOS.metodo.map(b => '<h3>' + esc(b[0]) + '</h3><ul>' + b[1].map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>').join('');
+$('#gloss-lista').innerHTML = DADOS.glossario.map(g => '<dt>' + esc(g[0]) + '</dt><dd>' + esc(g[1]) + '</dd>').join('');
+$('#gloss-n').textContent = DADOS.glossario.length + ' termos';
+
+/* ============================================================================
+   TEMA — nasce no declarado no <html>; a troca NÃO é gravada (regra 6 do kit).
+   ========================================================================== */
+const LOGO = {
+  claro:  { extensa:"__LOGO_CLARO__",  curta:"__LOGO_CLARO__"  },
+  escuro: { extensa:"__LOGO_ESCURO__", curta:"__LOGO_ESCURO__" }
+};
+const ICO_TEMA = {
+  claro:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  escuro:'<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>'
+};
+function aplicaTema(t) {
+  document.documentElement.dataset.tema = t;
+  $('#logo').src = LOGO[t].extensa;
+  $('#logo-curta').src = LOGO[t].curta;
+  const alvo = t === 'escuro' ? 'claro' : 'escuro';
+  const b = $('#b-tema');
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO_TEMA[alvo] + '</svg>';
+  b.setAttribute('aria-label', 'Mudar para o tema ' + alvo);
+  b.setAttribute('title', 'Tema ' + alvo);
+}
+aplicaTema(document.documentElement.dataset.tema);
+$('#b-tema').addEventListener('click', () => aplicaTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro'));
+
+render();
+</script>
+</body>
+</html>

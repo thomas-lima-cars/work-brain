@@ -224,8 +224,26 @@ if (jsonD) {
 
 /* colunas centradas, com duas exceções deliberadas: o título de grupo (que
    atravessa a tabela) e o glossário (texto corrido) */
-ok(/#tabS th, #tabS td, #tabL th, #tabL td\{text-align:center\}/.test(html),
+/* a regra ganhou as tabelas da aba 3 em 14/10; o que importa é que as da
+   aba 2 continuem nela */
+ok(/#tabS th, #tabS td, #tabL th, #tabL td[^{]*\{text-align:center\}/.test(html),
   'sumiu a regra que centraliza as colunas das tabelas');
+ok(/#tabLd th, #tabLd td, #tabLL th, #tabLL td[^{]*\{text-align:center\}/.test(html),
+  'as tabelas da aba do laudo deveriam centralizar como as outras');
+
+/* aba 3 — laudo cautelar */
+ok(/data-bs-target="#t3"[^>]*>Laudo cautelar</.test(html), 'falta a aba Laudo cautelar');
+ok(/id="tabLd"/.test(html) && /id="tabLL"/.test(html) && /id="lat"/.test(html),
+  'a aba do laudo deveria ter indicadores, analítico e lataria');
+ok(!/var LD = null;/.test(html),
+  'o painel saiu sem os dados do laudo — rodar laudos/coleta-textos-vendas.py antes');
+
+/* aba 4 — laudo item a item */
+ok(/data-bs-target="#t4"[^>]*>Laudo item a item</.test(html), 'falta a aba Laudo item a item');
+ok(/id="tabIt"/.test(html) && /id="tabIL"/.test(html), 'a aba item a item deveria ter itens e analítico');
+ok(!/var IT = null;/.test(html), 'o painel saiu sem a análise item a item');
+ok(/#tabIt th, #tabIt td, #tabIL th, #tabIL td\{text-align:center\}/.test(html),
+  'as tabelas da aba item a item deveriam centralizar como as outras');
 ok(/#tabS td\.gtit\{text-align:left\}/.test(html),
   'o título de grupo deveria continuar à esquerda');
 ok(/\.gl th, \.gl td\{text-align:left\}/.test(html),

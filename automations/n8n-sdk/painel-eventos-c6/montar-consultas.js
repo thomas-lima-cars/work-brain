@@ -14,10 +14,18 @@
    o total (limite de tamanho do JSON_ARRAYAGG, resposta cortada no
    caminho), o Montar Painel para o run em vez de publicar meia tabela.
 
-   ─── O RECORTE (decidido pelo Thomas em 2026-09-24) ──────────────────
+   ─── O RECORTE (Thomas, 2026-09-24; outubro em 2026-10-02) ───────────
    Eventos que alvejam o whitelabel 43 (Canal de vendas C6 Auto) e que
-   terminam de 30 dias atrás em diante — os abertos, os agendados e os
-   encerrados recentes. Sem teto: evento agendado já tem veículo publicado.
+   ENCERRAM A PARTIR DE 01/10/2026 — a seleção de outubro. Sem teto: evento
+   agendado já tem veículo publicado, e os de outubro entram sozinhos. Até
+   02/10 o piso era móvel, 30 dias antes de hoje.
+
+   ─── LOJA NOVA (Thomas, 2026-10-02) ──────────────────────────────────
+   Cadastrada a partir de 01/10/2026 E no grupo de cliente 146 ("Parceiros
+   C6 - Exclusivo SP"). O grupo mora no USUÁRIO (user_shops ->
+   user_clients_group), não na loja: a loja está no grupo quando algum
+   usuário dela está. A consulta de lojas traz esse sinal; o corte é do
+   Montar Painel.
 
    Por WHITELABEL, a pedido. O relatório de produção trava por loja
    vendedora (104754); aqui a loja vendedora viaja como coluna e o painel
@@ -34,7 +42,12 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 const WL_C6 = 43;
-const DIAS_JANELA = 30;
+/* a seleção de outubro (02/10): eventos que encerram a partir daqui */
+const RECORTE_DESDE = '2026-10-01 00:00:00';
+/* loja nova (02/10): cadastro a partir daqui E no grupo de cliente */
+const NOVAS_DESDE = '2026-10-01 00:00';
+const GRUPO_NOVAS = 146;
+const GRUPO_NOVAS_NOME = 'Parceiros C6 - Exclusivo SP';
 const FUSO_MIN = -180;          /* America/Sao_Paulo, sem horário de verão */
 const DB = 'cars2you_production';
 
@@ -42,13 +55,14 @@ const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-const PISO = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(),
-  agora.getUTCDate() - DIAS_JANELA))) + ' 00:00:00';
+const PISO = RECORTE_DESDE;
+/* 05/10: o painel mostra SÓ o Mega Evento (24052, 145 anúncios, 05 a 08/10), a pedido do Thomas */
+const SO_EVENTOS = '24052';
 
 /* o recorte de evento, escrito uma vez só e reusado em todas as consultas.
    Cinco cópias à mão seriam cinco chances de uma divergir das outras. */
 const EVENTO =
-  " e.deleted_at IS NULL AND e.finish_date_event >= '" + PISO + "'" +
+  " e.deleted_at IS NULL AND e.id IN (" + SO_EVENTOS + ") AND e.finish_date_event >= '" + PISO + "'" +
   " AND EXISTS (SELECT 1 FROM event_whitelabels ew" +
   " WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 
@@ -59,13 +73,16 @@ const OFERTAS_DO_RECORTE =
   " INNER JOIN events e ON e.id = an.event_id AND" + EVENTO +
   " WHERE o.deleted_at IS NULL";
 
-/* acessos de loja ao canal dentro do período do recorte inteiro: do menor
-   início ao maior fim. O índice começa por whitelabel_id (~4s por passada) */
-const ACESSOS_DO_RECORTE =
-  " FROM access_logs al" +
-  " WHERE al.whitelabel_id = " + WL_C6 + " AND al.shop_id IS NOT NULL" +
-  " AND al.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")" +
-  " AND al.created_at <= (SELECT MAX(e.finish_date_event) FROM events e WHERE" + EVENTO + ")";
+/* acessos de loja AO EVENTO (08/10, Thomas): linha de access_logs com o
+   event_id do evento, dentro do horário DELE (início da oferta ao fim), no
+   minuto. Antes contava qualquer acesso ao canal no período — medido em
+   08/10 no 24052: 251 lojas no canal, 91 no evento. Join por igualdade no
+   event_id, como em acessos_anuncio; por faixa de data passou de 5 min. */
+const ACESSOS_DO_EVENTO =
+  " FROM events e INNER JOIN access_logs al ON al.event_id = e.id" +
+  " AND al.whitelabel_id = " + WL_C6 + " AND al.shop_id IS NOT NULL" +
+  " AND al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event" +
+  " WHERE" + EVENTO;
 
 const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
 
@@ -145,8 +162,10 @@ const TABELAS = [
   },
   {
     /* as lojas que o painel cita: quem ofertou no recorte MAIS as lojas do
-       canal cadastradas desde o início do evento mais antigo da janela. O
-       UNION deduplica.
+       canal cadastradas desde o início do evento mais antigo da janela MAIS
+       as do grupo das novas cadastradas desde a data das novas (02/10). O
+       UNION deduplica. "grupo" = 1 quando algum usuário da loja está no
+       grupo de cliente das novas.
        O CNPJ é a chave do cruzamento com a planilha de representantes
        comerciais (Montar Painel). Ele NÃO vai para o HTML — é chave, não
        dado de tela, e a prova confere. O key account saiu em 2026-09-24:
@@ -154,9 +173,14 @@ const TABELAS = [
     nome: 'lojas',
     de: " FROM (SELECT o.buyer_shop_id AS id" + OFERTAS_DO_RECORTE +
         " AND o.buyer_shop_id IS NOT NULL" +
+        " UNION SELECT al.shop_id AS id" + ACESSOS_DO_EVENTO +
         " UNION SELECT s2.id AS id FROM shops s2" +
         " WHERE s2.whitelabel_id = " + WL_C6 + " AND s2.deleted_at IS NULL" +
-        " AND s2.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")) ids" +
+        " AND s2.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")" +
+        " UNION SELECT us3.shop_id AS id FROM user_shops us3" +
+        " INNER JOIN user_clients_group ucg3 ON ucg3.user_id = us3.user_id AND ucg3.client_group_id = " + GRUPO_NOVAS +
+        " INNER JOIN shops s3 ON s3.id = us3.shop_id AND s3.deleted_at IS NULL" +
+        " AND s3.created_at >= '" + NOVAS_DESDE + "') ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [
       ['id', 's.id'],
@@ -165,6 +189,8 @@ const TABELAS = [
       ['situacao', 's.situation'],
       ['cadastro', DATA('s.created_at')],
       ['apagada', 's.deleted_at IS NOT NULL'],
+      ['grupo', "EXISTS (SELECT 1 FROM user_shops us INNER JOIN user_clients_group ucg ON ucg.user_id = us.user_id" +
+        " AND ucg.client_group_id = " + GRUPO_NOVAS + " WHERE us.shop_id = s.id)"],
       ['cnpj', 's.cnpj']
     ]
   },
@@ -203,7 +229,7 @@ const TABELAS = [
   }
 ];
 
-/* ── acessos ao canal: loja × dia × hora, em PARTES ─────────────────────
+/* ── acessos ao evento: loja × dia × hora, em PARTES ─────────────────────
    O filtro de Representante (29/09) precisa saber de QUEM é cada acesso
    por hora, então o pacote é loja × dia × hora com a contagem. Inteiro ele
    passa de 200 KB; em duas partes (resto da divisão do id da loja) cada uma
@@ -215,7 +241,7 @@ for (let p = 0; p < PARTES_ACESSO; p++) {
   TABELAS.push({
     nome: 'acessos_p' + p,
     de: " FROM (SELECT al.shop_id AS loja, DATE_FORMAT(al.created_at, '%y%m%d') AS dia," +
-        " HOUR(al.created_at) AS hora, COUNT(*) AS n" + ACESSOS_DO_RECORTE +
+        " HOUR(al.created_at) AS hora, COUNT(*) AS n" + ACESSOS_DO_EVENTO +
         " AND MOD(al.shop_id, " + PARTES_ACESSO + ") = " + p +
         " GROUP BY al.shop_id, DATE_FORMAT(al.created_at, '%y%m%d'), HOUR(al.created_at)) x",
     cols: [
@@ -244,7 +270,10 @@ const itens = TABELAS.map((t, i) => {
       sql: sql,
       cols: t.cols.map((c) => c[0]),
       idx: i,
-      meta: { wl: WL_C6, dias_janela: DIAS_JANELA, piso: PISO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO }
+      meta: {
+        wl: WL_C6, piso: PISO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        novas: { desde: NOVAS_DESDE, grupo: GRUPO_NOVAS, grupo_nome: GRUPO_NOVAS_NOME }
+      }
     }
   };
 });

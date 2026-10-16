@@ -51,17 +51,36 @@ if BASE not in ("dealers", "cars2you"):
 SUFIXO = BASE
 
 
+def _arg(nome, padrao=None):
+    for _i, _a in enumerate(sys.argv):
+        if _a == nome and _i + 1 < len(sys.argv):
+            return sys.argv[_i + 1]
+    return padrao
+
+
+# 14/10: amostra AMPLIADA para o modelo preditivo, sem tocar na do estudo.
+#   --top N        quantos modelos (padrao 20, o do estudo)
+#   --ate AAAA-MM-DD  fim da janela (padrao hoje); o preditivo usa 2026-09-17,
+#                  o fim da extracao do estudo, para o teste continuar comparavel
+#   --sufixo X     grava analitico-X-<base>.json etc. -- nunca sobrescreve o estudo
+_SUF = _arg("--sufixo")
+if _SUF:
+    SUFIXO = "%s-%s" % (_SUF, BASE)
+
+
 def conectar():
     return _conectar(BASE)
 
 JANELA_MESES = 12
 CORTE = (0.2, 1.2)
 EXCLUIR = ["Motocicleta", "Caminhao", "Onibus", "Reboque", "Semireboque"]
-TOP_N = 20
+TOP_N = int(_arg("--top", 20))
 
 # A data vai como LITERAL, calculada fora do SQL: o banco responde em UTC e o
 # evento e horario de Brasilia. Regra ja registrada no estado-atual.md.
 AGORA = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=180)
+if _arg("--ate"):
+    AGORA = dt.datetime.strptime(_arg("--ate"), "%Y-%m-%d")
 INI = AGORA.replace(year=AGORA.year - JANELA_MESES // 12)
 JANELA = (" AND an.finish_date_offer >= '%s 00:00:00'"
           " AND an.finish_date_offer <= '%s 23:59:59'"
@@ -116,7 +135,10 @@ F_KM = ("CASE WHEN v.km IS NULL THEN 'z sem km'"
         " WHEN v.km < 200000 THEN 'g 150 a 200k'"
         " ELSE 'h 200k ou mais' END")
 
-IDADE = "(YEAR(an.finish_date_offer) - v.model_year)"
+# CAST com sinal: model_year e sem sinal no banco, e carro de modelo futuro
+# (ano-modelo maior que o ano da venda) estourava a subtracao -- apareceu so
+# na amostra ampliada do preditivo, 14/10. Idade 0 ou negativa e esperada.
+IDADE = "(CAST(YEAR(an.finish_date_offer) AS SIGNED) - CAST(v.model_year AS SIGNED))"
 F_IDADE = ("CASE WHEN v.model_year IS NULL OR v.model_year < 1950 THEN 'z sem ano'"
            " WHEN %(i)s <= 1 THEN 'a 0 a 1 ano'"
            " WHEN %(i)s = 2 THEN 'b 2 anos'"

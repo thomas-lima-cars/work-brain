@@ -1,0 +1,125 @@
+/* ==========================================================================
+   Camada IGA — só COR, por cima de tema.css
+   --------------------------------------------------------------------------
+   Entra DEPOIS de design/tokens/tema.css, nunca no lugar dele (mesmo arranjo
+   do tema-c6.css). Forma, espaçamento e componente continuam vindo de lá.
+
+   Pedido do Thomas em 2026-10-08, ao abrir o Estudo de Vendas IGA: logo e cores
+   da imagem anexa. Três valores saíram dela:
+       #000D3C  azul-noite   tinta da logo
+       #FF6200  laranja      barra do meio
+       #001FBD  azul         barra da esquerda
+   O resto da escala (campo, superfícies, textos, escuro) é DERIVADO — não veio
+   da marca. Registro em design/paletas/iga.json.
+
+   ⚠️ OS DOIS BLOCOS REDEFINEM O MESMO CONJUNTO DE TOKENS. :root e
+   [data-tema="escuro"] têm a mesma especificidade: quem vale é o último. Token
+   redefinido só aqui no claro vazaria para o escuro. Token novo entra nos dois.
+
+   PAPEL DAS CORES (o papel importa mais que a cor):
+     claro   texto/acento/chip = azul-noite #000D3C (a tinta da logo)
+             dado (linha, barra)        = azul #001FBD
+             segunda série (comparação) = laranja escurecido #C94E00
+     escuro  texto = quase branco; acento/chip = laranja #FF6200
+             dado = azul claro #7C93FF (o #001FBD some: 1,7:1)
+             segunda série = laranja #FF6200
+
+   ── CONTRASTE MEDIDO (node design/_contraste.js) ──────────────────────────
+                          canto do cartão   fundo escuro
+                             #E3E6F0          #12182B
+       #000D3C texto           15,0              —
+       #3B4672 texto-2          7,31             —
+       #5A6488 texto-3          4,66             —
+       #001FBD dado             8,7              —
+       #C94E00 série-2          3,68             3,84
+       #7C93FF dado escuro       —               6,27
+       #FF6200 acento escuro     —               5,88
+   ========================================================================== */
+
+:root,
+[data-tema="claro"]{
+  color-scheme: light;
+
+  --marca-azul:       #000D3C;
+  --marca-azul-claro: #001FBD;
+
+  --fundo:          #DDE1EE;
+  --fundo-veu:      radial-gradient(420px 300px at 0% -14%,
+                      rgba(255,255,255,.72), transparent 70%),
+                    radial-gradient(1200px 900px at 100% 100%,
+                      rgba(120,134,190,.42), transparent 66%);
+
+  --superficie:     #FAFBFE;
+  --superficie-2:   #EDEFF7;
+  --borda:          #E3E6F0;
+  --borda-forte:    #C9CFE2;
+
+  --texto:          #000D3C;
+  --texto-2:        #3B4672;
+  --texto-3:        #5A6488;
+
+  --acento:         #000D3C;
+  --acento-cheio:   #001FBD;
+  --acento-veu:     rgba(0,13,60,.07);
+
+  /* a segunda série (os demais vendedores ao lado do IGA): laranja da marca
+     escurecido, porque o #FF6200 dá 2,87:1 no claro e some */
+  --serie-2:        #C94E00;
+
+  --positivo:       #0C6E4B;
+  --negativo:       #7F1112;
+  --atencao:        #6F4047;
+
+  --grade:          rgba(0,13,60,.07);
+  --sombra:         0 1px 1px  rgba(0,13,60,.03),
+                    0 6px 16px rgba(0,13,60,.05),
+                    0 18px 44px rgba(0,13,60,.07),
+                    inset 0 1px 0 rgba(255,255,255,.85);
+  --cartao-borda:   1px solid rgba(255,255,255,.72);
+  --cartao-fundo:   linear-gradient(155deg, rgba(255,255,255,.82) 0%,
+                                            rgba(255,255,255,.95) 58%);
+  --cartao-blur:    blur(18px) saturate(110%);
+  --brilho:         radial-gradient(420px 260px at 0% 0%,
+                      rgba(0,31,189,.10), transparent 72%);
+}
+
+[data-tema="escuro"]{
+  color-scheme: dark;
+
+  --marca-azul:       #FF6200;
+  --marca-azul-claro: #7C93FF;
+
+  --fundo:          #0B1020;
+  --fundo-veu:      radial-gradient(900px 500px at 8% -8%,
+                      rgba(0,31,189,.28), transparent 62%),
+                    radial-gradient(800px 500px at 96% 4%,
+                      rgba(255,98,0,.10), transparent 60%);
+
+  --superficie:     #12182B;
+  --superficie-2:   #192038;
+  --borda:          rgba(255,255,255,.09);
+  --borda-forte:    rgba(255,255,255,.16);
+
+  --texto:          #EEF0F8;
+  --texto-2:        #A9B0CC;
+  --texto-3:        #7783AB;
+
+  --acento:         #FF6200;
+  --acento-cheio:   #7C93FF;
+  --acento-veu:     rgba(124,147,255,.16);
+
+  --serie-2:        #FF6200;
+
+  --positivo:       #35C08A;
+  --negativo:       #EF5B60;
+  --atencao:        #C98A92;
+
+  --grade:          rgba(255,255,255,.07);
+  --sombra:         0 1px 1px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.45);
+  --cartao-borda:   1px solid rgba(255,255,255,.08);
+  --cartao-fundo:   linear-gradient(158deg, rgba(255,255,255,.075),
+                                            rgba(255,255,255,.025));
+  --cartao-blur:    blur(16px) saturate(120%);
+  --brilho:         radial-gradient(420px 180px at 0% 0%,
+                      rgba(124,147,255,.14), transparent 70%);
+}

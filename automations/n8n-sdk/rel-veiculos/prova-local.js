@@ -523,7 +523,10 @@ const LOJAS = [
      mas com faixa longe demais: score ~32, abaixo do corte de 50. */
   [15, '13124713/0001-09', 'Fora de faixa SP wl7', 7, 'Marketplace', 'SP']
 ];
-const OFERTAS = [[11, 100], [12, 100], [13, 100], [14, 100], [15, 100]];
+/* qt_compras e vl_compras (25/09): a loja 11 arrematou 3 carros, a 13 um, as
+   outras nenhum -- zero tem que aparecer como zero, nao como buraco */
+const OFERTAS = [[11, 100, 3, 150000], [12, 100, 0, 0], [13, 100, 1, 42000], [14, 100, 0, 0], [15, 100, 0, 0]];
+const COL_OFERTAS = ['shop_id', 'qt_ofertas', 'qt_compras', 'vl_compras'];
 /* as tres ultimas colunas sao desagio_n, desagio_medio e desagio_desvio.
    Sem elas o componente de desagio fica com peso zero e as provas dele
    passariam sem provar nada. */
@@ -652,7 +655,7 @@ const f2b = fase2Com(6, 5);
 function respostaDe(p) {
   if (p.queryName === 'q_veiculos') return resp(COLV, VEIC, p.pagina);
   if (p.queryName === 'q_lojas') return resp(COL_LOJAS, LOJAS_MERGED, p.pagina);
-  if (p.queryName === 'q_ofertas') return resp(['shop_id', 'qt_ofertas'], OFERTAS, p.pagina);
+  if (p.queryName === 'q_ofertas') return resp(COL_OFERTAS, OFERTAS, p.pagina);
   if (p.queryName === 'q_perfil') return resp(['shop_id', 'qt_veiculos', 'preco_medio', 'preco_desvio', 'idade_media', 'idade_desvio', 'km_medio', 'km_desvio', 'desagio_n', 'desagio_medio', 'desagio_desvio'], PERFIL, p.pagina);
   if (p.queryName === 'q_modelo') return resp(['shop_id', 'item_id', 'nome', 'n'], MODELO, p.pagina);
   if (p.queryName === 'q_uf_laudo') return resp(COL_UFL, UFL, p.pagina);
@@ -686,7 +689,7 @@ const D = S.DADOS;
 const MIN = D.parametros.corresp_min;
 
 ok(D.veiculos.length === 6, '6 veiculos unicos (a duplicata do v0 foi descartada)');
-ok(S.falhas.some((f) => /1 veiculo\(s\) vieram mais de uma vez/.test(f)),
+ok(S.falhas.some((f) => /1 veículo\(s\) vieram mais de uma vez/.test(f)),
    'a duplicata por veiculo vira falha declarada, nao soma silenciosa');
 const sobra = D.veiculos.filter((v) => v.sobra);
 ok(sobra.length === 1 && D.resumo.sobra === 1, 'exatamente 1 veiculo marcado como sobra');
@@ -814,7 +817,7 @@ function rodaComGrupo(ev, lojasEsperadas, lojaGrupos) {
   ok(R.sem_grupo === 4, 'resumo.sem_grupo = 4 — tem ' + R.sem_grupo);
   ok(R.sem_loja_na_uf === 0,
      'e eles NAO caem no aviso de "investigar": a causa e conhecida');
-  ok(G.falhas.some((f) => /^4 veiculo\(s\) com loja no canal do evento, mas nenhuma nos grupos/.test(f)),
+  ok(G.falhas.some((f) => /^4 veículo\(s\) com loja no canal do evento, mas nenhuma nos grupos/.test(f)),
      'o aviso diz a causa: loja no canal, nenhuma no grupo');
   ok(G.DADOS.veiculos.filter((v) => v.evento_id === 23903).every((v) => !v.grupo_sem_loja),
      'o evento sem grupo nao e afetado');
@@ -1261,7 +1264,7 @@ ok(duplaCategoria === 0, 'nenhum veiculo cai em duas categorias ao mesmo tempo')
 
 /* e o texto tem que dizer QUAL causa, nao "ou uma ou outra" */
 const txt = D.falhas.join(' | ');
-ok(txt.indexOf('canal NAO TEM loja alguma') >= 0,
+ok(txt.indexOf('canal NÃO TEM loja alguma') >= 0,
    'a falha nomeia o canal sem loja em vez de generalizar');
 ok(txt.indexOf('e so ' + 'estes, que mudariam se o corte baixasse') >= 0 ||
    txt.indexOf('mudariam se o corte baixasse') >= 0 ||
@@ -1524,7 +1527,7 @@ ok(semComent.indexOf('${') < 0,
 
   /* cada recusa cai na reserva E explica o motivo na origem */
   [
-    ['404 ou 403 no arquivo', { error: { message: 'The resource could not be found' } }, 'nao veio'],
+    ['404 ou 403 no arquivo', { error: { message: 'The resource could not be found' } }, 'não veio'],
     ['veio outra coisa naquele caminho', { qualquer: 'coisa' }, 'forma de carteira'],
     ['carteira sem CNPJ nenhum', arquivoFalso(0, 0, (o) => { o.cnpj = {}; }), 'sem nenhum CNPJ']
   ].forEach(function (c) {
@@ -1548,7 +1551,7 @@ ok(semComent.indexOf('${') < 0,
       return resp(COL_UFL, [[11, 100, 25, 10, 45, 20, 5, 25, 0]], p.pagina);
     })
   }))[0].json;
-  const acusou = quebrado.falhas.some((f) => f.indexOf('nao somam o total de ofertas') >= 0);
+  const acusou = quebrado.falhas.some((f) => f.indexOf('não somam o total de ofertas') >= 0);
   ok(acusou, '[neg] balde de laudo que nao fecha vira falha declarada, nao arredondamento');
 })();
 
@@ -1574,6 +1577,49 @@ ok(h.indexOf('event.stopPropagation()') > 0,
    'o clique no link nao mexe na selecao da linha');
 ok(h.indexOf("rel=\'noopener\'") > 0 || h.indexOf('noopener') > 0,
    'o link abre em outra aba com noopener');
+
+/* ── compras: a oferta vencedora marcada na q_ofertas (2026-09-25) ────── */
+(function () {
+  const sqlOf = f2b.map((i) => i.json).find((x) => x.queryName === 'q_ofertas').sql;
+  ok(/LEFT JOIN advertisement_negotiations anv ON anv\.id = o\.advs_negotiation_id/.test(sqlOf),
+     'compras: a negociacao entra pela PK (advs_negotiation_id), nao pelo offer_actual_id sem indice');
+  ok(/anv\.offer_actual_id = o\.id/.test(sqlOf) && /anv\.status IN \(2,3,7\)/.test(sqlOf) &&
+     /anv\.deleted_at IS NULL/.test(sqlOf),
+     'compras: so a oferta vencedora, em venda (2, 3, 7), de negociacao nao apagada');
+  ok(/COUNT\(\*\) AS qt_ofertas/.test(sqlOf) && /COUNT\(anv\.id\) AS qt_compras/.test(sqlOf),
+     'compras: qt_ofertas segue COUNT(*) -- o LEFT JOIN por PK nao duplica oferta');
+  ok(/LEFT JOIN advertisement_negotiations/.test(sqlOf) && !/INNER JOIN advertisement_negotiations/.test(sqlOf),
+     'compras: LEFT JOIN -- um INNER sumiria com toda oferta que nao venceu');
+  ok(f2b.filter((i) => i.json.queryName === 'q_ofertas').length ===
+     f2b.filter((i) => i.json.queryName === 'q_perfil').length,
+     'compras: nenhuma chamada nova -- q_ofertas pagina igual as outras consultas de loja');
+
+  const l11c = D.lojas.find((l) => l.loja_id === 11);
+  const l12c = D.lojas.find((l) => l.loja_id === 12);
+  const l13c = D.lojas.find((l) => l.loja_id === 13);
+  ok(l11c && l11c.qt_compras === 3 && l11c.vl_compras === 150000,
+     'compras: a loja 11 chega publicada com 3 compras e R$ 150.000');
+  ok(l13c && l13c.qt_compras === 1 && l13c.vl_compras === 42000, 'compras: a loja 13 com 1 compra');
+  ok(l12c && l12c.qt_compras === 0 && l12c.vl_compras === 0, 'compras: loja sem compra publica zero, nao undefined');
+  ok(l11c && l11c.qt_ofertas === 100, 'compras: qt_ofertas da loja nao mudou (100)');
+
+  /* as compras sao so exibicao: o score tem que sair identico sem elas */
+  const semCompras = f2b.map((i) => i.json).map(function (p) {
+    if (p.queryName !== 'q_ofertas') return respostaDe(p);
+    return resp(['shop_id', 'qt_ofertas'], OFERTAS.map((r) => r.slice(0, 2)), p.pagina);
+  });
+  const D0 = rodaNo('montar-html.js', ctxDe({ 'Montar Fase 2': f2b, 'MCP Fase 2': semCompras }))[0].json.DADOS;
+  ok(JSON.stringify(D0.pares) === JSON.stringify(D.pares),
+     'compras: nao entram no score -- os pares saem identicos com e sem as colunas novas');
+  const l11z = D0.lojas.find((l) => l.loja_id === 11);
+  ok(l11z && l11z.qt_compras === 0 && l11z.vl_compras === 0,
+     'compras: resposta antiga (sem as colunas) vira zero, nao NaN');
+
+  ok(h.indexOf('<th>Compras 6m</th></tr>') > 0, 'compras: a tabela de lojas ganhou a coluna (quantidade e valor numa so, cabe em 1.280px)');
+  ok(h.indexOf('compras 6m: ') > 0, 'compras: o resumo do extrato traz a linha de compras');
+  ok(h.indexOf('<dt>Compras</dt>') > 0 && h.indexOf('não entra no score') > 0 && h.indexOf('2,6%') > 0,
+     'compras: o glossario define, diz que nao pesa e declara a venda que caiu depois');
+})();
 
 fs.writeFileSync(path.join(AQUI, 'saida-teste-local.html'), h);
 console.log('\nHTML de teste: saida-teste-local.html (' + h.length + ' bytes)');

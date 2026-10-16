@@ -267,3 +267,14 @@ precificar.
   trava**, modelo e categoria de volta em 1.316 lojas. Números em
   `context/banco-de-dados/projetos/radar-de-estoque/indicadores.md`.
 - Direção do Thomas para o banco do Radar: consultas diretas, processamento no n8n.
+
+## 2026-10-14
+- **Modelo preditivo de preço** (`automations/precificacao/preditivo/`): prevê venda/FIPE só com o
+  que se sabe antes do leilão. VMV e valor da venda ficam fora, de propósito: o modelo existe para
+  ser confrontado com eles. Treino só em vendas disputadas. Números em
+  `context/banco-de-dados/projetos/precificacao/indicadores.md`.
+- **Laudos cautelares** lidos em PDF e analisados item a item. Viraram duas abas do painel do estudo.
+- **Painel de Precificação** no n8n (`gzc0zOKMF4vCbXGH`, projeto Cars2You): não vendidos dos
+  últimos 30 dias, preço do modelo × VMV do cliente. Execução 61975 ✅. Fuso em Brasília,
+  **agendamento ainda desligado**.
+- VMV de R$ 100.000 identificado como valor provisório de cadastro (`plataforma/dominios.md`).

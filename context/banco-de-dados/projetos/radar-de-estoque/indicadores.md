@@ -3,6 +3,35 @@
 > Cada número traz data e como foi medido. O significado das tabelas está em
 > [`plataforma/dominios.md`](../../plataforma/dominios.md).
 
+## Run 53859 — primeira execução com as compras (2026-09-25, 10:36)
+
+Execução manual, sucesso, **16min48s**. Comparada com o run **53827** (cron das 07h do
+mesmo dia, sem as compras, 16min24s). Lido do `runData` das duas execuções.
+
+| medida | 53827 | 53859 |
+|---|---:|---:|
+| MCP Fase 2 | — | 975,3s |
+| Montar HTML | 4,8s | 4,9s |
+| run inteiro | 984s | 1.008s (**+24s**) |
+| `q_ofertas`: chamadas / linhas / erro | 27 / 1.314 / nenhum | 27 / 1.315 / nenhum |
+
+**A marcação da oferta vencedora não duplicou oferta.** Das 742 lojas publicadas nos dois,
+14 mudaram `qt_ofertas`, todas **para cima** e no máximo +6. São as ofertas que entraram
+nas 3,5h entre um run e outro. Nenhuma loja ficou com mais compras que ofertas.
+
+Compras nos últimos 6 meses, sobre as 745 lojas publicadas:
+
+| medida | valor |
+|---|---:|
+| lojas com pelo menos uma compra | 638 (85,6%) |
+| compras | 5.405 |
+| valor comprado | R$ 383.308.235 |
+| ticket médio por loja, mediana | R$ 51.198 |
+| maior volume de uma loja | 150 compras (R$ 4,1 mi) em 1.289 ofertas |
+
+Referência de ordem de grandeza: a Cars2You inteira tem 47.415 vendas em toda a história
+(`precificacao/indicadores.md`).
+
 ## Run 53433 — primeira execução com a trava de grupo (2026-09-23, 19:41)
 
 Execução manual, sucesso, **16min15s** do início ao fim. Tempos lidos do `runData` da

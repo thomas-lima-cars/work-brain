@@ -613,6 +613,19 @@ function smoke(html) {
         if (ex.indexOf('resp. ') < 0 || ex.indexOf('perfil: ') < 0) {
           erros.push('o resumo dentro do extrato nao traz responsavel e perfil');
         }
+        /* 25/09: compras da loja no resumo, e as colunas na tabela de lojas.
+           Numero, nao "undefined" nem "NaN": o campo e novo e a resposta
+           antiga do banco nao o traz. */
+        if (!/compras 6m: (nenhuma|[\d.]+ veículo)/.test(ex)) {
+          erros.push('o resumo do extrato nao traz as compras da loja');
+        }
+        const tl = (cache['t_l'] && cache['t_l'].innerHTML) || '';
+        if (tl.indexOf('<th>Compras 6m</th>') < 0) {
+          erros.push('a tabela de lojas nao tem a coluna de compras');
+        }
+        if (/undefined|NaN/.test(tl) || /undefined|NaN/.test(ex)) {
+          erros.push('compras: undefined/NaN na tabela de lojas ou no extrato');
+        }
         if (cache['ctx'] && cache['ctx'].style.display !== 'none') {
           erros.push('o #ctx continuou visivel com uma loja selecionada — ' +
             'o resumo ficou nos dois lugares');

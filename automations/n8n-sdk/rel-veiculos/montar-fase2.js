@@ -338,9 +338,30 @@ push('q_lojas',
   " WHERE s.deleted_at IS NULL" + SO_WL_LOJA + LOJA_TEM_OFERTA +
   " GROUP BY s.id ORDER BY s.id", PAG_LOJAS);
 
+/* ── compras (2026-09-25) ────────
+   Nao e consulta nova: e a MARCACAO da oferta vencedora dentro da mesma
+   varredura de ofertas. Uma oferta da loja e compra quando a negociacao
+   dela a escolheu (`offer_actual_id`) e esta em venda (2, 3, 7 -- a mesma
+   regra de definicoes.md). O valor e o preco dessa oferta.
+
+   O join e pela PK da negociacao (`advs_negotiation_id` e NOT NULL e tem
+   indice em offers), nunca por `an.offer_actual_id = o.id`, que nao tem
+   indice e varreria advertisement_negotiations inteira. E por ser PK, cada
+   oferta casa com no maximo UMA negociacao: `qt_ofertas` nao muda -- ha
+   prova travando isso.
+
+   Nao confere se e a ULTIMA negociacao do veiculo: venda que caiu e voltou
+   a evento ainda conta (~2,6% dos veiculos no estudo de 14/09). Checar
+   custaria um NOT EXISTS por oferta, o formato que ja estourou o prazo do
+   MCP. Declarado no glossario. */
 push('q_ofertas',
-  "SELECT o." + LADO + " AS shop_id, COUNT(*) AS qt_ofertas" +
-  " FROM offers o" + JOIN_LOJA_CANAL + " WHERE" + JANELA +
+  "SELECT o." + LADO + " AS shop_id, COUNT(*) AS qt_ofertas," +
+  " COUNT(anv.id) AS qt_compras," +
+  " SUM(CASE WHEN anv.id IS NOT NULL THEN o.price ELSE 0 END) AS vl_compras" +
+  " FROM offers o" + JOIN_LOJA_CANAL +
+  " LEFT JOIN advertisement_negotiations anv ON anv.id = o.advs_negotiation_id" +
+  " AND anv.offer_actual_id = o.id AND anv.deleted_at IS NULL AND anv.status IN (2,3,7)" +
+  " WHERE" + JANELA +
   " GROUP BY o." + LADO + " ORDER BY o." + LADO, PAG_LOJAS);
 
 const ULTIMAS =

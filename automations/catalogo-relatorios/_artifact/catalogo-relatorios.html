@@ -1,0 +1,736 @@
+<title>Catálogo de Relatórios</title>
+<style>/* ==========================================================================
+   Tema dos painéis — Cars2You
+   --------------------------------------------------------------------------
+   FONTE ÚNICA do visual. Mexeu aqui, regera os modelos:
+       node design/modelos/monta-modelos.js
+
+   Nunca escreva cor solta dentro do HTML de um painel. Se a cor não existe
+   aqui, ou ela vira token, ou não deveria estar sendo usada.
+
+   Dois temas no mesmo arquivo, de propósito: dois arquivos separados ficam
+   livres pra divergir, e o claro vira o "de verdade" enquanto o escuro
+   apodrece.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Paleta da marca — valores oficiais, não inventar
+   -------------------------------------------------------------------------- */
+:root{
+  --marca-azul:       #1523A0;  /* primária   */
+  --marca-azul-claro: #487DEA;  /* acento     */
+  --marca-cinza:      #E4E6E6;  /* divisória  */
+  --marca-vinho:      #6F4047;  /* atenção    */
+  --marca-vermelho:   #7F1112;  /* negativo   */
+
+  /* Derivados — NÃO estão na paleta oficial. A paleta não tem verde, e um
+     painel precisa de "subiu / desceu". Ver design/paletas/README.md. */
+  --d-verde:          #0E7C55;
+  --d-verde-vivo:     #35C08A;
+  --d-vermelho-vivo:  #EF5B60;
+
+  /* --- forma e ritmo ---
+     Arredondado em 22/09, junto com o tema claro novo: 16/12/10 → 22/14/11.
+     Fica aqui, no bloco COMUM, e não só no claro: dois raios diferentes nos
+     dois temas do mesmo sistema é a divergência que ninguém percebe até ver
+     os dois lado a lado. Forma é uma só; cor é que muda com o tema. */
+  --r-g: 22px;   /* raio do cartão    */
+  --r-m: 14px;   /* raio de bloco     */
+  --r-p: 11px;   /* raio de controle  */
+  --gap: 16px;
+  --topo-h: 68px;
+
+  --fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+           "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. Tema CLARO — é o padrão. Vidro, desde 2026-09-22.
+   --------------------------------------------------------------------------
+   Era branco chapado sobre cinza quase neutro, com borda de 1px separando
+   cartão de página. Virou vidro, na mesma família do escuro: quem tem cor é o
+   FUNDO, o cartão é quase branco e translúcido, e quem o separa é a SOMBRA.
+
+   ── AS QUATRO DECISÕES, E O QUE CADA UMA CUSTOU ───────────────────────────
+
+   1. O acento saiu do azul da marca. `--acento` era #1523A0 e é #3A4552 — o
+      mesmo cinza escuro do texto. É o que dá a cara da referência, e é
+      também o que tira o azul do link, do chip e da barra de título.
+      O azul da marca não sumiu: `--acento-cheio` continua sendo ele, e é
+      quem pinta linha de gráfico, ponto e barra de ranking. Uma cor só na
+      página, e justamente na parte que é dado.
+      ⚠️ Link deixou de se distinguir do texto pela cor. Ver regra 10.
+
+   2. O texto clareou de #14161C para #3A4552. Preto de verdade sobre cartão
+      claro dá 13:1 — contraste de tinta em papel, que numa tela endurece a
+      página inteira. 7,9:1 no pior caso continua acima do 7:1 do AAA.
+
+   3. O cartão ganhou DEGRADÊ, mais escuro no canto superior esquerdo. Isso
+      move o piso de contraste: o pior caso deixou de ser "sobre branco" e
+      passou a ser "sobre o canto escuro do cartão". Duas cores desceram um
+      tom por causa disso — `--texto-3` e `--positivo`, anotadas abaixo.
+
+   4. O campo escureceu para #D8E1E9, e aí texto SOBRE A PÁGINA (fora de
+      cartão) fica abaixo de AA. Virou regra escrita — ver regra 10 em
+      design/regras-de-layout.md: texto só sobre superfície.
+
+   ── CONTRASTE MEDIDO (node design/_contraste.js) ──────────────────────────
+   Os três planos onde o texto cai, com o branco translúcido já resolvido
+   sobre o fundo:
+
+                            canto esc.  canto claro    campo
+                             #E3E8EC      #FDFEFE      #D8E1E9
+       texto      #3A4552      7,91         9,65        7,37   ✓ AAA
+       texto-2    #55626F      5,06         6,18        4,72   ✓ AA
+       acento     #3A4552      7,91         9,65        7,37   ✓ AAA
+       positivo   #0C6E4B      5,08         6,21        4,74   ✓ AA
+       negativo   #7F1112      8,55        10,44        7,97   ✓ AA
+       atenção    #6F4047      6,81         8,31        6,35   ✓ AA
+       texto-3    #6F7D89      3,42         4,18        3,19   — de-ênfase
+
+   Branco sobre o acento (ícone vazado dentro do chip): 9,75:1.
+   -------------------------------------------------------------------------- */
+:root,
+[data-tema="claro"]{
+  /* Sem isto, <select>, scrollbar e afins seguem o modo do SISTEMA, nao o da
+     pagina: o tema claro abre com os controles pretos em quem usa o SO no
+     escuro. Aconteceu no primeiro print. */
+  color-scheme: light;
+
+  /* Quem tem cor é o fundo. O clarão branco no canto superior esquerdo e o
+     cinza mais frio descendo para a direita são o que dá volume à página —
+     sem eles o cartão translúcido não tem de que se destacar.
+     ⚠️ O clarão tem que ser MENOR que a tela: 760px de branco a 95% num
+     viewport de 800 lavavam a página inteira e invertiam o efeito — página
+     branca com cartão acinzentado por cima. */
+  --fundo:          #D8E1E9;
+  --fundo-veu:      radial-gradient(420px 300px at 0% -14%,
+                      rgba(255,255,255,.72), transparent 70%),
+                    radial-gradient(1200px 900px at 100% 100%,
+                      rgba(128,155,178,.50), transparent 66%);
+
+  --superficie:     #FAFCFD;
+  --superficie-2:   #EDF1F5;
+  --borda:          #E3E9EE;
+  --borda-forte:    #C9D4DD;
+
+  /* neutros com um resto de azul: cinza puro ao lado de um campo frio
+     parece sujo */
+  --texto:          #3A4552;
+  /* escurecido de #5B6875 em 22/09, quando o cabecalho perdeu o fundo: o
+     subtitulo do topo passou a cair direto no CAMPO, e la o tom anterior
+     dava 4,31:1 — abaixo de AA. Com este, 4,72. E de quebra o canto
+     escuro do cartao subiu de 4,62 para 5,06. */
+  --texto-2:        #55626F;
+  /* de-ênfase, e escurecido por causa do degradê: no canto superior esquerdo
+     do cartão o tom anterior caía para 3,1:1 */
+  --texto-3:        #6F7D89;
+
+  /* ver a decisão 1 no cabeçalho: cinza escuro no acento, azul da marca no
+     preenchimento. O acento é o MESMO tom do texto de propósito — é ele que
+     pinta o chip de ícone, e ícone e letra deviam ser a mesma tinta. */
+  --acento:         #3A4552;
+  --acento-cheio:   var(--marca-azul-claro);
+  --acento-veu:     rgba(58,69,82,.07);
+
+  /* O verde desceu um tom por causa do degradê: `--d-verde` (#0E7C55) dá
+     4,22:1 no canto escuro do cartão, abaixo de AA — e é exatamente ali que
+     o KPI escreve "▲ 4,2% vs. período anterior". `--d-verde` é DERIVADO, não
+     paleta oficial; escurecer um derivado é ajuste de legibilidade. */
+  --positivo:       #0C6E4B;
+  --negativo:       var(--marca-vermelho);
+  --atencao:        var(--marca-vinho);
+
+  --grade:          rgba(23,33,43,.06);
+
+  /* Profundidade em três camadas fracas, no lugar de uma linha. A de cima
+     (`inset`) é o fio de luz na borda superior — é ela que faz a peça parecer
+     levantada em vez de recortada. */
+  --sombra:         0 1px 1px  rgba(23,33,43,.03),
+                    0 6px 16px rgba(23,33,43,.05),
+                    0 18px 44px rgba(23,33,43,.07),
+                    inset 0 1px 0 rgba(255,255,255,.85);
+
+  /* borda branca e não cinza: no vidro a borda é reflexo, não contorno */
+  --cartao-borda:   1px solid rgba(255,255,255,.72);
+
+  /* O degradê do cartão, em duas camadas que fazem coisas diferentes:
+       `--cartao-fundo`  varia a OPACIDADE do branco (.82 → .95). Como o campo
+                         atrás é mais escuro, menos branco = mais escuro. É a
+                         rampa longa, na diagonal inteira.
+       `--brilho`        um véu cinza-azulado no CANTO, e só nele. É o que dá
+                         o arredondamento da sombra — degradê linear sozinho
+                         parece papel dobrado, não luz.
+     Medido no cartão composto: #E3E8EC no canto superior esquerdo, #FDFEFE
+     no inferior direito. Rampa de ~11%: bastante para se ver, pouco para
+     chamar atenção. */
+  --cartao-fundo:   linear-gradient(155deg, rgba(255,255,255,.82) 0%,
+                                            rgba(255,255,255,.95) 58%);
+  --cartao-blur:    blur(18px) saturate(115%);
+  --brilho:         radial-gradient(420px 260px at 0% 0%,
+                      rgba(86,112,138,.13), transparent 72%);
+}
+
+/* --------------------------------------------------------------------------
+   3. Tema ESCURO — vidro, na linha da referência
+   -------------------------------------------------------------------------- */
+[data-tema="escuro"]{
+  color-scheme: dark;
+
+  --fundo:          #0B0D12;
+  --fundo-veu:      radial-gradient(900px 500px at 8% -8%,
+                      rgba(72,125,234,.20), transparent 62%),
+                    radial-gradient(800px 500px at 96% 4%,
+                      rgba(111,64,71,.16), transparent 60%);
+
+  --superficie:     #12151D;
+  --superficie-2:   #171B25;
+  --borda:          rgba(255,255,255,.09);
+  --borda-forte:    rgba(255,255,255,.16);
+
+  --texto:          #EDEFF5;
+  --texto-2:        #A4ABBF;
+  --texto-3:        #6E7589;
+
+  /* No escuro o azul da marca some (1,65:1). Quem assume é o azul claro,
+     que dá 4,99:1 sobre o fundo. Mesma lógica pro vermelho. */
+  --acento:         var(--marca-azul-claro);
+  --acento-cheio:   var(--marca-azul-claro);
+  --acento-veu:     rgba(72,125,234,.18);
+
+  --positivo:       var(--d-verde-vivo);
+  --negativo:       var(--d-vermelho-vivo);
+  --atencao:        #C98A92;
+
+  --grade:          rgba(255,255,255,.07);
+  --sombra:         0 1px 1px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.45);
+  --cartao-borda:   1px solid rgba(255,255,255,.08);
+  --cartao-fundo:   linear-gradient(158deg, rgba(255,255,255,.075),
+                                            rgba(255,255,255,.025));
+  --cartao-blur:    blur(16px) saturate(140%);
+  --brilho:         radial-gradient(420px 180px at 0% 0%,
+                      rgba(72,125,234,.16), transparent 70%);
+}
+
+/* --------------------------------------------------------------------------
+   4. Base
+   -------------------------------------------------------------------------- */
+*,*::before,*::after{ box-sizing:border-box }
+
+html{ -webkit-text-size-adjust:100% }
+
+body{
+  margin:0;
+  font-family:var(--fonte);
+  font-size:14px;
+  line-height:1.45;
+  color:var(--texto);
+  background-color:var(--fundo);
+  background-image:var(--fundo-veu);
+  background-attachment:fixed;
+  background-repeat:no-repeat;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3{ margin:0; font-weight:650; letter-spacing:-.01em }
+p{ margin:0 }
+
+.num{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1 }
+
+/* --------------------------------------------------------------------------
+   5. Topo — fixo, com o filtro dentro
+   -------------------------------------------------------------------------- */
+/* SEM FUNDO E SEM BORDA (22/09), nos DOIS temas.
+   --------------------------------------------------------------------------
+   O topo era uma superfície própria — `--cartao-fundo` com uma cor sólida por
+   baixo e uma linha embaixo. Virou vidro sem tinta: o fundo da página passa
+   por ele inteiro, e no alto da página não há barra nenhuma, só a página
+   continuando até a borda de cima.
+
+   Tirar a `border-bottom` é parte da mesma decisão: linha atravessando a tela
+   é justamente o que faz uma barra parecer barra.
+
+   ⚠️ O `backdrop-filter` FICA, e é ele que segura a legibilidade. O topo é
+   `sticky`: quando a página rola, o conteúdo passa por baixo dele. Sem fundo
+   e sem blur, o título do painel ficaria por cima de texto nítido em
+   movimento. Com o blur, o que passa vira um borrão claro e o título continua
+   legível — vidro de verdade, que é o que este tema imita.
+
+   Conferido nos dois estados: no alto da página o topo some no campo; rolado,
+   o cartão de baixo aparece como mancha suave e nada colide. */
+.topo{
+  position:sticky; top:0; z-index:30;
+  background:transparent;
+  backdrop-filter:var(--cartao-blur);
+  -webkit-backdrop-filter:var(--cartao-blur);
+}
+/* Três colunas, e não flex (21/09): o título do painel fica CENTRADO, e com
+   flex o centro dele dependeria da largura da logo e de quantas ações houvesse
+   na direita — bastaria um botão a mais para o título escorregar. Com
+   `1fr auto 1fr` o meio é o meio da barra, custe o que custar aos lados. */
+.topo-in{
+  max-width:1680px; margin:0 auto;
+  min-height:var(--topo-h);
+  padding:10px 20px;
+  display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; gap:16px;
+}
+/* ── A MARCA É UM FILHO SÓ DA GRADE (22/09) ────────────────────────────────
+   São duas artes — a extensa e a curta — e as duas moram dentro do `.marca`.
+   Soltas, seriam DOIS filhos do `.topo-in`, e a grade de três colunas viraria
+   de quatro: o título sairia do centro. Mesma família da armadilha que o
+   `display` explícito do `.topo` já registra.
+
+   Quem troca uma pela outra é CSS, não JS. Assim a escolha sobrevive a
+   imprimir, a redimensionar a janela e a rodar com o script desligado — e não
+   pisca na carga. O JS só decide a COR, que depende do tema. */
+.marca{ justify-self:start; min-width:0; display:block; line-height:0 }
+.logo{ height:26px; width:auto; display:block; flex:none }
+
+/* A extensa é a marca escrita por extenso (933 × 168, 5,55:1). A curta é o
+   "c2y" (990 × 454, 2,18:1) — medido com `getBBox`, não estimado. Na barra,
+   a 26px de altura, uma dá 144px de largura e a outra 57px. */
+.logo-curta{ display:none }
+.topo-tit{ text-align:center; min-width:0 }
+/* 22px: o nome do painel é a primeira coisa que se lê. Em 17px ele perdia
+   para o número do KPI logo abaixo, que é o dado MENOS interessante da
+   página (ver a prova de hierarquia em design/_prova_modelos.js). */
+.topo-tit h1{ font-size:22px; letter-spacing:-.01em }
+/* `--texto-2` e não `--texto-3`: sem fundo no topo, este subtítulo é o ÚNICO
+   texto do painel que fica direto sobre o campo, e lá a de-ênfase cai para
+   3,19:1. Ver a regra 10c em design/regras-de-layout.md. */
+.topo-tit .sub{ font-size:12.5px; color:var(--texto-2); margin-top:1px }
+.topo-acoes{ display:flex; align-items:center; justify-content:flex-end;
+  gap:8px; flex-wrap:wrap; justify-self:end }
+
+/* --------------------------------------------------------------------------
+   5b. Vidro — as três regras que token nenhum alcança
+   --------------------------------------------------------------------------
+   Token muda valor, não forma de pintar. Estas três completam o tema claro
+   novo e não tocam em posição, tamanho de caixa nem fluxo.
+
+   O escopo é `:root:not([data-tema="escuro"])` e não `[data-tema="claro"]`:
+   o claro é o padrão e vale também quando não há atributo nenhum no <html>.
+   Com o seletor do atributo, um documento sem `data-tema` ficaria com os
+   tokens do claro e as regras do escuro — meio tema, e ninguém percebe.
+   -------------------------------------------------------------------------- */
+
+/* (O cabeçalho já não está aqui: ele não tem fundo nenhum, nos dois temas.
+    Ver o comentário no `.topo`, na seção 5.) */
+
+/* 1. Controle afundado. Era uma caixa com borda; agora é um sulco, e quem o
+      desenha é a sombra interna. O foco continua sendo o `outline` de baixo,
+      de propósito: sombra não aparece no modo de alto contraste do sistema. */
+:root:not([data-tema="escuro"]) .ctrl{
+  background:rgba(255,255,255,.55);
+  border-color:rgba(255,255,255,.7);
+  box-shadow:inset 0 1px 2px rgba(23,33,43,.06),
+             0 1px 0 rgba(255,255,255,.9);
+}
+
+/* 2. O chip do cabeçalho de cartão é a única peça de tinta cheia da página, e
+      é o que marca "você está aqui". O SVG dentro dele usa `currentColor`,
+      então o ícone vira branco junto. */
+:root:not([data-tema="escuro"]) .chip{
+  background:var(--acento);
+  color:#FFFFFF;
+}
+
+/* 3. A faixa de KPI deita sobre a página em vez de flutuar: sombra menor,
+      porque a peça é menor. Mesma família da regra que já a deixa mais
+      apertada que os outros cartões. */
+:root:not([data-tema="escuro"]) .g4 .cartao{
+  box-shadow:0 1px 1px rgba(23,33,43,.03),
+             0 4px 12px rgba(23,33,43,.05),
+             inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+.ctrl{
+  font:inherit; font-size:13px; color:var(--texto);
+  background:var(--superficie-2);
+  border:1px solid var(--borda);
+  border-radius:var(--r-p);
+  padding:7px 11px;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.ctrl:hover{ border-color:var(--borda-forte) }
+.ctrl:focus-visible{ outline:2px solid var(--acento); outline-offset:1px }
+select.ctrl{ padding-right:26px }
+
+/* Botão só de ícone. O nome acessível vem do `aria-label` — sem texto
+   visível e sem label, o leitor de tela anuncia apenas "botão".
+   Ícone em SVG e não em caractere: ☀ e ☾ viram emoji colorido em parte
+   dos sistemas, e aí o botão fica com a cara de outro produto. */
+.ctrl.so-icone{ padding:7px; display:inline-flex; align-items:center }
+.ctrl.so-icone svg{ width:16px; height:16px; display:block; stroke:currentColor;
+                    fill:none; stroke-width:1.9; stroke-linecap:round;
+                    stroke-linejoin:round }
+
+/* --------------------------------------------------------------------------
+   6. Área e grades
+   -------------------------------------------------------------------------- */
+.area{
+  max-width:1680px; margin:0 auto;
+  padding:var(--gap) 20px 48px;
+  display:flex; flex-direction:column; gap:var(--gap);
+}
+.g4{ display:grid; gap:var(--gap); grid-template-columns:repeat(4,1fr) }
+.g2{ display:grid; gap:var(--gap); grid-template-columns:2fr 1fr }
+
+@media (max-width:1100px){
+  .g4{ grid-template-columns:repeat(2,1fr) }
+  .g2{ grid-template-columns:1fr }
+}
+@media (max-width:620px){
+  .g4{ grid-template-columns:1fr }
+  .area{ padding:12px 12px 40px }
+  /* `auto 1fr auto` no telefone: com `1fr auto 1fr` as duas laterais reservam
+     largura igual e quem espreme é o título, que é o maior dos três. A logo
+     encolhe junto — ela é a marca escrita por extenso e comia meia barra. */
+  .topo-in{ padding:10px 12px; grid-template-columns:auto 1fr auto; gap:8px }
+  /* A marca extensa sai e entra a curta. Não é encolher: a 18px de altura a
+     extensa ainda ocupa 100px de uma barra de 360, e o que ela tem de largura
+     o título perde de espaço. A curta, na mesma altura, ocupa 39px.
+     Por isso ela pode ser mais alta — 22px — e ainda assim cabe melhor. */
+  .logo-extensa{ display:none }
+  .logo-curta{ display:block; height:22px }
+  .topo-tit h1{ font-size:16px }
+}
+
+/* --------------------------------------------------------------------------
+   7. Cartão
+   -------------------------------------------------------------------------- */
+.cartao{
+  position:relative;
+  background:var(--cartao-fundo);
+  border:var(--cartao-borda);
+  border-radius:var(--r-g);
+  box-shadow:var(--sombra);
+  backdrop-filter:var(--cartao-blur);
+  -webkit-backdrop-filter:var(--cartao-blur);
+  padding:18px;
+  overflow:hidden;
+}
+/* o brilho do canto, que no claro é `none` */
+.cartao::before{
+  content:""; position:absolute; inset:0;
+  background:var(--brilho);
+  pointer-events:none;
+}
+.cartao > *{ position:relative }
+
+.cartao-topo{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:14px;
+}
+.cartao-topo h2{ font-size:14.5px; font-weight:650 }
+.cartao-topo .dir{ margin-left:auto; display:flex; gap:6px; align-items:center }
+
+.chip{
+  flex:none; width:34px; height:34px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--acento-veu);
+  color:var(--acento);
+}
+.chip svg{ width:17px; height:17px; stroke:currentColor; fill:none;
+           stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round }
+
+/* --------------------------------------------------------------------------
+   8. KPI
+   -------------------------------------------------------------------------- */
+/* KPI é resumo, não manchete.
+   ---------------------------------------------------------------------------
+   O número grande chama o olho primeiro, e ele é o dado MENOS interessante da
+   página: um total sem recorte. Quem explica é o gráfico e a tabela. Por isso
+   a faixa de KPI é deliberadamente contida — o realce aqui é o peso da fonte
+   e a tabulação, não o tamanho.
+
+   O aperto é ESCOPADO em `.g4` de propósito: cartão de gráfico, ranking e
+   tabela seguem com o respiro de 18px. Mexer no `.cartao` global encolheria
+   a página inteira, que não é o pedido. */
+.g4 .cartao{ padding:13px 14px }
+.g4 .cartao-topo{ margin-bottom:6px; gap:8px }
+.g4 .chip{ width:26px; height:26px }
+.g4 .chip svg{ width:14px; height:14px }
+
+.kpi-rot{ font-size:12.5px; color:var(--texto-2); font-weight:500 }
+.kpi-val{
+  font-size:23px; line-height:1.15; font-weight:700; letter-spacing:-.015em;
+  margin:4px 0 2px;
+}
+.kpi-delta{ font-size:11.5px; font-weight:600; display:inline-flex; gap:4px;
+            align-items:center }
+.sobe{ color:var(--positivo) } .desce{ color:var(--negativo) }
+.neutro{ color:var(--texto-3) }
+
+.kpi-pe{
+  display:flex; gap:16px;
+  margin-top:9px; padding-top:8px;
+  border-top:1px solid var(--borda);
+}
+.kpi-pe div{ min-width:0 }
+.kpi-pe dt{ font-size:11px; color:var(--texto-3); white-space:nowrap;
+            overflow:hidden; text-overflow:ellipsis }
+.kpi-pe dd{ margin:1px 0 0; font-size:13.5px; font-weight:650 }
+
+/* --------------------------------------------------------------------------
+   9. Gráfico
+   -------------------------------------------------------------------------- */
+.graf{ width:100%; height:auto; display:block; overflow:visible }
+.graf .eixo{ font-size:10.5px; fill:var(--texto-3) }
+.graf .linha-grade{ stroke:var(--grade); stroke-width:1 }
+.graf .serie{ fill:none; stroke:var(--acento-cheio); stroke-width:2.25;
+              stroke-linecap:round; stroke-linejoin:round }
+.graf .area-serie{ fill:url(#veu-serie); stroke:none }
+.graf .ponto{ fill:var(--acento-cheio) }
+
+/* Rótulo de dados — o padrão da casa. Quando ele aparece, o eixo Y sai
+   inteiro: os dois dizem a mesma coisa e juntos viram ruído. Ver a regra
+   no `desenhaLinha` do molde. Cor de texto normal, não de eixo: ele é
+   conteúdo, não referência. */
+.graf .rotulo{ font-size:11px; font-weight:650; fill:var(--texto);
+               font-variant-numeric:tabular-nums }
+
+/* --------------------------------------------------------------------------
+   10. Ranking com barra
+   -------------------------------------------------------------------------- */
+.rank{ list-style:none; margin:0; padding:0; display:flex;
+       flex-direction:column; gap:11px }
+.rank li{ display:grid; grid-template-columns:22px 1fr auto; gap:10px;
+          align-items:center }
+.rank .pos{ font-size:12px; color:var(--texto-3); text-align:right }
+
+/* `display:block` nos dois não é enfeite: são <span>, e em caixa inline
+   `height` não vale (a barra saiu com 0px de altura, invisível) e
+   `text-overflow:ellipsis` não corta. Só apareceu medindo no navegador —
+   o smoke conta <li>, não mede pixel. */
+.rank .nome{ display:block; font-size:13px; overflow:hidden;
+             text-overflow:ellipsis; white-space:nowrap }
+.rank .barra{ display:block; height:5px; border-radius:3px;
+              background:var(--acento-veu); margin-top:5px; overflow:hidden }
+.rank .barra i{ display:block; height:100%; border-radius:3px;
+                background:var(--acento-cheio) }
+.rank .val{ font-size:13px; font-weight:650 }
+
+/* --------------------------------------------------------------------------
+   11. Tabela
+   -------------------------------------------------------------------------- */
+.rolo{ overflow-x:auto; margin:0 -18px -18px; padding:0 18px 18px }
+table{ width:100%; border-collapse:collapse; font-size:13px }
+thead th{
+  position:sticky; top:0;
+  background:var(--superficie-2);
+  color:var(--texto-2); font-weight:600; font-size:12px;
+  text-align:center; white-space:nowrap;
+  padding:9px 10px;
+  border-bottom:1px solid var(--borda);
+}
+tbody td{ padding:9px 10px; text-align:center;
+          border-bottom:1px solid var(--borda) }
+tbody td:first-child, thead th:first-child{ text-align:left }
+tbody tr:last-child td{ border-bottom:none }
+tbody tr:hover td{ background:var(--acento-veu) }
+
+.tag{
+  display:inline-block; font-size:11.5px; font-weight:600;
+  padding:2px 8px; border-radius:999px;
+  background:var(--acento-veu); color:var(--acento);
+}
+.tag.ok{ background:color-mix(in srgb, var(--positivo) 16%, transparent);
+         color:var(--positivo) }
+.tag.ruim{ background:color-mix(in srgb, var(--negativo) 16%, transparent);
+           color:var(--negativo) }
+.tag.atencao{ background:color-mix(in srgb, var(--atencao) 18%, transparent);
+              color:var(--atencao) }
+
+/* --------------------------------------------------------------------------
+   12. Rodapé e glossário
+   -------------------------------------------------------------------------- */
+.rodape{ color:var(--texto-3); font-size:12px; padding:4px 2px 0 }
+.rodape a{ color:var(--acento) }
+
+/* Glossário — cartão próprio, não rodapé da tabela.
+   ---------------------------------------------------------------------------
+   Ele vivia DENTRO do cartão da tabela, e essa posição dizia "isto explica a
+   tabela". Não explica: explica a página inteira. Agora é bloco irmão dos
+   outros, e o <details> é o cartão em si — clicar no cabeçalho abre. */
+.gloss{ padding:0 }
+.gloss > summary{
+  cursor:pointer; padding:18px; margin:0;
+  list-style:none;               /* Firefox */
+  border-radius:var(--r-g);
+}
+.gloss > summary::-webkit-details-marker{ display:none }
+.gloss > summary:focus-visible{ outline:2px solid var(--acento); outline-offset:-2px }
+.gloss .seta{ color:var(--texto-3); font-size:11px; transition:transform .15s }
+.gloss[open] > summary{ border-radius:var(--r-g) var(--r-g) 0 0 }
+.gloss[open] .seta{ transform:rotate(180deg) }
+
+.gloss dl{
+  margin:0; padding:0 18px 18px;
+  display:grid; grid-template-columns:auto 1fr; gap:9px 18px;
+  font-size:12.5px;
+}
+.gloss dt{ font-weight:650; white-space:nowrap }
+.gloss dd{ margin:0; color:var(--texto-2) }
+
+@media (max-width:620px){
+  /* Em tela estreita o termo e a definição empilham: duas colunas com termo
+     longo espremem a definição em duas letras por linha. */
+  .gloss dl{ grid-template-columns:1fr; gap:2px 0 }
+  .gloss dt{ white-space:normal; margin-top:8px }
+  .gloss dt:first-child{ margin-top:0 }
+}
+
+/* --------------------------------------------------------------------------
+   13. Impressão — o painel vira PDF com alguma frequência
+   -------------------------------------------------------------------------- */
+@media print{
+  body{ background:#fff; color:#000 }
+  .topo{ position:static }
+  .topo-acoes{ display:none }
+  .cartao{ box-shadow:none; border:1px solid #ccc; backdrop-filter:none;
+           break-inside:avoid }
+  .cartao::before{ display:none }
+}
+
+/* Quem desliga animação no sistema não deve ganhar nenhuma aqui. */
+@media (prefers-reduced-motion:reduce){
+  *{ transition:none !important; animation:none !important }
+}
+
+/* ── só do catálogo: abas e tabela de texto. Tudo em token do tema. ── */
+.abas{display:flex;flex-wrap:wrap;gap:8px}
+.aba{font:inherit;font-size:13px;font-weight:600;color:var(--texto-2);background:var(--superficie);
+  border:1px solid var(--borda-forte);border-radius:999px;padding:7px 14px;cursor:pointer;
+  display:inline-flex;gap:8px;align-items:center}
+.aba .n{font-variant-numeric:tabular-nums;color:var(--texto-3);font-weight:500}
+.aba:hover{border-color:var(--acento)}
+.aba:focus-visible{outline:2px solid var(--acento-cheio);outline-offset:2px}
+.aba[aria-selected="true"]{background:var(--acento-veu);border-color:var(--acento);color:var(--texto)}
+.aba[aria-selected="true"] .n{color:var(--texto-2)}
+.op-desc{margin:0 0 14px;color:var(--texto-2);max-width:75ch;position:relative}
+.cat{min-width:980px}
+.cat th,.cat td{text-align:left;vertical-align:top}
+.cat td{line-height:1.45}
+.cat td.rel{min-width:190px}
+.cat td.mostra{min-width:280px;max-width:420px;color:var(--texto-2)}
+.cat .rel strong{display:block;color:var(--texto)}
+.cat .selos{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.cat .wf{display:block;margin-top:6px;font-size:12px}
+.cat .para{display:block;margin-top:4px;font-size:12px;color:var(--texto-3)}
+.cat .nota{display:block;margin-top:6px;font-size:12px;color:var(--atencao);font-weight:600}
+.cat .mono{font-size:12px;color:var(--texto-3)}
+.cat .tag{white-space:nowrap}
+.lk{color:var(--texto-2);text-decoration:underline;text-underline-offset:2px}
+.lk:hover{color:var(--texto)}
+.vazio{color:var(--texto-3);margin:0;position:relative}
+.op[hidden]{display:none!important}
+</style>
+
+<header class="topo">
+  <div class="topo-in">
+    <span class="marca">
+      <img class="logo logo-extensa" id="logo" src="" alt="Cars2You">
+      <img class="logo logo-curta" id="logo-curta" src="" alt="Cars2You">
+    </span>
+    <div class="topo-tit">
+      <h1>Catálogo de Relatórios</h1>
+      <p class="sub">O que as automações entregam, por operação</p>
+    </div>
+    <div class="topo-acoes">
+      <button class="ctrl so-icone" id="b-tema" type="button" aria-label="Mudar o tema"></button>
+    </div>
+  </div>
+</header>
+
+<main class="area">
+
+  <section class="g4" aria-label="Resumo do catálogo">
+    <article class="cartao"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg></span><span class="kpi-rot">Relatórios no catálogo</span></div><p class="kpi-val num">25</p><dl class="kpi-pe"><div><dt>Em produção</dt><dd class="num">17</dd></div><div><dt>Em validação ou construção</dt><dd class="num">4</dd></div></dl></article>
+    <article class="cartao"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="kpi-rot">Rodam sozinhos</span></div><p class="kpi-val num">17</p><dl class="kpi-pe"><div><dt>Em horário fixo</dt><dd class="num">10</dd></div><div><dt>No fim do evento</dt><dd class="num">7</dd></div></dl></article>
+    <article class="cartao"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 13V5a2 2 0 014 0v6"/><path d="M12 11V4a2 2 0 014 0v7"/><path d="M16 11V7a2 2 0 014 0v7a7 7 0 01-7 7h-1a7 7 0 01-6-3.4L4 14a2 2 0 013.4-2L8 13"/></svg></span><span class="kpi-rot">Sob demanda</span></div><p class="kpi-val num">8</p><dl class="kpi-pe"><div><dt>Em produção</dt><dd class="num">3</dd></div><div><dt>Outros estados</dt><dd class="num">5</dd></div></dl></article>
+    <article class="cartao"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></svg></span><span class="kpi-rot">Pedem atenção</span></div><p class="kpi-val num">4</p><dl class="kpi-pe"><div><dt>Verificar</dt><dd class="num">2</dd></div><div><dt>Parados</dt><dd class="num">2</dd></div></dl></article>
+  </section>
+
+  <nav class="abas" role="tablist" aria-label="Operação">
+    <button class="aba" type="button" role="tab" id="aba-todas" data-op="todas" aria-selected="true">Todas <span class="n">25</span></button>
+    <button class="aba" type="button" role="tab" id="aba-geral" data-op="geral" aria-selected="false">Geral <span class="n">4</span></button>
+    <button class="aba" type="button" role="tab" id="aba-cars2you" data-op="cars2you" aria-selected="false">Cars2You <span class="n">3</span></button>
+    <button class="aba" type="button" role="tab" id="aba-c6" data-op="c6" aria-selected="false">C6 <span class="n">7</span></button>
+    <button class="aba" type="button" role="tab" id="aba-itau" data-op="itau" aria-selected="false">Itaú · IGA <span class="n">7</span></button>
+    <button class="aba" type="button" role="tab" id="aba-lm" data-op="lm" aria-selected="false">LM <span class="n">2</span></button>
+    <button class="aba" type="button" role="tab" id="aba-btb" data-op="btb" aria-selected="false">Lance Fácil BTB <span class="n">2</span></button>
+    <button class="aba" type="button" role="tab" id="aba-dealers" data-op="dealers" aria-selected="false">Dealers <span class="n">1</span></button>
+  </nav>
+
+  <section class="cartao op" id="op-geral" data-op="geral"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>Geral</h2><span class="dir"><span class="tag">4 relatórios</span></span></div><p class="op-desc">Relatórios que atravessam várias operações: canais da Cars2You, do C6 e do Lance Fácil BTB juntos.</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>Radar de Estoque</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/8fiTFsjWG9RQinz8" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Para cada veículo em evento, as lojas com mais chance de comprar. Clicando numa loja, os veículos que combinam com ela, o contato e as compras dos últimos 6 meses.</td><td>HTML interativo</td><td>Todo dia às 07h</td><td>SharePoint, site N8N › Radar de Estoque<span class="para">Área comercial</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Auditoria de Estoque por Loja</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/vxyzWHfrcIR2gdsd" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Ranking de lojas, matriz de situação × status e envelhecimento do estoque nos canais da Cars2You, do C6 e do BTB.</td><td>HTML anexo</td><td>Todo dia às 08h</td><td>E-mail (Outlook)<span class="para">Lista fixa da auditoria</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Pulso de Eventos no Ar</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/20LeyMLjrAKeKVeS" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Os eventos no ar até 7 dias à frente, separados em leves e pesados, com semáforo, êxito e quantos já chegaram ao VMV.</td><td>Mensagem de WhatsApp</td><td>A cada 2h, das 8h às 20h, segunda a sábado</td><td>WhatsApp<span class="para">Donizeti, Caio, Thais, Alexandre e Tuunelis</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Carteira Comercial</strong><span class="selos"><span class="tag">insumo</span></span><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/ksZI8cqSbexqLOre" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Quem responde por cada loja. Lê a planilha da área comercial e publica o arquivo que o Radar de Estoque usa no filtro de responsável.<span class="nota">Aparece inativo no n8n em 25/09. Sem ele, a carteira do Radar envelhece.</span></td><td>JSON (insumo)</td><td>Desenhado para rodar todo dia às 06h</td><td>SharePoint, site N8N › Radar de Estoque › _dados<span class="para">Radar de Estoque</span></td><td><span class="tag ruim">Verificar</span></td></tr></tbody></table></div></section>
+  <section class="cartao op" id="op-cars2you" data-op="cars2you"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>Cars2You</h2><span class="dir"><span class="tag">3 relatórios</span></span></div><p class="op-desc">O marketplace próprio (canais 4 Trucks2you e 7 Marketplace) e os estudos sobre a base da Cars2You.</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>Estudo de precificação</strong><span class="selos"><span class="tag">também em Dealers</span></span><span class="wf"><span class="mono">fora do n8n</span></span></td><td class="mostra">Deságio contra a FIPE por modelo, km, idade e texto do anúncio, nas duas bases. Quatro páginas.</td><td>HTML (4 páginas)</td><td>Estudo, sem recorrência</td><td>work-brain › automations/precificacao<span class="para">A definir: e-mail de envio em revisão</span></td><td><span class="tag atencao">Em validação</span></td></tr><tr><td class="rel"><strong>Cars2You — Envia Relatório</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/TKxpirO9fUg5KYcY" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Workflow ativo com as etiquetas relatórios e cars2you. O conteúdo ainda não foi documentado no brain.</td><td>A documentar</td><td>Tem um gatilho ativo</td><td>A documentar<span class="para">A documentar</span></td><td><span class="tag ruim">Verificar</span></td></tr><tr><td class="rel"><strong>Lojas ofertantes — 6 meses</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/LZL3mxfbMIz4avyx" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Perfil das lojas que ofertaram nos últimos 6 meses, por UF e canal. Foi a base do perfil de compra do Radar de Estoque.<span class="nota">Substituído pelo Radar de Estoque.</span></td><td>HTML</td><td>Manual</td><td>Execução no n8n<span class="para">Uso interno</span></td><td><span class="tag ">Parado</span></td></tr></tbody></table></div></section>
+  <section class="cartao op" id="op-c6" data-op="c6"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>C6</h2><span class="dir"><span class="tag">7 relatórios</span></span></div><p class="op-desc">Evento Exclusivo C6 Auto, canal 43 e loja C6 Bank Lojista. Apartado do IGA por decisão de 26/08.</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>Relatório de Evento C6 Lojistas</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/ehsqQo6hiPDRf58I" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">O resultado do pregão de cada Evento Exclusivo C6 Auto: lotes, ofertas, ofertantes, valor contra o VMV e audiência.</td><td>HTML</td><td>No fim de cada evento (gatilho a cada 10 min, 16h–23h, seg–sáb)</td><td>SharePoint › Relatorios C6 Lojistas, e-mail e WhatsApp<span class="para">7 pessoas por e-mail, 5 por WhatsApp</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Planilha de Evento C6 Lojistas</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/lXJNM4hbE92vEDsu" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Duas planilhas do evento: a completa, com comprador, para o time e a montagem; e a do banco, sem comprador.</td><td>2 arquivos .xlsx</td><td>No fim de cada evento</td><td>E-mail<span class="para">Time C6, montagem, Caio e Mattera</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Remanescentes C6 Lojistas</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/f2DWD6yFNuLg5AE4" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Lotes do pregão que passaram por vários eventos sem receber oferta. Placa mascarada, laudo cautelar, sem dado de comprador.</td><td>Arquivo .txt e mensagem</td><td>No fim de cada evento</td><td>SharePoint e WhatsApp<span class="para">Caio, Donizeti, Thais e Tuunelis</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Lista C6 Lojistas</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/mbVChvuhLQ2hPRzh" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">A vitrine do evento para o lojista: catálogo no ar, calendário do banco e chamada para cadastro.</td><td>HTML</td><td>Na véspera de cada evento</td><td>E-mail<span class="para">Lojistas do C6</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Análise de base de cadastros C6</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/f6Bw2iiuaWECy9Uz" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Retrato da base de lojistas cadastrados, no mesmo layout da análise que era feita à mão.</td><td>HTML por e-mail</td><td>Semanal</td><td>E-mail<span class="para">Time do C6</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Painel de Eventos C6</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/VelPJDX8USP9WIeT" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Eventos do canal 43 abertos e dos últimos 30 dias: veículos, ofertas, ranking de lojas e de representantes, lojas novas.<span class="nota">Falta subir a planilha de lojas ativas do C6 para o primeiro run.</span></td><td>HTML interativo</td><td>Manual</td><td>SharePoint › Painel de Eventos C6 (upload desligado)<span class="para">C6</span></td><td><span class="tag atencao">Em validação</span></td></tr><tr><td class="rel"><strong>Base de clientes C6 — 100% da base</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/QImk2D4HdzIqHZe9" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Relatório de base de clientes com filtro por canal na página inteira.<span class="nota">Falta um run que termine.</span></td><td>HTML</td><td>Manual</td><td>Execução no n8n<span class="para">C6</span></td><td><span class="tag atencao">Em construção</span></td></tr></tbody></table></div></section>
+  <section class="cartao op" id="op-itau" data-op="itau"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>Itaú · IGA</h2><span class="dir"><span class="tag">7 relatórios</span></span></div><p class="op-desc">Venda Direta IGA, loja Itaú Unibanco no canal 7. Evento cerca de uma vez por semana, fecha às 16h.</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>Relatório de Evento IGA</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/sYcHnaeVjLRCll9H" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">O resultado de cada evento IGA: veículos, estoque, acessos e ofertas, no template do SharePoint.</td><td>HTML</td><td>No fim de cada evento (gatilho seg–sex 16h–19h, sáb 12h–15h)</td><td>SharePoint › Relatórios, e-mail e WhatsApp<span class="para">Time Cars2You e Itaú</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Resultado VD IGA</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/UmqceMdN4BSTREMj" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Fechamento do evento: o resumo no corpo do e-mail com a planilha anexa, e um PDF de uma página no WhatsApp.</td><td>.xlsx e PDF</td><td>No fim de cada evento</td><td>E-mail e WhatsApp<span class="para">11 pessoas por e-mail, 5 por WhatsApp</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Remanescentes do Evento IGA</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/yoskRxyXhtjn4vhI" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Carros que ficaram sem oferta, em mensagens por UF, com placa mascarada, preço de referência e laudo.<span class="nota">Desligado no gatilho de fim de evento.</span></td><td>Mensagens de WhatsApp</td><td>No fim de cada evento</td><td>WhatsApp, por grupo de UF<span class="para">Grupos de UF</span></td><td><span class="tag ">Parado</span></td></tr><tr><td class="rel"><strong>Lista IGA — Venda Direta</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/59vKExikX8ZGV9ra" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">A lista de cada evento de Venda Direta para o lojista, com leves e pesados em listas separadas.</td><td>HTML</td><td>Manual, por formulário</td><td>E-mail e WhatsApp<span class="para">Em teste: só o Caio</span></td><td><span class="tag atencao">Em validação</span></td></tr><tr><td class="rel"><strong>Cockpit Comprador IGA</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/dgxa0pkeFhQVqJ5X" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">O painel do comprador: a loja pede pelo formulário com e-mail e CNPJ e recebe o próprio histórico do ano.</td><td>HTML por e-mail</td><td>Quando o comprador pede</td><td>E-mail do solicitante<span class="para">Compradores autorizados</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>IGA — Controle de cadastros diários</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/DVpaCz02psdgKb5J" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Os cadastros do dia anterior vindos das campanhas VD IGA, por região.</td><td>E-mail</td><td>Todo dia às 08h</td><td>E-mail<span class="para">Time de operações</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>IGA — Análise de base de cadastros</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/mgDSyxuO0Mzjkrfy" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Retrato semanal da base de clientes do IGA, no layout da análise que era feita à mão.</td><td>HTML por e-mail</td><td>Semanal</td><td>E-mail<span class="para">Time do IGA</span></td><td><span class="tag ok">Em produção</span></td></tr></tbody></table></div></section>
+  <section class="cartao op" id="op-lm" data-op="lm"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>LM</h2><span class="dir"><span class="tag">2 relatórios</span></span></div><p class="op-desc">LM Transportes Interestaduais. Manda a planilha de estoque ativo quase todo dia.</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>Lista LM</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/8YnGmVUvl6BmrKKb" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">O estoque ativo da LM, um veículo por linha, com filtros de tipo, UF e laudo. O botão de proposta leva ao anúncio na plataforma.</td><td>HTML</td><td>Depois de subir os carros no evento do dia</td><td>SharePoint › Lista LM - Disparo HTML, e-mail e WhatsApp<span class="para">Lojistas</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>Estoque LM</strong><span class="selos"><span class="tag">insumo</span></span><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/noemX4AA7FFxafYZ" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Recebe a planilha da LM e registra quem entrou, quem permanece (com dias em estoque e queda de preço) e quem saiu.</td><td>Tabela no n8n (insumo)</td><td>A cada planilha recebida</td><td>Data Table Estoque LM, no n8n<span class="para">Lista LM</span></td><td><span class="tag ok">Em produção</span></td></tr></tbody></table></div></section>
+  <section class="cartao op" id="op-btb" data-op="btb"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>Lance Fácil BTB</h2><span class="dir"><span class="tag">2 relatórios</span></span></div><p class="op-desc">Canais 62 (BTB) e 65 (BTB Associados).</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>BTB — Controle de cadastros diários</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/oJPNgFxQZXQLDa06" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Os cadastros do dia anterior no canal Lance Fácil BTB.</td><td>E-mail</td><td>Diário</td><td>E-mail<span class="para">Operação</span></td><td><span class="tag ok">Em produção</span></td></tr><tr><td class="rel"><strong>BTB Associados — Controle de cadastros diários</strong><span class="wf"><a class="lk" href="https://cars2you.app.n8n.cloud/workflow/K8XX09IOxufdhilb" target="_blank" rel="noopener">abrir no n8n ↗</a></span></td><td class="mostra">Os cadastros do dia anterior no canal Lance Fácil BTB Associados.</td><td>E-mail</td><td>Diário</td><td>E-mail<span class="para">Operação</span></td><td><span class="tag ok">Em produção</span></td></tr></tbody></table></div></section>
+  <section class="cartao op" id="op-dealers" data-op="dealers"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span><h2>Dealers</h2><span class="dir"><span class="tag">1 relatório</span></span></div><p class="op-desc">Dealers Club: mesma plataforma, banco próprio. Acesso aberto em 17/09, ainda sem relatório recorrente.</p><div class="rolo"><table class="cat"><thead><tr><th>Relatório</th><th>O que mostra</th><th>Formato</th><th>Quando roda</th><th>Onde chega · para quem</th><th>Situação</th></tr></thead><tbody><tr><td class="rel"><strong>Estudo de precificação</strong><span class="selos"><span class="tag">também em Cars2You</span></span><span class="wf"><span class="mono">fora do n8n</span></span></td><td class="mostra">Deságio contra a FIPE por modelo, km, idade e texto do anúncio, nas duas bases. Quatro páginas.</td><td>HTML (4 páginas)</td><td>Estudo, sem recorrência</td><td>work-brain › automations/precificacao<span class="para">A definir: e-mail de envio em revisão</span></td><td><span class="tag atencao">Em validação</span></td></tr></tbody></table></div></section>
+
+  <details class="cartao gloss" id="gloss">
+    <summary class="cartao-topo">
+      <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2z"/><path d="M4 19a2 2 0 012-2h13"/></svg></span>
+      <h2>Glossário</h2>
+      <span class="dir"><span class="tag">14 termos</span><span class="seta" aria-hidden="true">▾</span></span>
+    </summary>
+    <dl><dt>Relatório</dt><dd>Tudo que uma automação entrega para alguém ler: página, planilha, mensagem ou e-mail. Os gatilhos, sondas e cópias de teste não entram no catálogo.</dd><dt>Insumo</dt><dd>Automação que não é lida por pessoas: ela prepara um dado que outro relatório usa.</dd><dt>Todo dia / semanal</dt><dd>Roda sozinho num horário fixo, no relógio de São Paulo.</dd><dt>No fim de cada evento</dt><dd>Um gatilho confere a cada 10 minutos se o pregão acabou. Quando acaba, dispara o relatório uma vez só.</dd><dt>Manual / por formulário</dt><dd>Só roda quando alguém pede: pelo n8n, por um formulário ou depois de uma etapa da operação.</dd><dt>Em produção</dt><dd>Roda e entrega para o público final.</dd><dt>Em validação</dt><dd>Pronto, mas ainda sendo conferido antes de chegar a todo mundo.</dd><dt>Em construção</dt><dd>Ainda não entregou um resultado completo.</dd><dt>Parado</dt><dd>Existe no n8n, mas não entrega mais. A nota diz o porquê.</dd><dt>Verificar</dt><dd>O estado no n8n não bate com o que se espera, ou o relatório ainda não foi documentado.</dd><dt>Pregão</dt><dd>A disputa de ofertas de um evento. O relatório do pregão mostra a melhor oferta, não a venda fechada.</dd><dt>VMV</dt><dd>Valor mínimo de venda: o menor valor que o vendedor aceita naquele veículo.</dd><dt>Remanescentes</dt><dd>Veículos que passaram pelo evento e não receberam oferta.</dd><dt>Canal</dt><dd>O whitelabel da plataforma por onde a loja compra: 4 Trucks2you, 7 Marketplace, 43 C6 Auto, 48 Colaboradores C6, 62 e 65 Lance Fácil BTB.</dd></dl>
+  </details>
+
+  <p class="rodape">Atualizado em 25/09/2026 · inventário do n8n (projeto Cars2You, 35 workflows, lido em 25/09/2026) e documentação do work-brain</p>
+
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const LOGO = {
+  claro:  { extensa:"data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTMzIDE2OCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIwIiB5PSIxNCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcDApIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjAgLTE0KSI+PHBhdGggZD0iTTU0MC40MTggNjMuOTcwMyA1NDAuNDE4IDM4Ljk4NTEgNDY1LjQ2MyAzOC45ODUxIDQ2NS40NjMgMTQgNTQwLjQxOCAxNCA1NDAuNDE4IDM4Ljk4NTEgNTY1LjQwMyAzOC45ODUxIDU2NS40MDMgNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDNaTTQ2NS40NjMgMTM4LjkyNiA0NjUuNDYzIDg4Ljk1NTQgNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggMTEzLjk0MSA1NjUuNDAzIDExMy45NDEgNTY1LjQwMyAxMzguOTI2IDQ2NS40NjMgMTM4LjkyNlpNNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDMgNTQwLjQxOCA4OC45NTU0IDQ5MC40NDggODguOTU1NFoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNMzE5Ljc0OSA0My4zODI1IDMxNC43NTIgNjQuMDcwMkMzMTAuMzU1IDYxLjc3MTYgMzAzLjk1OSA2MC41NzIzIDI5OC44NjIgNjAuNTcyMyAyODUuNTcgNjAuNTcyMyAyNzYuMDc1IDY5Ljk2NjcgMjc2LjA3NSA4Ni4yNTdMMjc2LjA3NSAxMzguOTI2IDI1NS4xODggMTM4LjkyNiAyNTUuMTg4IDQzLjE4MjYgMjc1Ljg3NSA0My4xODI2IDI3NS44NzUgNTMuOTc2MkMyODIuMTcyIDQ0Ljg4MTYgMjkxLjk2NiA0MC42ODQxIDMwMy42NTkgNDAuNjg0MSAzMTUuMzUyIDQwLjY4NDEgMzE0Ljk1MiA0MS40ODM2IDMxOS43NDkgNDMuMzgyNVoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNNDA0LjE5OSA2Ny4xNjg0QzM5OC40MDIgNjMuNTcwNSAzODYuNTEgNTguOTczMiAzNzQuNjE3IDU4Ljk3MzIgMzYyLjcyNCA1OC45NzMyIDM1Ni41MjcgNjMuNTcwNSAzNTYuNTI3IDcwLjM2NjUgMzU2LjUyNyA3Ny4xNjI0IDM2My41MjMgNzguOTYxMyAzNzIuMzE4IDgwLjI2MDZMMzgyLjIxMiA4MS43NTk3QzQwMy4xIDg0Ljc1NzkgNDE1LjQ5MiA5My42NTI2IDQxNS40OTIgMTEwLjA0MyA0MTUuNDkyIDEyNi40MzMgMzk5LjUwMiAxNDEuMzI0IDM3MS45MTggMTQxLjMyNCAzNDQuMzM1IDE0MS4zMjQgMzQ0LjgzNCAxMzkuNDI1IDMzMC44NDMgMTI5LjAzMkwzNDAuNTM3IDExMy4zNDFDMzQ3LjQzMyAxMTguNjM4IDM1Ni41MjcgMTIzLjEzNSAzNzIuMTE4IDEyMy4xMzUgMzg3LjcwOSAxMjMuMTM1IDM5My45MDUgMTE4LjYzOCAzOTMuOTA1IDExMS40NDIgMzkzLjkwNSAxMDQuMjQ2IDM4OC43MDggMTAyLjQ0NyAzNzcuMzE1IDEwMC44NDhMMzY3LjMyMSA5OS41NDkxQzM0Ni4xMzQgOTYuNjUwOCAzMzQuODQgODYuODU2NiAzMzQuODQgNzEuNDY1OCAzMzQuODQgNTYuMDc1IDM1MC4wMzEgNDAuNzg0MSAzNzQuNDE3IDQwLjc4NDEgMzk4LjgwMiA0MC43ODQxIDQwMy4zIDQ0LjQ4MTkgNDEzLjE5NCA1MC44NzgxTDQwNC4xOTkgNjcuMTY4NFoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNNjQ0LjY1NiAxODIgNjIxLjQ3IDE4MiA2NTUuNzQ5IDEyMS43MzYgNjEzLjI3NSA0NS42ODExIDYzNi43NjEgNDUuNjgxMSA2NjcuNTQyIDEwMC42NDggNjk3LjIyNSA0NS42ODExIDcyMC4yMTEgNDUuNjgxMSA2NDQuNjU2IDE4MloiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNOTUyLjc3MiAxMDAuODQ4Qzk1Mi43NzIgMTMxLjMzIDkzMC43ODYgMTQzLjkyMyA5MDguMzk5IDE0My45MjMgODg2LjAxMiAxNDMuOTIzIDg2NC4wMjUgMTMxLjMzIDg2NC4wMjUgMTAwLjg0OEw4NjQuMDI1IDQ1LjY4MTEgODg1LjAxMyA0NS42ODExIDg4NS4wMTMgOTguOTQ5NEM4ODUuMDEzIDExNy40MzggODk1LjMwNyAxMjQuMjM0IDkwOC4zOTkgMTI0LjIzNCA5MjEuNDkxIDEyNC4yMzQgOTMxLjc4NSAxMTcuNDM4IDkzMS43ODUgOTguOTQ5NEw5MzEuNzg1IDQ1LjY4MTEgOTUyLjc3MiA0NS42ODExIDk1Mi43NzIgMTAwLjg0OFoiIGZpbGw9IiMzQTQ1NTIiLz48cGF0aCBkPSJNMTA2LjM3NiA1NS45NzUgOTIuOTg0MiA3MC4yNjY1Qzg2LjI4ODIgNjMuOTcwMyA3OS4xOTI0IDYwLjM3MjQgNjkuOTk3OSA2MC4zNzI0IDUzLjkwNzUgNjAuMzcyNCA0MS43MTQ4IDcyLjk2NDkgNDEuNzE0OCA5MS4wNTQxIDQxLjcxNDggMTA5LjE0MyA1My45MDc1IDEyMS43MzYgNjkuOTk3OSAxMjEuNzM2IDg2LjA4ODMgMTIxLjczNiA4Ny4zODc2IDExNy40MzggOTMuNDgzOSAxMTEuNzQyTDEwNi4zNzYgMTI2LjEzM0M5Ny42ODE0IDEzNi4yMjcgODQuODg5MSAxNDEuNDI0IDcwLjU5NzYgMTQxLjQyNCA0MC4xMTU3IDE0MS40MjQgMjAuMjI3NSAxMTkuNzM3IDIwLjIyNzUgOTEuMDU0MSAyMC4yMjc1IDYyLjM3MTIgNDAuMTE1NyA0MC42ODQxIDcwLjU5NzYgNDAuNjg0MSAxMDEuMDc5IDQwLjY4NDEgOTcuODgxMyA0NS44ODEgMTA2LjM3NiA1NS45NzVaIiBmaWxsPSIjM0E0NTUyIi8+PHBhdGggZD0iTTIyMS45MDggMTM4LjkyNiAyMDEuMDIgMTM4LjkyNiAyMDEuMDIgMTI3LjQzMkMxOTQuNDI0IDEzNS45MjcgMTg0LjUzIDE0MS40MjQgMTcwLjkzOCAxNDEuNDI0IDE0NC4xNTQgMTQxLjQyNCAxMjMuMDY2IDEyMC4zMzcgMTIzLjA2NiA5MS4wNTQxIDEyMy4wNjYgNjEuNzcxNiAxNDQuMTU0IDQwLjY4NDEgMTcwLjkzOCA0MC42ODQxIDE5Ny43MjIgNDAuNjg0MSAxOTQuNDI0IDQ2LjI4MDggMjAxLjAyIDU0Ljc3NTdMMjAxLjAyIDQzLjE4MjYgMjIxLjkwOCA0My4xODI2IDIyMS45MDggMTM4LjkyNlpNMTQ0LjU1NCA5MS4wNTQxQzE0NC41NTQgMTA3Ljg0NCAxNTUuNDQ3IDEyMS43MzYgMTczLjQzNiAxMjEuNzM2IDE5MS40MjYgMTIxLjczNiAyMDIuMzE5IDEwOC41NDQgMjAyLjMxOSA5MS4wNTQxIDIwMi4zMTkgNzMuNTY0NSAxOTAuNzI2IDYwLjM3MjQgMTczLjQzNiA2MC4zNzI0IDE1Ni4xNDcgNjAuMzcyNCAxNDQuNTU0IDc0LjI2NDEgMTQ0LjU1NCA5MS4wNTQxWiIgZmlsbD0iIzNBNDU1MiIvPjxwYXRoIGQ9Ik04MzUuMTQzIDkzLjU1MjdDODM1LjE0MyAxMjIuMjM2IDgxMy4xNTYgMTQzLjkyMyA3ODMuNTczIDE0My45MjMgNzUzLjk5MSAxNDMuOTIzIDczMi4xMDQgMTIyLjIzNiA3MzIuMTA0IDkzLjU1MjcgNzMyLjEwNCA2NC44Njk3IDc1My45OTEgNDMuMTgyNiA3ODMuNTczIDQzLjE4MjYgODEzLjE1NiA0My4xODI2IDgzNS4xNDMgNjQuODY5NyA4MzUuMTQzIDkzLjU1MjdaTTc1My41OTEgOTMuNTUyN0M3NTMuNTkxIDExMS42NDIgNzY2LjQ4MyAxMjQuMjM0IDc4My41NzMgMTI0LjIzNCA4MDAuNjYzIDEyNC4yMzQgODEzLjY1NSAxMTEuNjQyIDgxMy42NTUgOTMuNTUyNyA4MTMuNjU1IDc1LjQ2MzQgODAwLjY2MyA2Mi44NzA5IDc4My41NzMgNjIuODcwOSA3NjYuNDgzIDYyLjg3MDkgNzUzLjU5MSA3NS40NjM0IDc1My41OTEgOTMuNTUyN1oiIGZpbGw9IiMzQTQ1NTIiLz48L2c+PC9zdmc+",  curta:"data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTkwIDQ1NCIgd2lkdGg9Ijk5MCIgaGVpZ2h0PSI0NTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk2IC0xOTcpIj48cGF0aCBkPSJNMjE5Ljc4IDEzOC4yNTggMTg1LjU4MyAxNzUuMjczQzE2OC41MjEgMTU4Ljk2OSAxNTAuMzc2IDE0OS42NDIgMTI2Ljk1MiAxNDkuNjQyIDg1Ljg4NzYgMTQ5LjY0MiA1NC44MDAzIDE4Mi4yNSA1NC44MDAzIDIyOS4xNzkgNTQuODAwMyAyNzYuMTA4IDg1Ljg4NzYgMzA4LjcxNiAxMjYuOTUyIDMwOC43MTYgMTUwLjQ0OCAzMDguNzE2IDE3MS4zNDEgMjk3LjU1MyAxODYuODg1IDI4Mi43OTFMMjE5Ljc4IDMyMC4wOTlDMTk3LjU4NSAzNDYuMjQ1IDE2NC45OCAzNTkuNzU4IDEyOC40NyAzNTkuNzU4IDUwLjc1MTcgMzU5LjY4NCAwIDMwMy41MDEgMCAyMjkuMTc5IDAgMTU0Ljg1NiA1MC43NTE3IDk4LjYwMDEgMTI4LjU0MiA5OC42MDAxIDE2NC45OCA5OC42MDAxIDE5OC4xNjMgMTEyLjA0IDIxOS44NTEgMTM4LjI1OEwyMTkuNzggMTM4LjI1OFoiIGZpbGw9IiMzQTQ1NTIiIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIDEuMDAxMzEgLTk2IDE5NykiLz48cGF0aCBkPSJNNTMyLjI5MSAxNDMuODIyIDUzMi4yOTEgNzEuODcgMzQyLjQzNiA3MS44NyAzNDIuNDM2IDAgNTMyLjI5MSAwIDUzMi4yOTEgNzEuOTUxNiA1OTUuNTk5IDcxLjk1MTYgNTk1LjU5OSAxNDMuOTAzIDUzMi4yOTEgMTQzLjkwMyA1MzIuMjkxIDE0My44MjJaTTM0Mi40MzYgMzU5LjY3NiAzNDIuNDM2IDIxNS44NTUgNDA1Ljc0NCAyMTUuODU1IDQwNS43NDQgMjg3LjgwNiA1OTUuNTk5IDI4Ny44MDYgNTk1LjU5OSAzNTkuNzU4IDM0Mi40MzYgMzU5Ljc1OCAzNDIuNDM2IDM1OS42NzZaTTQwNS42NzMgMjE1Ljc3MyA0MDUuNjczIDE0My44MjIgNTMyLjIxOCAxNDMuODIyIDUzMi4yMTggMjE1Ljc3MyA0MDUuNjczIDIxNS43NzNaIiBmaWxsPSIjM0E0NTUyIiB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAxLjAwMTMxIC05NiAxOTcpIi8+PHBhdGggZD0iTTc5Ni45NzEgNDUzLjAyOSA3MzcuNzY4IDQ1My4wMjkgODI1LjM0NCAyOTYuMzMxIDcxNi44NSA5OC42MDAxIDc3Ni44NTEgOTguNjAwMSA4NTUuNDUxIDI0MS41MiA5MzEuMzAzIDk4LjYwMDEgOTkwIDk4LjYwMDEgNzk2Ljk3MSA0NTMuMDI5WiIgZmlsbD0iIzNBNDU1MiIgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgMS4wMDEzMSAtOTYgMTk3KSIvPjwvZz48L3N2Zz4="  },
+  escuro: { extensa:"data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTMzIDE2OCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIwIiB5PSIxNCIgd2lkdGg9IjkzMyIgaGVpZ2h0PSIxNjgiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcDApIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjAgLTE0KSI+PHBhdGggZD0iTTU0MC40MTggNjMuOTcwMyA1NDAuNDE4IDM4Ljk4NTEgNDY1LjQ2MyAzOC45ODUxIDQ2NS40NjMgMTQgNTQwLjQxOCAxNCA1NDAuNDE4IDM4Ljk4NTEgNTY1LjQwMyAzOC45ODUxIDU2NS40MDMgNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDNaTTQ2NS40NjMgMTM4LjkyNiA0NjUuNDYzIDg4Ljk1NTQgNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggMTEzLjk0MSA1NjUuNDAzIDExMy45NDEgNTY1LjQwMyAxMzguOTI2IDQ2NS40NjMgMTM4LjkyNlpNNDkwLjQ0OCA4OC45NTU0IDQ5MC40NDggNjMuOTcwMyA1NDAuNDE4IDYzLjk3MDMgNTQwLjQxOCA4OC45NTU0IDQ5MC40NDggODguOTU1NFoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNMzE5Ljc0OSA0My4zODI1IDMxNC43NTIgNjQuMDcwMkMzMTAuMzU1IDYxLjc3MTYgMzAzLjk1OSA2MC41NzIzIDI5OC44NjIgNjAuNTcyMyAyODUuNTcgNjAuNTcyMyAyNzYuMDc1IDY5Ljk2NjcgMjc2LjA3NSA4Ni4yNTdMMjc2LjA3NSAxMzguOTI2IDI1NS4xODggMTM4LjkyNiAyNTUuMTg4IDQzLjE4MjYgMjc1Ljg3NSA0My4xODI2IDI3NS44NzUgNTMuOTc2MkMyODIuMTcyIDQ0Ljg4MTYgMjkxLjk2NiA0MC42ODQxIDMwMy42NTkgNDAuNjg0MSAzMTUuMzUyIDQwLjY4NDEgMzE0Ljk1MiA0MS40ODM2IDMxOS43NDkgNDMuMzgyNVoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNNDA0LjE5OSA2Ny4xNjg0QzM5OC40MDIgNjMuNTcwNSAzODYuNTEgNTguOTczMiAzNzQuNjE3IDU4Ljk3MzIgMzYyLjcyNCA1OC45NzMyIDM1Ni41MjcgNjMuNTcwNSAzNTYuNTI3IDcwLjM2NjUgMzU2LjUyNyA3Ny4xNjI0IDM2My41MjMgNzguOTYxMyAzNzIuMzE4IDgwLjI2MDZMMzgyLjIxMiA4MS43NTk3QzQwMy4xIDg0Ljc1NzkgNDE1LjQ5MiA5My42NTI2IDQxNS40OTIgMTEwLjA0MyA0MTUuNDkyIDEyNi40MzMgMzk5LjUwMiAxNDEuMzI0IDM3MS45MTggMTQxLjMyNCAzNDQuMzM1IDE0MS4zMjQgMzQ0LjgzNCAxMzkuNDI1IDMzMC44NDMgMTI5LjAzMkwzNDAuNTM3IDExMy4zNDFDMzQ3LjQzMyAxMTguNjM4IDM1Ni41MjcgMTIzLjEzNSAzNzIuMTE4IDEyMy4xMzUgMzg3LjcwOSAxMjMuMTM1IDM5My45MDUgMTE4LjYzOCAzOTMuOTA1IDExMS40NDIgMzkzLjkwNSAxMDQuMjQ2IDM4OC43MDggMTAyLjQ0NyAzNzcuMzE1IDEwMC44NDhMMzY3LjMyMSA5OS41NDkxQzM0Ni4xMzQgOTYuNjUwOCAzMzQuODQgODYuODU2NiAzMzQuODQgNzEuNDY1OCAzMzQuODQgNTYuMDc1IDM1MC4wMzEgNDAuNzg0MSAzNzQuNDE3IDQwLjc4NDEgMzk4LjgwMiA0MC43ODQxIDQwMy4zIDQ0LjQ4MTkgNDEzLjE5NCA1MC44NzgxTDQwNC4xOTkgNjcuMTY4NFoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNNjQ0LjY1NiAxODIgNjIxLjQ3IDE4MiA2NTUuNzQ5IDEyMS43MzYgNjEzLjI3NSA0NS42ODExIDYzNi43NjEgNDUuNjgxMSA2NjcuNTQyIDEwMC42NDggNjk3LjIyNSA0NS42ODExIDcyMC4yMTEgNDUuNjgxMSA2NDQuNjU2IDE4MloiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNOTUyLjc3MiAxMDAuODQ4Qzk1Mi43NzIgMTMxLjMzIDkzMC43ODYgMTQzLjkyMyA5MDguMzk5IDE0My45MjMgODg2LjAxMiAxNDMuOTIzIDg2NC4wMjUgMTMxLjMzIDg2NC4wMjUgMTAwLjg0OEw4NjQuMDI1IDQ1LjY4MTEgODg1LjAxMyA0NS42ODExIDg4NS4wMTMgOTguOTQ5NEM4ODUuMDEzIDExNy40MzggODk1LjMwNyAxMjQuMjM0IDkwOC4zOTkgMTI0LjIzNCA5MjEuNDkxIDEyNC4yMzQgOTMxLjc4NSAxMTcuNDM4IDkzMS43ODUgOTguOTQ5NEw5MzEuNzg1IDQ1LjY4MTEgOTUyLjc3MiA0NS42ODExIDk1Mi43NzIgMTAwLjg0OFoiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNMTA2LjM3NiA1NS45NzUgOTIuOTg0MiA3MC4yNjY1Qzg2LjI4ODIgNjMuOTcwMyA3OS4xOTI0IDYwLjM3MjQgNjkuOTk3OSA2MC4zNzI0IDUzLjkwNzUgNjAuMzcyNCA0MS43MTQ4IDcyLjk2NDkgNDEuNzE0OCA5MS4wNTQxIDQxLjcxNDggMTA5LjE0MyA1My45MDc1IDEyMS43MzYgNjkuOTk3OSAxMjEuNzM2IDg2LjA4ODMgMTIxLjczNiA4Ny4zODc2IDExNy40MzggOTMuNDgzOSAxMTEuNzQyTDEwNi4zNzYgMTI2LjEzM0M5Ny42ODE0IDEzNi4yMjcgODQuODg5MSAxNDEuNDI0IDcwLjU5NzYgMTQxLjQyNCA0MC4xMTU3IDE0MS40MjQgMjAuMjI3NSAxMTkuNzM3IDIwLjIyNzUgOTEuMDU0MSAyMC4yMjc1IDYyLjM3MTIgNDAuMTE1NyA0MC42ODQxIDcwLjU5NzYgNDAuNjg0MSAxMDEuMDc5IDQwLjY4NDEgOTcuODgxMyA0NS44ODEgMTA2LjM3NiA1NS45NzVaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTIyMS45MDggMTM4LjkyNiAyMDEuMDIgMTM4LjkyNiAyMDEuMDIgMTI3LjQzMkMxOTQuNDI0IDEzNS45MjcgMTg0LjUzIDE0MS40MjQgMTcwLjkzOCAxNDEuNDI0IDE0NC4xNTQgMTQxLjQyNCAxMjMuMDY2IDEyMC4zMzcgMTIzLjA2NiA5MS4wNTQxIDEyMy4wNjYgNjEuNzcxNiAxNDQuMTU0IDQwLjY4NDEgMTcwLjkzOCA0MC42ODQxIDE5Ny43MjIgNDAuNjg0MSAxOTQuNDI0IDQ2LjI4MDggMjAxLjAyIDU0Ljc3NTdMMjAxLjAyIDQzLjE4MjYgMjIxLjkwOCA0My4xODI2IDIyMS45MDggMTM4LjkyNlpNMTQ0LjU1NCA5MS4wNTQxQzE0NC41NTQgMTA3Ljg0NCAxNTUuNDQ3IDEyMS43MzYgMTczLjQzNiAxMjEuNzM2IDE5MS40MjYgMTIxLjczNiAyMDIuMzE5IDEwOC41NDQgMjAyLjMxOSA5MS4wNTQxIDIwMi4zMTkgNzMuNTY0NSAxOTAuNzI2IDYwLjM3MjQgMTczLjQzNiA2MC4zNzI0IDE1Ni4xNDcgNjAuMzcyNCAxNDQuNTU0IDc0LjI2NDEgMTQ0LjU1NCA5MS4wNTQxWiIgZmlsbD0iI0ZGRkZGRiIvPjxwYXRoIGQ9Ik04MzUuMTQzIDkzLjU1MjdDODM1LjE0MyAxMjIuMjM2IDgxMy4xNTYgMTQzLjkyMyA3ODMuNTczIDE0My45MjMgNzUzLjk5MSAxNDMuOTIzIDczMi4xMDQgMTIyLjIzNiA3MzIuMTA0IDkzLjU1MjcgNzMyLjEwNCA2NC44Njk3IDc1My45OTEgNDMuMTgyNiA3ODMuNTczIDQzLjE4MjYgODEzLjE1NiA0My4xODI2IDgzNS4xNDMgNjQuODY5NyA4MzUuMTQzIDkzLjU1MjdaTTc1My41OTEgOTMuNTUyN0M3NTMuNTkxIDExMS42NDIgNzY2LjQ4MyAxMjQuMjM0IDc4My41NzMgMTI0LjIzNCA4MDAuNjYzIDEyNC4yMzQgODEzLjY1NSAxMTEuNjQyIDgxMy42NTUgOTMuNTUyNyA4MTMuNjU1IDc1LjQ2MzQgODAwLjY2MyA2Mi44NzA5IDc4My41NzMgNjIuODcwOSA3NjYuNDgzIDYyLjg3MDkgNzUzLjU5MSA3NS40NjM0IDc1My41OTEgOTMuNTUyN1oiIGZpbGw9IiNGRkZGRkYiLz48L2c+PC9zdmc+", curta:"data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgOTkwIDQ1NCIgd2lkdGg9Ijk5MCIgaGVpZ2h0PSI0NTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiIG92ZXJmbG93PSJoaWRkZW4iPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk2IC0xOTcpIj48cGF0aCBkPSJNMjE5Ljc4IDEzOC4yNTggMTg1LjU4MyAxNzUuMjczQzE2OC41MjEgMTU4Ljk2OSAxNTAuMzc2IDE0OS42NDIgMTI2Ljk1MiAxNDkuNjQyIDg1Ljg4NzYgMTQ5LjY0MiA1NC44MDAzIDE4Mi4yNSA1NC44MDAzIDIyOS4xNzkgNTQuODAwMyAyNzYuMTA4IDg1Ljg4NzYgMzA4LjcxNiAxMjYuOTUyIDMwOC43MTYgMTUwLjQ0OCAzMDguNzE2IDE3MS4zNDEgMjk3LjU1MyAxODYuODg1IDI4Mi43OTFMMjE5Ljc4IDMyMC4wOTlDMTk3LjU4NSAzNDYuMjQ1IDE2NC45OCAzNTkuNzU4IDEyOC40NyAzNTkuNzU4IDUwLjc1MTcgMzU5LjY4NCAwIDMwMy41MDEgMCAyMjkuMTc5IDAgMTU0Ljg1NiA1MC43NTE3IDk4LjYwMDEgMTI4LjU0MiA5OC42MDAxIDE2NC45OCA5OC42MDAxIDE5OC4xNjMgMTEyLjA0IDIxOS44NTEgMTM4LjI1OEwyMTkuNzggMTM4LjI1OFoiIGZpbGw9IiNGRkZGRkYiIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIDEuMDAxMzEgLTk2IDE5NykiLz48cGF0aCBkPSJNNTMyLjI5MSAxNDMuODIyIDUzMi4yOTEgNzEuODcgMzQyLjQzNiA3MS44NyAzNDIuNDM2IDAgNTMyLjI5MSAwIDUzMi4yOTEgNzEuOTUxNiA1OTUuNTk5IDcxLjk1MTYgNTk1LjU5OSAxNDMuOTAzIDUzMi4yOTEgMTQzLjkwMyA1MzIuMjkxIDE0My44MjJaTTM0Mi40MzYgMzU5LjY3NiAzNDIuNDM2IDIxNS44NTUgNDA1Ljc0NCAyMTUuODU1IDQwNS43NDQgMjg3LjgwNiA1OTUuNTk5IDI4Ny44MDYgNTk1LjU5OSAzNTkuNzU4IDM0Mi40MzYgMzU5Ljc1OCAzNDIuNDM2IDM1OS42NzZaTTQwNS42NzMgMjE1Ljc3MyA0MDUuNjczIDE0My44MjIgNTMyLjIxOCAxNDMuODIyIDUzMi4yMTggMjE1Ljc3MyA0MDUuNjczIDIxNS43NzNaIiBmaWxsPSIjRkZGRkZGIiB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAxLjAwMTMxIC05NiAxOTcpIi8+PHBhdGggZD0iTTc5Ni45NzEgNDUzLjAyOSA3MzcuNzY4IDQ1My4wMjkgODI1LjM0NCAyOTYuMzMxIDcxNi44NSA5OC42MDAxIDc3Ni44NTEgOTguNjAwMSA4NTUuNDUxIDI0MS41MiA5MzEuMzAzIDk4LjYwMDEgOTkwIDk4LjYwMDEgNzk2Ljk3MSA0NTMuMDI5WiIgZmlsbD0iI0ZGRkZGRiIgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgMS4wMDEzMSAtOTYgMTk3KSIvPjwvZz48L3N2Zz4=" }
+};
+const ICO_TEMA = {
+  claro:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4'
+      + 'M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  escuro:'<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>'
+};
+function aplicaTema(t){
+  document.documentElement.dataset.tema = t;
+  $('#logo').src = LOGO[t].extensa;
+  $('#logo-curta').src = LOGO[t].curta;
+  const alvo = t === 'escuro' ? 'claro' : 'escuro';
+  const b = $('#b-tema');
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO_TEMA[alvo] + '</svg>';
+  b.setAttribute('aria-label', 'Mudar para o tema ' + alvo);
+  b.setAttribute('title', 'Tema ' + alvo);
+}
+/* Artifact: o tema segue o do leitor (data-theme do visualizador ou o do sistema). */
+function temaDoLeitor(){
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t === 'dark') return 'escuro';
+  if (t === 'light') return 'claro';
+  return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+}
+aplicaTema(temaDoLeitor());
+new MutationObserver(() => aplicaTema(temaDoLeitor()))
+  .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => aplicaTema(temaDoLeitor()));
+$('#b-tema').addEventListener('click', () =>
+  aplicaTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro'));
+
+/* abas: mostram uma operação ou todas. #c6 no link abre direto na aba. */
+const abas = Array.prototype.slice.call(document.querySelectorAll('.aba'));
+const secoes = Array.prototype.slice.call(document.querySelectorAll('.op'));
+function mostra(op){
+  if (!abas.some((a) => a.dataset.op === op)) op = 'todas';
+  abas.forEach((a) => a.setAttribute('aria-selected', a.dataset.op === op ? 'true' : 'false'));
+  secoes.forEach((s) => { s.hidden = !(op === 'todas' || s.dataset.op === op); });
+}
+abas.forEach((a) => a.addEventListener('click', () => {
+  mostra(a.dataset.op);
+  try { history.replaceState(null, '', a.dataset.op === 'todas' ? location.pathname : '#' + a.dataset.op); } catch (e) {}
+}));
+mostra((location.hash || '').slice(1) || 'todas');
+</script>

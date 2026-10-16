@@ -1,0 +1,37 @@
+{
+ "SITU": {
+  "1": "Pré cadastrado",
+  "2": "Para aprovação",
+  "3": "Aprovado",
+  "4": "Reprovado",
+  "5": "Bloqueado",
+  "6": "Inadimplente"
+ },
+ "TIPS": {
+  "base": "Todos os clientes do canal, em qualquer situação cadastral. Exclui contas internas da Cars2You e de parceiros de tecnologia. Onde o próprio anunciante é o dono do canal, o e-mail corporativo dele também sai — menos no canal de colaboradores, onde o funcionário é o cliente.",
+  "comLogin": "Clientes que já entraram na plataforma pelo menos uma vez, considerando todo o histórico.",
+  "semLogin": "Cadastrados que nunca acessaram. Continuam na base e contam no total.",
+  "ofertantes": "Clientes que já deram pelo menos um lance, em qualquer loja da plataforma — não apenas nos veículos deste canal.",
+  "compradores": "Clientes com pelo menos uma compra concluída. Considera negociação vendida, aguardando pagamento ou aguardando confirmação.",
+  "ofertas": "Total de lances dados, não de pessoas. Um mesmo cliente aparece quantas vezes tiver ofertado.",
+  "negociacoes": "Quantidade de compras concluídas, contando cada negociação uma vez.",
+  "volume": "Soma do valor pago nas compras concluídas. É dado financeiro do sistema, não estimativa.",
+  "situacao": "Situação do cadastro no momento da consulta. Aprovado é quem pode operar; os demais estão em alguma etapa de análise, bloqueio ou recusa.",
+  "funil": "Cada etapa contém a anterior: quem comprou também ofertou e acessou. O percentual compara com a etapa imediatamente acima, para mostrar onde está o estrangulamento.",
+  "recencia": "Há quanto tempo cada cliente fez aquilo pela última vez. Conta apenas quem já fez a ação ao menos uma vez — quem nunca logou não entra na coluna de login.",
+  "evolucao": "Pessoas diferentes por mês, não ações. A parte clara da barra é quem fazia aquilo pela primeira vez naquele mês.",
+  "volumeMes": "Valor pago nas compras concluídas em cada mês.",
+  "coorteAcum": "De cada grupo que entrou na base no mês, o que aconteceu depois. As faixas são exclusivas e somam o total do mês: quem comprou aparece só em Compraram, não também em Acessaram.",
+  "coorteJanela": "O mesmo grupo, contando só o que aconteceu dentro de 30, 60, 90 e 180 dias do próprio cadastro. Serve para comparar meses em pé de igualdade — quem entrou em janeiro teve mais tempo de converter do que quem entrou no mês passado.",
+  "uf": "Estado da loja vinculada ao cliente. Quem tem loja em mais de um estado aparece em cada um, então a soma passa do total da base.",
+  "top": "Os dez clientes com mais compras concluídas, em todo o período."
+ },
+ "nomes": {
+  "4": "Trucks2you",
+  "7": "Marketplace Cars2You",
+  "43": "Canal de vendas C6 Auto",
+  "48": "Colaboradores C6",
+  "62": "Lance Fácil BTB",
+  "65": "Lance Fácil BTB Associados"
+ }
+}

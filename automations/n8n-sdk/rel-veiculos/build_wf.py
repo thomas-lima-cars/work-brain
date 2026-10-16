@@ -101,7 +101,9 @@ for rot, s in [("Fase 1", F1), ("Fase 2", F2), ("HTML", HTML)]:
 assert code.count("mcpClient") == 2, "esperados 2 nos MCP"
 assert code.count("n8n-nodes-base.code") == 3, "esperados 3 nos Code"
 assert "gmail" not in code.lower() and "emailSend" not in code, "nenhum no de e-mail"
-assert "scheduleTrigger" not in code and "cron" not in code.lower(), "nenhum gatilho automatico"
+# gatilho automatico e TIPO de no, nao palavra: "cron" solto no texto casava
+# com "cronologica" dentro do jsCode e barrava o build sem motivo (25/09)
+assert "scheduleTrigger" not in code and "n8n-nodes-base.cron" not in code, "nenhum gatilho automatico"
 assert "const PAGE = 50" in code, "PAGE tem que ser 50"
 assert "value_actual" in code, "o preco do veiculo e o value_actual"
 print("checagens: 6 nos, sem e-mail, sem cron, PAGE=50, value_actual presente")

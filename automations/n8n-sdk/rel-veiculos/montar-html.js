@@ -107,8 +107,8 @@ const LAUDO_NOME = {
   aprovado: 'Aprovado',
   apontamento: 'Aprovado com apontamento',
   reprovado: 'Reprovado',
-  nao_informado: 'Nao informado',
-  vazio: 'Laudo sem situacao',
+  nao_informado: 'Não informado',
+  vazio: 'Laudo sem situação',
   ausente: 'Sem laudo'
 };
 /* o banco escreve `aprovado_com_apontamento`; a coluna pivotada da fase 2
@@ -176,7 +176,7 @@ for (let i = 0; i < pedidos.length; i++) {
 const diagnostico = Object.keys(diag).map((k) => {
   const d = diag[k];
   d.veredito = d.erro ? 'ERRO'
-    : (d.truncadas ? 'RESPOSTA CORTADA - pagina maior que o teto do MCP'
+    : (d.truncadas ? 'RESPOSTA CORTADA — página maior que o teto do MCP'
       : (d.linhas === 0 ? 'ZERO LINHAS' : 'ok'));
   return d;
 });
@@ -443,16 +443,16 @@ function carteiraViva() {
     var itens = $('Baixar Carteira').all();
     bruto = itens && itens.length ? itens[0].json : null;
   } catch (e) {
-    return { erro: 'o no Baixar Carteira nao existe ou nao rodou' };
+    return { erro: 'o nó Baixar Carteira não existe ou não rodou' };
   }
-  if (!bruto) return { erro: 'o Baixar Carteira nao devolveu nada' };
+  if (!bruto) return { erro: 'o Baixar Carteira não devolveu nada' };
 
   /* o item de erro do HTTP chega como {error: ...}: dizer o texto dele aqui
      poupa abrir a execucao pra descobrir que foi 403 ou 404. */
   if (bruto.error !== undefined) {
     var msg = bruto.error;
     if (msg && typeof msg === 'object') msg = msg.message || JSON.stringify(msg);
-    return { erro: 'o arquivo da carteira nao veio: ' + String(msg).slice(0, 160) };
+    return { erro: 'o arquivo da carteira não veio: ' + String(msg).slice(0, 160) };
   }
 
   /* forma minima. O `Carteira Comercial` ja se recusa a publicar mapa ruim,
@@ -460,7 +460,7 @@ function carteiraViva() {
      poderiam divergir e a discordancia seria invisivel. Confere-se so que
      isto E um mapa, e nao outra coisa que apareceu naquele caminho. */
   if (!bruto.consultores || !bruto.consultores.length || !bruto.cnpj) {
-    return { erro: 'o arquivo nao tem forma de carteira (consultores/cnpj ausentes)' };
+    return { erro: 'o arquivo não tem forma de carteira (consultores/cnpj ausentes)' };
   }
   var qt = Object.keys(bruto.cnpj).length;
   if (!qt) return { erro: 'a carteira veio sem nenhum CNPJ' };
@@ -505,7 +505,7 @@ const CARTEIRA_VELHA = CART_TENTATIVA.idade !== null &&
   CART_TENTATIVA.idade !== undefined && CART_TENTATIVA.idade > VELHA_DIAS;
 const CARTEIRA_ORIGEM = CART_TENTATIVA.mapa
   ? CART_TENTATIVA.mapa.origem + (CARTEIRA_VELHA
-      ? ' — ATENCAO: parada ha ' + CART_TENTATIVA.idade + ' dias, o agendador pode ter morrido'
+      ? ' — ATENÇÃO: parada há ' + CART_TENTATIVA.idade + ' dias, o agendador pode ter morrido'
       : '')
   : (CARTEIRAS.origem || 'literal embutido') + ' [reserva: ' + CART_TENTATIVA.erro + ']';
 
@@ -537,6 +537,9 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
   const mo = iMo[k] || {};
   const ca = iCa[k] || {};
   const qtOfertas = num(of.qt_ofertas);
+  /* compras: ofertas vencedoras em venda, marcadas na propria q_ofertas */
+  const qtCompras = num(of.qt_compras) || 0;
+  const vlCompras = num(of.vl_compras) || 0;
   const pct = (n) => (qtOfertas && n ? Number(n) / qtOfertas : 0);
   const precoMedio = num(pe.preco_medio);
   const precoDesvio = num(pe.preco_desvio);
@@ -587,8 +590,9 @@ const lojasTodas = (dados.q_lojas || []).map((s) => {
     whitelabel: s.whitelabel || ('whitelabel #' + s.whitelabel_id),
     /* uso interno da trava: nao entra no array publicado (lista explicita) */
     grupos: lojaGr[k] || {},
-    uf: s.uf || 'Nao identificada',
+    uf: s.uf || 'Não identificada',
     qt_ofertas: qtOfertas, qt_veiculos: qtVeiculos,
+    qt_compras: qtCompras, vl_compras: vlCompras,
     preco_medio: precoMedio, preco_desvio: precoDesvio,
     idade_media: idadeMedia, idade_desvio: idadeDesvio,
     km_medio: kmMedio, km_desvio: kmDesvio,
@@ -890,6 +894,7 @@ Object.keys(usadas).map(Number).sort((a, b) => a - b).forEach((idx) => {
     responsavel: l.responsavel, responsavel_via: l.responsavel_via,
     whitelabel: l.whitelabel, whitelabel_id: l.whitelabel_id,
     qt_ofertas: l.qt_ofertas, qt_veiculos: l.qt_veiculos,
+    qt_compras: l.qt_compras, vl_compras: Math.round(l.vl_compras),
     preco_medio: l.preco_medio, preco_desvio: l.preco_desvio,
     idade_media: l.idade_media, idade_desvio: l.idade_desvio,
     km_medio: l.km_medio, km_desvio: l.km_desvio,
@@ -939,23 +944,23 @@ lojas.forEach((l, i) => { l.melhor = melhorL[i]; l.pares = nParesL[i]; });
 /* ── completude ──────── */
 const falhas = [];
 if (META.esperado_veiculos && veiculos.length !== META.esperado_veiculos) {
-  falhas.push('coletei ' + veiculos.length + ' veiculos mas a fase 1 contou ' +
+  falhas.push('coletei ' + veiculos.length + ' veículos mas a fase 1 contou ' +
     META.esperado_veiculos + ': faltam ' + (META.esperado_veiculos - veiculos.length));
 }
 if (META.esperado_lojas && lojasTodas.length !== META.esperado_lojas) {
   falhas.push('perfil montado para ' + lojasTodas.length + ' lojas mas a fase 1 contou ' + META.esperado_lojas);
 }
 const semValor = veiculos.filter((v) => !v.valor).length;
-if (semValor) falhas.push(semValor + ' veiculo(s) sem value_actual: ficam sem o componente de preco');
+if (semValor) falhas.push(semValor + ' veículo(s) sem value_actual: ficam sem o componente de preço');
 if (dupVeic) {
-  falhas.push(dupVeic + ' veiculo(s) vieram mais de uma vez do banco e foram descartados: ' +
-    'a query deveria trazer so a ultima negociacao de cada um');
+  falhas.push(dupVeic + ' veículo(s) vieram mais de uma vez do banco e foram descartados: ' +
+    'a query deveria trazer só a última negociação de cada um');
 }
 /* Nao e defeito de dado: e uma pergunta que o dado passou a fazer e que a
    regra do host nao responde. Ver `hostDoAnuncio`. */
 if (linkAmbiguo) {
-  falhas.push(linkAmbiguo + ' veiculo(s) em evento que alveja C6 E outro canal ao mesmo tempo: ' +
-    'o link ficou no dominio padrao, porque o anuncio existe nas duas vitrines');
+  falhas.push(linkAmbiguo + ' veículo(s) em evento que alveja C6 E outro canal ao mesmo tempo: ' +
+    'o link ficou no domínio padrão, porque o anúncio existe nas duas vitrines');
 }
 /* ── os canais do recorte sao mesmo os que eu penso? ────────
    O recorte e por ID, e id errado nao da erro de SQL: a base so vem menor,
@@ -970,14 +975,14 @@ const wlIds = Object.keys(wlEsperado);
 if (wlIds.length) {
   const sumiram = wlIds.filter((id) => !wlBanco[id]);
   if (sumiram.length) {
-    falhas.push('whitelabel(s) que o recorte pede mas o banco nao tem: ' +
+    falhas.push('whitelabel(s) que o recorte pede mas o banco não tem: ' +
       sumiram.map((id) => id + ' (esperado "' + wlEsperado[id] + '")').join(', ') +
       ' — o canal sumiu da base inteira sem dar erro de SQL.');
   }
   const trocados = wlIds.filter((id) => wlBanco[id] && wlBanco[id] !== wlEsperado[id]);
   if (trocados.length) {
     falhas.push('whitelabel(s) com nome diferente do esperado: ' +
-      trocados.map((id) => id + ' e "' + wlBanco[id] + '", nao "' + wlEsperado[id] + '"').join('; ') +
+      trocados.map((id) => id + ' e "' + wlBanco[id] + '", não "' + wlEsperado[id] + '"').join('; ') +
       ' — confira se o id ainda aponta pro canal certo.');
   }
 }
@@ -1000,7 +1005,7 @@ const mLoj = META.moda_lojas || {};
     const n = Object.keys(vistas).length;
     if (n < esperado) {
       falhas.push('a moda de ' + par[2] + ' cobriu ' + n + ' lojas de ' + esperado +
-        ': faltam ' + (esperado - n) + ' — provavel truncamento da consulta, e as ' +
+        ': faltam ' + (esperado - n) + ' — provável truncamento da consulta, e as ' +
         'lojas que faltam perdem esse componente do score em silencio.');
     }
   });
@@ -1020,13 +1025,13 @@ if (gruposTalvezCortados) {
 }
 
 const semWl = veiculos.filter((v) => !v.wls.length).length;
-if (semWl) falhas.push(semWl + ' veiculo(s) em evento sem whitelabel declarado: ficam sem nenhuma loja elegivel');
+if (semWl) falhas.push(semWl + ' veículo(s) em evento sem whitelabel declarado: ficam sem nenhuma loja elegível');
 /* os seis baldes de laudo tem que somar as ofertas da loja; nao somando, a
    juncao duplicou ofertas (veiculo com mais de um laudo). Declarar, nao
    arredondar -- fan-out silencioso ja mordeu duas vezes neste projeto. */
 if (laudoDesencontro) {
-  falhas.push(laudoDesencontro + ' loja(s) em que os status de laudo nao somam o total de ofertas: ' +
-    'algum veiculo tem mais de um laudo e as ofertas dele foram contadas em duplicata');
+  falhas.push(laudoDesencontro + ' loja(s) em que os status de laudo não somam o total de ofertas: ' +
+    'algum veículo tem mais de um laudo e as ofertas dele foram contadas em duplicata');
 }
 /* Tres populacoes, tres causas, tres decisoes diferentes. Declarar as tres
    como uma frase so fez o run 50106 parecer ter 23% de buraco, quando 9,6%
@@ -1037,41 +1042,41 @@ const semNaUf = veiculos.filter((v) => !v.canal_sem_loja && !v.grupo_sem_loja &&
 const cortadosPeloMin = veiculos.filter((v) => v.elegiveis && !v.candidatos).length;
 const semPar = veiculos.filter((v) => !v.candidatos).length;
 if (semCanal) {
-  falhas.push(semCanal + ' veiculo(s) em evento cujo canal NAO TEM loja alguma ' +
-    '(canal de pessoa fisica: colaborador, associado, clube). Par impossivel por ' +
-    'construcao — nao e falta de aderencia, e categoria.');
+  falhas.push(semCanal + ' veículo(s) em evento cujo canal NÃO TEM loja alguma ' +
+    '(canal de pessoa física: colaborador, associado, clube). Par impossível por ' +
+    'construção — não é falta de aderência, é categoria.');
 }
 if (semGrupo) {
-  falhas.push(semGrupo + ' veiculo(s) com loja no canal do evento, mas nenhuma nos grupos de ' +
-    'cliente que o evento alveja. Par impossivel pela regra de acesso, nao por aderencia.');
+  falhas.push(semGrupo + ' veículo(s) com loja no canal do evento, mas nenhuma nos grupos de ' +
+    'cliente que o evento alveja. Par impossível pela regra de acesso, não por aderência.');
 }
 if (semNaUf) {
   /* Ate 2026-09-11 isto dizia "sem loja do canal na UF do patio". A UF
      deixou de ser porta, entao a unica forma de ficar sem elegivel agora e
      o canal nao ter loja alguma -- que ja tem KPI proprio. Se este numero
      aparecer, e sinal de outra coisa. */
-  falhas.push(semNaUf + ' veiculo(s) com canal povoado mas nenhuma loja elegivel: ' +
-    'a UF nao exclui mais, entao isto nao deveria acontecer — investigar.');
+  falhas.push(semNaUf + ' veículo(s) com canal povoado mas nenhuma loja elegível: ' +
+    'a UF não exclui mais, então isto não deveria acontecer — investigar.');
 }
 /* Par cortado pelo TETO e par que passou de tudo e ficou de fora mesmo
    assim. Declarar, sempre: descarte silencioso e o defeito que este
    relatorio persegue desde o inicio. */
 if (cortadosPeloTeto) {
   falhas.push(cortadosPeloTeto.toLocaleString('pt-BR') + ' par(es) passaram da ' +
-    'correspondencia minima mas ficaram fora do teto de ' + TETO_LOJAS +
-    ' lojas por veiculo — sao os de menor score de cada carro, e o teto existe ' +
+    'correspondência mínima mas ficaram fora do teto de ' + TETO_LOJAS +
+    ' lojas por veículo — são os de menor score de cada carro, e o teto existe ' +
     'porque sem ele o arquivo passa de 20 MB.');
 }
 if (cortadosPeloMin) {
-  falhas.push(cortadosPeloMin + ' veiculo(s) TINHAM loja elegivel, mas nenhuma ' +
-    'passou da correspondencia minima de ' + CORRESP_MIN + '% — sao estes, e so ' +
+  falhas.push(cortadosPeloMin + ' veículo(s) TINHAM loja elegível, mas nenhuma ' +
+    'passou da correspondência mínima de ' + CORRESP_MIN + '% — são estes, e só ' +
     'estes, que mudariam se o corte baixasse.');
 }
 /* Com o minimo em 0 a frase acima nunca sai, e o silencio enganaria: o
    teto continua cortando. Entao declara que o piso agora e do leitor. */
 if (!CORRESP_MIN) {
-  falhas.push('Sem correspondencia minima nesta coleta: todo par elegivel entra, ' +
-    'ate score baixo. O piso e a barra deslizante do extrato, que nasce em 70%.');
+  falhas.push('Sem correspondência mínima nesta coleta: todo par elegível entra, ' +
+    'até score baixo. O piso é a barra deslizante do extrato, que nasce em 70%.');
 }
 
 const DADOS = {
@@ -2035,7 +2040,7 @@ const APP = [
      correspondencia" e o leitor procura culpa na aderencia */
   `(r.v.canal_sem_loja?" <span class='tag'>canal sem loja</span>":"")+`,
   `(r.v.grupo_sem_loja?" <span class='tag'>grupo sem loja</span>":"")+"</td></tr>";}).join("")+"</tbody>";`,
-  'Array.prototype.forEach.call($("#t_v").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selV=(selV===i?null:i);selL=null;pinta();};});}',
+  'Array.prototype.forEach.call($("#t_v").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selV=(selV===i?null:i);selL=null;escolhidos={};pinta();};});}',
   /* ---- lojas ---- */
   'function linhasL(){',
   'const q=$("#f_l").value.toLowerCase();',
@@ -2050,13 +2055,13 @@ const APP = [
   '$("#cl").textContent=rows.length+" de "+D.lojas.length;',
   `if(!rows.length){$("#t_l").innerHTML="";$("#l_vazio").innerHTML="<div class='vazio'>Nenhuma loja no filtro atual.</div>";return;}`,
   '$("#l_vazio").innerHTML="";',
-  `$("#t_l").innerHTML="<thead><tr><th class='tx'>Loja</th><th class='tx'>UF</th>"+(comScore?"<th>Aderência</th><th>Score</th><th class='tx'>Componentes</th>":"<th>Melhor score</th>")+"<th>Veículos ofertados 6m</th></tr></thead><tbody>"+`,
+  `$("#t_l").innerHTML="<thead><tr><th class='tx'>Loja</th><th class='tx'>UF</th>"+(comScore?"<th>Aderência</th><th>Score</th><th class='tx'>Componentes</th>":"<th>Melhor score</th>")+"<th>Veículos ofertados 6m</th><th>Compras 6m</th></tr></thead><tbody>"+`,
   `rows.map(r=>"<tr data-i='"+r.i+"' class='"+(r.i===selL?"sel":"")+"'>"+`,
   `"<td class='tx nm' title='"+esc(r.l.loja)+"'>"+esc(r.l.loja)+" <span class='dim mono'>#"+r.l.loja_id+"</span>"+(r.l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+"</td>"+`,
   `"<td class='tx'>"+esc(r.l.uf)+"</td>"+`,
   `(comScore?celulas(r.s,r.l.confianca)+"<td class='tx'>"+det(r.d)+"</td>":"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+`,
-  '"<td>"+nf(r.l.qt_veiculos)+"</td></tr>").join("")+"</tbody>";',
-  'Array.prototype.forEach.call($("#t_l").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selL=(selL===i?null:i);selV=null;pinta();};});}',
+  `"<td>"+nf(r.l.qt_veiculos)+"</td><td>"+(r.l.qt_compras?nf(r.l.qt_compras)+" <span class='dim'>· "+money(r.l.vl_compras)+"</span>":"0")+"</td></tr>").join("")+"</tbody>";`,
+  'Array.prototype.forEach.call($("#t_l").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selL=(selL===i?null:i);selV=null;escolhidos={};pinta();};});}',
   /* ---- contexto da selecao ---- */
   'function ctx(){',
   'if(selV!==null){const v=D.veiculos[selV];',
@@ -2080,7 +2085,8 @@ const APP = [
   'var LIMIAR=70;',
   /* Selecao de veiculos, por id — sobrevive a mover a barra e a trocar de
      filtro. Guardar por POSICAO na lista seria mais simples e estaria errado:
-     a lista se reordena, e o usuario perderia a selecao sem entender por que. */
+     a lista se reordena. Desde 01/10 a selecao ZERA a cada mudanca de filtro,
+     de aderencia minima ou de veiculo/loja clicado: a lista muda por baixo. */
   'var escolhidos={};',
   'function idsEscolhidos(){return Object.keys(escolhidos).filter(function(k){return escolhidos[k];});}',
   'const MIN=(D.parametros&&D.parametros.corresp_min)||0;',
@@ -2191,6 +2197,7 @@ const APP = [
   `return "<div class='xk resumo'><span>Resumo</span>"+`,
   `"<b>"+esc(l.uf)+" · "+esc(l.whitelabel)+" · resp. "+esc(l.responsavel||"` + SEMDONO + `")+"</b>"+`,
   `"<i>perfil: "+money(l.preco_medio)+" · "+nf(l.idade_media,1)+" anos · "+nf(l.km_medio)+" km · "+esc(l.modelo||"?")+" ("+nf(l.pct_modelo,1)+"% das ofertas)</i>"+`,
+  `"<i>compras 6m: "+(l.qt_compras?nf(l.qt_compras)+" veículo(s) · "+money(l.vl_compras):"nenhuma")+"</i>"+`,
   `"<i>"+nf(l.pares)+" veículo(s) elegível(is), ordenados por aderência</i></div>";}`,
   'function perfilExtra(l){',
   'const b=[resumoLoja(l)];',
@@ -2219,7 +2226,9 @@ const APP = [
      e a tabela em que se AGE: e dela que sai a lista copiada pro consultor,
      e ate agora era preciso voltar pra tabela de cima -- e reachar o carro
      -- so pra ver o anuncio. Mesma regra de la: sem um pedaco, sem link. */
-  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+farolSpan(v)+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span>"+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
+  /* o cabecalho reflete a selecao: marcado so quando TODOS os visiveis estao escolhidos */
+  'const todosMarcados=acima.length>0&&acima.every(function(x){return escolhidos[D.veiculos[x.o].vehicle_id];});',
+  `const listaV=acima.length?("<div class='wrap' style='max-height:40vh'><table><thead><tr><th class='sel'><input type='checkbox' id='sel_todos' title='Selecionar todos os visíveis'"+(todosMarcados?" checked":"")+"></th><th>Aderência</th><th>Score</th><th class='tx'>Veículo</th><th class='tx'>Categoria</th><th>Ano</th><th>Km</th><th>Valor</th><th class='tx'>Evento</th><th class='tx'>Componentes</th></tr></thead><tbody>"+acima.map(function(x,ki){const v=D.veiculos[x.o];return "<tr><td class='sel' onclick='event.stopPropagation()'><input type='checkbox' class='cx' data-vid='"+v.vehicle_id+"'"+(escolhidos[v.vehicle_id]?" checked":"")+"></td>"+celulas(x.s,l.confianca)+"<td class='tx'>"+farolSpan(v)+esc((v.marca?v.marca+" ":"")+(v.modelo||"?"))+" <span class='dim mono'>#"+v.vehicle_id+"</span>"+(v.link?" · <a class='lk' href='"+esc(v.link)+"' target='_blank' rel='noopener' onclick='event.stopPropagation()'>anúncio ↗</a>":"")+"</td><td class='tx'>"+esc(v.categoria||"—")+"</td><td>"+(v.model_year||"—")+"</td><td>"+nf(v.km)+"</td><td>"+money(v.valor)+"</td><td class='tx'>"+esc(v.evento)+"</td><td class='tx comp' data-k='"+ki+"'>"+det(x.d)+"</td></tr>";}).join("")+"</tbody></table></div>")`,
   `:(todos.length?("<div class='vazio'>Os "+todos.length+" veículo(s) acima de "+LIMIAR+"% desta loja estão fora do filtro atual.</div>"):("<div class='vazio'>Nenhum veículo passa de "+LIMIAR+"% de aderência para esta loja. O melhor é "+nf(l.melhor,1)+"%.</div>"));`,
   /* RETRATIL (21/09), e `open` por padrao: o mesmo `<details>` do
      glossario, com o cabecalho inteiro como area de clique. Aberto porque o
@@ -2250,7 +2259,7 @@ const APP = [
   /* `oninput` e nao `onchange`: o numero tem que acompanhar o dedo. Redesenhar
      a lista a cada pixel e barato aqui (dezenas de linhas), e a selecao
      sobrevive porque mora em `escolhidos`, fora do HTML. */
-  'bar.oninput=function(){LIMIAR=Number(bar.value);$("#lim_v").textContent=LIMIAR+"%";extrato();};',
+  'bar.oninput=function(){LIMIAR=Number(bar.value);escolhidos={};$("#lim_v").textContent=LIMIAR+"%";extrato();};',
   'const todosCx=$("#sel_todos");',
   'if(todosCx){todosCx.onclick=function(e){e.stopPropagation();',
   'const m=todosCx.checked;',
@@ -2258,7 +2267,8 @@ const APP = [
   'extrato();};}',
   'Array.prototype.forEach.call(document.querySelectorAll("#extrato .cx"),function(cx){',
   'cx.onclick=function(e){e.stopPropagation();',
-  'escolhidos[cx.getAttribute("data-vid")]=cx.checked;contaEscolhidos();};});',
+  'escolhidos[cx.getAttribute("data-vid")]=cx.checked;contaEscolhidos();',
+  'if(todosCx)todosCx.checked=acima.every(function(x){return escolhidos[D.veiculos[x.o].vehicle_id];});};});',
   /* A dica de cada linha. Ligada AQUI, e nao uma vez so na carga, porque o
      innerHTML do extrato e reescrito inteiro a cada render — handler preso
      no no antigo morre junto com ele. Mesma razao da barra e das caixas.
@@ -2318,7 +2328,7 @@ const APP = [
   /* sem link e melhor do que link quebrado — mesma regra da tabela */
   'if(v.link)L.push("   "+v.link);',
   'L.push("");});',
-  'L.push("Qualquer duvida, e so responder por aqui.");',
+  'L.push("Qualquer dúvida, é só responder por aqui.");',
   /* `String.fromCharCode(10)` e nao "
 ": dentro desta string de JS o
      escape seria consumido AQUI e chegaria no cliente como quebra de linha
@@ -2418,12 +2428,12 @@ const APP = [
   /* ---- orquestracao ---- */
   'function pinta(){pintaKpis();ctx();pintaV();pintaL();extrato();}',
   '$("#f_v").oninput=pintaV;$("#f_l").oninput=pintaL;',
-  '$("#f_ev").onchange=function(){pintaFiltros();pinta();};',
-  '$("#f_uf").onchange=function(){pintaFiltros();pinta();};',
-  '$("#f_wl").onchange=function(){pintaFiltros();pinta();};',
-  '$("#f_rp").onchange=function(){pintaFiltros();pinta();};',
-  '$("#f_fa").onchange=function(){pintaFiltros();pinta();};',
-  '$("#limpar").onclick=function(){selV=null;selL=null;$("#f_v").value="";$("#f_l").value="";$("#f_ev").value="";$("#f_wl").value="";$("#f_uf").value="";$("#f_rp").value="";$("#f_fa").value="";pintaFiltros();pinta();};',
+  '$("#f_ev").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
+  '$("#f_uf").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
+  '$("#f_wl").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
+  '$("#f_rp").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
+  '$("#f_fa").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
+  '$("#limpar").onclick=function(){escolhidos={};selV=null;selL=null;$("#f_v").value="";$("#f_l").value="";$("#f_ev").value="";$("#f_wl").value="";$("#f_uf").value="";$("#f_rp").value="";$("#f_fa").value="";pintaFiltros();pinta();};',
   'pintaFiltros();pinta();'
 ].join('\n');
 
@@ -2621,6 +2631,9 @@ const html = [
   '<dt>Deságio médio</dt>',
   `<dd>Quanto a loja costuma pagar <b>abaixo da tabela FIPE</b>. Para cada veículo toma-se a <b>última</b> oferta dela e compara-se com a FIPE do anúncio; o número é a média dessas diferenças.</dd>`,
   '<dd class="ex">São descartadas as distorções fora da faixa de ' + META.desagio_min + '% a ' + META.desagio_max + '%. O dado cru chega a &minus;1.586%, ou seja oferta dezesseis vezes acima da FIPE registrada, e um único caso desses destrói a média de uma loja. A quantidade de veículos que sobrou aparece ao lado — média de três carros e média de trezentos não valem o mesmo.</dd>',
+  '<dt>Compras</dt>',
+  '<dd>Veículos que a loja <b>arrematou</b> nos últimos 6 meses, e quanto pagou por eles. Uma oferta vira compra quando é a <b>vencedora</b> da negociação e a negociação está em venda: Aguardando Pagamento, Aguardando Confirmação de Pagamento ou Vendido. O valor é o da oferta vencedora.</dd>',
+  '<dd class="ex">Mostra o histórico da loja e <b>não entra no score</b>. Conta pela data da oferta, a mesma janela do perfil. Uma venda que caiu depois e fez o carro voltar a evento ainda aparece aqui: no estudo de preço isso foi cerca de 2,6% dos veículos vendidos.</dd>',
   '<dt>Ofertas na própria UF</dt>',
   `<dd>Fatia dos lances da loja em veículos cujo <b>pátio</b> fica no mesmo estado dela. O complemento é compra para fora, que envolve frete e logística.</dd>`,
   '<dt>Laudo cautelar</dt>',

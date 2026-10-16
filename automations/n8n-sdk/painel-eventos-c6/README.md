@@ -28,14 +28,14 @@ falta de memória: o Ler Nomes rodava uma vez por linha da carteira (280 ×
 
 | | |
 |---|---|
-| **Recorte** (24/09) | Eventos que alvejam o **whitelabel 43** (Canal de vendas C6 Auto) com fim de **30 dias atrás em diante** — abertos, agendados e encerrados recentes |
+| **Recorte** (24/09; outubro em 02/10) | Eventos que alvejam o **whitelabel 43** (Canal de vendas C6 Auto) e **encerram a partir de 01/10/2026** — a seleção de outubro, sem teto. Até 02/10 era fim de 30 dias atrás em diante. Em 02/10: 24055 (Treinamento, até 01/10) e 24052 (Outubro, 31/10) |
 | **Período** (28/09) | Do **menor início ao maior fim** dos eventos filtrados. Acesso e cadastro fora dele **não contam** |
 | **Vendido / arremate** (24/09) | Negociação em status **2, 3 ou 7**. Arrematante = loja da oferta vencedora (`offer_actual_id`) |
 | **Pontuação da loja** (28/09) | **Só loja nova pontua**: 10 por arremate + 1 por dia com acesso no período. As outras aparecem com "—". Substituiu o "1 por veículo ofertado + 10 por arremate" de 24/09 |
 | **Score do veículo** (28/09; 30/09) | Lojas distintas que abriram o anúncio no horário do evento × 1 + lances × 5 + **100** se alguma oferta alcançou o VMV, levado a **0–100 sobre o maior score da coleta** (fixo: filtro nenhum muda a nota), com uma casa decimal — no inteiro, 25 veículos com 1 ou 2 acessos empatariam em 0 com os 44 parados (maior bruto 353, 30/09) |
 | **Performance financeira** (30/09) | Valor vendido ÷ soma do VMV de **todos** os publicados do recorte, vendidos ou não. No pé: soma dos arremates ÷ soma da FIPE, só dos vendidos com FIPE; e ÷ soma do VMV, só dos vendidos com VMV |
-| **% FIPE do veículo** (30/09) | Arremate ÷ FIPE, só de quem vendeu e tem FIPE; os demais "—" |
-| **Loja nova** | Loja do WL 43 com `shops.created_at` dentro do período |
+| **% FIPE do veículo** (06/10; antes arremate ÷ FIPE, 30/09) | **Maior oferta** ÷ FIPE, de todo veículo com oferta e FIPE; os demais "—". A performance financeira (Recuperação / FIPE) continua sobre o arremate |
+| **Loja nova** (02/10) | Cadastrada **a partir de 01/10/2026** E no **grupo de cliente 146** ("Parceiros C6 - Exclusivo SP"), e dentro da janela do filtro. O grupo mora no usuário (`user_shops` → `user_clients_group`): a loja está no grupo quando algum usuário dela está. Antes: loja do WL 43 cadastrada no período. Em 02/10 dá **0** — o grupo foi montado em 30/09 e as 15 lojas do WL 43 cadastradas desde 01/10 não estão nele |
 | **Aprovada** (28/09) | `shops.situation = 3` |
 | **Engajamento** (28/09) | Lojas novas que acessaram o canal no período ÷ cadastradas |
 | **Participações/lojista** (28/09) | Pares (loja, veículo) com lance ÷ ofertantes |
@@ -43,6 +43,8 @@ falta de memória: o Ler Nomes rodava uma vez por linha da carteira (280 ×
 | **% VMV do veículo** | Maior oferta ÷ VMV (escolha minha, a confirmar) |
 | **Representante** | `GP_Usuario` e `GN_Usuario` da carteira de lojas do C6 (tabela de dados do n8n, 30/09), cruzada pelo CNPJ, mostrados pelo nome. Fora da carteira ou vazio na coluna → **"Sem Representante"**. O botão Usuário GN / Usuário GP saiu em 30/09: cada coluna tem o seu ranking e o seu filtro |
 | **Rankings** (29/09; 30/09) | Um ranking de **usuários GP** e um de **usuários GN**, lado a lado, só com quem tem loja nova. Lojas: só quem acessou no período, na linha inteira, com GP, GN, **primeiro e último acesso** (no período, na hora cheia). Padrão: **Todos lojistas** |
+| **Acessos únicos por dia** (02/10) | O mesmo indicador da coluna **Acessos** do ranking de lojas, dia a dia: lojas **do ranking** (ofertaram ou são novas) que acessaram o canal no dia. A soma das colunas do gráfico é a soma da coluna Acessos. Antes contava toda loja que acessou o canal (213 em outubro, contra 6 no ranking) |
+| **Acessos por hora** (02/10) | A mesma medida dos acessos únicos por dia, contada por hora: lojas do ranking que acessaram o canal naquela hora, cada loja uma vez por hora em cada dia. O título deixou de ser "Acessos por hora do dia" |
 
 ## Os filtros (29/09; 30/09)
 
@@ -80,12 +82,20 @@ run** em vez de publicar meia tabela (há prova sabotando uma linha).
 | `ofertas` | todo lance das negociações do recorte |
 | `lojas` | quem ofertou ∪ lojas do WL 43 cadastradas na janela, com situação e CNPJ (chave do cruzamento — não chega ao HTML) |
 | `acessos_anuncio` | (evento, anúncio, loja), cortado no horário do **próprio evento**, com a **máscara dos dias** do evento em que abriu (`BIT_OR(1 << DATEDIFF)`) — é o que deixa o filtro de Data cortar o acesso a anúncio |
-| `acessos_p0`, `acessos_p1` | loja × dia × hora com a contagem, dentro do período do recorte, **em partes** pelo resto do id da loja |
+| `acessos_p0`, `acessos_p1` | loja × dia × hora com a contagem dos acessos **ao evento** (`access_logs.event_id` = o evento, no horário dele, no minuto), **em partes** pelo resto do id da loja. Até 07/10 era o acesso ao **canal** no período (medido em 08/10 no 24052: 251 lojas no canal, 91 no evento) |
 
 Linhas, tamanho de cada pacote e tempo estão em
 [`indicadores.md`](../../../context/banco-de-dados/projetos/c6/indicadores.md).
 
 ### Por que o acesso chega assim
+
+**Acesso = acesso ao evento (08/10, Thomas).** Os gráficos por dia e por hora, o
+"Acessaram" do funil, o engajamento e o ponto "1 por dia com acesso" contam só
+acesso com o `event_id` do evento. Antes contavam entrar no canal, e 64% das
+lojas do canal nunca abriram o evento (novas: 51 no canal, 20 no evento). Limite
+conhecido: o grão loja × dia × hora não carrega o evento, então com **mais de um
+evento** no recorte o corte por evento na página não separa um do outro. Hoje o
+recorte é um só (`SO_EVENTOS = 24052`); se voltar a ser vários, pôr o evento no grão.
 
 O bruto da janela são ~35 mil linhas de `access_logs` — não passa pelo MCP.
 O filtro de Representante precisa saber **de quem** é cada acesso por hora,
@@ -143,7 +153,7 @@ funil é cinza no escuro. O farol "oferta abaixo do VMV" é amarelo
 | Como é lida | `Ler Representantes` (Data table, `get`, `returnAll`, `alwaysOutputData`). Em série, antes das consultas: em ramo paralelo o nó roda tarde demais (Radar, run 52930). Tabela vazia segue como item vazio e o Montar Painel derruba o run — sem o `alwaysOutputData` a cadeia pararia calada |
 | Chave | CNPJ, só dígitos, completado a 14. `shops.cnpj` entra na consulta de lojas e **não chega ao HTML** |
 | Colunas | `CNPJ`, `GN_Usuario`, `GP_Usuario` e `Base_Data` — as quatro obrigatórias. O GN vem vazio em 63% das linhas (19.321 de 30.718, dado, não defeito) |
-| Linha sem `Base_Data` em forma de data | **fica de fora** e vira aviso. Em 30/09 a tabela tinha uma: "LOJA TESTE CAIO", `Base_Data` = "TESTE - apagar antes de produção", GN = CAIO.LEDESMA — daria representante a um CNPJ real |
+| Linha sem `Base_Data` em forma de data | **fica de fora** e, desde 05/10, não vira mais aviso na tela (só `resumo.representantes.linhas_fora`). Em 30/09 a tabela tinha uma: "LOJA TESTE CAIO", `Base_Data` = "TESTE - apagar antes de produção", GN = CAIO.LEDESMA — daria representante a um CNPJ real |
 | Nome na tela (30/09) | Da tabela **"Carteira C6 - Gerentes"**, id `2yD9cWG0J98sFFll` (Usuario, Papel, Nome), pelo nó `Ler Nomes`. RAFAEL.CONTESSOTO → "Rafael Contessoto". Em 30/09 cobria os 249 GN e os 30 GP da carteira. Usuário sem nome aparece pelo usuário e vira aviso; tabela vazia também — o run **não** cai (nome é cosmético). Dois usuários com o mesmo nome no mesmo papel levam o usuário entre parênteses |
 | Data da carteira | a `Base_Data` mais recente entre as linhas válidas, no rodapé da tela ("carteira de representantes de 17/08/2026") |
 | CNPJ com mais de um representante | fica o que aparece em **mais linhas**; empate → "Sem Representante". Os dois viram aviso |
@@ -157,12 +167,13 @@ cada loja passou, por coluna, e quantas linhas ficaram fora.
 ## Ciclo de trabalho
 
 ```bash
-python coleta_local.py                     # coleta real pela conexão direta (VPN) → dados-local.json
+python coleta_local.py                     # coleta real pela conexão direta (VPN) → dados-local.json (a tela)
+python coleta_local.py --prova             # o mesmo SQL com recorte e loja nova desde 01/09 → dados-prova.json (as provas)
 node _aplica-modelo.js                     # tema + logos para dentro do Montar Painel
 for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
 node _carteira_local.js                    # planilha local no formato da tabela do n8n → dados-carteira-local.json
 node _gerentes_local.js                    # nomes dos representantes, pela regra da tabela → dados-gerentes-local.json
-node prova-local.js                        # 237 provas
+node prova-local.js                        # 245 provas, sobre dados-prova.json
 node monta_local.js                        # regera saida-local.html sem n8n
 python build_wf.py                         # painel-eventos-c6.wf.ts
 ```
@@ -189,7 +200,7 @@ python _confere_transcricao.py <dump-do-get_workflow_details>
 | `_planilha_local.py` | converte o xlsx em `dados-planilha-local.json` (formato do antigo Extract from File) — entrada do `_carteira_local.js` |
 | `_carteira_local.js` | converte `dados-planilha-local.json` no que o nó Ler Representantes entrega hoje (tabela de dados), com a linha de teste no fim |
 | `_gerentes_local.js` | gera o que o nó Ler Nomes entrega, pela regra da tabela (nome = usuário com inicial maiúscula) |
-| `prova-local.js` | 237 provas: consultas, pacotes, período e dias refeitos do cru, pontuação e score (0–100) de toda loja e todo veículo refeitos do cru, performance financeira e % FIPE refeitos do cru, primeiro e último acesso refeitos do cru, funil, pátios, cada filtro refeito do cru, representante caso a caso, linha de teste da carteira ignorada, nome no lugar do usuário (e sem nome, tabela vazia, nome repetido), CNPJ que não vaza, carteira ausente/vazia/truncada/sem coluna derrubando o run, layout (ordem dos cartões e da gaveta), nó enxuto = nó original |
+| `prova-local.js` | 245 provas, sobre a coleta de prova (outubro abriu quase vazio: conta refeita sobre zero não prova nada): consultas, pacotes, período e dias refeitos do cru, pontuação e score (0–100) de toda loja e todo veículo refeitos do cru, performance financeira e % FIPE refeitos do cru, primeiro e último acesso refeitos do cru, funil, pátios, cada filtro refeito do cru, representante caso a caso, linha de teste da carteira ignorada, nome no lugar do usuário (e sem nome, tabela vazia, nome repetido), CNPJ que não vaza, carteira ausente/vazia/truncada/sem coluna derrubando o run, layout (ordem dos cartões e da gaveta), nó enxuto = nó original |
 | `_confere_transcricao.py` | compara o código no n8n com `n8n/*.js`, byte a byte |
 | `build_wf.py` | gera o `.wf.ts` (em LF) |
 

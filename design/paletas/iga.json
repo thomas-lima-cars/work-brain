@@ -1,0 +1,45 @@
+{
+  "produto": "iga",
+  "rotulo": "IGA (Itaú)",
+  "atualizado": "2026-10-08",
+  "origem": "pedido do Thomas em 08/10 ao abrir o Estudo de Vendas IGA: 'mudando a logo e cores para o da imagem em anexo'. Logo entregue em SVG (107 x 48, três cores)",
+  "pensada_para": "os dois temas",
+  "implementacao": "design/tokens/tema-iga.css — camada só de cor, carregada DEPOIS de tema.css",
+
+  "marca": {
+    "azul_noite": { "hex": "#000D3C", "papel": "tinta da logo; texto, acento e chip no tema claro" },
+    "laranja":    { "hex": "#FF6200", "papel": "barra do meio da logo; acento no escuro; segunda série (escurecida para #C94E00 no claro)" },
+    "azul":       { "hex": "#001FBD", "papel": "barra da esquerda da logo; preenchimento de dado no claro (linha, barra, ponto)" }
+  },
+
+  "derivados": {
+    "_nota": "NÃO vieram da marca. Só os três valores acima foram dados; o resto foi montado aqui e vai à marca antes de virar oficial.",
+    "campo_claro":   { "hex": "#DDE1EE", "papel": "fundo da página no claro" },
+    "superficie_clara": { "hex": "#FAFBFE" },
+    "texto_2_claro": { "hex": "#3B4672", "contraste_sobre_E3E6F0": 7.31 },
+    "texto_3_claro": { "hex": "#5A6488", "contraste_sobre_E3E6F0": 4.66 },
+    "serie_2_claro": { "hex": "#C94E00", "papel": "laranja escurecido: o #FF6200 dá 2,87:1 no claro e some", "contraste_sobre_E3E6F0": 3.68 },
+    "fundo_escuro":  { "hex": "#0B1020" },
+    "superficie_escura": { "hex": "#12182B" },
+    "dado_escuro":   { "hex": "#7C93FF", "papel": "o #001FBD dá 1,7:1 no escuro; este dá 6,27:1", "contraste_sobre_12182B": 6.27 },
+    "acento_escuro": { "hex": "#FF6200", "contraste_sobre_12182B": 5.88 },
+    "texto_escuro":  { "hex": "#EEF0F8", "contraste_sobre_12182B": 15.49 },
+    "texto_2_escuro": { "hex": "#A9B0CC", "contraste_sobre_12182B": 8.20 },
+    "texto_3_escuro": { "hex": "#7783AB", "contraste_sobre_12182B": 4.72 },
+    "estados": { "_": "positivo, negativo e atenção seguem os da Cars2You: são de estado, não de marca" }
+  },
+
+  "contraste_medido": {
+    "_metodo": "WCAG 2.1 com design/_contraste.js",
+    "000D3C_sobre_E3E6F0": 15.00,
+    "001FBD_sobre_E3E6F0": 8.72
+  },
+
+  "logo": {
+    "pasta": "design/marca/iga/",
+    "formato": "SVG vetorial. UMA arte por tema, sem versão curta (a marca é o próprio monograma com o nome embaixo): a curta é a mesma",
+    "claro": "logo-iga-claro.svg (o original)",
+    "escuro": "logo-iga-escuro.svg — #000D3C vira #FFFFFF e o azul #001FBD vira #7C93FF; o laranja fica",
+    "original": "logo-iga-original.svg"
+  }
+}

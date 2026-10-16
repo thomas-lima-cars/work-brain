@@ -80,6 +80,24 @@ let MAX2 = 0;
 D.sinais.forEach((s) => Object.keys(s.por_base).forEach((b) => {
   if (s.por_base[b]) MAX2 = Math.max(MAX2, Math.abs(s.por_base[b].efeito));
 }));
+/* aba 3 — laudo cautelar. Escala própria, pelo mesmo motivo das outras: olha
+   todas as bases e também as faixas de lataria, que dividem a tela com ela. */
+const LD = D.laudo || null;
+let MAX3 = 0;
+if (LD) {
+  LD.sinais.forEach((s) => Object.keys(s.por_base).forEach((b) => {
+    if (s.por_base[b]) MAX3 = Math.max(MAX3, Math.abs(s.por_base[b].efeito));
+  }));
+  Object.keys(LD.lataria).forEach((b) => LD.lataria[b].forEach((x) => {
+    MAX3 = Math.max(MAX3, Math.abs(x.efeito));
+  }));
+}
+/* aba 4 — laudo item a item. Escala própria, olhando todos os estados e bases */
+const IT = LD && LD.itens ? LD.itens : null;
+let MAX4 = 0;
+if (IT) IT.forEach((it) => Object.values(it.estados).forEach((st) => Object.values(st.por_base)
+  .forEach((e) => { if (e && !e.poucos) MAX4 = Math.max(MAX4, Math.abs(e.efeito)); })));
+const nfmt = (x) => Number(x).toLocaleString('pt-BR');
 
 const GLOSS_CAMPOS = [
   ['Deságio', 'Quanto o carro saiu abaixo da tabela FIPE. <code>1 − (valor da venda ÷ FIPE do anúncio)</code>. Deságio de 30% quer dizer que saiu por 70% da tabela.'],
@@ -116,6 +134,33 @@ const GLOSS_OBS = [
   ['O dicionário', 'Minerado dos n-gramas da própria base, não inventado. Mora em <code>analisa-sinais.py</code> — editar lá é o jeito de mudar a análise.'],
 ];
 
+const GLOSS_LAUDO = [
+  ['De onde sai', 'Do <b>texto do PDF</b> do laudo cautelar (<code>vehicle_precautionary_reports.file_url</code>), extraído com <code>pdftotext</code>. Não é o campo <code>situation</code> do banco — esse é o "Laudo cautelar" da aba Campos do sistema.'],
+  ['Quais vendas', LD ? 'Um sorteio de até 1.500 vendas por base, com semente fixa, dentro da mesma amostra das outras abas. Lidos: Cars2You ' + nfmt(LD.lidos.Cars2You) + ', Dealers ' + nfmt(LD.lidos.Dealers) + '. Com texto legível: ' + nfmt(LD.legiveis.Cars2You) + ' e ' + nfmt(LD.legiveis.Dealers) + ' — o resto é laudo escaneado (imagem), que precisaria de OCR.' : '—'],
+  ['Deságio sem', 'Deságio médio das <b>outras vendas com laudo lido</b>, não da base inteira. Comparar "o laudo diz longarina avariada" com "não li o laudo" misturaria o efeito da longarina com o efeito de ter sido sorteado.'],
+  ['Efeito', 'O mesmo das outras abas: diferença em pontos percentuais depois de descontar a média do próprio modelo, na própria base.'],
+  ['Como o indicador é lido', 'Dicionário de <b>peça + estado</b> dentro da mesma cláusula do laudo ("longarina dianteira esquerda: avariado", "caixa de ar direita amassada", "veículo liga: não"). Há pelo menos dez modelos de laudo, de vistoriadoras diferentes; a frase é o que eles têm em comum. Mora em <code>laudo_sinais.py</code>.'],
+  ['O que não conta', 'Rodapé jurídico ("não verificamos funcionamento de… airbag"), negação ("não apresenta danos estruturais", "não indica roubo"), rótulo sem valor ("Chassi remarcado?") e falso amigo ("para-<b>lama</b>" não é alagamento; "rodas de <b>liga</b> leve" não é motor).'],
+  ['Ausência não é "não tem"', 'Laudo que não menciona longarina pode ter longarina boa <b>ou</b> não ter checado. Cada vistoriadora checa coisas diferentes — por isso a comparação é "o laudo aponta" contra "o laudo não aponta". Um caso conhecido: o laudo da Natus (Dealers) traz o checklist em grade, que a extração de texto embaralha; dele só se lê o "Detalhe das avarias". Isso dilui o efeito (laudo com dano cai no grupo "não aponta"), não o inventa.'],
+  ['Trecho', 'A cláusula exata que casou, mostrada ao lado de cada venda. O PDF original abre pelo link — vale conferir antes de citar um número.'],
+  ['Peças de lataria', 'Contagem aproximada de peças externas (capô, porta, para-choque, paralama…) com dano, sem repetir a mesma peça. Legenda de foto que descreve dano conta.'],
+  ['Não consta na base', 'O indicador aparece em menos de ' + D.n_min + ' vendas daquela base.'],
+];
+
+const GLOSS_ITENS = [
+  ['De onde sai', 'Do texto do PDF do laudo cautelar — as mesmas vendas da aba Laudo cautelar. Para cada item que a vistoria checa, o estado é lido da cláusula que cita o item. Mora em <code>laudo_itens.py</code>.'],
+  ['Presente', 'O laudo diz que o item está lá e em ordem: presente, possui, sim, ok, bom, sem danos, funcionando. Pneu com meia vida conta como presente.'],
+  ['Ausente', 'O laudo diz que o item falta: falta, ausente, não possui, "sem estepe".'],
+  ['Danificado', 'O laudo diz que o item existe mas está ruim: danificado, avariado, quebrado, trincado, ruim, não funciona, necessário a troca, sem carga.'],
+  ['Item citado várias vezes', 'Fica o pior estado (danificado > ausente > presente). Laudo com "estepe: presente" no checklist e "estepe furado" na observação conta como estepe danificado.'],
+  ['Itens de funcionamento', 'Motor, câmbio, ar-condicionado e vidros elétricos: "não" sozinho conta como danificado — "veículo liga: não" é motor que não liga, não motor ausente. "Não possui" continua ausente.'],
+  ['Gravação no vidro', 'Nos laudos que listam a gravação do chassi nos vidros ("PARA-BRISA: ORIGINAL", "PORTA DIANTEIRA: ORIGINAL"), "original" e "ausente" falam da gravação, não da peça, e não valem como estado de para-brisa, vidros e portas.'],
+  ['Não cita', 'Laudo que não menciona o item não entra em nenhum estado daquele item. Cada vistoriadora checa coisas diferentes.'],
+  ['Impacto médio (efeito)', 'Diferença de deságio, em pontos percentuais, entre as vendas com o item naquele estado e as outras vendas de laudo lido, depois de descontar a média do próprio modelo na própria base. Positivo: vendeu mais longe da FIPE.'],
+  ['Índice de confiança', 'Confiança de que o efeito é real e não acaso da amostra: 1 − p (teste de duas amostras). <b>Alta</b> = passa o corte de Bonferroni do painel (|t| ≥ ' + String(CORTE).replace('.', ',') + '); <b>média</b> = passa o corte usual (|t| ≥ 2, cerca de 95%); <b>baixa</b> = abaixo disso. Diz se o efeito existe, não se o tamanho está exato — para isso, o intervalo de 95% aparece ao passar o mouse.'],
+  ['Poucos casos', 'Estado com menos de ' + D.n_min + ' vendas: aparece com o número de vendas, sem efeito medido.'],
+];
+
 const tabelaGloss = (linhas) => `<div class="table-responsive"><table class="table table-sm align-middle gl">
 <tbody>${linhas.map(([k, v]) =>
   `<tr><th scope="row">${esc(k)}</th><td>${v}</td></tr>`).join('')}
@@ -136,7 +181,23 @@ body{font-size:15px}
    (Sem crase nestes comentários — o CSS vive dentro de um template literal,
     e uma crase solta encerra a string. Já quebrou uma vez.) */
 #campos table th, #campos table td,
-#tabS th, #tabS td, #tabL th, #tabL td{text-align:center}
+#tabS th, #tabS td, #tabL th, #tabL td,
+#tabLd th, #tabLd td, #tabLL th, #tabLL td, #lat th, #lat td{text-align:center}
+#tabLd td.gtit{text-align:left}
+#tabIt th, #tabIt td, #tabIL th, #tabIL td{text-align:center}
+#tabIt td.gtit{text-align:left}
+.est{display:inline-block;min-width:86px;font-size:12px;font-weight:600;padding:1px 8px;border-radius:10px}
+.est.presente{background:rgba(25,135,84,.14);color:var(--bs-success-text-emphasis)}
+.est.ausente{background:rgba(255,193,7,.22);color:var(--bs-warning-text-emphasis)}
+.est.danificado{background:rgba(220,53,69,.14);color:var(--bs-danger-text-emphasis)}
+.cf{font-size:12px;white-space:nowrap}
+.cf b{display:inline-block;min-width:44px;padding:1px 6px;border-radius:10px;font-weight:600}
+.cf .alta{background:rgba(25,135,84,.14);color:var(--bs-success-text-emphasis)}
+.cf .media{background:var(--bs-secondary-bg);color:var(--bs-body-color)}
+.cf .baixa{background:transparent;color:var(--bs-secondary-color);border:1px solid var(--bs-border-color)}
+.trechos div{padding:3px 6px;border-radius:3px;margin-bottom:2px}
+.trechos div.on{background:rgba(217,89,38,.16)}
+.trechos b{font-weight:600}
 .num{font-variant-numeric:tabular-nums;white-space:nowrap}
 /* duas exceções deliberadas: o cabeçalho de grupo é um título que atravessa a
    tabela, não uma coluna; e o glossário é texto corrido, que centrado fica
@@ -216,6 +277,10 @@ padding-left:1.5rem;padding-right:1.5rem}}
       data-bs-target="#t1" type="button">Campos do sistema</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
       data-bs-target="#t2" type="button">Observações do veículo</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+      data-bs-target="#t3" type="button">Laudo cautelar</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+      data-bs-target="#t4" type="button">Laudo item a item</button></li>
   </ul>
 
   <div class="tab-content">
@@ -269,6 +334,98 @@ padding-left:1.5rem;padding-right:1.5rem}}
         </div></div></div>
       </div>
     </div>
+
+    <div class="tab-pane fade" id="t3">
+${LD ? `      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <input class="form-control form-control-sm" style="max-width:260px" id="flaudo"
+          placeholder="filtrar indicador ou grupo…">
+        <span class="small text-secondary" id="ldres"></span>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="collapse"
+          data-bs-target="#gl3">Glossário</button></div>
+      <div class="collapse mb-3" id="gl3"><div class="card card-body bg-body-tertiary">
+        <h2 class="h6 text-uppercase text-secondary mb-2">Glossário — laudo cautelar</h2>
+        ${tabelaGloss(GLOSS_LAUDO)}</div></div>
+      <div class="row g-3">
+        <div class="col-12 col-xl-7">
+          <div class="card mb-3"><div class="card-body">
+            <h2 class="h6 mb-2">Peças de lataria com dano</h2>
+            <div class="table-responsive"><table class="table table-sm mb-0" id="lat">
+              <thead><tr><th>faixa</th><th class="num">vendas</th><th class="num">deságio</th>
+              <th>efeito no modelo</th></tr></thead><tbody></tbody></table></div>
+          </div></div>
+          <div class="card"><div class="card-body">
+          <h2 class="h6 text-uppercase text-secondary">Indicadores do laudo por grupo</h2>
+          <div class="rolar"><table class="table table-sm table-hover mb-0" id="tabLd">
+            <thead><tr><th>o laudo aponta</th><th class="num">vendas</th>
+            <th class="num" title="deságio médio das vendas cujo laudo aponta o indicador">deságio<br>com</th>
+            <th class="num" title="deságio médio das outras vendas com laudo lido">deságio<br>sem</th>
+            <th>efeito no modelo</th></tr></thead>
+            <tbody></tbody></table></div>
+          <p class="small text-secondary mb-0 mt-2">Do menor para o maior efeito.
+            <b>Negrito</b> = passa no corte estatístico; o resto é pista, não afirmação.</p>
+        </div></div></div>
+        <div class="col-12 col-xl-5"><div class="card h-100"><div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div><h2 class="h6 mb-1" id="titL">—</h2>
+              <p class="small text-secondary mb-2" id="subL"></p></div>
+            <button class="btn btn-sm btn-outline-secondary text-nowrap" id="csvL">CSV</button>
+          </div>
+          <div id="alertaL"></div>
+          <div class="rolar" style="max-height:34vh"><table class="table table-sm mb-0" id="tabLL">
+            <thead><tr><th data-k="b">base</th><th class="num" data-k="id">id</th>
+            <th data-k="g">modelo</th><th class="num" data-k="a">ano</th>
+            <th class="num" data-k="k">km</th><th data-k="uf">uf</th>
+            <th class="num" data-k="d">deságio</th></tr></thead><tbody></tbody></table></div>
+          <p class="small text-secondary mt-2 mb-1" id="capL"></p>
+          <div class="border rounded p-2 bg-body-tertiary txtbox trechos" id="txtL">—</div>
+        </div></div></div>
+      </div>` : `      <div class="alert alert-secondary">Os textos dos laudos não estavam disponíveis
+        quando o painel foi gerado. Rode <code>laudos/coleta-textos-vendas.py</code> e depois
+        <code>monta-painel-dados.py</code>.</div>`}
+    </div>
+
+    <div class="tab-pane fade" id="t4">
+${IT ? `      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <input class="form-control form-control-sm" style="max-width:260px" id="fitem"
+          placeholder="filtrar item…">
+        <select class="form-select form-select-sm" style="max-width:240px" id="fordem">
+          <option value="lista">Ordem do laudo</option>
+          <option value="impacto">Maior impacto primeiro</option></select>
+        <span class="small text-secondary" id="itres"></span>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="collapse"
+          data-bs-target="#gl4">Glossário</button></div>
+      <div class="collapse mb-3" id="gl4"><div class="card card-body bg-body-tertiary">
+        <h2 class="h6 text-uppercase text-secondary mb-2">Glossário — laudo item a item</h2>
+        ${tabelaGloss(GLOSS_ITENS)}</div></div>
+      <div class="row g-3">
+        <div class="col-12 col-xl-7"><div class="card h-100"><div class="card-body">
+          <h2 class="h6 text-uppercase text-secondary">Cada item, em três estados</h2>
+          <div class="rolar"><table class="table table-sm table-hover mb-0" id="tabIt">
+            <thead><tr><th>estado no laudo</th><th class="num">vendas</th>
+            <th class="num" title="deságio médio das vendas com o item neste estado">deságio<br>com</th>
+            <th class="num" title="deságio médio das outras vendas com laudo lido">deságio<br>sem</th>
+            <th>impacto médio no deságio</th>
+            <th title="confiança de que o impacto é real e não acaso — passe o mouse para o intervalo de 95%">confiança</th></tr></thead>
+            <tbody></tbody></table></div>
+          <p class="small text-secondary mb-0 mt-2">Positivo: o carro vendeu mais longe da FIPE.
+            Confiança <b>alta</b> passa o corte de Bonferroni; <b>média</b>, o corte usual de 95%; <b>baixa</b> é pista.</p>
+        </div></div></div>
+        <div class="col-12 col-xl-5"><div class="card h-100"><div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div><h2 class="h6 mb-1" id="titI">—</h2>
+              <p class="small text-secondary mb-2" id="subI"></p></div>
+            <button class="btn btn-sm btn-outline-secondary text-nowrap" id="csvI">CSV</button>
+          </div>
+          <div class="rolar" style="max-height:34vh"><table class="table table-sm mb-0" id="tabIL">
+            <thead><tr><th data-k="b">base</th><th class="num" data-k="id">id</th>
+            <th data-k="g">modelo</th><th class="num" data-k="a">ano</th>
+            <th class="num" data-k="k">km</th><th data-k="uf">uf</th>
+            <th class="num" data-k="d">deságio</th></tr></thead><tbody></tbody></table></div>
+          <p class="small text-secondary mt-2 mb-1" id="capI"></p>
+          <div class="border rounded p-2 bg-body-tertiary txtbox trechos" id="txtI">—</div>
+        </div></div></div>
+      </div>` : `      <div class="alert alert-secondary">Sem os textos dos laudos não há análise item a item.</div>`}
+    </div>
   </div>
 
   <footer class="text-secondary small mt-4 pt-3 border-top">
@@ -289,8 +446,17 @@ var SIN = ${JSON.stringify(D.sinais.map((s) => ({
 })))};
 var L = ${JSON.stringify(D.linhas.map((r) => ({
   b: r.base, id: r.id, g: r.g, v: r.v, a: r.a, k: r.k, uf: r.uf, l: r.l,
-  f: r.f, p: r.p, d: r.d, txt: r.txt
+  f: r.f, p: r.p, d: r.d, txt: r.txt, ld: r.ld || null
 })))};
+var LD = ${JSON.stringify(LD ? {
+  lidos: LD.lidos, legiveis: LD.legiveis, lataria: LD.lataria, ordem: LD.ordem_grupos,
+  S: LD.sinais.map((s) => ({ r: s.rotulo, g: s.grupo, rx: s.rx, bl: s.bloqueio,
+    nota: s.nota, L: s.linhas, B: s.por_base }))
+} : null)};
+var MAX3 = ${MAX3 || 1}, selL = -1, arrL = [], ordL = { k: 'd', dir: -1 };
+var IT = ${JSON.stringify(IT ? IT.map((it) => ({ i: it.item,
+  E: Object.fromEntries(Object.entries(it.estados).map(([k, st]) => [k, { B: st.por_base, L: st.linhas }])) })) : null)};
+var MAX4 = ${MAX4 || 1}, selI = null, arrI = [], ordI = { k: 'd', dir: -1 };
 var ORDEM_GRUPOS = ${JSON.stringify(D.ordem_grupos || [])};
 var MAX1 = ${MAX1}, MAX2 = ${MAX2}, CORTE = ${CORTE};
 var baseSel = 'Ambas', sel = -1, arr = [], ord = { k: 'd', dir: -1 };
@@ -464,12 +630,305 @@ function mostraTexto(j){
   document.getElementById('txt').innerHTML = out + t.slice(pos);
 }
 
+/* ── aba 3: laudo cautelar ─────────────────────────────────────────────
+   Mesmo desenho da aba 2. A diferença está no quadro de texto: em vez da
+   descrição do anúncio, os TRECHOS do laudo que casaram para aquele carro,
+   com o do indicador escolhido em destaque, e o link do PDF original. */
+function pintaLaudoTopo(){
+  if (!LD) return;
+  var bs = baseSel === 'Ambas' ? ['Cars2You','Dealers'] : [baseSel];
+  var li = 0, le = 0;
+  bs.forEach(function(b){ li += LD.lidos[b]; le += LD.legiveis[b]; });
+  document.getElementById('ldres').textContent =
+    nb(le) + ' laudos com texto, de ' + nb(li) + ' lidos';
+  var t = (LD.lataria[baseSel] || []).slice();
+  document.querySelector('#lat tbody').innerHTML = t.map(function(x){
+    var forte = Math.abs(x.t) >= CORTE;
+    return '<tr'+(forte?' class="fw-semibold"':'')+'><td>'+es(limpo(x.nivel))+'</td>'+
+      '<td class="num">'+nb(x.n)+'</td><td class="num">'+pc(x.desagio)+'</td>'+
+      '<td class="bar">'+barraN(x.efeito, MAX3)+'</td></tr>';
+  }).join('') || '<tr><td colspan="4">'+NAO_CONSTA+'</td></tr>';
+}
+
+function pintaLaudo(){
+  if (!LD) return;
+  var f = (document.getElementById('flaudo').value || '').trim().toLowerCase();
+  var porG = {};
+  LD.S.forEach(function(s, i){
+    if (f && s.r.toLowerCase().indexOf(f) < 0 && s.g.toLowerCase().indexOf(f) < 0) return;
+    (porG[s.g] = porG[s.g] || []).push({ i: i, s: s });
+  });
+  var ordem = LD.ordem.filter(function(g){ return porG[g]; });
+  Object.keys(porG).forEach(function(g){ if (ordem.indexOf(g) < 0) ordem.push(g); });
+  var h = '';
+  ordem.forEach(function(g){
+    h += '<tr class="gh"><td colspan="5" class="gtit">'+es(g)+'</td></tr>';
+    porG[g].slice().sort(function(a,b){
+      var ea = a.s.B[baseSel], eb = b.s.B[baseSel];
+      if (!ea && !eb) return 0; if (!ea) return 1; if (!eb) return -1;
+      return ea.efeito - eb.efeito;
+    }).forEach(function(x){
+      var e = x.s.B[baseSel];
+      if (!e) {
+        h += '<tr class="sig'+(selL===x.i?' on':'')+'" data-i="'+x.i+'"><td>'+es(x.s.r)+'</td>'+
+          '<td colspan="4">'+NAO_CONSTA+'</td></tr>';
+        return;
+      }
+      var forte = Math.abs(e.t) >= CORTE;
+      h += '<tr class="sig'+(selL===x.i?' on':'')+(forte?' fw-semibold':'')+'" data-i="'+x.i+'">'+
+        '<td>'+es(x.s.r)+'</td><td class="num">'+nb(e.n)+'</td>'+
+        '<td class="num">'+pc(e.desagio_com)+'</td>'+
+        '<td class="num mut">'+pc(e.desagio_sem)+'</td>'+
+        '<td class="bar">'+barraN(e.efeito, MAX3)+'</td></tr>';
+    });
+  });
+  document.querySelector('#tabLd tbody').innerHTML = h ||
+    '<tr><td colspan="5" class="mut">nenhum indicador com esse filtro</td></tr>';
+}
+
+function escolheL(i){
+  selL = i; var s = LD.S[i];
+  arrL = s.L.map(function(j){ return L[j]; })
+            .filter(function(r){ return baseSel === 'Ambas' || r.b === baseSel; });
+  document.getElementById('titL').textContent = s.r;
+  var partes = [es(s.g)];
+  ['Cars2You','Dealers'].forEach(function(b){
+    var e = s.B[b];
+    partes.push('<b>'+b+'</b> ' + (e ? nb(e.n)+' vendas, '+sg(e.efeito)+' p.p., t = '+
+      e.t.toFixed(1).replace('.',',') : '<i>não consta na base</i>'));
+  });
+  document.getElementById('subL').innerHTML = partes.join(' · ');
+  document.getElementById('alertaL').innerHTML = s.nota
+    ? '<div class="alert alert-warning py-1 px-2 small">'+es(s.nota)+'</div>' : '';
+  pintaLaudo(); pintaLinhasL();
+}
+
+function pintaLinhasL(){
+  var a = arrL.slice();
+  a.sort(function(x,y){
+    var k=ordL.k, vx=x[k], vy=y[k];
+    if(vx===null||vx===undefined||vx==='') return 1;
+    if(vy===null||vy===undefined||vy==='') return -1;
+    if(typeof vx==='string') return ordL.dir*vx.localeCompare(vy);
+    return ordL.dir*(vx-vy);
+  });
+  var fim = Math.min(100, a.length), h = '';
+  for (var i=0;i<fim;i++){ var r=a[i];
+    h += '<tr data-j="'+i+'" style="cursor:pointer">'+
+      '<td><span class="badge text-bg-light">'+es(r.b)+'</span></td>'+
+      '<td class="num">'+r.id+'</td><td>'+es(r.g)+'</td>'+
+      '<td class="num">'+(r.a||'—')+'</td><td class="num">'+nb(r.k)+'</td>'+
+      '<td>'+es(r.uf||'—')+'</td>'+
+      '<td class="num '+(r.d>=0?'pos':'neg')+'"><b>'+pc(r.d)+'</b></td></tr>';
+  }
+  document.querySelector('#tabLL tbody').innerHTML = h ||
+    '<tr><td colspan="7" class="mut">'+(selL<0?'selecione um indicador':
+      'este indicador não consta na base selecionada')+'</td></tr>';
+  window._aL = a;
+  if (a.length) { mostraLaudo(0); }
+  else { document.getElementById('capL').textContent = '';
+         document.getElementById('txtL').textContent = '—'; }
+}
+
+function mostraLaudo(j){
+  var r = window._aL[j]; if (!r || !r.ld) return;
+  var alvo = selL >= 0 ? LD.S[selL].r : '';
+  document.getElementById('capL').innerHTML =
+    es(r.b+' · veículo '+r.id+' — '+r.g+(r.v?' '+r.v:'')) +
+    (r.ld.pl !== null && r.ld.pl !== undefined ? ' · '+r.ld.pl+' peça(s) de lataria com dano' : '') +
+    (r.ld.u ? ' · <a href="'+es(r.ld.u).replace(/"/g,'%22')+'" target="_blank" rel="noopener">abrir laudo (PDF)</a>' : '');
+  /* os trechos seguem a ordem dos indicadores no dicionário, não a do laudo */
+  var h = '';
+  LD.S.forEach(function(s){
+    var t = r.ld.t[s.r]; if (!t) return;
+    h += '<div'+(s.r===alvo?' class="on"':'')+'><b>'+es(s.r)+'</b> — '+es(t)+'</div>';
+  });
+  document.getElementById('txtL').innerHTML = h || '(nenhum indicador neste laudo)';
+}
+
+if (LD) {
+  document.getElementById('flaudo').oninput = pintaLaudo;
+  document.querySelector('#tabLd tbody').onclick = function(e){
+    var tr = e.target.closest ? e.target.closest('tr') : null;
+    if (tr && tr.dataset.i !== undefined) escolheL(Number(tr.dataset.i));
+  };
+  document.querySelector('#tabLL tbody').onclick = function(e){
+    var tr = e.target.closest ? e.target.closest('tr') : null;
+    if (tr && tr.dataset.j !== undefined) mostraLaudo(Number(tr.dataset.j));
+  };
+  document.querySelectorAll('#tabLL th').forEach(function(th){
+    th.style.cursor = 'pointer';
+    th.onclick = function(){
+      var k = th.dataset.k;
+      ordL = { k:k, dir: ordL.k===k ? -ordL.dir : (k==='g'||k==='uf'||k==='b' ? 1 : -1) };
+      pintaLinhasL();
+    };
+  });
+  document.getElementById('csvL').onclick = function(){
+    if (!arrL.length) return;
+    var s = LD.S[selL];
+    var cab = ['base','veiculo_id','modelo','versao','ano_modelo','km','patio_uf','loja',
+               'valor_fipe_anuncio','venda','desagio','indicador','trecho_do_laudo','laudo_pdf'];
+    var out = [cab.join(';')];
+    arrL.forEach(function(r){
+      out.push([r.b,r.id,r.g,r.v,r.a,r.k===null?'':r.k,r.uf,r.l,r.f,r.p,
+        (r.d*100).toFixed(2).replace('.',','), s.r, r.ld.t[s.r]||'', r.ld.u||'']
+        .map(function(c){ c=String(c);
+          return (c.indexOf(';')>=0||c.indexOf('"')>=0) ? '"'+c.replace(/"/g,'""')+'"' : c;
+        }).join(';'));
+    });
+    var blob = new Blob(['\\uFEFF'+out.join('\\r\\n')], {type:'text/csv;charset=utf-8;'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'laudo-'+s.r.replace(/[^\\w]+/g,'_')+'-'+baseSel+'.csv';
+    a.click();
+  };
+}
+
+/* ── aba 4: laudo item a item ──────────────────────────────────────────
+   Mesmo desenho da aba 2, com uma linha por (item, estado). A ordem padrão é
+   a do laudo (acessórios, peças, funcionamento); "maior impacto" ordena os
+   ITENS pelo maior efeito de qualquer estado, e os estados ficam na ordem
+   presente → ausente → danificado, para a comparação dentro do item. */
+var ESTS = ['presente', 'ausente', 'danificado'];
+function confI(e){
+  var cl = e.nivel === 'alta' ? 'alta' : e.nivel === 'média' ? 'media' : 'baixa';
+  var ic = 'intervalo de 95%: ' + sg(e.ic[0]) + ' a ' + sg(e.ic[1]) + ' p.p. · t = ' + e.t.toFixed(1).replace('.', ',');
+  return '<span class="cf" title="' + ic + '"><b class="' + cl + '">' + e.nivel + '</b> ' +
+    (e.conf * 100).toFixed(e.conf > .999 ? 1 : 0).replace('.', ',') + '%</span>';
+}
+function pintaItens(){
+  if (!IT) return;
+  var f = (document.getElementById('fitem').value || '').trim().toLowerCase();
+  var lista = IT.map(function(it, i){ return { it: it, i: i }; })
+    .filter(function(x){ return !f || x.it.i.toLowerCase().indexOf(f) >= 0; });
+  if (document.getElementById('fordem').value === 'impacto') {
+    var maior = function(it){ return Math.max.apply(null, ESTS.map(function(s){
+      var e = it.E[s].B[baseSel]; return e && !e.poucos ? Math.abs(e.efeito) : 0; })); };
+    lista.sort(function(a, b){ return maior(b.it) - maior(a.it); });
+  }
+  var h = '', medidos = 0, fortes = 0;
+  lista.forEach(function(x){
+    h += '<tr class="gh"><td colspan="6" class="gtit">' + es(x.it.i) + '</td></tr>';
+    ESTS.forEach(function(s){
+      var e = x.it.E[s].B[baseSel], chave = x.i + '|' + s, on = selI === chave ? ' on' : '';
+      var rot = '<td><span class="est ' + s + '">' + s + '</span></td>';
+      if (!e) { h += '<tr class="mut">' + rot + '<td colspan="5" class="mut fst-italic">o laudo não traz este estado</td></tr>'; return; }
+      if (e.poucos) { h += '<tr class="sig' + on + '" data-c="' + chave + '">' + rot + '<td class="num">' + nb(e.n) +
+        '</td><td colspan="4" class="mut fst-italic">poucos casos — sem efeito medido</td></tr>'; return; }
+      medidos++; if (e.nivel === 'alta') fortes++;
+      h += '<tr class="sig' + on + (e.nivel === 'alta' ? ' fw-semibold' : '') + '" data-c="' + chave + '">' + rot +
+        '<td class="num">' + nb(e.n) + '</td><td class="num">' + pc(e.desagio_com) + '</td>' +
+        '<td class="num mut">' + pc(e.desagio_sem) + '</td>' +
+        '<td class="bar">' + barraN(e.efeito, MAX4) + '</td><td>' + confI(e) + '</td></tr>';
+    });
+  });
+  document.querySelector('#tabIt tbody').innerHTML = h ||
+    '<tr><td colspan="6" class="mut">nenhum item com esse filtro</td></tr>';
+  document.getElementById('itres').textContent = IT.length + ' itens · ' + medidos +
+    ' estados medidos · ' + fortes + ' com confiança alta';
+}
+function escolheI(chave){
+  selI = chave;
+  var p = chave.split('|'), it = IT[Number(p[0])], s = p[1];
+  arrI = it.E[s].L.map(function(j){ return L[j]; })
+           .filter(function(r){ return baseSel === 'Ambas' || r.b === baseSel; });
+  document.getElementById('titI').innerHTML = es(it.i) + ' · <span class="est ' + s + '">' + s + '</span>';
+  var partes = [];
+  ['Cars2You', 'Dealers'].forEach(function(b){
+    var e = it.E[s].B[b];
+    partes.push('<b>' + b + '</b> ' + (!e ? '<i>não consta</i>' : e.poucos ? nb(e.n) + ' vendas (poucas)' :
+      nb(e.n) + ' vendas, ' + sg(e.efeito) + ' p.p., confiança ' + e.nivel));
+  });
+  document.getElementById('subI').innerHTML = partes.join(' · ');
+  pintaItens(); pintaLinhasI();
+}
+function pintaLinhasI(){
+  var a = arrI.slice();
+  a.sort(function(x, y){
+    var k = ordI.k, vx = x[k], vy = y[k];
+    if (vx === null || vx === undefined || vx === '') return 1;
+    if (vy === null || vy === undefined || vy === '') return -1;
+    if (typeof vx === 'string') return ordI.dir * vx.localeCompare(vy);
+    return ordI.dir * (vx - vy);
+  });
+  var fim = Math.min(100, a.length), h = '';
+  for (var i = 0; i < fim; i++){ var r = a[i];
+    h += '<tr data-j="' + i + '" style="cursor:pointer"><td><span class="badge text-bg-light">' + es(r.b) + '</span></td>' +
+      '<td class="num">' + r.id + '</td><td>' + es(r.g) + '</td><td class="num">' + (r.a || '—') + '</td>' +
+      '<td class="num">' + nb(r.k) + '</td><td>' + es(r.uf || '—') + '</td>' +
+      '<td class="num ' + (r.d >= 0 ? 'pos' : 'neg') + '"><b>' + pc(r.d) + '</b></td></tr>';
+  }
+  document.querySelector('#tabIL tbody').innerHTML = h ||
+    '<tr><td colspan="7" class="mut">' + (selI ? 'nenhuma venda nesta base' : 'selecione um item') + '</td></tr>';
+  window._aI = a;
+  if (a.length) mostraItens(0);
+  else { document.getElementById('capI').textContent = ''; document.getElementById('txtI').textContent = '—'; }
+}
+/* o quadro mostra o estado de TODOS os itens que o laudo daquele carro cita,
+   com o item escolhido em destaque — dá para ver o carro inteiro de uma vez */
+function mostraItens(j){
+  var r = window._aI[j]; if (!r || !r.ld || !r.ld.it) return;
+  var alvo = selI ? IT[Number(selI.split('|')[0])].i : '';
+  document.getElementById('capI').innerHTML = es(r.b + ' · veículo ' + r.id + ' — ' + r.g + (r.v ? ' ' + r.v : '')) +
+    (r.ld.u ? ' · <a href="' + es(r.ld.u).replace(/"/g, '%22') + '" target="_blank" rel="noopener">abrir laudo (PDF)</a>' : '');
+  var h = '';
+  IT.forEach(function(it){
+    var v = r.ld.it[it.i]; if (!v) return;
+    h += '<div' + (it.i === alvo ? ' class="on"' : '') + '><b>' + es(it.i) + '</b> <span class="est ' + v[0] + '">' + v[0] +
+      '</span>' + (v[1] ? ' — ' + es(v[1]) : '') + '</div>';
+  });
+  document.getElementById('txtI').innerHTML = h || '(o laudo não cita nenhum item)';
+}
+if (IT) {
+  document.getElementById('fitem').oninput = pintaItens;
+  document.getElementById('fordem').onchange = pintaItens;
+  document.querySelector('#tabIt tbody').onclick = function(e){
+    var tr = e.target.closest ? e.target.closest('tr') : null;
+    if (tr && tr.dataset.c) escolheI(tr.dataset.c);
+  };
+  document.querySelector('#tabIL tbody').onclick = function(e){
+    var tr = e.target.closest ? e.target.closest('tr') : null;
+    if (tr && tr.dataset.j !== undefined) mostraItens(Number(tr.dataset.j));
+  };
+  document.querySelectorAll('#tabIL th').forEach(function(th){
+    th.style.cursor = 'pointer';
+    th.onclick = function(){
+      var k = th.dataset.k;
+      ordI = { k: k, dir: ordI.k === k ? -ordI.dir : (k === 'g' || k === 'uf' || k === 'b' ? 1 : -1) };
+      pintaLinhasI();
+    };
+  });
+  document.getElementById('csvI').onclick = function(){
+    if (!arrI.length) return;
+    var p = selI.split('|'), it = IT[Number(p[0])];
+    var cab = ['base','veiculo_id','modelo','versao','ano_modelo','km','patio_uf','loja','valor_fipe_anuncio',
+               'venda','desagio','item','estado','trecho_do_laudo','laudo_pdf'];
+    var out = [cab.join(';')];
+    arrI.forEach(function(r){
+      var v = r.ld.it[it.i] || ['', ''];
+      out.push([r.b, r.id, r.g, r.v, r.a, r.k === null ? '' : r.k, r.uf, r.l, r.f, r.p,
+        (r.d * 100).toFixed(2).replace('.', ','), it.i, v[0], v[1], r.ld.u || '']
+        .map(function(c){ c = String(c);
+          return (c.indexOf(';') >= 0 || c.indexOf('"') >= 0) ? '"' + c.replace(/"/g, '""') + '"' : c;
+        }).join(';'));
+    });
+    var blob = new Blob(['\\uFEFF' + out.join('\\r\\n')], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'item-' + it.i.replace(/[^\\w]+/g, '_') + '-' + p[1] + '-' + baseSel + '.csv';
+    a.click();
+  };
+}
+
 document.querySelectorAll('#fbase button').forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll('#fbase button').forEach(function(x){ x.classList.remove('active'); });
     b.classList.add('active'); baseSel = b.dataset.b;
     pintaTopo(); pintaCampos();
     if (sel >= 0) escolhe(sel); else pintaSinais();
+    if (LD) { pintaLaudoTopo(); if (selL >= 0) escolheL(selL); else pintaLaudo(); }
+    if (IT) { if (selI) escolheI(selI); else pintaItens(); }
   };
 });
 document.getElementById('fsinal').oninput = pintaSinais;
@@ -510,6 +969,8 @@ document.getElementById('csv').onclick = function(){
 };
 
 pintaTopo(); pintaCampos(); pintaSinais(); escolhe(0);
+if (LD && LD.S.length) { pintaLaudoTopo(); escolheL(0); }
+if (IT) escolheI('0|ausente');
 </script></body></html>`;
 
 /* função de substituição, não texto: o bundle tem cifrões, e $&/$'/$` no

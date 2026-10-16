@@ -2,6 +2,12 @@
 """Roda as consultas do painel pela conexao direta, sem n8n.
 
     python coleta_local.py            -> grava dados-local.json
+    python coleta_local.py --prova    -> grava dados-prova.json
+
+--prova roda o MESMO SQL com as duas datas recuadas (recorte e loja nova
+desde 01/09/2026). Existe desde 02/10: o recorte de outubro abriu com 3
+ofertas, 0 acesso a anuncio e 0 loja nova, e as provas precisam de dado
+variado para refazer as contas. A tela local continua sendo a de outubro.
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com
@@ -10,7 +16,9 @@ real, e a medicao de tempo e tamanho e do SQL que vai para producao.
 
 Precisa de VPN. O arquivo gerado tem dado real de loja: fica fora do git.
 """
+import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -29,6 +37,24 @@ except Exception:
 saida = subprocess.run(["node", str(AQUI / "_roda_no.js"), "montar-consultas.js"],
                        capture_output=True, text=True, encoding="utf-8", check=True)
 itens = json.loads(saida.stdout)
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--prova", action="store_true")
+args = ap.parse_args()
+PISO_REAL, NOVAS_REAL = "2026-10-01 00:00:00", "2026-10-01 00:00"
+PISO_PROVA, NOVAS_PROVA = "2026-09-01 00:00:00", "2026-09-01 00:00"
+if args.prova:
+    for it in itens:
+        q = it["json"]
+        assert q["meta"]["piso"] == PISO_REAL and q["meta"]["novas"]["desde"] == NOVAS_REAL, \
+            "as datas do no mudaram: ajustar PISO_REAL/NOVAS_REAL"
+        # o piso tem segundos e a data das novas nao: um literal nao contem o outro
+        q["sql"] = q["sql"].replace("'" + PISO_REAL + "'", "'" + PISO_PROVA + "'") \
+                           .replace("'" + NOVAS_REAL + "'", "'" + NOVAS_PROVA + "'")
+        # a prova precisa de dado variado: sem o filtro dos eventos fixos (05/10)
+        q["sql"] = re.sub(r"e\.id IN \([0-9,]+\) AND ", "", q["sql"])
+        q["meta"]["piso"] = PISO_PROVA
+        q["meta"]["novas"]["desde"] = NOVAS_PROVA
 
 cx = conectar("cars2you")
 respostas = []
@@ -50,7 +76,7 @@ for it in itens:
     respostas.append({"json": {"structuredContent": {"columns": cols, "rows": rows}}})
 cx.close()
 
-destino = AQUI / "dados-local.json"
+destino = AQUI / ("dados-prova.json" if args.prova else "dados-local.json")
 destino.write_text(json.dumps({"consultas": itens, "mcp": respostas}, ensure_ascii=False,
                               default=str), encoding="utf-8")
 print("gravado:", destino.name)

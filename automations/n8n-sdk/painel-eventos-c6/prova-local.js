@@ -60,8 +60,11 @@ itens.forEach((it) => {
   prova(q.queryName + ': CNPJ só na consulta de lojas', (low.indexOf('cnpj') >= 0) === (q.queryName === 'lojas'));
 });
 const sqlDe = (n) => itens.find((i) => i.json.queryName === n).json.sql;
-prova('acesso ao canal cortado no período do recorte (menor início → maior fim)',
-  PARTES_NOMES.every((n) => sqlDe(n).indexOf('MIN(e.start_date_offer)') > 0 && sqlDe(n).indexOf('MAX(e.finish_date_event)') > 0));
+prova('acesso ao evento (08/10): por igualdade no event_id, cortado no horário do próprio evento, no minuto',
+  PARTES_NOMES.concat(['lojas']).every((n) => sqlDe(n).indexOf('INNER JOIN access_logs al ON al.event_id = e.id') > 0 &&
+    sqlDe(n).indexOf('al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event') > 0));
+prova('acesso ao evento: não é mais o canal inteiro (sem MIN/MAX do recorte nas partes)',
+  PARTES_NOMES.every((n) => sqlDe(n).indexOf('MIN(e.start_date_offer)') < 0 && sqlDe(n).indexOf('MAX(e.finish_date_event)') < 0));
 prova('cada parte pega o seu resto do id da loja', PARTES_NOMES.every((n, p) =>
   sqlDe(n).indexOf('MOD(al.shop_id, ' + PARTES + ') = ' + p) > 0));
 prova('acesso a anúncio cortado no horário do próprio evento, por igualdade no event_id',
@@ -71,10 +74,13 @@ prova('acesso a anúncio: uma linha por (evento, anúncio, loja), com a máscara
   sqlDe('acessos_anuncio').indexOf('GROUP BY e.id, al.advertisement_id, al.shop_id') > 0 &&
   sqlDe('acessos_anuncio').indexOf('BIT_OR(1 << DATEDIFF(al.created_at, e.start_date_offer))') > 0);
 
-/* ── 3. o painel contra a coleta real ──────────────────────────────── */
-const arq = path.join(__dirname, 'dados-local.json');
+/* ── 3. o painel contra a coleta real ────────────────────────────────
+   A coleta DE PROVA (dados-prova.json, 02/10): o mesmo SQL com o recorte e
+   a loja nova desde 01/09. O recorte de outubro abriu quase vazio (3
+   ofertas, 0 loja nova), e conta refeita sobre zero não prova nada. */
+const arq = path.join(__dirname, 'dados-prova.json');
 if (!fs.existsSync(arq)) {
-  console.error('dados-local.json não existe — rode `python coleta_local.py` (precisa de VPN)');
+  console.error('dados-prova.json não existe — rode `python coleta_local.py --prova` (precisa de VPN)');
   process.exit(1);
 }
 const d = JSON.parse(fs.readFileSync(arq, 'utf8'));
@@ -184,12 +190,24 @@ const perTodos = periodoDe(eventosCru);
 const diasTodos = diasNoPeriodo(perTodos);
 const lojaCru = {};
 cru.lojas.forEach((l) => { lojaCru[l.id] = l; });
-const novaCru = (per) => cru.lojas.filter((l) => Number(l.wl) === 43 && !Number(l.apagada) &&
-  l.cadastro >= per[0] && l.cadastro <= per[1]);
-const novasTodos = novaCru(perTodos);
+/* loja nova (Thomas, 02/10): no grupo de cliente das novas, cadastrada a
+   partir da data das novas e dentro da janela */
+const REGRA_NOVAS = d.consultas[0].json.meta.novas;
+/* 05/10: loja nova não depende da janela do evento; só o filtro de Data corta, pelo fim do dia */
+const novaCru = (fim) => cru.lojas.filter((l) => Number(l.grupo) === 1 && !Number(l.apagada) &&
+  l.cadastro >= REGRA_NOVAS.desde && (fim === null || l.cadastro <= fim));
+const novasTodos = novaCru(null);
 const ehNovaT = {};
 novasTodos.forEach((l) => { ehNovaT[l.id] = 1; });
-prova('lojas novas = cadastro do WL 43 dentro do período', R.kpi.novas === novasTodos.length, [R.kpi.novas, novasTodos.length]);
+prova('lojas novas = grupo ' + REGRA_NOVAS.grupo + ' e cadastro desde ' + REGRA_NOVAS.desde, R.kpi.novas === novasTodos.length, [R.kpi.novas, novasTodos.length]);
+prova('regra de loja nova no nó: grupo 146, desde 01/10/2026', itens[0].json.meta.novas.grupo === 146 &&
+  itens[0].json.meta.novas.desde === '2026-10-01 00:00' && sqlDe('lojas').indexOf('ucg.client_group_id = 146') > 0);
+prova('recorte de outubro no nó: eventos que encerram a partir de 01/10/2026', itens[0].json.meta.piso === '2026-10-01 00:00:00' &&
+  sqlDe('eventos').indexOf("e.finish_date_event >= '2026-10-01 00:00:00'") > 0);
+prova('coleta: todo evento encerra a partir do piso dela', cru.eventos.every((e) => e.fim >= d.consultas[0].json.meta.piso.slice(0, 16)));
+prova('coleta: há loja nova (no grupo e depois da data) e loja do grupo antiga, que não é nova',
+  novasTodos.length > 0 && cru.lojas.some((l) => Number(l.grupo) === 1 && l.cadastro < REGRA_NOVAS.desde) &&
+  cru.lojas.some((l) => Number(l.grupo) !== 1 && l.cadastro >= REGRA_NOVAS.desde && Number(l.wl) === 43), novasTodos.length);
 
 /* pontuação: só loja nova, 10 por arremate + 1 por dia com acesso */
 const pontosCru = (id) => (ehNovaT[id] ? (arrematantes[id] || 0) * 10 + (diasTodos[id] || 0) : 0);
@@ -201,8 +219,10 @@ prova('loja antiga não pontua', todosPag.lojas.filter((r) => !r.nova).every((r)
 prova('acessos da loja = dias com acesso no período', todosPag.lojas.every((r) => r.acessos === (diasTodos[r.loja] || 0)));
 const maior = Math.max.apply(null, novasTodos.map((l) => pontosCru(l.id)));
 prova('a primeira do ranking tem a maior pontuação', R.top_lojas[0].pontos === maior, [R.top_lojas[0].pontos, maior]);
-prova('ranking = quem ofertou ∪ lojas novas', todosPag.lojas.length === new Set(
-  cru.ofertas.map((o) => String(o.loja)).concat(novasTodos.map((l) => String(l.id)))).size);
+prova('ranking = quem ofertou ∪ lojas novas ∪ quem acessou o canal na janela', todosPag.lojas.length === new Set(
+  cru.ofertas.map((o) => String(o.loja)).concat(novasTodos.map((l) => String(l.id)), Object.keys(diasTodos).filter((k) => diasTodos[k] > 0))).size);
+prova('toda loja nova está no ranking, com ou sem acesso', novasTodos.every((l) => todosPag.lojas.some((r) => r.loja === l.id && r.nova)) &&
+  todosPag.lojas.filter((r) => r.nova).length === novasTodos.length);
 
 /* um evento: o período encolhe para o dele, e os acessos junto */
 const evMaior = R.por_evento.slice().sort((a, b) => b.kpi.publicados - a.kpi.publicados)[0];
@@ -230,14 +250,21 @@ prova('acesso fora do período não muda pontos nem dias', outSab.resumo.top_loj
 
 /* acessos por hora, refeitos: total e novos, do primeiro ao último
    horário com acesso */
+/* por hora = a medida do gráfico por dia, por hora (Thomas, 02/10): lojas do
+   ranking com acesso naquela hora, uma vez por hora em cada dia */
 const porHoraCru = (per, soDia, ok) => {
   const t = [];
   const nv = [];
   for (let x = 0; x < 24; x++) { t.push(0); nv.push(0); }
+  const naLista = new Set(todosPag.lojas.map((r) => String(r.loja)));
+  const visto = new Set();
   acessosCru.forEach((a) => {
-    if (!dentro(a, per) || (soDia && a.dia !== soDia) || (ok && !ok(a.loja))) return;
-    t[Number(a.hora)] += Number(a.n);
-    if (ehNovaT[a.loja]) nv[Number(a.hora)] += Number(a.n);
+    if (!dentro(a, per) || (soDia && a.dia !== soDia) || (ok && !ok(a.loja)) || !naLista.has(String(a.loja))) return;
+    const k = a.loja + '|' + a.dia + '|' + a.hora;
+    if (visto.has(k)) return;
+    visto.add(k);
+    t[Number(a.hora)]++;
+    if (ehNovaT[a.loja]) nv[Number(a.hora)]++;
   });
   return { t: t, nv: nv };
 };
@@ -251,6 +278,11 @@ prova('por hora: total e novos recalculados do cru', todosPag.por_hora.every((x)
 prova('por hora: novas ≤ total, toda hora, e algum novo acessou', todosPag.por_hora.every((x) => x.novas <= x.total) &&
   R.kpi.acessos_novas > 0);
 const brutoHora = acessosCru.reduce((t, a) => t + Number(a.n), 0);
+/* a soma por hora é a de lojas × hora; nunca menor que a soma por dia (uma
+   loja num dia tem ao menos uma hora) */
+prova('por hora: a soma das horas ≥ a soma dos dias, mesma medida', R.kpi.acessos >= todosPag.por_dia.reduce((t, x) => t + x.total, 0) &&
+  R.kpi.acessos_novas >= todosPag.por_dia.reduce((t, x) => t + x.novas, 0));
+prova('gráfico se chama Acessos por hora', out.html.indexOf('<h2>Acessos por hora</h2>') > 0 && out.html.indexOf('Acessos por hora do dia') < 0);
 prova('soma por hora ≤ acessos brutos da coleta', R.kpi.acessos <= brutoHora && R.kpi.acessos > 0, [R.kpi.acessos, brutoHora]);
 /* o clique num dia do gráfico por dia filtra só o gráfico por hora */
 const umDia = todosPag.por_dia.filter((x) => x.total > 0).slice(-3)[0].dia;
@@ -264,6 +296,22 @@ prova('anúncios acessados = veículos com alguma loja no anúncio', R.kpi.acess
   R.kpi.acessados > 0 && R.kpi.acessados <= R.kpi.publicados);
 prova('acessos únicos por dia: novas ≤ total, todo dia', todosPag.por_dia.length > 0 &&
   todosPag.por_dia.every((x) => x.novas <= x.total));
+/* o mesmo indicador da coluna Acessos do ranking (Thomas, 02/10) */
+prova('acessos únicos por dia somam a coluna Acessos do ranking de lojas',
+  todosPag.por_dia.reduce((t, x) => t + x.total, 0) === todosPag.lojas.reduce((t, r) => t + r.acessos, 0) &&
+  todosPag.por_dia.reduce((t, x) => t + x.novas, 0) === todosPag.lojas.filter((r) => r.nova).reduce((t, r) => t + r.acessos, 0) &&
+  todosPag.por_dia.some((x) => x.total > 0),
+  [todosPag.por_dia.reduce((t, x) => t + x.total, 0), todosPag.lojas.reduce((t, r) => t + r.acessos, 0)]);
+(() => {
+  const naLista = new Set(todosPag.lojas.map((r) => String(r.loja)));
+  const porDiaCru = {};
+  acessosCru.forEach((a) => {
+    if (!dentro(a, perTodos) || !naLista.has(String(a.loja))) return;
+    (porDiaCru[a.dia] = porDiaCru[a.dia] || new Set()).add(String(a.loja));
+  });
+  prova('acessos únicos por dia = lojas do ranking que acessaram no dia, refeito do cru', todosPag.por_dia.every((x) =>
+    x.total === (porDiaCru[x.dia] ? porDiaCru[x.dia].size : 0)));
+})();
 
 /* ── 3c. o score do veículo, refeito ─────────────────────────────────── */
 const lojasAnuncio = {};
@@ -294,15 +342,15 @@ prova('score só é 0 para veículo sem atividade nenhuma', D0.veiculos.every((v
 prova('score vai de 0 a 100, e o maior da coleta é 100', D0.veiculos.every((v) => v.score >= 0 && v.score <= 100) &&
   Math.max.apply(null, D0.veiculos.map((v) => v.score)) === 100);
 prova('VMV atingido pesa 100 no score bruto', scr.indexOf('vmv: 100') > 0 || out.html.indexOf('"vmv":100') > 0);
-/* % FIPE: arremate ÷ FIPE, só de quem vendeu */
+/* % FIPE (06/10): a MAIOR oferta ÷ FIPE, de todo veículo com oferta e FIPE */
 const pfipeCru = {};
 cru.veiculos.forEach((v) => {
-  const o = [2, 3, 7].indexOf(Number(v.status)) >= 0 && v.vencedora !== null ? ofPorId[v.vencedora] : null;
-  pfipeCru[v.neg] = o && Number(v.fipe) ? Number(o.valor) / Number(v.fipe) : null;
+  const of = cru.ofertas.filter((o) => o.neg === v.neg).map((o) => Number(o.valor));
+  pfipeCru[v.neg] = of.length && Number(v.fipe) ? Math.max.apply(null, of) / Number(v.fipe) : null;
 });
-prova('% FIPE = arremate ÷ FIPE, só de quem vendeu', D0.veiculos.every((v) =>
+prova('% FIPE = maior oferta ÷ FIPE', D0.veiculos.every((v) =>
   (pfipeCru[v.neg] === null ? v.pfipe === null : Math.abs(v.pfipe - pfipeCru[v.neg]) < 1e-9)) &&
-  D0.veiculos.some((v) => v.pfipe !== null) && D0.veiculos.filter((v) => !v.vendido).every((v) => v.pfipe === null));
+  D0.veiculos.some((v) => v.pfipe !== null) && D0.veiculos.filter((v) => v.maior === null).every((v) => v.pfipe === null));
 /* performance financeira, refeita do cru */
 const vendCruL = cru.veiculos.filter((v) => [2, 3, 7].indexOf(Number(v.status)) >= 0 && v.vencedora !== null && ofPorId[v.vencedora]);
 const somaC = (arr, f) => arr.reduce((t, x) => t + (f(x) || 0), 0);
@@ -328,13 +376,13 @@ if (semAcessoMasOferta) {
 
 /* ── 3d. funil e pátios ─────────────────────────────────────────────── */
 const F = R.funil.map((f) => f[1]);
-prova('funil tem as seis etapas pedidas', JSON.stringify(R.funil.map((f) => f[0])) ===
-  JSON.stringify(['Cadastrados', 'Aprovados', 'Logaram', 'Acessaram', 'Ofertaram', 'Compraram']));
+prova('funil tem as cinco etapas (06/10: Logaram e Acessaram viraram uma)', JSON.stringify(R.funil.map((f) => f[0])) ===
+  JSON.stringify(['Cadastrados', 'Aprovados', 'Acessaram', 'Ofertaram', 'Compraram']));
 prova('aprovados = cadastros novos em situation 3', F[1] === novasTodos.filter((l) => Number(l.situacao) === 3).length);
-prova('logaram = novos com dia de acesso no período', F[2] === novasTodos.filter((l) => diasTodos[l.id]).length);
+prova('acessaram = novos com dia de acesso no período', F[2] === novasTodos.filter((l) => diasTodos[l.id]).length);
 prova('compraram ≤ ofertaram ≤ cadastrados, e toda etapa ≤ cadastrados',
-  F[5] <= F[4] && F.every((x) => x <= F[0]), F);
-prova('engajamento = logaram ÷ cadastrados', Math.abs(R.kpi.engajamento - F[2] / F[0]) < 1e-12);
+  F[4] <= F[3] && F.every((x) => x <= F[0]), F);
+prova('engajamento = acessaram ÷ cadastrados', Math.abs(R.kpi.engajamento - F[2] / F[0]) < 1e-12);
 prova('pátios somam os publicados', todosPag.patios.reduce((t, p) => t + p.veiculos, 0) === R.kpi.publicados);
 prova('pátio agrupado por nome (sem repetido)', new Set(todosPag.patios.map((p) => p.patio)).size === todosPag.patios.length);
 prova('% conversão e % VMV do pátio sobre os veículos do pátio',
@@ -385,12 +433,15 @@ const repMaisComum = (col) => {
 });
 /* os dois juntos se somam: só as lojas daquele GP E daquele GN */
 (() => {
-  const gp = repMaisComum('gp');
-  const gn = (() => {
-    const cont = {};
-    D0.lojas.forEach((l) => { if (l.gp === gp && l.gn !== 'Sem Representante') cont[l.gn] = (cont[l.gn] || 0) + 1; });
-    return Object.keys(cont).sort((a, b) => cont[b] - cont[a])[0];
-  })();
+  /* o par mais comum entre as lojas do RANKING (quem ofertou ou é nova):
+     um par só do cadastro daria ranking vazio e a prova não provaria nada */
+  const cont = {};
+  todosPag.lojas.forEach((l) => {
+    if (l.gp !== 'Sem Representante' && l.gn !== 'Sem Representante') cont[l.gp + '|' + l.gn] = (cont[l.gp + '|' + l.gn] || 0) + 1;
+  });
+  const par = Object.keys(cont).sort((a, b) => cont[b] - cont[a])[0].split('|');
+  const gp = par[0];
+  const gn = par[1];
   const r = calculaDaPagina(D0, 'todos', { gp: gp, gn: gn });
   const doPar = {};
   D0.lojas.forEach((l) => { if (l.gp === gp && l.gn === gn) doPar[l.id] = 1; });
@@ -409,8 +460,9 @@ acessosCru.forEach((a) => {
 prova('primeiro e último acesso de toda loja refeitos do cru', todosPag.lojas.every((x) =>
   x.pri === (priCru[x.loja] || null) && x.ult === (ultCru[x.loja] || null)) &&
   todosPag.lojas.some((x) => x.pri !== null && x.pri < x.ult));
-prova('novos lojistas: Acessaram = etapa Acessaram do funil', todosPag.kpi.novas_acessaram === todosPag.funil[3][1] &&
-  todosPag.funil[3][0] === 'Acessaram');
+prova('novos lojistas: Acessaram = etapa Acessaram do funil', todosPag.kpi.novas_acessaram === todosPag.funil[2][1] &&
+  todosPag.funil[2][0] === 'Acessaram' &&
+  Math.abs(todosPag.kpi.engajamento - todosPag.kpi.novas_acessaram / todosPag.kpi.novas) < 1e-12);
 /* data: encolhe o período para o dia */
 const diaF = todosPag.por_dia.filter((x) => x.total > 0).slice(-4)[0].dia;
 const dataF = '20' + diaF.slice(0, 2) + '-' + diaF.slice(2, 4) + '-' + diaF.slice(4, 6);
@@ -419,7 +471,7 @@ prova('Data ' + dataF + ': lances = lances daquele dia', fd.kpi.lances === cru.o
 prova('Data ' + dataF + ': cada loja com no máximo 1 dia de acesso', fd.lojas.every((x) => x.acessos <= 1) &&
   fd.por_dia.length === 1 && fd.por_dia[0].dia === diaF);
 const perDia = [dataF + ' 00:00' > perTodos[0] ? dataF + ' 00:00' : perTodos[0], dataF + ' 23:59' < perTodos[1] ? dataF + ' 23:59' : perTodos[1]];
-prova('Data ' + dataF + ': novos = cadastrados naquele dia', fd.kpi.novas === novaCru(perDia).length, [fd.kpi.novas, novaCru(perDia).length]);
+prova('Data ' + dataF + ': novos = cadastrados naquele dia', fd.kpi.novas === novaCru(dataF + ' 23:59').length, [fd.kpi.novas, novaCru(dataF + ' 23:59').length]);
 prova('Data ' + dataF + ': vendas pela data da oferta vencedora', fd.kpi.vendidos === cru.veiculos.filter((v) =>
   [2, 3, 7].indexOf(Number(v.status)) >= 0 && ofPorId[v.vencedora] && ofPorId[v.vencedora].quando.slice(0, 10) === dataF).length);
 prova('Data ' + dataF + ': a lista de veículos continua inteira', fd.veiculos.length === todosPag.veiculos.length);
@@ -481,8 +533,8 @@ prova('pátios fora da grade de duas colunas (linha inteira)', (() => {
 prova('gaveta de filtros com Usuário GP, Usuário GN, Data, Pátio e Status', ['id="gaveta"', 'id="f-gp"', 'id="f-gn"', 'id="f-dia"', 'id="f-patio"', 'id="f-farol"', 'id="limpar"']
   .every((t) => semScript.indexOf(t) > 0));
 prova('gráfico por dia se chama Acessos únicos por dia', semScript.indexOf('Acessos únicos por dia') > 0 && semScript.indexOf('Lojas únicas que acessaram') < 0);
-prova('rankings: representantes só com loja nova, lojas só com acesso', scr.indexOf('.filter((g) => g.novas > 0)') > 0 &&
-  scr.indexOf('R.lojas.filter((r) => r.acessos > 0') > 0);
+prova('rankings: representantes só com loja nova; lojas: nova sempre, as demais só com acesso (05/10)', scr.indexOf('.filter((g) => g.novas > 0)') > 0 &&
+  scr.indexOf('R.lojas.filter((r) => (r.nova || r.acessos > 0)') > 0);
 prova('funil: mínimo de 3 dígitos somado em todas as etapas + parte proporcional',
   scr.indexOf('const MIN_F = 3 * 7.4 + 16;') > 0 && scr.indexOf('MIN_F + (FW - MIN_F) * (v0 ? f[1] / v0 : 0)') > 0);
 prova('funil à esquerda das lojas por dia; por hora abaixo', semScript.indexOf('id="funil"') < semScript.indexOf('id="g-dia"') &&
@@ -663,8 +715,8 @@ prova('linha de teste da carteira: o CNPJ dela fica Sem Representante nas duas c
   D.lojas.some((l) => String(l.id) === idTeste && l.gn === 'Sem Representante' && l.gp === 'Sem Representante'));
 prova('linha de teste da carteira: nenhuma loja com o GN dela', D.lojas.concat(D0.lojas).every((l) =>
   l.gn !== 'CAIO.LEDESMA' && l.gn.indexOf('Caio Ledesma') < 0));
-prova('linha de teste da carteira: 1 linha fora, com aviso', R.representantes.linhas_fora === 1 &&
-  R.avisos.some((a) => a.indexOf('1 linha(s) da carteira sem data de base') === 0), [R.representantes.linhas_fora, R.avisos]);
+prova('linha de teste da carteira: 1 linha fora, sem aviso na tela (05/10)', R.representantes.linhas_fora === 1 &&
+  !R.avisos.some((a) => a.indexOf('da carteira sem data de base') >= 0), [R.representantes.linhas_fora, R.avisos]);
 prova('data da carteira = a das linhas válidas, no rodapé', R.representantes.base === '2026-08-17' && D0.base_reps === '2026-08-17' &&
   out.html.indexOf("' · carteira de representantes de ' + dia(D.base_reps)") > 0);
 prova('empate, maioria e loja sem CNPJ viram aviso', ['mais de um Usuário GP', 'empate de Usuário GP', 'sem CNPJ no banco']
@@ -676,10 +728,24 @@ prova('CNPJ não vaza para o HTML', ['unico', 'maioria', 'empate', 'vazio'].ever
   prova(q.toUpperCase() + ': ranking de representantes termina em Sem Representante',
     reps.length > 1 && reps[reps.length - 1].representante === 'Sem Representante' &&
     reps.slice(0, -1).every((g) => g.representante !== 'Sem Representante'), reps.map((g) => g.representante));
-  prova(q.toUpperCase() + ': pontos e lojas dos representantes somam os das lojas',
-    reps.reduce((t, g) => t + g.pontos, 0) === calculaDaPagina(D, 'todos').lojas.reduce((t, l) => t + l.pontos, 0) &&
-    reps.reduce((t, g) => t + g.lojas, 0) === calculaDaPagina(D, 'todos').lojas.length);
+  /* representante = soma das lojas + 5 por loja nova cadastrada (30/09) */
+  const lojasP = calculaDaPagina(D, 'todos').lojas;
+  prova(q.toUpperCase() + ': pontos do representante = lojas + 5 por cadastro novo',
+    reps.reduce((t, g) => t + g.pontos, 0) === lojasP.reduce((t, l) => t + l.pontos, 0) + 5 * lojasP.filter((l) => l.nova).length &&
+    reps.reduce((t, g) => t + g.lojas, 0) === lojasP.length);
+  prova(q.toUpperCase() + ': cada representante, refeito', reps.every((g) => {
+    const dele = lojasP.filter((l) => l[q] === g.representante);
+    return g.pontos === dele.reduce((t, l) => t + l.pontos, 0) + 5 * dele.filter((l) => l.nova).length;
+  }));
 });
+prova('rankings de usuários: só Lojas novas, sem Total de lojas', scr.indexOf("t: 'Total de lojas'") < 0 &&
+  scr.indexOf("{ k: 'novas', t: 'Lojas novas', n: true, h: (g) => nf(g.novas) }") > 0 && scr.indexOf('novas, de ') < 0);
+prova('nada de "Arremate" na tela; Recuperações nas colunas e no cartão', (() => {
+  const vis = semScript + scr.slice(scr.indexOf('function APP('));
+  return ["t: 'Arremates'", "'Arremate / FIPE'", "'Arremate / VMV'", 'pontos por arremate', 'loja arrematante']
+    .every((t) => vis.indexOf(t) < 0 && out.html.indexOf(t) < 0) &&
+    ["t: 'Recuperações'", 'Recuperação / FIPE', 'Recuperação / VMV'].every((t) => out.html.indexOf(t) > 0);
+})());
 
 /* a carteira que não serve derruba o run, nas seis formas */
 const caiCom = (plan) => {

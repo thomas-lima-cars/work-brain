@@ -539,6 +539,51 @@ Conclusões práticas:
   (join por faixa de data) passou de **5 minutos** e foi abandonado. Cortar
   pelo `event_id` (igualdade) leva 3s.
 
+## Não existe código de loja de parceiro no banco — a chave é o CNPJ
+
+Medido em **2026-10-02** por conexão direta, sobre as 3.202 lojas do WL 43
+(C6), contra a carteira de representantes do C6 (`Cod_Loja`, tabela de dados
+"Carteira C6 - Lojas" no n8n).
+
+Nenhuma coluna guarda o código de loja do parceiro:
+
+| candidata | o que tem |
+|---|---|
+| `shops.customer_information` (varchar 20) | uma **configuração**: `codigo_nome` (2.302 lojas) ou `codigo` (122) — não é código |
+| `shops.observation` | vazia nas 3.202 |
+| `shop_integrations.integration_id` | vazio no WL 43 |
+| `users.code` (via `user_shops`) | em 98 lojas; 20 valores batem com **algum** `Cod_Loja` da carteira e **nenhum** com o do mesmo CNPJ — coincidência de número curto |
+| `registration_logs.notification_message` | 435 do WL 43, até 43 caracteres, sem código |
+| `whitelabel_leads`, `sale_networks`, `business_units`, `wallets` | nenhuma coluna de código |
+
+Nenhuma coluna em todo o banco tem nome com `code`/`codigo`/`external`/
+`store`/`loja` que sirva (busca no `information_schema`).
+
+**O cruzamento por CNPJ quase não sofre com a duplicação da carteira:** dos
+101 CNPJs repetidos na carteira (640 linhas, filiais de um mesmo CNPJ), só
+**1** é de loja do WL 43 — o próprio "C6 Bank Lojista" (36 linhas, 17 GPs
+diferentes). No banco, 44 CNPJs estão em mais de uma loja do WL 43 (3.202
+lojas, 3.150 CNPJs) e herdam o mesmo representante.
+
+## VMV de R$ 100.000 é provisório (`advertisement_negotiations.min_sale_price`)
+
+Medido em **2026-10-14** comparando duas coletas do Painel de Precificação
+(conexão direta e execução 61975 do n8n), com horas de diferença, sobre os
+carros não vendidos cadastrados em 30 dias:
+
+| | coleta local | execução 61975 |
+|---|---:|---:|
+| VMV = 100.000,00 exato | 91 | 31 |
+
+Os 60 que saíram do 100.000 passaram a valores como 27.900, 21.100, 17.700 —
+o VMV real. É o valor **mais repetido** da base (o seguinte, 64.000, aparece
+22 vezes). Dos 31 restantes, 26 são do **C6 Bank Lojista**. Leitura: o carro é
+cadastrado com 100.000 e o VMV de verdade entra depois.
+
+Consequência: VMV = 100.000 **não é o pedido do cliente**. Comparado ao preço
+do modelo, aparece como "VMV mais de 100% acima" e polui o confronto.
+⚠️ Não confirmado com quem cadastra — é inferência do padrão.
+
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`
