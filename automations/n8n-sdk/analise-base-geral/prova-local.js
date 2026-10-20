@@ -1,5 +1,5 @@
 /* Prova local, sem tocar no banco nem no n8n.
-   1) Roda montar-queries.js e confere as 84 consultas (14 x 6 canais).
+   1) Roda montar-queries.js e confere as 148 consultas (18 x 6 canais + 40 partes de pacote).
    2) Gera respostas MCP falsas a partir do D da "Versao A" (o que o banco
       devolveria se os numeros fossem os de 04/09) e roda montar-html.js.
    3) Compara o D remontado com o original, canal a canal.
@@ -13,14 +13,16 @@ const Q = qsRes.map(function (x) { return x.json; });
 let falhas = 0;
 const ok = function (c, msg) { if (!c) { falhas++; console.log('✗ ' + msg); } };
 
-ok(Q.length === 84, 'esperava 84 consultas, vieram ' + Q.length);
+ok(Q.length === 148, 'esperava 148 consultas, vieram ' + Q.length);
+ok(Q.filter(function (q) { return q.wl; }).length === 108, 'esperava 18 x 6 consultas por canal');
 Q.forEach(function (q) {
   ok(!/\bLIMIT\s+\d+\s+OFFSET/.test(q.sql), q.queryName + ' com OFFSET');
   ok((q.sql.match(/\(/g) || []).length === (q.sql.match(/\)/g) || []).length, q.queryName + '/' + q.wl + ' parenteses desbalanceados');
   ok(!/undefined|NaN/.test(q.sql), q.queryName + '/' + q.wl + ' com undefined/NaN');
 });
 ok(Q.filter(function (q) { return q.wl === 48; }).every(function (q) { return !q.sql.includes('c6bank'); }), 'canal 48 nao pode excluir @c6bank.com');
-ok(Q.filter(function (q) { return q.wl !== 48; }).every(function (q) { return q.sql.includes('c6bank'); }), 'demais canais excluem @c6bank.com');
+/* anuncios e sobre as LOJAS do canal, nao sobre a base de clientes: sem filtro de e-mail */
+ok(Q.filter(function (q) { return q.wl !== 48 && q.queryName !== 'anuncios'; }).every(function (q) { return q.sql.includes('c6bank'); }), 'demais canais excluem @c6bank.com');
 
 /* --- respostas falsas, na forma do MCP: columns + rows --- */
 const MES = D0.meses;
@@ -40,7 +42,8 @@ function resposta(q) {
       const t = q.queryName.slice(4);
       return R(['mes', 'novos'], MES.filter(function (m) { return c.evolucao[m] && c.evolucao[m][t]; }).map(function (m) { return [m, c.evolucao[m][t].novos]; }));
     }
-    case 'top': return R(['id', 'nome', 'loja', 'compras', 'valor', 'ultima'], c.top.map(function (t, i) { return [i, t.nome, t.loja, t.compras, String(t.valor), t.ultima]; }));
+    /* top virou pacote (top 100, 16/10): uma linha com total + linhas */
+    case 'top': return R(['total', 'linhas'], [[c.top.length, JSON.stringify(c.top.map(function (t, i) { return [i + 1, t.nome, t.loja, t.compras, t.valor, t.ultima]; }))]]);
     case 'uf': return R(['uf', 'qtd'], Object.keys(c.uf).map(function (u) { return [u, c.uf[u]]; }));
     case 'coorte_acum': return R(['mes', 'cadastrados', 'acessaram', 'ofertaram', 'compraram', 'sem_interacao'],
       Object.keys(c.coorteAcum).map(function (m) { const r = c.coorteAcum[m]; return [m, r.cadastrados, r.acessaram, r.ofertaram, r.compraram, r.sem_interacao]; }));
@@ -49,6 +52,11 @@ function resposta(q) {
       return R(cols, Object.keys(c.coorteJanela).map(function (m) { const r = c.coorteJanela[m]; return cols.map(function (k) { return k === 'mes' ? m : (r[k] == null ? 0 : r[k]); }); }));
     }
   }
+  /* Consultas da versao 2 (16/10): a Versao A nao tem esse dado. Resposta vazia
+     prova que a montagem do que existia nao depende delas; o dado real delas e
+     provado por monta_local.js. */
+  if (q.parte != null) return R(['total', 'linhas'], [[0, '[]']]);
+  if (['cad_dia', 'anuncios', 'base_acum', 'uf_compra'].indexOf(q.queryName) >= 0) return R(['x'], []);
   throw new Error('consulta sem resposta falsa: ' + q.queryName);
 }
 const R = Q.map(resposta);
@@ -56,10 +64,14 @@ const R = Q.map(resposta);
 const $ = function (nome) {
   if (nome === 'Montar Queries') return { all: function () { return Q.map(function (q) { return { json: q }; }); } };
   if (nome === 'MCP Run') return { all: function () { return R.map(function (r) { return { json: r }; }); } };
+  if (nome === 'Template Topo' || nome === 'Template Script') {
+    const t = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8'), k = t.indexOf('<script>\nvar D = ');
+    const parte = nome === 'Template Topo' ? t.slice(0, k) : t.slice(k);
+    return { first: function () { return { json: { t: parte } }; } };
+  }
   throw new Error(nome);
 };
 const modelo = fs.readFileSync(path.join(__dirname, 'montar-html.js'), 'utf8')
-  .replace('__TEMPLATE_JSON__', JSON.stringify(fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8')))
   .replace('__CONST_JSON__', fs.readFileSync(path.join(__dirname, 'constantes.json'), 'utf8'));
 const saida = new Function('$', modelo)($)[0].json;
 
@@ -78,9 +90,12 @@ console.log('janela de hoje: ' + D1.meses[0] + ' .. ' + D1.meses[11] + ' (' + D1
 const sub = function (a, b) { return Object.keys(b).every(function (k) { return JSON.stringify(a[k]) === JSON.stringify(b[k]); }); };
 Object.keys(D0.canais).forEach(function (wl) {
   const a = D1.canais[wl], b = D0.canais[wl];
-  ['kpi', 'situacao', 'recencia', 'evolucao', 'volume', 'uf', 'top'].forEach(function (k) {
+  ['kpi', 'situacao', 'recencia', 'evolucao', 'volume', 'uf'].forEach(function (k) {
     ok(JSON.stringify(a[k]) === JSON.stringify(b[k]), 'canal ' + wl + ' · ' + k + ' difere');
   });
+  /* o top agora leva o id (para tirar a pessoa repetida entre canais): compara sem ele */
+  const semId = function (l) { return JSON.stringify(l.map(function (t) { return [t.nome, t.loja, t.compras, t.valor, t.ultima]; })); };
+  ok(semId(a.top) === semId(b.top), 'canal ' + wl + ' · top difere');
   /* a Versao A guardou coorte no formato antigo (sem 'cadastrados' na janela);
      o novo traz os campos completos — so exijo que o que existia la bata */
   ['coorteAcum', 'coorteJanela'].forEach(function (k) {

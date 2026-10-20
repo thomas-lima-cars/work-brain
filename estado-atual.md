@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-10-15 (tarde) — Estudo de Vendas IGA: tabela de compradores com todas as lojas e ordenação por coluna; re-extraído do banco, manchetes iguais. Em 14/10: modelo preditivo, Painel de Precificação, Análise de Base. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-10-20 (tarde) — Análise de Base v2/v3 (de 16/10) commitada; 4 mudanças aprovadas no n8n esperam o conector. Em 15/10: Estudo de Vendas IGA. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -41,11 +41,15 @@
   frente `itau`. Tabela de compradores (15/10): todas as lojas com compra em 12 meses, ordena pela
   coluna clicada; gráfico mês a mês soma todas sem seleção. Re-extraído em 15/10; série até set/26.
   Números em `projetos/vendas-iga/indicadores.md`. ❓ Incluir quem parou há mais de 12 meses?
-- **Análise de Base de Clientes, 6 canais** — ✅ reconstruída em 14/10 no projeto **pessoal** do
-  Thomas, wf `XkRFB5dYc1EFWZkN` (inativo, manual), pasta `automations/n8n-sdk/analise-base-geral/`.
-  Reproduz o HTML "Versão A" (o gerador original não existe em lugar nenhum); 84 chamadas, ~3 min,
-  e-mail só para o Thomas. Base 22.484 em 14/10 (fonte: README da pasta). ❓ Falta o Thomas
-  confirmar o anexo ("Dados até 14/10/2026 12:03"); evolução/coorte/UF ainda sem conferência no banco.
+- **Análise de Base de Clientes, 6 canais** — 🔥 **v3 no n8n desde 16/10, sem rodar.** Wf
+  `XkRFB5dYc1EFWZkN` (projeto **pessoal** do Thomas, **inativo**), pasta
+  `automations/n8n-sdk/analise-base-geral/`. A v2 trouxe o Raio-X e o filtro de período. A v3
+  trouxe a coorte por faixa, o top 100 e o filtro de comitente. Números e provas estão no
+  README da pasta.
+  ⏳ **Aprovado em 20/10 e ainda não aplicado** (o conector do n8n estava fora da sessão): os
+  5 destinatários, o gatilho diário às 8h, o fuso `America/Sao_Paulo` e a ativação. O passo a
+  passo está no README, em "Estado no n8n". A primeira execução real da v3 ainda não aconteceu:
+  rodar à mão uma vez antes do primeiro disparo das 8h.
 - **bradesco** — _(estado a preencher)_
 
 ## ⚙️ Rodando em produção (sem demanda ativa minha)
@@ -91,6 +95,11 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] 🔥 **Análise de Base (6 canais): aplicar no n8n as 4 mudanças aprovadas em 20/10** — 5
+      destinatários, gatilho das 8h, fuso `America/Sao_Paulo`, ativar. Exige o conector do n8n na
+      sessão (ficou fora em 20/10, até numa sessão nova). Passo a passo no README da pasta
+- [ ] **Rodar à mão a Análise de Base v3 uma vez** antes do primeiro disparo das 8h (148 chamadas
+      nunca rodaram no MCP; só na coleta direta)
 - [ ] 🔥 **Ligar o agendamento do Painel de Precificação** (com ok) e rodar para publicar a
       versão com o VMV provisório — o SharePoint ainda mostra a execução 61975
 - [ ] Confirmar com quem cadastra que VMV = R$ 100.000 é provisório (maioria C6 Bank Lojista)

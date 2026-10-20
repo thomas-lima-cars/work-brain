@@ -113,3 +113,8 @@ automations/n8n-sdk/painel-precificacao/dados-local.json
 automations/n8n-sdk/painel-precificacao/saida-local.html
 automations/precificacao/preditivo/modelo.json
 automations/precificacao/preditivo/modelo-gabarito.json
+
+# Analise de Base 6 canais: dado real de cliente (coleta local) e saida com nomes
+automations/n8n-sdk/analise-base-geral/dados-local.json
+automations/n8n-sdk/analise-base-geral/saida-local.html
+automations/n8n-sdk/analise-base-geral/Analise_base_geral_clientes_*.html

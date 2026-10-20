@@ -61,6 +61,52 @@ tbody tr:hover{background:var(--row-hover)}
 .fun-f{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 10px;color:#fff;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600}
 .fun-p{width:118px;text-align:right;font-size:10.5px;color:var(--faint);flex-shrink:0}
 footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:10.5px;color:var(--faint);text-align:center}
+.chart-lg{position:relative;height:300px}
+.tag{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber2);border-radius:10px;padding:1px 7px;margin-left:-2px}
+.vazio{padding:16px;text-align:center;color:var(--faint);font-size:11.5px;white-space:normal}
+.cell-sub{display:block;font-size:10px;color:var(--faint);margin-top:1px;white-space:normal}
+.cross{color:var(--amber);font-weight:600}
+.tg{display:flex;gap:6px;justify-content:flex-end;margin:-6px 0 8px}
+.tg button{font-family:inherit;font-size:10.5px;font-weight:600;padding:4px 11px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--sub);cursor:pointer}
+.tg button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.per{position:relative}
+.per-btn{font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;padding:9px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;max-width:420px;display:flex;align-items:center;gap:8px}
+.per-btn #perTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.per-panel{position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(15,23,42,.14);padding:12px 14px;width:min(380px,calc(100vw - 32px))}
+.per-ano{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.per-ms{display:flex;flex-wrap:wrap;gap:6px}
+.per-panel button{font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--sub);cursor:pointer;padding:5px 9px}
+.per-panel button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.per-panel .per-y{width:58px;flex-shrink:0}
+.per-panel .per-y.meio{border-color:var(--brand);color:var(--brand)}
+.per-acoes{display:flex;justify-content:space-between;padding-top:10px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 28px}
+.tab{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 18px;cursor:pointer;font-weight:700;font-size:12px;color:var(--sub);font-family:'Inter',sans-serif}
+.tab.ativo{background:var(--brand);color:#fff;border-color:var(--brand)}
+.painel{display:none}.painel.ativo{display:block}
+.rx-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 14px 4px}
+.rx-tools input{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12.5px}
+.rx-tools span{font-size:11px;color:var(--faint)}
+#rxTab th[data-k]{cursor:pointer;user-select:none}
+#rxTab th[data-k]:after{content:'⇅';margin-left:4px;color:var(--faint);font-size:9px}
+#rxTab th.ord:after{content:attr(data-dir);color:var(--brand)}
+.rx-ind{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.rx-ind{grid-template-columns:1fr}}
+#rxBuscaInd{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12.5px;margin-bottom:8px}
+.rx-lista{max-height:560px;overflow-y:auto;border-top:1px solid var(--line-soft)}
+.rx-item{padding:8px 10px;font-size:12px;color:var(--ink2);cursor:pointer;border-bottom:1px solid var(--line-soft)}
+.rx-item:hover{background:var(--row-hover)}
+.rx-item.sel{background:var(--brand);color:#fff}.rx-item.sel .cell-sub{color:rgba(255,255,255,.75)}
+.rx-cab{margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.rx-cab .n{font-size:15px;font-weight:700;color:var(--ink)}
+.dist-row{display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(60px,2fr) 92px;gap:8px;align-items:center;margin:6px 0;font-size:11px;color:var(--sub)}
+.dist-row b{text-align:right;font-weight:600;color:var(--ink2)}
+.period-badge{display:inline-block;background:var(--brand-soft);color:var(--brand2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;margin-bottom:18px}
+.grid2>*,.card,.tw{min-width:0}
+.tag-c{color:var(--brand);border-color:var(--brand-soft)}
+.tw.alto{max-height:460px;overflow:auto}
+.tw.alto thead th{position:sticky;top:0;z-index:1}
+@media(max-width:600px){.page{padding:0 16px 48px}.header,.header-bar,.filtro{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}select,.per-btn{min-width:0;width:100%;max-width:none}.per{width:100%}}
 @media print{body{background:#fff}.sec{break-inside:avoid}}</style></head><body><div class="page">
 <div class="header">
   <div class="header-left">
@@ -79,9 +125,41 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-si
 <div class="filtro">
   <label for="fwl">Canal</label>
   <select id="fwl">{{OPCOES}}</select>
+  <label for="perBtn">Período</label>
+  <div class="per" id="per">
+    <button type="button" class="per-btn" id="perBtn" aria-haspopup="true"><span id="perTxt"></span><span aria-hidden="true">▾</span></button>
+    <div class="per-panel" id="perPainel" hidden></div>
+  </div>
+  <label for="fcom">Comitente</label>
+  <select id="fcom"></select>
   <span class="fchip" id="chipBase">{{TOTAL}} clientes</span>
 </div>
-<div id="app"></div>
+<div class="tabs">
+  <button type="button" class="tab ativo" data-p="pg">Visão Geral</button>
+  <button type="button" class="tab" data-p="pm">Raio-X de Compradores</button>
+  <button type="button" class="tab" data-p="pi">Raio-X Individual</button>
+</div>
+<div class="painel ativo" id="pg"><div id="app"></div></div>
+<div class="painel" id="pm">
+  <div class="sec"><div class="sec-head"><div class="sec-title">Raio-X de Compradores</div><span class="tag">período</span><span class="tag tag-c">comitente</span><div class="sec-line"></div></div>
+  <div class="period-badge">Período: <span id="rxPer"></span></div>
+  <div class="sec-note">Perfil de compra de cada cliente que comprou no período, em qualquer loja da plataforma. Segue o canal, o período e o comitente escolhidos no topo. Êxito = compras ÷ disputas em que deu lance; Rec. FIPE e Rec. Molicar = valor pago ÷ tabela, só nos veículos com tabela.</div>
+  <div class="tw"><div class="rx-tools"><input id="rxBusca" placeholder="Filtrar por nome, loja ou CNPJ..."><span id="rxConta"></span></div>
+  <table id="rxTab"><thead><tr>
+    <th data-k="name">Comprador</th><th class="r" data-k="compras">Compras</th><th class="r" data-k="exito">Êxito</th><th class="r" data-k="ticket">Ticket médio</th>
+    <th data-k="faixa">Faixa dominante</th><th class="r" data-k="recfipe">Rec. FIPE</th><th class="r" data-k="recmol">Rec. Molicar</th>
+    <th data-k="modelo">Modelo dominante</th><th class="r" data-k="modelos">Modelos</th><th data-k="laudo">Laudo dominante</th><th data-k="uf">Local dominante</th>
+  </tr></thead><tbody id="rxCorpo"></tbody></table></div>
+  <div class="sec-note" style="margin-top:10px">Nomes, lojas e CNPJs são dado sensível: não circular fora do time.</div></div>
+</div>
+<div class="painel" id="pi">
+  <div class="sec"><div class="sec-head"><div class="sec-title">Raio-X Individual</div><span class="tag">período</span><span class="tag tag-c">comitente</span><div class="sec-line"></div></div>
+  <div class="period-badge">Período: <span id="rxPer2"></span></div>
+  <div class="rx-ind">
+    <div class="card"><div class="card-t">Comprador</div><div class="card-s">Quem comprou nos últimos 12 meses, no canal escolhido.</div><input id="rxBuscaInd" placeholder="Buscar comprador, loja ou CNPJ..."><div class="rx-lista" id="rxLista"></div></div>
+    <div class="card" id="rxDet"></div>
+  </div></div>
+</div>
 <footer>Cars2You &middot; dados do sistema até {{DATA}} &middot; uso interno</footer>
 </div>
 <script>
@@ -99,14 +177,40 @@ function w(q,t){return (t?(Number(q)/Number(t)*100):0).toFixed(1);}
 function ic(k){var t=TIPS[k];return t?' <i class="i" title="'+esc(t)+'">i</i>':'';}
 var charts=[];
 function destroyCharts(){charts.forEach(function(c){try{c.destroy();}catch(e){}});charts=[];}
+var LAUDO={aprovado:'Aprovado',aprovado_com_apontamento:'Aprovado c/ apontamento',reprovado:'Reprovado',nao_informado:'Não informado',sem_registro:'Sem registro'};
+var UMAP={}; D.U.forEach(function(u){UMAP[u[0]]=u;});
+var TODOS=0; D.ordem.forEach(function(k){TODOS|=D.BIT[k];});
+/* Estado dos filtros. meses vazio = os 12 meses da janela. */
+var EST={canal:'todos',meses:[],com:''};
+/* Comitente = a loja que vende o veiculo. So lance e compra tem comitente;
+   acesso nao (a pessoa entra na plataforma, nao num anuncio). */
+function okCom(c){return !EST.com||String(c)===EST.com;}
+function rotCom(){return EST.com?(D.COM[EST.com]||('loja '+EST.com)):'';}
+var TOPN=100;
+function idxSel(){if(!EST.meses.length)return MESES.map(function(_,i){return i;});return EST.meses.slice().sort(function(a,b){return a-b;});}
+function mascara(){return EST.canal==='todos'?TODOS:(D.BIT[EST.canal]||0);}
+function noCanal(uid,m){var u=UMAP[uid];return !!(u&&(u[1]&m));}
+function rotSel(){
+  var ix=idxSel();
+  if(ix.length===MESES.length) return 'últimos 12 meses ('+MON[0]+' – '+MON[MON.length-1]+')';
+  if(ix.length===1) return MON[ix[0]];
+  var anos={};ix.forEach(function(i){var y=MESES[i].slice(0,4);(anos[y]=anos[y]||[]).push(i);});
+  var ys=Object.keys(anos);
+  if(ys.length===1&&MESES.filter(function(m){return m.slice(0,4)===ys[0];}).length===ix.length) return ys[0]+' ('+ix.length+' meses)';
+  return ix.length+' meses: '+ix.map(function(i){return MON[i];}).join(', ');
+}
+function ufRot(u){return u==='Nao identificada'?'Não identificada':u;}
 
 /* Base, login, lances e volume sao somaveis entre canais. Ofertantes e
    compradores NAO: a mesma pessoa pode estar em dois canais e seria contada
-   duas vezes - por isso o aviso aparece quando o filtro esta em todos. */
+   duas vezes - por isso o aviso aparece quando o filtro esta em todos.
+   (O bloco "Atividade no Periodo" nao tem esse problema: conta por pessoa.) */
 function agrega(sel){
   var wls = sel==='todos' ? D.ordem : [sel];
   var o={kpi:{base:0,comLogin:0,semLogin:0,ofertantes:0,compradores:0,ofertas:0,negociacoes:0,volume:0,ultima:null},
-    situacao:{},recencia:{login:{},oferta:{},compra:{}},evolucao:{},volume:{},coorteAcum:{},coorteJanela:{},uf:{},top:[],multi:wls.length>1};
+    situacao:{},recencia:{login:{},oferta:{},compra:{}},evolucao:{},volume:{},coorteAcum:{},coorteJanela:{},uf:{},top:[],multi:wls.length>1,
+    cadDia:{},anuncios:{},baseAcum:{},ufCompra:{}};
+  var soma=function(dst,src,campos){campos.forEach(function(f){dst[f]=(Number(dst[f])||0)+(Number(src[f])||0);});};
   wls.forEach(function(k){
     var d=D.canais[k]; if(!d) return;
     ['base','comLogin','semLogin','ofertantes','compradores','ofertas','negociacoes','volume'].forEach(function(f){o.kpi[f]+=Number(d.kpi[f])||0;});
@@ -119,27 +223,62 @@ function agrega(sel){
     Object.keys(d.coorteJanela).forEach(function(m){var c=d.coorteJanela[m];var F=['cadastrados','ac30','ac60','ac90','ac180','of30','of60','of90','of180','cp30','cp60','cp90','cp180','mad30','mad60','mad90','mad180'];var a=o.coorteJanela[m]||{mes:m};F.forEach(function(f){a[f]=(Number(a[f])||0)+(Number(c[f])||0);});o.coorteJanela[m]=a;});
     Object.keys(d.uf).forEach(function(u){o.uf[u]=(o.uf[u]||0)+d.uf[u];});
     (d.top||[]).forEach(function(t){o.top.push(t);});
+    Object.keys(d.cadDia||{}).forEach(function(x){o.cadDia[x]=(o.cadDia[x]||0)+d.cadDia[x];});
+    /* Anuncio e da LOJA, e loja tem um whitelabel so: os canais somam sem repetir */
+    Object.keys(d.anuncios||{}).forEach(function(m){soma(o.anuncios[m]=o.anuncios[m]||{},d.anuncios[m],['publicados','criados','ofertas','vendidos']);});
+    Object.keys(d.baseAcum||{}).forEach(function(m){soma(o.baseAcum[m]=o.baseAcum[m]||{},d.baseAcum[m],['compraram','ofertaram','acessaram','nunca']);});
+    Object.keys(d.ufCompra||{}).forEach(function(u){soma(o.ufCompra[u]=o.ufCompra[u]||{},d.ufCompra[u],['compras','volume']);});
   });
-  o.top.sort(function(a,b){return (Number(b.compras)||0)-(Number(a.compras)||0);});
-  o.top=o.top.slice(0,10);
+  /* Compra e da pessoa, nao do canal: quem esta em dois canais aparece nos dois
+     top 100 com o mesmo numero. Conta uma vez. A uniao dos top 100 de cada canal
+     contem o top 100 da uniao, porque o numero da pessoa e o mesmo em todo canal. */
+  var visto={};o.top=o.top.filter(function(t){if(visto[t.id])return false;visto[t.id]=1;return true;});
+  o.top.sort(function(a,b){return ((Number(b.compras)||0)-(Number(a.compras)||0))||(a.id-b.id);});
+  o.top=o.top.slice(0,TOPN);
   return o;
 }
 
-function sec(t,tip,nota,corpo){return '<div class="sec"><div class="sec-head"><div class="sec-title">'+t+'</div><div class="sec-line"></div></div>'+(nota?'<div class="sec-note">'+nota+ic(tip)+'</div>':'')+corpo+'</div>';}
+/* Atividade no periodo, POR PESSOA: cada cliente conta uma vez, mesmo que
+   esteja em dois canais. Le os pacotes globais (ATV, RX.totais). */
+function periodo(){
+  var m=mascara(),set={};idxSel().forEach(function(i){set[i]=1;});
+  var P={dias:{},lances:{},compras:{},volume:{},ultMi:{},lancesT:0,comprasT:0,volumeT:0};
+  D.ATV.forEach(function(r){if(!set[r[1]]||!noCanal(r[0],m))return;
+    if(r[2]>0)P.dias[r[0]]=(P.dias[r[0]]||0)+r[2];});
+  D.LANCES.forEach(function(r){if(!set[r[1]]||!okCom(r[2])||!noCanal(r[0],m))return;
+    if(r[3]>0){P.lances[r[0]]=(P.lances[r[0]]||0)+r[3];P.lancesT+=r[3];}});
+  D.RX.totais.forEach(function(r){if(!set[r[1]]||!okCom(r[2])||!noCanal(r[0],m))return;
+    P.compras[r[0]]=(P.compras[r[0]]||0)+r[3];P.volume[r[0]]=(P.volume[r[0]]||0)+r[4];
+    if(P.ultMi[r[0]]==null||r[1]>P.ultMi[r[0]])P.ultMi[r[0]]=r[1];
+    P.comprasT+=r[3];P.volumeT+=r[4];});
+  P.acess=Object.keys(P.dias).length;P.ofert=Object.keys(P.lances).length;P.compr=Object.keys(P.compras).length;
+  return P;
+}
+function topN(o){return Object.keys(o).sort(function(a,b){return (o[b]-o[a])||(a-b);}).slice(0,TOPN);}
+function nomeCel(uid,marca){var u=UMAP[uid]||[uid,0,String(uid),'',''];var n=esc(u[2]||'—');
+  return (marca?'<span class="cross">★ '+n+'</span>':n)+(u[3]||u[4]?'<span class="cell-sub">'+esc(u[3])+(u[4]?' · CNPJ '+u[4]:'')+'</span>':'');}
+
+function sec(t,tip,nota,corpo,per,com){return '<div class="sec"><div class="sec-head"><div class="sec-title">'+t+'</div>'+(per?'<span class="tag" title="Segue o filtro de período">período</span>':'')+(com?'<span class="tag tag-c" title="Segue o filtro de comitente">comitente</span>':'')+'<div class="sec-line"></div></div>'+(nota?'<div class="sec-note">'+nota+ic(tip)+'</div>':'')+corpo+'</div>';}
 function kpi(label,valor,sub,cor,tip){return '<div class="kpi" style="--accent:'+(cor||BRAND)+'"><div class="kpi-label">'+label+ic(tip)+'</div><div class="kpi-value">'+valor+'</div><div class="kpi-sub">'+(sub||'')+'</div></div>';}
+function card(t,s,canvas,cls,extra){return '<div class="card"><div class="card-t">'+t+'</div><div class="card-s">'+s+'</div>'+(extra&&extra.antes||'')+'<div class="'+(cls||'chart-sm')+'"><canvas id="'+canvas+'"></canvas></div>'+(extra&&extra.depois||'')+'</div>';}
+function leg(itens){return '<div class="legend">'+itens.map(function(i){return '<span><span class="ldot" style="background:'+i[1]+'"></span>'+i[0]+'</span>';}).join('')+'</div>';}
 
 function barOpts(stacked,horiz){return{responsive:true,maintainAspectRatio:false,indexAxis:horiz?'y':'x',
   plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){return c.dataset.label+': '+br(c.parsed[horiz?'x':'y']);}}}},
   scales:{x:{stacked:!!stacked,grid:{color:GR,drawBorder:false},ticks:{color:TK,font:{size:10}},border:{display:false}},
           y:{stacked:!!stacked,grid:{color:GR,drawBorder:false},ticks:{color:TK,font:{size:10}},border:{display:false}}}};}
+function eixo2(o,titulo1,titulo2){o.plugins.legend={display:true,position:'top',labels:{color:TK,font:{size:10},boxWidth:10}};
+  o.scales.y.title={display:true,text:titulo1,color:TK,font:{size:10}};
+  o.scales.y1={position:'right',grid:{display:false},ticks:{color:TK,font:{size:10}},border:{display:false},title:{display:true,text:titulo2,color:TK,font:{size:10}}};return o;}
 
-function render(sel){
+var baModo='abs', geralSujo=false;
+function render(){
   destroyCharts();
-  var d=agrega(sel), k=d.kpi, out='';
+  var sel=EST.canal, d=agrega(sel), k=d.kpi, out='', ix=idxSel(), P=periodo();
   document.getElementById('chipBase').textContent = br(k.base)+' clientes';
   var aviso = d.multi ? ' Com mais de um canal somado, ofertantes e compradores podem contar a mesma pessoa duas vezes, porque um cliente pode estar em dois canais.' : '';
 
-  out += sec('Panorama da Base','base','Números de topo do canal selecionado.'+aviso,
+  out += sec('Panorama da Base','base','Números de topo do canal selecionado, em todo o histórico.'+aviso,
     '<div class="kpi-grid">'+
     kpi('Clientes na base',br(k.base),'',BRAND,'base')+
     kpi('Com login',br(k.comLogin),pct1(k.base?k.comLogin/k.base*100:0)+'% da base',GOOD,'comLogin')+
@@ -151,127 +290,387 @@ function render(sel){
     kpi('Volume',money(k.volume),'',GOOD,'volume')+
     '</div>');
 
+  out += sec('Atividade no Período','periodo','Acessos, lances e compras em '+rotSel()+(EST.com?'; lances e compras só em anúncios de '+esc(rotCom())+' (acesso não tem comitente)':'')+'. Aqui cada pessoa conta uma vez, mesmo somando canais.',
+    '<div class="kpi-grid">'+
+    kpi('Acessaram',br(P.acess),pct1(k.base?P.acess/k.base*100:0)+'% da base'+(EST.com?' · sem comitente':''),BRAND,'pAcess')+
+    kpi('Ofertaram',br(P.ofert),pct1(P.acess?P.ofert/P.acess*100:0)+'% de quem acessou',BRAND2,'pOfert')+
+    kpi('Lances',br(P.lancesT),'',BRAND2,'pLances')+
+    kpi('Compraram',br(P.compr),pct1(P.ofert?P.compr/P.ofert*100:0)+'% de quem ofertou',AMBER,'pCompr')+
+    kpi('Compras',br(P.comprasT),'',AMBER,'pCompras')+
+    kpi('Volume',money(P.volumeT),'',GOOD,'pVolume')+
+    '</div>',true,true);
+
   var F=[['Base',k.base,'#475569'],['Acessaram',k.comLogin,BRAND],['Ofertaram',k.ofertantes,BRAND2],['Compraram',k.compradores,AMBER]];
   var fh='<div class="card"><div class="fun">';
   F.forEach(function(f,i){var ant=i?F[i-1][1]:f[1];
     fh+='<div class="fun-r"><div class="fun-l">'+f[0]+'</div><div class="fun-b"><div class="fun-f" style="width:'+w(f[1],k.base)+'%;background:'+f[2]+'">'+br(f[1])+'</div></div><div class="fun-p">'+(i?pct1(ant?f[1]/ant*100:0)+'% da etapa acima':'100%')+'</div></div>';});
   fh+='</div></div>';
-  out += sec('Funil de Conversão','funil','Cada etapa contém a anterior.'+aviso,fh);
+  out += sec('Funil de Conversão','funil','Cada etapa contém a anterior. Todo o histórico.'+aviso,fh);
 
   out += sec('Cadastros por Situação','situacao','',
     '<div class="card"><div class="card-t">Distribuição da base por situação cadastral</div>'+
     '<div class="card-s">Cada faixa é exclusiva e a soma fecha o total da base.</div>'+
     '<div class="chart-sm"><canvas id="cSitu"></canvas></div><div class="legend" id="lSitu"></div></div>');
 
-  out += sec('Recência — Há Quanto Tempo Sem Agir','recencia','Conta apenas quem já fez a ação ao menos uma vez.',
+  out += sec('Recência — Há Quanto Tempo Sem Agir','recencia','Conta apenas quem já fez a ação ao menos uma vez. Medida a partir de hoje.',
     '<div class="card"><div class="card-t">Tempo desde a última ação</div>'+
     '<div class="card-s">Barras empilhadas: cada linha soma 100% de quem já fez aquela ação.</div>'+
     '<div class="chart-sm"><canvas id="cRec"></canvas></div>'+
-    '<div class="legend"><span><span class="ldot" style="background:'+GOOD+'"></span>0–30 dias</span><span><span class="ldot" style="background:'+BRAND+'"></span>31–90</span><span><span class="ldot" style="background:'+AMBER2+'"></span>91–180</span><span><span class="ldot" style="background:'+GREY+'"></span>mais de 180</span></div></div>');
+    leg([['0–30 dias',GOOD],['31–90',BRAND],['91–180',AMBER2],['mais de 180',GREY]])+'</div>');
 
-  out += sec('Evolução Mensal','evolucao','Pessoas diferentes por mês, não ações.',
-    '<div class="grid2">'+
-    '<div class="card"><div class="card-t">Acessos por mês</div><div class="card-s">Parte clara: quem acessou pela primeira vez naquele mês.</div><div class="chart-sm"><canvas id="cLogin"></canvas></div>'+
-    '<div class="legend"><span><span class="ldot" style="background:'+AMBER+'"></span>Novos</span><span><span class="ldot" style="background:'+BRAND+'"></span>Recorrentes</span></div></div>'+
-    '<div class="card"><div class="card-t">Ofertas e compras por mês</div><div class="card-s">Clientes diferentes que ofertaram e que compraram.</div><div class="chart-sm"><canvas id="cOfCp"></canvas></div>'+
-    '<div class="legend"><span><span class="ldot" style="background:'+BRAND2+'"></span>Ofertaram</span><span><span class="ldot" style="background:'+AMBER+'"></span>Compraram</span></div></div>'+
-    '</div>');
+  var NR=[['Novos',AMBER],['Recorrentes',BRAND]];
+  out += sec('Evolução Mensal','evolucao','Pessoas diferentes por mês, não ações. Mês em curso incompleto.',
+    card('Usuários únicos por etapa','Clientes diferentes que acessaram, ofertaram e compraram em cada mês.','cUniq','chart',{depois:leg([['Acessaram',BRAND],['Ofertaram',BRAND2],['Compraram',AMBER]])})+
+    '<div class="grid2" style="margin-top:14px">'+
+    card('Acessos — novos vs. recorrentes','Novo: primeiro acesso da vida naquele mês. As duas partes somam os únicos do mês.','cLogin','chart-sm',{depois:leg(NR)})+
+    card('Ofertas — novos vs. recorrentes','Novo: primeiro lance da vida naquele mês.','cNrOf','chart-sm',{depois:leg(NR)})+
+    card('Compras — novos vs. recorrentes','Novo: primeira compra da vida naquele mês.','cNrCp','chart-sm',{depois:leg(NR)})+
+    card('Ofertas e compras por mês','Clientes diferentes que ofertaram e que compraram.','cOfCp','chart-sm',{depois:leg([['Ofertaram',BRAND2],['Compraram',AMBER]])})+
+    '</div>',true);
 
   out += sec('Volume Financeiro','volumeMes','Valor pago nas compras concluídas em cada mês.',
-    '<div class="card"><div class="card-t">Volume por mês</div><div class="card-s">Somente compras concluídas.</div><div class="chart-sm"><canvas id="cVol"></canvas></div></div>');
+    card('Volume por mês','Somente compras concluídas.','cVol'),true);
 
+  var DESF=[['Compraram',AMBER],['Ofertaram, sem comprar',BRAND2],['Só acessaram',BRAND],['Nunca interagiram',GREY]];
   out += sec('Novos Cadastrados — O Que Fizeram Depois','coorteAcum','As faixas são exclusivas e somam o total de cada mês: quem comprou aparece só em Compraram.',
-    '<div class="card"><div class="card-t">Entradas na base, por desfecho</div>'+
-    '<div class="card-s">Sem limite de prazo — conta se a pessoa fez aquilo em algum momento.</div>'+
-    '<div class="chart"><canvas id="cCoorte"></canvas></div>'+
-    '<div class="legend"><span><span class="ldot" style="background:'+AMBER+'"></span>Compraram</span><span><span class="ldot" style="background:'+BRAND2+'"></span>Ofertaram, sem comprar</span><span><span class="ldot" style="background:'+BRAND+'"></span>Só acessaram</span><span><span class="ldot" style="background:'+GREY+'"></span>Nunca interagiram</span></div></div>');
+    card('Entradas na base, por desfecho','Sem limite de prazo — conta se a pessoa fez aquilo em algum momento.','cCoorte','chart',{depois:leg(DESF)}),true);
 
-  var cj=Object.keys(d.coorteJanela).sort(), parcial=false;
+  out += sec('Base Acumulada','baseAcum','Toda a base cadastrada até o fim de cada mês, pelo que cada pessoa já tinha feito naquela data. O mês em curso fecha hoje.',
+    card('Como a base evoluiu','Fatias exclusivas, do melhor desfecho para o pior.','cBaseAcum','chart',
+      {antes:'<div class="tg"><button type="button" id="baAbs">Pessoas</button><button type="button" id="baPct">%</button></div>',depois:leg(DESF)}),true);
+
+  var cadTot=D.DIAS.reduce(function(s,x){return s+(d.cadDia[x]||0);},0);
+  out += sec('Cadastros por Dia','cadDia','Últimos 30 dias, de '+fmtD(D.DIAS[0])+' a '+fmtD(D.DIAS[D.DIAS.length-1])+' ('+br(cadTot)+' cadastros). Não segue o filtro de período.',
+    card('Novos cadastros por dia','Com linha de tendência (regressão linear simples).','cCadDia','chart-sm',{depois:leg([['Cadastros/dia',GREY],['Tendência',AMBER]])}));
+
+  var anTot=ix.reduce(function(s,i){return s+((d.anuncios[MESES[i]]||{}).publicados||0);},0);
+  out += sec('Anúncios das Lojas do Canal','anuncios','Veículos anunciados pelas lojas do canal, vendidos e ofertas recebidas de qualquer comprador da plataforma. Cada veículo conta uma vez no mês.',
+    anTot ? card('Média de ofertas recebidas por anúncio','Barras: veículos anunciados e vendidos. Linha: ofertas por veículo anunciado.','cAnun','chart')+
+      '<div class="grid2" style="margin-top:14px">'+
+      card('Êxito de venda por mês','Percentual dos veículos anunciados que foi vendido no mês.','cExito')+
+      card('Média de publicações por veículo','1,00 = cada veículo anunciado uma vez só. Acima disso, a mesma placa voltou a ser anunciada.','cPub')+'</div>'
+    : '<div class="card vazio">Nenhum anúncio de loja deste canal no período.</div>',true);
+
+  var cj=Object.keys(d.coorteJanela).sort().filter(function(m){return ix.some(function(i){return MESES[i]===m;});}), parcial=false;
   if(cj.length){
-    var jh='<div class="tw"><table><thead><tr><th rowspan="2">Mês do cadastro</th><th class="r" rowspan="2">Cadastrados</th><th colspan="4" class="gh">Acessaram em até</th><th colspan="4" class="gh">Ofertaram em até</th><th colspan="4" class="gh">Compraram em até</th></tr><tr>';
-    for(var z=0;z<3;z++) jh+='<th class="r">30d</th><th class="r">60d</th><th class="r">90d</th><th class="r">180d</th>';
+    var jh='<div class="tw"><table><thead><tr><th rowspan="2">Mês do cadastro</th><th class="r" rowspan="2">Cadastrados</th><th colspan="4" class="gh">Acessaram pela 1ª vez</th><th colspan="4" class="gh">Ofertaram pela 1ª vez</th><th colspan="4" class="gh">Compraram pela 1ª vez</th></tr><tr>';
+    for(var z=0;z<3;z++) jh+='<th class="r">até 30d</th><th class="r">31–60d</th><th class="r">61–90d</th><th class="r">91–180d</th>';
     jh+='</tr></thead><tbody>';
     cj.slice().reverse().forEach(function(m){var r=d.coorteJanela[m];var tot=Number(r.cadastrados)||0;
       /* Mostra sempre o numero real. Quem acessa no dia seguinte ja conta em ate
          30 dias - nao precisa esperar o prazo. Se parte da coorte ainda nao
          completou a janela, o valor e um piso e ganha asterisco. */
-      var c=function(v,jan,campo){var comp=Number(r[campo])||0;var faltam=tot-comp;
+      /* Faixas exclusivas (16/10): a consulta traz o acumulado "em ate N dias" e
+         aqui sai a diferenca. Quem fez em ate 30 dias nao conta de novo em 31-60:
+         como d1 e a PRIMEIRA vez, cada pessoa cai numa faixa so, e as quatro
+         somadas dao quem fez em ate 180 dias. */
+      var J=[[30,null],[60,30],[90,60],[180,90]];
+      var c=function(pre,f){var jan=J[f][0],ant=J[f][1];
+        var v=(Number(r[pre+jan])||0)-(ant?(Number(r[pre+ant])||0):0);
+        var comp=Number(r['mad'+jan])||0;var faltam=tot-comp;
         if(faltam<=0) return '<td class="r mono">'+br(v)+'</td>';
         parcial=true;
         return '<td class="r mono parcial" title="'+faltam+' de '+tot+' cadastrados ainda não completaram '+jan+' dias, então este número ainda pode subir">'+br(v)+'<span class="pmark">*</span></td>';};
-      jh+='<tr><td class="mono">'+rot(m)+'</td><td class="r mono"><b>'+br(tot)+'</b></td>'+
-        c(r.ac30,30,'mad30')+c(r.ac60,60,'mad60')+c(r.ac90,90,'mad90')+c(r.ac180,180,'mad180')+
-        c(r.of30,30,'mad30')+c(r.of60,60,'mad60')+c(r.of90,90,'mad90')+c(r.of180,180,'mad180')+
-        c(r.cp30,30,'mad30')+c(r.cp60,60,'mad60')+c(r.cp90,90,'mad90')+c(r.cp180,180,'mad180')+'</tr>';});
+      var tres=function(pre){return c(pre,0)+c(pre,1)+c(pre,2)+c(pre,3);};
+      jh+='<tr><td class="mono">'+rot(m)+'</td><td class="r mono"><b>'+br(tot)+'</b></td>'+tres('ac')+tres('of')+tres('cp')+'</tr>';});
     jh+='</tbody></table></div>';
-    var nj='Contado a partir da data do próprio cadastro. Doze colunas não cabem em gráfico legível, então esta fica como tabela.';
+    var nj='Em que faixa de dias, contada do próprio cadastro, cada pessoa fez aquilo pela primeira vez. As faixas são exclusivas: quem acessou em até 30 dias não conta de novo em 31–60, e as quatro somadas dão quem fez em até 180 dias.';
     if(parcial) nj+=' O asterisco marca mês em que parte dos cadastrados ainda não completou o prazo da coluna: o número já aconteceu e só pode subir.';
-    out += sec('Velocidade de Ativação por Coorte','coorteJanela',nj,jh);
+    out += sec('Velocidade de Ativação por Coorte','coorteJanela',nj,jh,true);
   }
 
-  out += sec('Distribuição Geográfica','uf','Estado da loja vinculada ao cliente.',
-    '<div class="card"><div class="card-t">Clientes por estado</div><div class="card-s">Quem tem loja em mais de um estado aparece em cada um.</div><div class="chart"><canvas id="cUf"></canvas></div></div>');
+  out += sec('Distribuição Geográfica','uf','Estado da loja vinculada ao cliente. Todo o histórico.',
+    card('Clientes por estado','Quem tem loja em mais de um estado aparece em cada um.','cUf','chart')+
+    '<div style="margin-top:14px">'+card('Compras por estado','Estado da loja que comprou. Barras: compras; linha: volume. Todo o histórico.','cUfCp','chart-lg')+'</div>');
 
   if(d.top.length){
-    var th='<div class="tw"><table><thead><tr><th>#</th><th>Cliente</th><th>Loja</th><th class="r">Compras</th><th class="r">Valor</th><th class="r">Última</th></tr></thead><tbody>';
+    var th='<div class="tw alto"><table><thead><tr><th>#</th><th>Cliente</th><th>Loja</th><th class="r">Compras</th><th class="r">Valor</th><th class="r">Última</th></tr></thead><tbody>';
     d.top.forEach(function(t,i){th+='<tr><td class="mono">'+(i+1)+'</td><td>'+esc(t.nome)+'</td><td style="color:var(--faint)">'+esc(t.loja||'—')+'</td><td class="r mono">'+br(t.compras)+'</td><td class="r mono">'+money(t.valor)+'</td><td class="r mono">'+fmtD(t.ultima)+'</td></tr>';});
     th+='</tbody></table></div>';
-    out += sec('Top 10 Clientes por Compras','top',d.multi?'União dos dez primeiros de cada canal, reordenada. Nomes são dado sensível: não circular fora do time.':'Nomes são dado sensível: não circular fora do time.',th);
+    out += sec('Top 100 Clientes por Compras — Todo o Período','top','Todo o histórico; não segue período nem comitente.'+(d.multi?' Quem está em mais de um canal aparece uma vez.':'')+' Nomes são dado sensível: não circular fora do time.',th);
   }
 
+  /* Rankings do periodo: saem dos pacotes por pessoa, entao seguem canal e meses.
+     ★ = a pessoa aparece em mais de um dos tres rankings. */
+  var tC=topN(P.compras), tA=topN(P.dias), tO=topN(P.lances), em={};
+  [tC,tA,tO].forEach(function(l){l.forEach(function(u){em[u]=(em[u]||0)+1;});});
+  var linha=function(l,cols){return l.length?l.map(function(u,i){return '<tr><td class="mono">'+(i+1)+'</td><td>'+nomeCel(u,em[u]>1)+'</td>'+cols(u)+'</tr>';}).join(''):'<tr><td colspan="5" class="vazio">Ninguém no período.</td></tr>';};
+  out += sec('Rankings do Período','rankPeriodo','Os cem primeiros em '+rotSel()+(EST.com?'; compras e lances só em anúncios de '+esc(rotCom())+', dias ativos sem comitente':'')+'. ★ marca quem aparece em mais de um dos três rankings.',
+    '<div class="tw alto"><table><thead><tr><th>#</th><th>Mais compras</th><th class="r">Compras</th><th class="r">Volume</th><th class="r">Último mês</th></tr></thead><tbody>'+
+    linha(tC,function(u){return '<td class="r mono">'+br(P.compras[u])+'</td><td class="r mono">'+money(P.volume[u])+'</td><td class="r mono">'+MON[P.ultMi[u]]+'</td>';})+'</tbody></table></div>'+
+    '<div class="grid2" style="margin-top:14px">'+
+    '<div class="tw alto"><table><thead><tr><th>#</th><th>Mais dias ativos</th><th class="r">Dias distintos</th></tr></thead><tbody>'+linha(tA,function(u){return '<td class="r mono">'+br(P.dias[u])+'</td>';})+'</tbody></table></div>'+
+    '<div class="tw alto"><table><thead><tr><th>#</th><th>Mais lances</th><th class="r">Lances</th></tr></thead><tbody>'+linha(tO,function(u){return '<td class="r mono">'+br(P.lances[u])+'</td>';})+'</tbody></table></div>'+
+    '</div>',true,true);
+
   document.getElementById('app').innerHTML=out;
-  desenha(d);
+  desenha(d,ix);
+  geralSujo=false;
 }
 
 function rot(m){var N=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var p=String(m).split('-');return p.length===2?N[Number(p[1])-1]+'/'+p[0].slice(2):String(m);}
-function serie(obj,campo,sub){return MESES.map(function(m){var r=obj[m];if(!r)return 0;return sub?(Number((r[sub]||{})[campo])||0):(Number(r[campo])||0);});}
+function linreg(ys){var n=ys.length,sx=0,sy=0,sxy=0,sxx=0;for(var i=0;i<n;i++){sx+=i;sy+=ys[i];sxy+=i*ys[i];sxx+=i*i;}
+  var den=(n*sxx-sx*sx)||1,b=(n*sxy-sx*sy)/den,a=(sy-b*sx)/n;return ys.map(function(_,i){return Math.round((a+b*i)*10)/10;});}
 
-function desenha(d){
+function desenha(d,ix){
+  var M=ix.map(function(i){return MESES[i];}), L=ix.map(function(i){return MON[i];});
+  var S=function(fn){return M.map(fn);};
+  var ev=function(m,t){return (d.evolucao[m]||{})[t]||{qtd:0,novos:0};};
+  var mk=function(id,cfg){var el=document.getElementById(id);if(el)charts.push(new Chart(el,cfg));};
+
   var sk=Object.keys(d.situacao).sort();
   var CORES={'1':'#94a3b8','2':'#e3a13f','3':'#047857','4':'#b91c1c','5':'#475569','6':'#c8791a'};
   if(sk.length){
-    charts.push(new Chart(document.getElementById('cSitu'),{type:'bar',data:{labels:['Base'],datasets:sk.map(function(s){
+    mk('cSitu',{type:'bar',data:{labels:['Base'],datasets:sk.map(function(s){
       return {label:s+' · '+(SITU[s]||'?'),data:[d.situacao[s]],backgroundColor:CORES[s]||BRAND,borderRadius:3};
-    })},options:barOpts(true,true)}));
+    })},options:barOpts(true,true)});
     document.getElementById('lSitu').innerHTML=sk.map(function(s){
       return '<span><span class="ldot" style="background:'+(CORES[s]||BRAND)+'"></span>'+(SITU[s]||'?')+': '+br(d.situacao[s])+'</span>';}).join('');
   }
 
   var FX=['00-30d','31-90d','91-180d','180d+'], CR=[GOOD,BRAND,AMBER2,GREY];
   var linhas=[['login','Parou de logar'],['oferta','Parou de ofertar'],['compra','Parou de comprar']];
-  charts.push(new Chart(document.getElementById('cRec'),{type:'bar',data:{labels:linhas.map(function(l){return l[1];}),
+  mk('cRec',{type:'bar',data:{labels:linhas.map(function(l){return l[1];}),
     datasets:FX.map(function(f,i){return {label:f,data:linhas.map(function(l){return d.recencia[l[0]][f]||0;}),backgroundColor:CR[i],borderRadius:3};})},
-    options:barOpts(true,true)}));
+    options:barOpts(true,true)});
 
-  charts.push(new Chart(document.getElementById('cLogin'),{type:'bar',data:{labels:MON,datasets:[
-    {label:'Novos',data:serie(d.evolucao,'novos','login'),backgroundColor:AMBER,borderRadius:3},
-    {label:'Recorrentes',data:MESES.map(function(m){var e=(d.evolucao[m]||{}).login||{qtd:0,novos:0};return Math.max(0,(e.qtd||0)-(e.novos||0));}),backgroundColor:BRAND,borderRadius:3}
-  ]},options:barOpts(true)}));
+  var lineOpts=barOpts(false); lineOpts.elements={line:{tension:.35},point:{radius:3}};
+  mk('cUniq',{type:'line',data:{labels:L,datasets:[
+    {label:'Acessaram',data:S(function(m){return ev(m,'login').qtd;}),borderColor:BRAND,backgroundColor:BRAND+'14',fill:true},
+    {label:'Ofertaram',data:S(function(m){return ev(m,'oferta').qtd;}),borderColor:BRAND2,backgroundColor:BRAND2+'14',fill:true},
+    {label:'Compraram',data:S(function(m){return ev(m,'compra').qtd;}),borderColor:AMBER,backgroundColor:AMBER+'14',fill:true}
+  ]},options:lineOpts});
 
-  charts.push(new Chart(document.getElementById('cOfCp'),{type:'bar',data:{labels:MON,datasets:[
-    {label:'Ofertaram',data:serie(d.evolucao,'qtd','oferta'),backgroundColor:BRAND2,borderRadius:3},
-    {label:'Compraram',data:serie(d.evolucao,'qtd','compra'),backgroundColor:AMBER,borderRadius:3}
-  ]},options:barOpts(false)}));
+  /* Novos + recorrentes = unicos do mes: recorrente sai por diferenca */
+  var nr=function(id,t){mk(id,{type:'bar',data:{labels:L,datasets:[
+    {label:'Novos',data:S(function(m){return ev(m,t).novos;}),backgroundColor:AMBER,borderRadius:3},
+    {label:'Recorrentes',data:S(function(m){var e=ev(m,t);return Math.max(0,e.qtd-e.novos);}),backgroundColor:BRAND,borderRadius:3}
+  ]},options:barOpts(true)});};
+  nr('cLogin','login'); nr('cNrOf','oferta'); nr('cNrCp','compra');
 
-  charts.push(new Chart(document.getElementById('cVol'),{type:'bar',data:{labels:MON,datasets:[
-    {label:'Volume',data:MESES.map(function(m){return (d.volume[m]||{}).valor||0;}),backgroundColor:GOOD,borderRadius:3}
-  ]},options:(function(){var o=barOpts(false);o.plugins.tooltip.callbacks.label=function(c){return 'Volume: '+money(c.parsed.y);};o.scales.y.ticks.callback=function(v){return money(v);};return o;})()}));
+  mk('cOfCp',{type:'bar',data:{labels:L,datasets:[
+    {label:'Ofertaram',data:S(function(m){return ev(m,'oferta').qtd;}),backgroundColor:BRAND2,borderRadius:3},
+    {label:'Compraram',data:S(function(m){return ev(m,'compra').qtd;}),backgroundColor:AMBER,borderRadius:3}
+  ]},options:barOpts(false)});
+
+  mk('cVol',{type:'bar',data:{labels:L,datasets:[
+    {label:'Volume',data:S(function(m){return (d.volume[m]||{}).valor||0;}),backgroundColor:GOOD,borderRadius:3}
+  ]},options:(function(){var o=barOpts(false);o.plugins.tooltip.callbacks.label=function(c){return 'Volume: '+money(c.parsed.y);};o.scales.y.ticks.callback=function(v){return money(v);};return o;})()});
 
   /* Faixas exclusivas: quem comprou nao reaparece em acessou, senao a pilha
      passaria do total de cadastrados do mes. */
-  charts.push(new Chart(document.getElementById('cCoorte'),{type:'bar',data:{labels:MON,datasets:[
-    {label:'Compraram',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Number(r.compraram)||0;}),backgroundColor:AMBER,borderRadius:3},
-    {label:'Ofertaram, sem comprar',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Math.max(0,(Number(r.ofertaram)||0)-(Number(r.compraram)||0));}),backgroundColor:BRAND2,borderRadius:3},
-    {label:'Só acessaram',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Math.max(0,(Number(r.acessaram)||0)-(Number(r.ofertaram)||0));}),backgroundColor:BRAND,borderRadius:3},
-    {label:'Nunca interagiram',data:MESES.map(function(m){var r=d.coorteAcum[m]||{};return Number(r.sem_interacao)||0;}),backgroundColor:GREY,borderRadius:3}
-  ]},options:barOpts(true)}));
+  mk('cCoorte',{type:'bar',data:{labels:L,datasets:[
+    {label:'Compraram',data:S(function(m){var r=d.coorteAcum[m]||{};return Number(r.compraram)||0;}),backgroundColor:AMBER,borderRadius:3},
+    {label:'Ofertaram, sem comprar',data:S(function(m){var r=d.coorteAcum[m]||{};return Math.max(0,(Number(r.ofertaram)||0)-(Number(r.compraram)||0));}),backgroundColor:BRAND2,borderRadius:3},
+    {label:'Só acessaram',data:S(function(m){var r=d.coorteAcum[m]||{};return Math.max(0,(Number(r.acessaram)||0)-(Number(r.ofertaram)||0));}),backgroundColor:BRAND,borderRadius:3},
+    {label:'Nunca interagiram',data:S(function(m){var r=d.coorteAcum[m]||{};return Number(r.sem_interacao)||0;}),backgroundColor:GREY,borderRadius:3}
+  ]},options:barOpts(true)});
+
+  /* Base acumulada. Mesmas cores do grafico de cima: a mesma fatia, a mesma cor.
+     Em % a proporcao vai SEM arredondar, para as quatro fecharem 100 exatos. */
+  var BA=['compraram','ofertaram','acessaram','nunca'].map(function(f){return S(function(m){return (d.baseAcum[m]||{})[f]||0;});});
+  var BT=BA[0].map(function(_,i){return BA[0][i]+BA[1][i]+BA[2][i]+BA[3][i];});
+  var baO=barOpts(true);
+  baO.plugins.tooltip.callbacks={label:function(c){var v=c.parsed.y;return c.dataset.label+': '+(baModo==='abs'?br(v)+' pessoas':pct1(v)+'%');},
+    footer:function(it){return 'Base no mês: '+br(BT[it[0].dataIndex])+' pessoas';}};
+  baO.scales.y.ticks.callback=function(v){return baModo==='abs'?br(v):Math.round(v)+'%';};
+  var baDados=function(){return baModo==='abs'?BA:BA.map(function(a){return a.map(function(v,i){return BT[i]?v/BT[i]*100:0;});});};
+  if(baModo==='pct')baO.scales.y.max=100;
+  var bd=baDados();
+  mk('cBaseAcum',{type:'bar',data:{labels:L,datasets:[
+    {label:'Compraram',data:bd[0],backgroundColor:AMBER,borderRadius:3},
+    {label:'Ofertaram, sem comprar',data:bd[1],backgroundColor:BRAND2,borderRadius:3},
+    {label:'Só acessaram',data:bd[2],backgroundColor:BRAND,borderRadius:3},
+    {label:'Nunca interagiram',data:bd[3],backgroundColor:GREY,borderRadius:3}
+  ]},options:baO});
+  var chBA=charts[charts.length-1];
+  var pinta=function(){[['baAbs','abs'],['baPct','pct']].forEach(function(p){var el=document.getElementById(p[0]);if(el)el.className=baModo===p[1]?'on':'';});};
+  var troca=function(m){baModo=m;var nd=baDados();chBA.data.datasets.forEach(function(ds,i){ds.data=nd[i];});chBA.options.scales.y.max=m==='abs'?undefined:100;chBA.update();pinta();};
+  document.getElementById('baAbs').onclick=function(){troca('abs');};
+  document.getElementById('baPct').onclick=function(){troca('pct');};
+  pinta();
+
+  var CD=D.DIAS.map(function(x){return d.cadDia[x]||0;});
+  mk('cCadDia',{data:{labels:D.DIAS.map(function(x){return x.slice(8,10)+'/'+x.slice(5,7);}),datasets:[
+    {type:'bar',label:'Cadastros/dia',data:CD,backgroundColor:GREY,borderRadius:3,order:2},
+    {type:'line',label:'Tendência',data:linreg(CD),borderColor:AMBER,backgroundColor:AMBER,borderWidth:2,pointRadius:0,tension:0,fill:false,order:1}
+  ]},options:barOpts(false)});
+
+  var an=function(m){return d.anuncios[m]||{publicados:0,criados:0,ofertas:0,vendidos:0};};
+  var PUB=S(function(m){return an(m).publicados;}), VEN=S(function(m){return an(m).vendidos;}), CRI=S(function(m){return an(m).criados;});
+  var oA=eixo2(barOpts(false),'Veículos','Ofertas por veículo');
+  oA.plugins.tooltip.callbacks.label=function(c){return c.dataset.label+': '+(c.dataset.yAxisID==='y1'?c.parsed.y.toFixed(2).replace('.',','):br(c.parsed.y));};
+  mk('cAnun',{data:{labels:L,datasets:[
+    {type:'bar',label:'Anunciados',data:PUB,backgroundColor:GREY,borderRadius:3,yAxisID:'y',order:2},
+    {type:'bar',label:'Vendidos',data:VEN,backgroundColor:GOOD,borderRadius:3,yAxisID:'y',order:2},
+    {type:'line',label:'Ofertas por veículo',data:S(function(m){var a=an(m);return a.publicados?Math.round(a.ofertas/a.publicados*100)/100:0;}),borderColor:AMBER,backgroundColor:AMBER,tension:.35,pointRadius:3,yAxisID:'y1',order:1}
+  ]},options:oA});
+  var oE=barOpts(false);oE.scales.y.min=0;oE.scales.y.max=100;oE.scales.y.ticks.callback=function(v){return v+'%';};
+  oE.plugins.tooltip.callbacks.label=function(c){return pct1(c.parsed.y)+'% · '+br(VEN[c.dataIndex])+' vendidos de '+br(PUB[c.dataIndex])+' anunciados';};
+  mk('cExito',{type:'bar',data:{labels:L,datasets:[
+    {label:'Êxito',data:PUB.map(function(p,i){return p?Math.round(Math.min(VEN[i]/p,1)*1000)/10:0;}),backgroundColor:GOOD,borderRadius:3}
+  ]},options:oE});
+  var oP=barOpts(false);oP.scales.y.ticks.callback=function(v){return Number(v).toFixed(2).replace('.',',');};
+  oP.plugins.tooltip.callbacks.label=function(c){return br(CRI[c.dataIndex])+' anúncios para '+br(PUB[c.dataIndex])+' veículos';};
+  mk('cPub',{type:'line',data:{labels:L,datasets:[
+    {label:'Publicações por veículo',data:PUB.map(function(p,i){return p?Math.round(CRI[i]/p*100)/100:null;}),borderColor:AMBER,backgroundColor:AMBER,tension:.35,pointRadius:3}
+  ]},options:oP});
 
   var ufs=Object.keys(d.uf).sort(function(a,b){return d.uf[b]-d.uf[a];}).slice(0,15);
-  charts.push(new Chart(document.getElementById('cUf'),{type:'bar',data:{labels:ufs,datasets:[
+  mk('cUf',{type:'bar',data:{labels:ufs.map(ufRot),datasets:[
     {label:'Clientes',data:ufs.map(function(u){return d.uf[u];}),backgroundColor:BRAND,borderRadius:3}
-  ]},options:barOpts(false,true)}));
+  ]},options:barOpts(false,true)});
+
+  /* "Nao identificada" vai por ultimo e em cinza: e falta de dado, nao estado */
+  var uc=Object.keys(d.ufCompra).filter(function(u){return u!=='Nao identificada';}).sort(function(a,b){return d.ufCompra[b].compras-d.ufCompra[a].compras;});
+  if(d.ufCompra['Nao identificada'])uc.push('Nao identificada');
+  var oU=eixo2(barOpts(false),'Compras','Volume');
+  oU.scales.y1.ticks.callback=function(v){return money(v);};
+  oU.plugins.tooltip.callbacks.label=function(c){return c.dataset.label+': '+(c.dataset.yAxisID==='y1'?money(c.parsed.y):br(c.parsed.y));};
+  mk('cUfCp',{data:{labels:uc.map(ufRot),datasets:[
+    {type:'bar',label:'Compras',data:uc.map(function(u){return d.ufCompra[u].compras;}),backgroundColor:uc.map(function(u){return u==='Nao identificada'?TK:BRAND;}),borderRadius:3,yAxisID:'y',order:2},
+    {type:'line',label:'Volume',data:uc.map(function(u){return d.ufCompra[u].volume;}),borderColor:AMBER,backgroundColor:AMBER,tension:.35,pointRadius:3,yAxisID:'y1',order:1}
+  ]},options:oU});
 }
 
-document.getElementById('fwl').addEventListener('change',function(){render(this.value);});
-render('todos');
+/* ══ RAIO-X ══════════════════════════════════════════════════════════════════════
+   Mesmas metricas do relatorio do C6 Lojista, sobre os pacotes por
+   (comprador, mes, dimensao). Canal = mascara do cliente; periodo = indice do
+   mes. Tudo recalculado no navegador, sem nova consulta. */
+function dom(e){if(!e||!e.length)return {label:'—',n:0,agg:null};var a={},best=null,bq=-1;
+  e.forEach(function(x){a[x[0]]=(a[x[0]]||0)+x[1];});for(var k in a){if(a[k]>bq){bq=a[k];best=k;}}return {label:best,n:Object.keys(a).length,agg:a};}
+function shopTxt(u){return u?(u[3]||'')+(u[4]?(u[3]?' · ':'')+'CNPJ '+u[4]:''):'';}
+var rxLinhas=[], rxK='compras', rxDir=-1, rxBuyer='';
+function rxMonta(){
+  var m=mascara(),set={};idxSel().forEach(function(i){set[i]=1;});
+  var by=function(rows){var o={};rows.forEach(function(r){if(!set[r[1]]||!okCom(r[2])||!noCanal(r[0],m))return;(o[r[0]]=o[r[0]]||[]).push(r.slice(3));});return o;};
+  var T=by(D.RX.totais),Mo=by(D.RX.modelo),La=by(D.RX.laudo),Uf=by(D.RX.uf),Fa=by(D.RX.faixa),Pa=by(D.RX.partic);
+  var out=[];
+  Object.keys(T).forEach(function(uid){
+    var c=0,v=0,pf=0,fs=0,pm=0,ms=0;T[uid].forEach(function(t){c+=t[0];v+=t[1];pf+=t[2];fs+=t[3];pm+=t[4];ms+=t[5];});
+    if(c<=0)return;
+    var p=0;(Pa[uid]||[]).forEach(function(x){p+=x[0];});
+    var mo=dom(Mo[uid]),la=dom((La[uid]||[]).map(function(x){return [LAUDO[x[0]]||x[0],x[1]];})),uf=dom(Uf[uid]),fa=dom(Fa[uid]);
+    var u=UMAP[uid];
+    out.push({id:+uid,name:u?u[2]:String(uid),shop:shopTxt(u),compras:c,volume:v,ticket:v/c,
+      exito:p>0?Math.min(c/p,1):null,recfipe:fs>0?pf/fs:null,recmol:ms>0?pm/ms:null,
+      modelo:mo.label,modelos:mo.n,laudo:la.label,uf:uf.label,faixa:fa.label,agg:[['Modelos comprados',mo.agg],['Laudo cautelar',la.agg],['Localização do veículo',uf.agg],['Faixas de valor',fa.agg]]});
+  });
+  return out;
+}
+function rxBRL(v){return 'R$ '+br(Math.round(v||0));}
+function rxPct(v){return v==null?'—':pct1(v*100)+'%';}
+function rxTabela(){
+  var q=(document.getElementById('rxBusca').value||'').toLowerCase();
+  var rows=rxLinhas.filter(function(r){return (r.name+' '+r.shop).toLowerCase().indexOf(q)>=0;});
+  rows.sort(function(a,b){var x=a[rxK],y=b[rxK];if(typeof x==='string'||typeof y==='string')return rxDir*String(x).localeCompare(String(y),'pt');
+    x=x==null?-1:x;y=y==null?-1:y;return rxDir*(x-y);});
+  document.getElementById('rxConta').textContent=br(rows.length)+' comprador(es) · '+rotSel()+(EST.com?' · '+rotCom():'');
+  document.getElementById('rxCorpo').innerHTML=rows.map(function(r){return '<tr><td>'+esc(r.name)+(r.shop?'<span class="cell-sub">'+esc(r.shop)+'</span>':'')+'</td>'+
+    '<td class="r mono">'+br(r.compras)+'</td><td class="r mono">'+rxPct(r.exito)+'</td><td class="r mono">'+rxBRL(r.ticket)+'</td><td>'+esc(r.faixa)+'</td>'+
+    '<td class="r mono">'+rxPct(r.recfipe)+'</td><td class="r mono">'+rxPct(r.recmol)+'</td><td>'+esc(r.modelo)+'</td><td class="r mono">'+r.modelos+'</td>'+
+    '<td>'+esc(r.laudo)+'</td><td>'+esc(r.uf)+'</td></tr>';}).join('')||'<tr><td colspan="11" class="vazio">Nenhum comprador no período e canal selecionados.</td></tr>';
+  document.querySelectorAll('#rxTab th[data-k]').forEach(function(th){th.classList.toggle('ord',th.getAttribute('data-k')===rxK);th.setAttribute('data-dir',rxDir>0?'▲':'▼');});
+}
+function rxCompradores(){
+  /* A lista do individual traz todo comprador do canal na janela de 12 meses;
+     o detalhe e que segue o periodo */
+  var m=mascara(),vis={},l=[];
+  D.RX.totais.forEach(function(r){if(!vis[r[0]]&&okCom(r[2])&&noCanal(r[0],m)){vis[r[0]]=1;l.push(UMAP[r[0]]);}});
+  return l.filter(Boolean).sort(function(a,b){return a[2].localeCompare(b[2],'pt');});
+}
+function rxLista(){
+  var q=(document.getElementById('rxBuscaInd').value||'').toLowerCase();
+  var l=rxCompradores().filter(function(u){return (u[2]+' '+shopTxt(u)).toLowerCase().indexOf(q)>=0;});
+  document.getElementById('rxLista').innerHTML=l.slice(0,200).map(function(u){
+    return '<div class="rx-item'+(String(u[0])===rxBuyer?' sel':'')+'" data-id="'+u[0]+'">'+esc(u[2])+(shopTxt(u)?'<span class="cell-sub">'+esc(shopTxt(u))+'</span>':'')+'</div>';}).join('')
+    +(l.length>200?'<div class="vazio">Mais '+br(l.length-200)+' — refine a busca.</div>':'')+(l.length?'':'<div class="vazio">Nenhum comprador encontrado.</div>');
+}
+function rxDetalhe(){
+  var box=document.getElementById('rxDet');
+  if(!rxBuyer){box.innerHTML='<div class="vazio">Escolha um comprador na lista.</div>';return;}
+  var r=rxLinhas.filter(function(x){return String(x.id)===rxBuyer;})[0], u=UMAP[rxBuyer];
+  var cab='<div class="rx-cab"><div class="n">'+esc(u?u[2]:rxBuyer)+'</div>'+(shopTxt(u)?'<span class="cell-sub">'+esc(shopTxt(u))+'</span>':'')+'</div>';
+  if(!r){box.innerHTML=cab+'<div class="vazio">Sem compras em '+rotSel()+'.</div>';return;}
+  var dist=function(a){if(!a)return '<div class="vazio">Sem dado no período.</div>';var t=0;for(var k in a)t+=a[k];
+    return Object.keys(a).sort(function(x,y){return a[y]-a[x];}).map(function(k){return '<div class="dist-row"><span>'+esc(k)+'</span><div class="fun-b" style="height:7px"><div class="fun-f" style="width:'+w(a[k],t)+'%;background:'+AMBER+'"></div></div><b>'+br(a[k])+' ('+pct1(a[k]/t*100)+'%)</b></div>';}).join('');};
+  box.innerHTML=cab+'<div class="kpi-grid" style="margin-bottom:14px">'+
+    kpi('Compras',br(r.compras),'','',''+'rxCompras')+kpi('Ticket médio',rxBRL(r.ticket),'',AMBER,'rxTicket')+kpi('Êxito',rxPct(r.exito),'',GOOD,'rxExito')+
+    kpi('Rec. FIPE',rxPct(r.recfipe),'',BRAND2,'rxFipe')+kpi('Rec. Molicar',rxPct(r.recmol),'',BRAND2,'rxMolicar')+kpi('Modelos distintos',br(r.modelos),'',GREY,'rxModelos')+'</div>'+
+    '<div class="grid2">'+r.agg.map(function(g){return '<div class="card"><div class="card-t">'+g[0]+'</div><div style="margin-top:8px">'+dist(g[1])+'</div></div>';}).join('')+'</div>';
+}
+function renderRx(){
+  rxLinhas=rxMonta();
+  document.getElementById('rxPer').textContent=rotSel();
+  document.getElementById('rxPer2').textContent=rotSel();
+  rxTabela(); rxLista(); rxDetalhe();
+}
+
+/* ══ Filtro de periodo: anos e meses, selecao multipla. Vazio = todos. ══ */
+function montaPer(){
+  var anos={};MESES.forEach(function(mm,i){var y=mm.slice(0,4);(anos[y]=anos[y]||[]).push(i);});
+  var h='';Object.keys(anos).sort().forEach(function(y){
+    h+='<div class="per-ano"><button type="button" class="per-y" data-y="'+y+'">'+y+'</button><div class="per-ms">'+
+      anos[y].map(function(i){return '<button type="button" class="per-m" data-i="'+i+'">'+MON[i].slice(0,3)+'</button>';}).join('')+'</div></div>';});
+  h+='<div class="per-acoes"><button type="button" id="perTodos">Todos os meses</button><button type="button" id="perOk">Fechar</button></div>';
+  document.getElementById('perPainel').innerHTML=h;
+}
+function pintaPer(){
+  var on={};EST.meses.forEach(function(i){on[i]=1;});
+  document.querySelectorAll('.per-m').forEach(function(b){b.classList.toggle('on',!!on[b.getAttribute('data-i')]);});
+  document.querySelectorAll('.per-y').forEach(function(b){var y=b.getAttribute('data-y');
+    var ms=MESES.map(function(m,i){return m.slice(0,4)===y?i:-1;}).filter(function(i){return i>=0;});
+    var n=ms.filter(function(i){return on[i];}).length;b.className='per-y'+(n===ms.length?' on':n?' meio':'');});
+  document.getElementById('perTxt').textContent=rotSel();
+}
+function aplica(){
+  pintaPer();
+  if(document.getElementById('pg').classList.contains('ativo')) render(); else geralSujo=true;
+  renderRx();
+}
+document.getElementById('perPainel').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.id==='perOk'){document.getElementById('perPainel').hidden=true;return;}
+  if(b.id==='perTodos'){EST.meses=[];aplica();return;}
+  var on={};EST.meses.forEach(function(i){on[i]=1;});
+  if(b.classList.contains('per-m')){var i=Number(b.getAttribute('data-i'));if(on[i])delete on[i];else on[i]=1;}
+  if(b.classList.contains('per-y')){var y=b.getAttribute('data-y');
+    var ms=MESES.map(function(m,i){return m.slice(0,4)===y?i:-1;}).filter(function(i){return i>=0;});
+    var todos=ms.every(function(i){return on[i];});ms.forEach(function(i){if(todos)delete on[i];else on[i]=1;});}
+  /* Os 12 marcados e o mesmo que nenhum: volta ao estado "todos" */
+  EST.meses=Object.keys(on).map(Number);if(EST.meses.length===MESES.length)EST.meses=[];
+  aplica();
+});
+document.getElementById('perBtn').addEventListener('click',function(e){e.stopPropagation();var p=document.getElementById('perPainel');p.hidden=!p.hidden;});
+document.addEventListener('click',function(e){var p=document.getElementById('perPainel');if(!p.hidden&&!document.getElementById('per').contains(e.target))p.hidden=true;});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('perPainel').hidden=true;});
+
+/* O canal filtra os comitentes: so entra quem vendeu ou recebeu lance de cliente
+   do canal na janela, com as compras do canal. Comitente que some volta a "todos". */
+function montaCom(){
+  var m=mascara(),n={},tem={};
+  D.RX.totais.forEach(function(r){if(noCanal(r[0],m)){n[r[2]]=(n[r[2]]||0)+r[3];tem[r[2]]=1;}});
+  D.LANCES.forEach(function(r){if(noCanal(r[0],m))tem[r[2]]=1;});
+  var ids=Object.keys(D.COM).filter(function(i){return tem[i];}).sort(function(a,b){return ((n[b]||0)-(n[a]||0))||D.COM[a].localeCompare(D.COM[b],'pt');});
+  if(EST.com&&!tem[EST.com])EST.com='';
+  var f=document.getElementById('fcom');
+  f.innerHTML='<option value="">Todos os comitentes · '+br(ids.length)+'</option>'+ids.map(function(i){
+    return '<option value="'+i+'">'+esc(D.COM[i])+' · '+br(n[i]||0)+' compras</option>';}).join('');
+  f.value=EST.com;
+}
+montaCom();
+document.getElementById('fcom').addEventListener('change',function(){EST.com=this.value;aplica();});
+document.getElementById('fwl').addEventListener('change',function(){EST.canal=this.value;montaCom();aplica();});
+document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('ativo',x===t);});
+  document.querySelectorAll('.painel').forEach(function(p){p.classList.toggle('ativo',p.id===t.getAttribute('data-p'));});
+  if(t.getAttribute('data-p')==='pg'&&geralSujo)render();
+});});
+document.querySelectorAll('#rxTab th[data-k]').forEach(function(th){th.addEventListener('click',function(){
+  var k=th.getAttribute('data-k');if(rxK===k)rxDir*=-1;else{rxK=k;rxDir=(k==='name'||k==='faixa'||k==='modelo'||k==='laudo'||k==='uf')?1:-1;}rxTabela();});});
+document.getElementById('rxBusca').addEventListener('input',rxTabela);
+document.getElementById('rxBuscaInd').addEventListener('input',rxLista);
+document.getElementById('rxLista').addEventListener('click',function(e){var it=e.target.closest('.rx-item');if(!it)return;rxBuyer=it.getAttribute('data-id');rxLista();rxDetalhe();});
+
+montaPer(); pintaPer(); render(); renderRx();
 </script></body></html>

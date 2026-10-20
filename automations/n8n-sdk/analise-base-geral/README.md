@@ -2,7 +2,7 @@
 
 Reconstrução do HTML "Analise_base_geral_clientes - Versão A" (gerado em
 04/09/2026, 21.772 clientes em 6 canais) como workflow n8n no projeto pessoal
-do Thomas, com envio para `thomas.lima@cars2you.com.br`.
+do Thomas. Envio por e-mail para a lista `DESTINOS` do `gen_wf.py`.
 
 **Origem:** o gerador original deste HTML não está no repo nem no n8n. O
 template é o próprio HTML (dado trocado por marcador); as consultas vêm do
@@ -13,8 +13,61 @@ relatório do C6 Lojista (`f6Bw2iiuaWECy9Uz`), parametrizadas por canal.
 | `extrai_template.py` | Tira `template.html` e `constantes.json` (SITU, TIPS) do HTML original |
 | `montar-queries.js` | Nó Code: 14 consultas × 6 canais = 84 chamadas ao MCP |
 | `montar-html.js` | Nó Code: respostas do MCP → objeto `D` → HTML |
-| `gen_wf.py` | Gera `analise-base-geral.wf.ts` (nós Code embutidos) |
-| `prova-local.js` | Prova sem banco: remonta o `D` a partir da Versão A e compara |
+| `gen_wf.py` | Gera `analise-base-geral.wf.ts` (nós Code embutidos). Desde a versão 2 o template vai em dois nós próprios, **Template Topo** (18 KB) e **Template Script** (41 KB): o `jsCode` viaja inteiro pela API, nó de 87 KB já não passou e o Montar HTML com o template dentro daria 74 KB |
+| `prova-local.js` | Prova sem banco: remonta o `D` a partir da Versão A e compara (só as 14 consultas originais) |
+| `coleta_local.py` | Roda o SQL exato do Montar Queries pela conexão direta (VPN) → `dados-local.json` (fora do git) |
+| `monta_local.js` | Roda o Montar HTML com esse dado → `saida-local.html` (fora do git) + prova cruzada |
+| `_roda_no.js` | Roda um nó Code fora do n8n |
+
+## Versão 2 (16/10/2026): o que veio do C6 Lojista
+
+Pedido do Thomas: trazer as duas abas de Raio-X e os gráficos que o relatório do
+C6 Lojista (`f6Bw2iiuaWECy9Uz`, anexo `Analise_Base_Clientes_C6_Lojista`) tem e
+este não tinha, mais um filtro de ano/mês com seleção múltipla.
+
+- **Abas:** Visão Geral · Raio-X de Compradores (matriz ordenável, com busca) ·
+  Raio-X Individual (lista de compradores + perfil). Mesmas métricas do C6: êxito,
+  ticket, faixa, Rec. FIPE/Molicar, modelo, laudo e local dominantes.
+- **Gráficos novos na Visão Geral:** usuários únicos por etapa; ofertas e compras
+  novos × recorrentes; base acumulada (pessoas / %); cadastros por dia (30 dias,
+  com tendência); anúncios das lojas do canal (ofertas por veículo, êxito de venda,
+  publicações por veículo); compras por estado; rankings do período (compras, dias
+  ativos, lances). Ficaram de fora do C6: os "Destaques" (texto gerado) e a tabela de
+  UF em 3 colunas (aqui já era gráfico).
+- **Filtro de período:** anos e meses da janela de 12 meses, seleção múltipla,
+  nenhum marcado = todos. Segue o filtro (marca "período"): atividade no período,
+  todos os gráficos mensais, coorte, rankings do período e as duas abas de Raio-X.
+  Não segue: panorama, funil, situação, recência, UF e top 10 histórico (são o
+  histórico inteiro ou medidos a partir de hoje) e cadastros por dia.
+
+**Como o filtro conta pessoa sem somar errado:** os pacotes `usuarios`, `atv` e
+`rx_*` rodam uma vez sobre a **união** das 6 bases, e cada cliente leva a máscara
+dos canais a que pertence. O navegador filtra canal pela máscara e mês pelo índice
+(0 = mais antigo). No "todos os canais" a pessoa conta uma vez — o bloco "Atividade
+no Período" não tem a dupla contagem que o panorama avisa.
+
+**Pacotes medidos em 16/10/2026** (`coleta_local.py`, conexão direta, janela nov/25–out/26):
+6.851 clientes com atividade na janela; 24.537 pares cliente×mês com acesso, 7.239
+com lance, 3.752 com compra. Maior parte: `rx_faixa` 2/2 com 92 KB (o MCP já provou
+130 KB). Nenhuma consulta nova passa de 11 s (`base_acum` do Marketplace). Total:
+140 chamadas (84 de antes + 24 por canal + 32 partes de pacote).
+
+| pacote | partes | itens | maior parte |
+|---|---|---|---|
+| `usuarios` | 8 | 6.851 | 63 KB |
+| `atv` | 8 | 24.541 | 61 KB |
+| `rx_totais` | 3 | 3.752 | 85 KB |
+| `rx_modelo` | 5 | 9.505 | 63 KB |
+| `rx_laudo` | 2 | 4.782 | 78 KB |
+| `rx_uf` | 2 | 7.088 | 78 KB |
+| `rx_faixa` | 2 | 5.507 | 92 KB |
+| `rx_partic` | 2 | 7.221 | 57 KB |
+
+Se uma parte crescer perto de 130 KB, subir o número de partes no `pacote(...)`.
+
+Diferença deliberada do C6: em `uf_compra` a loja com mais de um endereço entra em
+**um** estado (`MIN` da UF normalizada). No C6 ela entrava em todos, e a soma das
+compras por estado passava do total.
 
 Canais (whitelabel): 7 Marketplace Cars2You, 48 Colaboradores C6, 43 Canal de
 vendas C6 Auto, 4 Trucks2you, 65 Lance Fácil BTB Associados, 62 Lance Fácil BTB.
@@ -34,7 +87,63 @@ vendas C6 Auto, 4 Trucks2you, 65 Lance Fácil BTB Associados, 62 Lance Fácil BT
 - A Versão A guardou a coorte de janela em formato antigo (sem `cadastrados`
   nem `mad*`); o workflow já traz os campos completos.
 
+## Versão 3 (16/10/2026, subida sem rodar)
+
+Pedidos do Thomas depois da v2:
+
+- **Coorte por faixa:** a tabela "Velocidade de Ativação" deixou de ser acumulada.
+  Colunas: até 30d · 31–60 · 61–90 · 91–180, cada pessoa numa faixa só (a da
+  primeira vez). A consulta continua trazendo o acumulado; a diferença sai no
+  navegador. Conferido na tela: 73 linhas em 7 recortes, as quatro faixas somam o
+  acumulado de 180 dias.
+- **Top 100:** o top histórico por canal veio de `LIMIT 10` para 100, empacotado
+  (100 linhas passam do teto de 50 do MCP). No "todos os canais", quem está em dois
+  canais aparece uma vez (antes podia aparecer duas). Os rankings do período também
+  mostram 100. Tabelas com rolagem.
+- **Filtro de comitente** = a loja que vende o veículo (`advertisements.shop_id`,
+  ver `context/banco-de-dados/plataforma/dominios.md`). Segue o comitente (marca
+  "comitente"): lances, compras e volume da Atividade no Período, rankings de compras
+  e lances, as duas abas de Raio-X. **Não segue:** acessos (acesso não tem
+  comitente), panorama, gráficos mensais por canal e top histórico. Medido em
+  16/10: 24 comitentes com lance ou compra da base na janela; o seletor ordena por
+  compras (Itaú Unibanco 5.058, C6 Bank Lojista 1.879, LM Transportes 1.121…).
+  "Banco Volkswagen" e "Banco Volkswagen S.A." são duas lojas no banco.
+  **O canal filtra o comitente:** a lista só traz quem vendeu ou recebeu lance de
+  cliente daquele canal, com as compras do canal (no 48 sobra só "C6 Bank - CSixer",
+  no 43 só "C6 Bank Lojista"). Comitente que some ao trocar de canal volta a "todos".
+- Pacotes: `atv` só acesso; `lances` novo (cliente, mês, comitente); `rx_*` com
+  comitente; `comitentes` (nomes). **148 consultas**, maior parte 92 KB, coleta
+  direta em 329 s. Provas: Versão A ✓ (148) e cruzada 827/827. HTML 2,3 MB.
+  Nós: Template Topo 18 KB, Template Script 43 KB, Montar Queries 21 KB, Montar HTML 16 KB.
+
 ## Estado no n8n
+
+> **20/10/2026: PENDENTE de subir** (conector do n8n fora da sessão). Já está no
+> `gen_wf.py`, falta no n8n:
+> 1. `toRecipients` do "Enviar para Thomas" com os 5 de `DESTINOS` (+ Everton
+>    `everton.vieira@`, Guilherme `guilherme.pinheiro@`).
+> 2. Nó novo "Diariamente as 08h" (`scheduleTrigger` 1.3, `triggerAtHour: 8`)
+>    ligado ao Template Topo; o "Rodar" manual fica.
+> 3. `setWorkflowSettings` timezone `America/Sao_Paulo` **antes** de ativar.
+> 4. Ativar (publicar). Atenção: a primeira execução real no MCP ainda não
+>    aconteceu; o ideal é rodar à mão uma vez antes do primeiro disparo das 8h.
+
+> **16/10/2026: e-mail para Thomas, Caio (`caio.ledesma@`) e Tuunelis
+> (`fernando.tuunelis@`), com texto curto.** Lista em `DESTINOS` no `gen_wf.py`, que
+> só aceita `@cars2you.com.br` (o anexo tem nome e CNPJ). Everton e Guilherme
+> entraram na lista em 20/10 (ver o bloco PENDENTE acima). O nó segue com o nome
+> "Enviar para Thomas".
+>
+> **16/10/2026: versão 3 subida, sem rodar.** Quatro `setNodeParameter` (Template
+> Topo, Template Script, Montar Queries, Montar HTML); `confere_n8n.py` IGUAL nos 4.
+> Inativo. A primeira execução no MCP ainda não aconteceu: 148 chamadas esperadas.
+>
+> Antes: **versão 2 subida, sem rodar.** Quatro chamadas `update_workflow`
+> (Template Topo, Template Script, ligações + Montar Queries + e-mail, Montar HTML);
+> `confere_n8n.py` diz IGUAL nos 4 nós Code. Inativo, disparo manual. A primeira
+> execução vai conferir no MCP o que a coleta direta já mediu: 140 chamadas, pacotes
+> até 92 KB. Provas locais: `prova-local.js` (o que já existia bate com a Versão A) e
+> `monta_local.js` (dado real, 444/444). HTML com dado real: 1,8 MB.
 
 - Workflow `XkRFB5dYc1EFWZkN`, projeto pessoal do Thomas, **inativo**, disparo manual.
   `confere_n8n.py` confirma que os nós Code salvos são idênticos aos arquivos daqui.
