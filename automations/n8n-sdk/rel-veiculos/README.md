@@ -1277,3 +1277,22 @@ SharePoint** (seção abaixo), como o IGA já faz.
 - **Duplicidade no catálogo `models`.** Nomes iguais em faixas de id diferentes fazem
   "Strada × Strada" dar aderência zero no componente de modelo. Impacto medido: 4 pares
   em 14.507. Documentado em [`dominios.md`](../../../context/banco-de-dados/dominios.md).
+
+## Exportar o analítico (22/10)
+
+Botão **Exportar analítico** no cabeçalho dos cartões *Veículos* e *Lojas*. Baixa um CSV
+(`;`, BOM, vírgula decimal — o Excel pt-BR abre direto) com **o que a tabela mostra naquele
+instante**: `linhasV`/`linhasL` são a fonte das telas e das exportações, então filtros de
+página, busca e ordem valem para os dois.
+
+- **Lojistas** (`radar-lojistas-AAAA-MM-DD.csv`): loja, UF, whitelabel, responsável, categoria
+  do cliente, últimas oferta/acesso, **e-mail, telefone comercial, WhatsApp, telefone
+  privativo**, perfil de compra e compras 6m. Com um **veículo selecionado** entram as colunas
+  dele (modelo, ano, km, valor, evento, link) e o par com cada loja (aderência, score,
+  componentes); sem seleção essas ficam vazias.
+- **Veículos** (`radar-veiculos-AAAA-MM-DD.csv`): carro, farol, ofertas, VMV, maior oferta,
+  lojas elegíveis. Com uma **loja selecionada** entram a loja e o par.
+
+Contato é PII, mas já estava no HTML publicado — a exportação só o põe em colunas. O CNPJ
+segue fora. Provado no navegador com o HTML sintético (`saida-teste-local.html`); **não
+transcrito ao n8n** — o nó `Montar HTML` publicado ainda é a versão sem o botão.

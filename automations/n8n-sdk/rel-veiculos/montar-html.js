@@ -1504,6 +1504,8 @@ const PONTE = [
   '.card-h .chip{flex:none}',
   '.card-h .n{margin-left:auto;font-weight:500;color:var(--texto-3);',
   'font-size:12px;letter-spacing:0}',
+  '.card-h .exp{margin-left:10px;padding:4px 10px;font-size:12px;font-weight:500;white-space:nowrap}',
+  '.card-h .n+.exp{margin-left:12px}',
   '.card-b{padding:18px}',
 
   /* 4. KPI — cartoes soltos, e MENORES.
@@ -2062,6 +2064,56 @@ const APP = [
   `(comScore?celulas(r.s,r.l.confianca)+"<td class='tx'>"+det(r.d)+"</td>":"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+`,
   `"<td>"+nf(r.l.qt_veiculos)+"</td><td>"+(r.l.qt_compras?nf(r.l.qt_compras)+" <span class='dim'>· "+money(r.l.vl_compras)+"</span>":"0")+"</td></tr>").join("")+"</tbody>";`,
   'Array.prototype.forEach.call($("#t_l").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selL=(selL===i?null:i);selV=null;escolhidos={};pinta();};});}',
+  /* ---- exportar o analitico (22/10) ----
+     Um botao no cabecalho de cada tabela. Sai EXATAMENTE o que a tabela
+     mostra naquele instante: mesmos filtros de pagina, mesma busca, mesma
+     ordem -- `linhasV`/`linhasL` sao a fonte das duas telas e das duas
+     exportacoes, entao nao ha um segundo criterio pra divergir.
+
+     CSV com `;` e BOM: e o que o Excel em pt-BR abre sem pedir assistente,
+     com acento certo e virgula decimal. Sem barra invertida (o nome da
+     funcao que gera quebra de linha e String.fromCharCode) -- a regra do
+     arquivo vale tambem aqui. O contato e PII e ja esta no HTML publicado;
+     a exportacao nao abre nenhum dado novo, so os poe em colunas. */
+  'var NL=String.fromCharCode(10),CR=String.fromCharCode(13),Q=String.fromCharCode(34),BOM=String.fromCharCode(65279);',
+  'function csvCel(x){var t=(x===null||x===undefined)?"":String(x);if(t.indexOf(";")>=0||t.indexOf(Q)>=0||t.indexOf(NL)>=0||t.indexOf(CR)>=0)t=Q+t.split(Q).join(Q+Q)+Q;return t;}',
+  'function dec(v,d){return (v===null||v===undefined||isNaN(Number(v)))?"":Number(v).toFixed(d).split(".").join(",");}',
+  'function nomeV(v){return v?((v.marca?v.marca+" ":"")+(v.modelo||"?")):"";}',
+  'function detTxt(d){if(!d)return "";var p=[];["preco","idade","km","desagio","modelo","categoria","laudo","uf"].forEach(function(k){if(d[k]!==undefined)p.push(k[0].toUpperCase()+" "+d[k]);});return p.join(" · ");}',
+  /* mesma leitura de data do `dataBr` do extrato, que mora dentro de outra
+     funcao e por isso nao alcanca aqui; vazio fica vazio, nao "—" */
+  'function dataCsv(x){if(!x)return "";const t=Date.parse(String(x).indexOf("T")>0?String(x):String(x).split(" ").join("T")+"Z");return isNaN(t)?"":new Date(t).toLocaleDateString("pt-BR");}',
+  'function hoje(){return new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);}',
+  'function baixaCsv(nome,cab,linhas){',
+  'var txt=BOM+[cab].concat(linhas).map(function(l){return l.map(csvCel).join(";");}).join(CR+NL);',
+  'var blob=new Blob([txt],{type:"text/csv;charset=utf-8"});',
+  'var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;',
+  'document.body.appendChild(a);a.click();document.body.removeChild(a);',
+  'setTimeout(function(){URL.revokeObjectURL(a.href);},1000);}',
+  /* lojistas: a loja inteira, contato incluido. Com um veiculo selecionado
+     (clique na tabela de veiculos) entram as colunas dele e o par com cada
+     loja -- aderencia, score e componentes; sem selecao essas ficam vazias e
+     o "melhor score" diz o resto. */
+  'function exportaL(){',
+  'const rows=linhasL();const v=selV!==null?D.veiculos[selV]:null;',
+  'const cab=["Loja","ID loja","UF","Whitelabel","Responsável","Categoria do cliente","Última oferta","Último acesso","E-mail","E-mails vinculados","Telefone comercial","WhatsApp","Telefone privativo",',
+  '"Modelo selecionado","ID do veículo selecionado","Ano","Km","Valor (R$)","Categoria do veículo","UF do pátio","Evento","Link do anúncio","Aderência (%)","Score","Componentes",',
+  '"Modelo mais ofertado pela loja","% das ofertas nesse modelo","Categoria mais ofertada","Preço médio ofertado (R$)","Idade média (anos)","Km médio","Deságio médio (%)","Veículos ofertados 6m","Compras 6m","Valor das compras 6m (R$)","Veículos elegíveis","Melhor score","Amostra baixa"];',
+  'const linhas=rows.map(function(r){const l=r.l;const par=v&&r.s!==null&&r.s!==undefined;return [',
+  'l.loja,l.loja_id,l.uf,l.whitelabel,l.responsavel||"' + SEMDONO + '",l.cluster_nome,dataCsv(l.ult_oferta),dataCsv(l.ult_acesso),l.email,l.qt_emails||"",l.tel_comercial,l.whatsapp,l.tel_privativo,',
+  'nomeV(v),v?v.vehicle_id:"",v?v.model_year:"",v?v.km:"",v?dec(v.valor,2):"",v?v.categoria:"",v?v.uf:"",v?v.evento:"",v?v.link:"",par?dec(r.s/(l.confianca||1),1):"",par?dec(r.s,1):"",par?detTxt(r.d):"",',
+  'l.modelo,dec(l.pct_modelo,1),l.categoria,dec(l.preco_medio,2),dec(l.idade_media,1),dec(l.km_medio,0),dec(l.desagio,1),l.qt_veiculos,l.qt_compras,dec(l.vl_compras,2),(porL[r.i]||[]).length,dec(l.melhor,1),l.amostra_baixa?"sim":"não"];});',
+  'baixaCsv("radar-lojistas-"+hoje()+".csv",cab,linhas);}',
+  /* veiculos: o carro e a oferta. Com uma loja selecionada entram a loja e o
+     par (aderencia, score, componentes). */
+  'function exportaV(){',
+  'const rows=linhasV();const l=selL!==null?D.lojas[selL]:null;',
+  'const cab=["ID do veículo","Marca","Modelo","Ano","Km","Valor (R$)","Categoria","UF do pátio","Evento","Canal","Status","Farol de oferta","Ofertas","VMV (R$)","Maior oferta (R$)","Lojas elegíveis","Lojas acima do corte","Sem loja com acesso","Link do anúncio",',
+  '"Loja selecionada","ID da loja selecionada","Aderência (%)","Score","Componentes","Melhor score"];',
+  'const linhas=rows.map(function(r){const x=r.v;const par=l&&r.s!==null&&r.s!==undefined;return [',
+  'x.vehicle_id,x.marca,x.modelo,x.model_year,x.km,dec(x.valor,2),x.categoria,x.uf,x.evento,x.wl_nomes,x.status_nome,FAROL_NOME[x.farol]||x.farol,x.qt_ofertas,dec(x.vmv,2),dec(x.oferta_max,2),x.elegiveis,x.candidatos,(x.canal_sem_loja||x.grupo_sem_loja)?"sim":"não",x.link,',
+  'l?l.loja:"",l?l.loja_id:"",par?dec(r.s/(l.confianca||1),1):"",par?dec(r.s,1):"",par?detTxt(r.d):"",l?"":dec(r.s,1)];});',
+  'baixaCsv("radar-veiculos-"+hoje()+".csv",cab,linhas);}',
   /* ---- contexto da selecao ---- */
   'function ctx(){',
   'if(selV!==null){const v=D.veiculos[selV];',
@@ -2433,6 +2485,7 @@ const APP = [
   '$("#f_wl").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
   '$("#f_rp").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
   '$("#f_fa").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
+  '$("#exp_v").onclick=exportaV;$("#exp_l").onclick=exportaL;',
   '$("#limpar").onclick=function(){escolhidos={};selV=null;selL=null;$("#f_v").value="";$("#f_l").value="";$("#f_ev").value="";$("#f_wl").value="";$("#f_uf").value="";$("#f_rp").value="";$("#f_fa").value="";pintaFiltros();pinta();};',
   'pintaFiltros();pinta();'
 ].join('\n');
@@ -2537,9 +2590,9 @@ const html = [
   /* o `<div id="alerta">` morava aqui e foi pro topo, como icone (21/09) */
   '<div id="ctx" class="ctx" style="display:none"></div>',
   '<div class="grid">',
-  '<div class="card"><div class="card-h">' + chip(ICO_CARD.veiculos) + 'Veículos <span class="n" id="cv"></span></div>',
+  '<div class="card"><div class="card-h">' + chip(ICO_CARD.veiculos) + 'Veículos <span class="n" id="cv"></span><button type="button" class="exp" id="exp_v" title="Baixa em CSV o que está na tabela de veículos, com os filtros aplicados">Exportar analítico</button></div>',
   '<div class="wrap"><table id="t_v"></table></div><div id="v_vazio"></div></div>',
-  '<div class="card"><div class="card-h">' + chip(ICO_CARD.lojas) + 'Lojas <span class="n" id="cl"></span></div>',
+  '<div class="card"><div class="card-h">' + chip(ICO_CARD.lojas) + 'Lojas <span class="n" id="cl"></span><button type="button" class="exp" id="exp_l" title="Baixa em CSV o que está na tabela de lojas, com contato e o modelo selecionado">Exportar analítico</button></div>',
   '<div class="wrap"><table id="t_l"></table></div><div id="l_vazio"></div></div>',
   '</div>',
   '<div id="extrato" style="display:none"></div>',
