@@ -118,3 +118,6 @@ automations/precificacao/preditivo/modelo-gabarito.json
 automations/n8n-sdk/analise-base-geral/dados-local.json
 automations/n8n-sdk/analise-base-geral/saida-local.html
 automations/n8n-sdk/analise-base-geral/Analise_base_geral_clientes_*.html
+
+# Listas de compradores por evento: carregam e-mail e telefone de loja. Nao versionar.
+automations/n8n-sdk/*/lista-*.csv

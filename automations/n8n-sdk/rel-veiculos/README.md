@@ -1296,3 +1296,50 @@ página, busca e ordem valem para os dois.
 Contato é PII, mas já estava no HTML publicado — a exportação só o põe em colunas. O CNPJ
 segue fora. Provado no navegador com o HTML sintético (`saida-teste-local.html`); **não
 transcrito ao n8n** — o nó `Montar HTML` publicado ainda é a versão sem o botão.
+
+## Quais pares saem por veículo (22/10) — o teto fixo de 30 acabou
+
+Cada veículo publica **todas as lojas com score ≥ 70** (o padrão da barra deslizante do
+extrato), **no mínimo as 30 melhores** mesmo abaixo disso, e **no máximo 150** (trava de
+segurança, não critério). Constantes `PISO_PUBLICACAO`, `MIN_POR_VEICULO`, `TETO_LOJAS` no
+`montar-html.js`; a regra mora em `selecionaPares()`, entre os marcadores `SELECAO:INICIO/FIM`,
+e o `prova-local.js` a executa sozinha (8 provas, incluindo a borda 70,0 / 69,9).
+
+**Por que trocar.** Medido no `dados-50406.json` (run de 11/09, `_mede-publicacao.js`): dos
+1.004 veículos que batiam no teto, em **84%** a 30ª loja já estava abaixo de 70 — o arquivo
+carregava par que ninguém vê por padrão — e em **154** veículos ficava de fora loja com 70 ou
+mais. A mediana do score da 30ª loja era 61,6.
+
+**Tamanho.** 97 bytes por par (medido no mesmo arquivo). Pares ≥ 70 no universo: 14,4 mil
+(recomputado; o controle bateu 98% com o `acima_do_corte` do run: 140.576 contra 143.509).
+Por veículo: p50 = 4, p90 = 38, p99 = 86, **máximo 110** — por isso 150 não corta nada hoje.
+Acréscimo sobre o teto fixo: **+3,8 mil pares, ~+0,4 MB (+8%)**, de ~4,8–5,0 MB para
+~5,2–5,4 MB. Pior caso da trava: ~1.000 veículos × 150 = 150 mil pares, ~15 MB.
+
+**O que dizer ao ler o próximo run.** `resumo.cortados_pelo_teto` deixou de ser "tudo que o
+teto cortou" (era ~110 mil) e passou a ser **só par com score ≥ 70 derrubado pela trava** —
+deveria ser 0, e se não for o aviso do topo diz quanto. O que ficou abaixo do piso e além
+do mínimo (por desenho) está em `resumo.fora_do_piso`.
+
+⚠️ A estimativa usa o run de 11/09 (corte de 50, antes da trava de grupo). A trava de grupo
+tira 4–7% dos pares, então o número real tende a ficar abaixo.
+
+## Filtro de veículo chega à tabela de lojas (22/10)
+
+Com um filtro de **veículo** ativo — **evento**, **farol** ou a **busca de veículo** (que é o
+filtro de modelo) —, a tabela de lojas e o KPI **Lojas elegíveis** passam a contar só a loja
+com **score ≥ 70 em pelo menos um** dos veículos filtrados. O mínimo é `MIN_LOJA`, lido de
+`resumo.piso_publicacao`: é o piso de publicação, **não a barra deslizante** — o arquivo só
+garante todos os pares ≥ 70, então um corte mais baixo mostraria lista incompleta.
+
+- Sem filtro de veículo, nada muda (tabela e KPI como antes). Whitelabel e UF sozinhos não
+  ligam o modo: já filtram as lojas diretamente.
+- No modo agregado a tabela troca a coluna de score por **Melhor score** (entre os filtrados)
+  e ganha **Veículos ≥ 70%**; o CSV de lojistas ganha as duas colunas no fim.
+- Veículo clicado continua mandando: a tabela mostra os pares dele, como antes.
+- A **busca de veículo** agora repinta também lojas e KPI (`oninput`); as outras KPIs
+  (Veículos, Sem correspondência, Média) seguem sem a busca, como sempre.
+- Provas: o smoke percorre **todos os eventos** conferindo colunas e `KPI = linhas`, e tem
+  negativos (sem o corte no KPI ou na tabela, ele falha). O teste do farol mudou de "a tabela
+  de lojas fica parada" para "o filtro nunca acrescenta loja".
+

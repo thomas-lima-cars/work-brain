@@ -42,7 +42,7 @@
        UFs diferentes simplesmente não existia. Agora é preferência com
        peso proporcional — loja que compra 90% na própria praça prioriza
        forte, loja que compra 0% fica indiferente. Como o universo de pares
-       cresceu 5,3x, existe TETO_LOJAS por veículo.
+       cresceu 5,3x, existe um corte por veículo (ver TETO_LOJAS).
 
    score = Σ(peso × aderência) / Σ(peso), de 0 a 100.
 
@@ -75,18 +75,56 @@ const CONFIANCA_MIN = 5;
    e aderencia 100, que e justamente o caso que a confianca segura. */
 const CORRESP_MIN = 0;
 
-/* TETO DE LOJAS POR VEICULO (2026-09-11, segunda rodada).
-   Existe porque a UF deixou de ser porta: cada veiculo passou a disputar com
-   todas as lojas do canal, e sem teto sao 203.658 pares e ~20 MB de HTML,
-   que trava navegador. Medido na simulacao local sobre o run 50379.
+/* QUAIS PARES SAEM NO ARQUIVO (2026-10-22, troca do teto fixo de 30).
 
-   E POR VEICULO, nao global, porque o relatorio e um ranking: teto global
-   cortaria veiculos inteiros, teto por veiculo corta a cauda de cada um.
-   Com 30 o arquivo fica em ~3,6 MB, menor que os 4,5 MB de hoje, com 5,3x
-   mais candidatos avaliados.
+   Ate 22/10 cada veiculo publicava as 30 lojas de maior score, e so. Existe
+   corte porque a UF deixou de ser porta (11/09): cada veiculo passou a
+   disputar com todas as lojas do canal, e sem corte sao ~900 mil pares e
+   ~90 MB de HTML, que trava o navegador.
 
-   Ponha 0 para desligar. */
-const TETO_LOJAS = 30;
+   O teto fixo errava nos dois sentidos, medido no run 50406 (11/09): em 84%
+   dos veiculos que batiam nele a 30a loja ja estava ABAIXO de 70% -- ou
+   seja, publicava par que ninguem ve por padrao --, e em 154 veiculos
+   deixava de fora loja com 70% ou mais, que e a que o usuario procura.
+
+   Regra nova, por veiculo:
+     PUBLICA  todos os pares com score >= PISO_PUBLICACAO (70, o padrao da
+              barra deslizante do extrato) ...
+     NO MINIMO as MIN_POR_VEICULO melhores, mesmo abaixo do piso -- e o que
+              o relatorio ja mostrava antes. Sem isso o veiculo cuja melhor
+              loja tem 65% viraria "sem correspondencia" e baixar a barra
+              nao revelaria nada.
+     NO MAXIMO TETO_LOJAS: trava de seguranca, nao criterio. Medido no run
+              50406 o maior veiculo tinha 110 pares >= 70 (p99 = 86), entao
+              150 nao corta nada hoje; se cortar, o aviso do topo diz quanto.
+
+   Tamanho esperado (97 bytes/par medidos no run 50406): ~37 mil pares e
+   ~5,2 MB, contra 33,5 mil e 4,8 MB do teto fixo. Pior caso do teto de
+   seguranca: ~1.000 veiculos x 150 = 150 mil pares, ~15 MB.
+
+   TETO_LOJAS = 0 desliga a trava (nao faca: ver acima). MIN_POR_VEICULO = 0
+   publica so o que passa do piso. */
+const PISO_PUBLICACAO = 70;
+const MIN_POR_VEICULO = 30;
+const TETO_LOJAS = 150;
+
+/* A regra mora numa funcao pura, delimitada pelos marcadores, para o
+   prova-local executar o trecho sozinho. `passaram` chega ORDENADO por score
+   decrescente, com `s` em decimos (score x 10). */
+/* SELECAO:INICIO */
+function selecionaPares(passaram, piso, minimo, teto) {
+  let acima = 0;
+  while (acima < passaram.length && passaram[acima].s >= piso * 10) acima++;
+  let n = Math.max(acima, minimo);
+  if (teto > 0 && n > teto) n = teto;
+  return {
+    fica: passaram.slice(0, n),
+    acima_do_piso: acima,
+    /* pares com score >= piso que a trava de seguranca derrubou: deveria ser 0 */
+    cortados_pelo_teto: Math.max(0, acima - n)
+  };
+}
+/* SELECAO:FIM */
 
 /* o mesmo corte de outlier que a fase 2 aplica no desagio das lojas. O
    desagio do VEICULO e calculado aqui (valor e fipe ja estao na base, pedir
@@ -838,7 +876,8 @@ let cortadosPeloGrupo = 0; /* pares do canal barrados pela trava de grupo */
 const pares = [];          /* flat: [vi, li, score*10, det...] */
 const detPares = [];       /* decomposição, mesmo índice do par */
 const usadas = {};
-let cortadosPeloTeto = 0;  /* passaram no corte mas ficaram fora do top-N */
+let cortadosPeloTeto = 0;  /* score >= piso e a trava de seguranca derrubou: deveria ser 0 */
+let foraDoPiso = 0;        /* abaixo do piso e alem do minimo por veiculo: nao publicados, por desenho */
 veiculos.forEach((v, vi) => {
   /* candidatos = lojas do CANAL do evento. A UF nao exclui mais ninguem. */
   const vistosL = {};
@@ -866,8 +905,10 @@ veiculos.forEach((v, vi) => {
     passaram.push({ i: cands[i], s: Math.round(r.score * 10), d: r.det });
   }
   passaram.sort((a, b) => b.s - a.s);
-  const fica = TETO_LOJAS > 0 ? passaram.slice(0, TETO_LOJAS) : passaram;
-  cortadosPeloTeto += passaram.length - fica.length;
+  const sel = selecionaPares(passaram, PISO_PUBLICACAO, MIN_POR_VEICULO, TETO_LOJAS);
+  const fica = sel.fica;
+  cortadosPeloTeto += sel.cortados_pelo_teto;
+  foraDoPiso += passaram.length - fica.length - sel.cortados_pelo_teto;
   for (let i = 0; i < fica.length; i++) {
     pares.push(vi, fica[i].i, fica[i].s);
     detPares.push(fica[i].d);
@@ -1062,10 +1103,9 @@ if (semNaUf) {
    assim. Declarar, sempre: descarte silencioso e o defeito que este
    relatorio persegue desde o inicio. */
 if (cortadosPeloTeto) {
-  falhas.push(cortadosPeloTeto.toLocaleString('pt-BR') + ' par(es) passaram da ' +
-    'correspondência mínima mas ficaram fora do teto de ' + TETO_LOJAS +
-    ' lojas por veículo — são os de menor score de cada carro, e o teto existe ' +
-    'porque sem ele o arquivo passa de 20 MB.');
+  falhas.push(cortadosPeloTeto.toLocaleString('pt-BR') + ' par(es) com score de ' +
+    PISO_PUBLICACAO + '% ou mais ficaram fora do teto de segurança de ' + TETO_LOJAS +
+    ' lojas por veículo — são os de menor score entre os bons de cada carro.');
 }
 if (cortadosPeloMin) {
   falhas.push(cortadosPeloMin + ' veículo(s) TINHAM loja elegível, mas nenhuma ' +
@@ -1131,6 +1171,9 @@ const DADOS = {
     cortados_pelo_min: cortadosPeloMin,
     cortados_pelo_teto: cortadosPeloTeto,
     teto_lojas: TETO_LOJAS,
+    piso_publicacao: PISO_PUBLICACAO,
+    min_por_veiculo: MIN_POR_VEICULO,
+    fora_do_piso: foraDoPiso,
     media_candidatos: veiculos.length
       ? Math.round(veiculos.reduce((s, v) => s + v.candidatos, 0) / veiculos.length) : 0,
     /* carteira: por onde cada loja casou. Numero que nao aparece na tela nao
@@ -1852,6 +1895,16 @@ const APP = [
   'DICA.style.left=x+"px";DICA.style.top=y+"px";}',
   /* ---- indexa os pares nas duas direcoes ---- */
   'const P=D.pares,DET=D.det;',
+  /* LOJAS NOS VEICULOS FILTRADOS (22/10). Com filtro de VEICULO ativo --
+     evento, farol ou a busca de veiculo (e a busca e o unico filtro de
+     modelo) --, a tabela de lojas e o KPI "Lojas elegiveis" passam a contar
+     so loja com score >= MIN_LOJA em pelo menos um dos veiculos filtrados.
+     MIN_LOJA e o piso de publicacao (70, o mesmo ponto em que nasce a barra
+     deslizante do extrato), e NAO a barra: o arquivo so garante TODOS os
+     pares >= 70, entao um corte mais baixo mostraria lista incompleta. */
+  'const MIN_LOJA=(D.resumo&&D.resumo.piso_publicacao)||70;',
+  'function buscaV(v,q){return ((v.marca||"")+" "+(v.modelo||"")+" "+(v.status_nome||"")).toLowerCase().indexOf(q)>=0;}',
+  'function filtroVeic(){return evSel()!==null||faSel()!==null||$("#f_v").value!=="";}',
   'const porV={},porL={};',
   'for(let i=0,k=0;i<P.length;i+=3,k++){const vi=P[i],li=P[i+1],s=P[i+2]/10;',
   '(porV[vi]=porV[vi]||[]).push({o:li,s:s,d:DET[k]});',
@@ -1954,10 +2007,14 @@ const APP = [
   'const vIdx=[];D.veiculos.forEach(function(v,i){if(passaV(v,ev,w,uf,fa))vIdx.push(i);});',
   'const naLista={};vIdx.forEach(function(i){naLista[i]=1;});',
   'var nPares=0;const lojasVistas={};const porVeic={};',
+  'const kAtivo=filtroVeic(),kQ=$("#f_v").value.toLowerCase();',
   'for(let i=0;i<P.length;i+=3){',
   'if(!naLista[P[i]])continue;',
   'if(!passaL(D.lojas[P[i+1]],w,uf,rp))continue;',
-  'nPares++;lojasVistas[P[i+1]]=1;porVeic[P[i]]=(porVeic[P[i]]||0)+1;}',
+  /* a loja so conta como "elegivel" se, com filtro de veiculo ativo, passa do
+     minimo num dos veiculos filtrados -- a mesma regra da tabela de lojas */
+  'nPares++;porVeic[P[i]]=(porVeic[P[i]]||0)+1;',
+  'if(!kAtivo||(P[i+2]/10>=MIN_LOJA&&(!kQ||buscaV(D.veiculos[P[i]],kQ))))lojasVistas[P[i+1]]=1;}',
   /* "Sem correspondencia" so conta quem PODIA ter par. Veiculo cujo canal
      nao tem loja alguma vai pro KPI proprio, em cinza: numero que nao e
      culpa de ninguem nao deve aparecer em vermelho ao lado dos que sao. */
@@ -2004,7 +2061,7 @@ const APP = [
   'let base;',
   'if(selL!==null){base=(porL[selL]||[]).map(x=>({v:D.veiculos[x.o],i:x.o,s:x.s,d:x.d}));}',
   'else{base=D.veiculos.map((v,i)=>({v:v,i:i,s:v.melhor,d:null}));base.sort((a,b)=>(b.s||0)-(a.s||0));}',
-  'return base.filter(r=>passaV(r.v,ev,w,uf,fa)&&(!q||((r.v.marca||"")+" "+(r.v.modelo||"")+" "+(r.v.status_nome||"")).toLowerCase().indexOf(q)>=0));}',
+  'return base.filter(r=>passaV(r.v,ev,w,uf,fa)&&(!q||buscaV(r.v,q)));}',
   'function pintaV(){',
   'const rows=linhasV();',
   'const comScore=selL!==null;',
@@ -2044,24 +2101,34 @@ const APP = [
   `(r.v.grupo_sem_loja?" <span class='tag'>grupo sem loja</span>":"")+"</td></tr>";}).join("")+"</tbody>";`,
   'Array.prototype.forEach.call($("#t_v").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selV=(selV===i?null:i);selL=null;escolhidos={};pinta();};});}',
   /* ---- lojas ---- */
+  'function lojasNosFiltrados(){',
+  'const ev=evSel(),w=wlSel(),uf=ufSel(),fa=faSel(),q=$("#f_v").value.toLowerCase();',
+  'const ok={};D.veiculos.forEach(function(v,i){if(passaV(v,ev,w,uf,fa)&&(!q||buscaV(v,q)))ok[i]=1;});',
+  'const m={};',
+  'for(let i=0;i<P.length;i+=3){if(!ok[P[i]])continue;const sc=P[i+2]/10;if(sc<MIN_LOJA)continue;',
+  'const a=m[P[i+1]]||(m[P[i+1]]={s:0,n:0});a.n++;if(sc>a.s)a.s=sc;}',
+  'return m;}',
   'function linhasL(){',
   'const q=$("#f_l").value.toLowerCase();',
   'const w=wlSel(),uf=ufSel(),rp=rpSel();',
   'let base;',
   'if(selV!==null){base=(porV[selV]||[]).map(x=>({l:D.lojas[x.o],i:x.o,s:x.s,d:x.d}));}',
+  /* modo agregado: sem veiculo clicado, mas com filtro de veiculo. Score = o
+     MELHOR da loja entre os veiculos filtrados, n = em quantos deles passa */
+  'else if(filtroVeic()){const ag=lojasNosFiltrados();base=Object.keys(ag).map(k=>({l:D.lojas[k],i:Number(k),s:ag[k].s,d:null,n:ag[k].n}));base.sort((a,b)=>(b.s||0)-(a.s||0));}',
   'else{base=D.lojas.map((l,i)=>({l:l,i:i,s:l.melhor,d:null}));base.sort((a,b)=>(b.s||0)-(a.s||0));}',
   'return base.filter(r=>passaL(r.l,w,uf,rp)&&(!q||((r.l.loja||"")+" "+(r.l.uf||"")+" "+(r.l.whitelabel||"")+" "+(r.l.responsavel||"")).toLowerCase().indexOf(q)>=0));}',
   'function pintaL(){',
   'const rows=linhasL();',
-  'const comScore=selV!==null;',
+  'const comScore=selV!==null;const agg=!comScore&&filtroVeic();',
   '$("#cl").textContent=rows.length+" de "+D.lojas.length;',
-  `if(!rows.length){$("#t_l").innerHTML="";$("#l_vazio").innerHTML="<div class='vazio'>Nenhuma loja no filtro atual.</div>";return;}`,
+  `if(!rows.length){$("#t_l").innerHTML="";$("#l_vazio").innerHTML="<div class='vazio'>"+(agg?"Nenhuma loja passa de "+MIN_LOJA+"% em algum dos veículos filtrados.":"Nenhuma loja no filtro atual.")+"</div>";return;}`,
   '$("#l_vazio").innerHTML="";',
-  `$("#t_l").innerHTML="<thead><tr><th class='tx'>Loja</th><th class='tx'>UF</th>"+(comScore?"<th>Aderência</th><th>Score</th><th class='tx'>Componentes</th>":"<th>Melhor score</th>")+"<th>Veículos ofertados 6m</th><th>Compras 6m</th></tr></thead><tbody>"+`,
+  `$("#t_l").innerHTML="<thead><tr><th class='tx'>Loja</th><th class='tx'>UF</th>"+(comScore?"<th>Aderência</th><th>Score</th><th class='tx'>Componentes</th>":(agg?"<th title='Melhor score entre os veículos filtrados'>Melhor score</th><th title='Em quantos dos veículos filtrados a loja passa de "+MIN_LOJA+"%'>Veículos ≥ "+MIN_LOJA+"%</th>":"<th>Melhor score</th>"))+"<th>Veículos ofertados 6m</th><th>Compras 6m</th></tr></thead><tbody>"+`,
   `rows.map(r=>"<tr data-i='"+r.i+"' class='"+(r.i===selL?"sel":"")+"'>"+`,
   `"<td class='tx nm' title='"+esc(r.l.loja)+"'>"+esc(r.l.loja)+" <span class='dim mono'>#"+r.l.loja_id+"</span>"+(r.l.amostra_baixa?" <span class='tag w'>amostra baixa</span>":"")+"</td>"+`,
   `"<td class='tx'>"+esc(r.l.uf)+"</td>"+`,
-  `(comScore?celulas(r.s,r.l.confianca)+"<td class='tx'>"+det(r.d)+"</td>":"<td>"+(r.s===null?"—":barra(r.s))+"</td>")+`,
+  `(comScore?celulas(r.s,r.l.confianca)+"<td class='tx'>"+det(r.d)+"</td>":"<td>"+(r.s===null?"—":barra(r.s))+"</td>"+(agg?"<td>"+nf(r.n)+"</td>":""))+`,
   `"<td>"+nf(r.l.qt_veiculos)+"</td><td>"+(r.l.qt_compras?nf(r.l.qt_compras)+" <span class='dim'>· "+money(r.l.vl_compras)+"</span>":"0")+"</td></tr>").join("")+"</tbody>";`,
   'Array.prototype.forEach.call($("#t_l").querySelectorAll("tbody tr"),function(tr){tr.onclick=function(){const i=Number(tr.getAttribute("data-i"));selL=(selL===i?null:i);selV=null;escolhidos={};pinta();};});}',
   /* ---- exportar o analitico (22/10) ----
@@ -2098,11 +2165,11 @@ const APP = [
   'const rows=linhasL();const v=selV!==null?D.veiculos[selV]:null;',
   'const cab=["Loja","ID loja","UF","Whitelabel","Responsável","Categoria do cliente","Última oferta","Último acesso","E-mail","E-mails vinculados","Telefone comercial","WhatsApp","Telefone privativo",',
   '"Modelo selecionado","ID do veículo selecionado","Ano","Km","Valor (R$)","Categoria do veículo","UF do pátio","Evento","Link do anúncio","Aderência (%)","Score","Componentes",',
-  '"Modelo mais ofertado pela loja","% das ofertas nesse modelo","Categoria mais ofertada","Preço médio ofertado (R$)","Idade média (anos)","Km médio","Deságio médio (%)","Veículos ofertados 6m","Compras 6m","Valor das compras 6m (R$)","Veículos elegíveis","Melhor score","Amostra baixa"];',
+  '"Modelo mais ofertado pela loja","% das ofertas nesse modelo","Categoria mais ofertada","Preço médio ofertado (R$)","Idade média (anos)","Km médio","Deságio médio (%)","Veículos ofertados 6m","Compras 6m","Valor das compras 6m (R$)","Veículos elegíveis","Melhor score","Amostra baixa","Melhor score nos veículos filtrados","Veículos filtrados acima do mínimo"];',
   'const linhas=rows.map(function(r){const l=r.l;const par=v&&r.s!==null&&r.s!==undefined;return [',
   'l.loja,l.loja_id,l.uf,l.whitelabel,l.responsavel||"' + SEMDONO + '",l.cluster_nome,dataCsv(l.ult_oferta),dataCsv(l.ult_acesso),l.email,l.qt_emails||"",l.tel_comercial,l.whatsapp,l.tel_privativo,',
   'nomeV(v),v?v.vehicle_id:"",v?v.model_year:"",v?v.km:"",v?dec(v.valor,2):"",v?v.categoria:"",v?v.uf:"",v?v.evento:"",v?v.link:"",par?dec(r.s/(l.confianca||1),1):"",par?dec(r.s,1):"",par?detTxt(r.d):"",',
-  'l.modelo,dec(l.pct_modelo,1),l.categoria,dec(l.preco_medio,2),dec(l.idade_media,1),dec(l.km_medio,0),dec(l.desagio,1),l.qt_veiculos,l.qt_compras,dec(l.vl_compras,2),(porL[r.i]||[]).length,dec(l.melhor,1),l.amostra_baixa?"sim":"não"];});',
+  'l.modelo,dec(l.pct_modelo,1),l.categoria,dec(l.preco_medio,2),dec(l.idade_media,1),dec(l.km_medio,0),dec(l.desagio,1),l.qt_veiculos,l.qt_compras,dec(l.vl_compras,2),(porL[r.i]||[]).length,dec(l.melhor,1),l.amostra_baixa?"sim":"não",r.n!==undefined?dec(r.s,1):"",r.n!==undefined?r.n:""];});',
   'baixaCsv("radar-lojistas-"+hoje()+".csv",cab,linhas);}',
   /* veiculos: o carro e a oferta. Com uma loja selecionada entram a loja e o
      par (aderencia, score, componentes). */
@@ -2479,7 +2546,9 @@ const APP = [
   'if(gl.scrollIntoView)gl.scrollIntoView({block:"start"});}}',
   /* ---- orquestracao ---- */
   'function pinta(){pintaKpis();ctx();pintaV();pintaL();extrato();}',
-  '$("#f_v").oninput=pintaV;$("#f_l").oninput=pintaL;',
+  /* a busca de veiculo e filtro de MODELO e, desde 22/10, chega as lojas e ao
+     KPI: repinta as tres coisas. A busca de loja continua so na dela. */
+  '$("#f_v").oninput=function(){pintaV();pintaL();pintaKpis();};$("#f_l").oninput=pintaL;',
   '$("#f_ev").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
   '$("#f_uf").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
   '$("#f_wl").onchange=function(){escolhidos={};pintaFiltros();pinta();};',
@@ -2579,7 +2648,7 @@ const html = [
   '<div class="fg"><label for="f_l">Buscar loja</label><input id="f_l" placeholder="loja, UF, whitelabel ou responsável" size="26"></div>',
   '<div class="fg"><label>&nbsp;</label><button id="limpar">Limpar tudo</button></div>',
   '</div>',
-  '<div class="nota"><b>Whitelabel</b>, <b>UF</b>, <b>evento</b> e <b>farol de oferta</b> valem para a página inteira: KPIs, as duas tabelas e o extrato. As duas <b>buscas</b> só filtram a tabela em que estão.<br>',
+  '<div class="nota"><b>Whitelabel</b>, <b>UF</b>, <b>evento</b> e <b>farol de oferta</b> valem para a página inteira: KPIs, as duas tabelas e o extrato. A <b>busca de loja</b> só filtra a tabela de lojas. Já os filtros de <b>veículo</b> &mdash; evento, farol e a <b>busca de veículo</b>, que é o filtro de modelo &mdash; também chegam à tabela de lojas e ao KPI <b>Lojas elegíveis</b>: com um deles ativo, só aparece a loja com score de <b>70% ou mais em pelo menos um</b> dos veículos filtrados (o piso de publicação; abaixo disso o arquivo não guarda todos os pares).<br>',
   '<b>Responsável</b> é o consultor dono da loja na carteira comercial, e é o único filtro que age <b>só sobre as lojas</b>: um veículo não tem responsável, então a lista de veículos continua inteira — o que muda é quais lojas concorrem por ele. Por isso a contagem ao lado de cada nome conta <b>lojas</b>, e não veículos como nos três de cima. Loja fora da planilha aparece como <b>' + SEMDONO + '</b>.<br>',
   'O filtro <b>não</b> alcança o perfil de compra da loja nem o fator de confiança: esses vêm do histórico de <b>6 meses da loja inteira</b>. Como a aderência é calculada contra esse perfil, o <b>score de cada par também não muda</b> com o filtro &mdash; o filtro escolhe quais pares aparecem, não os recalcula.' +
   (MIN_TX ? ' Correspondência mínima de <b>' + MIN_TX + '%</b>' + (CORTADOS ? ' (' + CORTADOS.toLocaleString('pt-BR') + ' pares descartados nesta coleta)' : '') + '.' : '') +
@@ -2661,7 +2730,7 @@ const html = [
   '<dt>Correspondência mínima</dt>',
   (MIN_TX
     ? '<dd>Par com score abaixo de <b>' + MIN_TX + '%</b> não existe em lugar nenhum do relatório: não entra nas tabelas, não conta nos KPIs, não aparece em nenhuma das duas direções. O KPI <b>Sem correspondência</b> conta só quem <b>podia</b> ter par: tinha loja elegível e nenhuma alcançou o piso. São esses, e só esses, que mudariam se o corte baixasse.</dd>'
-    : '<dd><b>Não há piso nesta coleta</b> (mudou em 18/09/2026): todo par elegível entra, inclusive score baixo. Quem filtra é você, na <b>barra deslizante</b> do extrato da loja, que nasce em 70%. O que ainda corta é o <b>teto de lojas por veículo</b> — ele guarda as melhores de cada carro, não as melhores no geral. Por isso o KPI <b>Sem correspondência</b> tende a zero: sobra só quem não tem contraparte possível.</dd>'),
+    : '<dd><b>Não há piso nesta coleta</b> (mudou em 18/09/2026): todo par elegível entra, inclusive score baixo. Quem filtra é você, na <b>barra deslizante</b> do extrato da loja, que nasce em 70%. O que ainda corta é a <b>regra de publicação por veículo</b> (ver abaixo) — ela guarda as melhores de cada carro, não as melhores no geral. Por isso o KPI <b>Sem correspondência</b> tende a zero: sobra só quem não tem contraparte possível.</dd>'),
   '</dl>',
 
   '<h3 class="gl-sub">' + chip(ICO_CARD.calculo) + 'Como o número é feito</h3><dl>',
@@ -2701,13 +2770,13 @@ const html = [
   '<dt>UF como preferência</dt>',
   '<dd>A UF do pátio do veículo comparada com a da loja. Vale 1 se batem, 0 se não batem &mdash; e o <b>peso</b> é a fatia de lances que aquela loja faz dentro do próprio estado.</dd>',
   '<dd class="ex">É o que torna a preferência <b>proporcional ao comportamento de cada loja</b>: quem compra 90% na própria praça prioriza forte o carro local; quem compra 20% quase não se importa; quem nunca comprou no próprio estado fica <b>exatamente indiferente</b>, porque o peso é zero e o indicador nem entra na conta.</dd>',
-  '<dt>Teto de lojas por veículo</dt>',
+  '<dt>Quais lojas saem para cada veículo</dt>',
   /* DADOS.resumo, nao a constante: dentro do RENDER so existe o que o
      `monta_html_de_dados.js` injeta (DADOS, META, CONFIANCA_MIN,
      DADOS_JSON). Citar TETO_LOJAS aqui quebrou a regeneracao na hora --
      mesma familia do descreveRecorte() de 10/09, so que ao contrario. */
-  '<dd>Cada veículo publica no máximo <b>' + ((DADOS.resumo && DADOS.resumo.teto_lojas) || 0) + '</b> lojas &mdash; as de maior score. Existe porque a UF deixou de excluir: o universo de pares cresceu mais de cinco vezes e, sem teto, o arquivo passaria de 20 MB e travaria o navegador.</dd>',
-  '<dd class="ex">O corte é da <b>cauda</b> de cada carro, nunca de carros inteiros, e o número de pares que ficaram de fora é declarado no aviso do topo &mdash; descarte silencioso seria pior que teto nenhum.</dd>',
+  '<dd>Cada veículo publica <b>todas as lojas com score de ' + ((DADOS.resumo && DADOS.resumo.piso_publicacao) || 0) + '% ou mais</b> &mdash; o mesmo ponto em que nasce a barra deslizante do extrato &mdash;, e <b>no mínimo as ' + ((DADOS.resumo && DADOS.resumo.min_por_veiculo) || 0) + ' melhores</b>, mesmo abaixo disso, para que baixar a barra ainda revele algo. Como trava de segurança, nunca passa de <b>' + ((DADOS.resumo && DADOS.resumo.teto_lojas) || 0) + '</b> lojas por carro. Existe porque a UF deixou de excluir: o universo de pares passa de 900 mil e, sem corte, o arquivo passaria de 90 MB e travaria o navegador.</dd>',
+  '<dd class="ex">O corte é da <b>cauda</b> de cada carro, nunca de carros inteiros. Se a trava de segurança derrubar algum par de score alto, o número aparece no aviso do topo &mdash; descarte silencioso seria pior que corte nenhum.</dd>',
   '<dt>Componentes</dt>',
   '<dd>A decomposição do par, indicador a indicador (P preço, I idade, K km, D deságio, M modelo, C categoria, L laudo, U UF), cada um de 0 a 100. Serve para ver <i>por que</i> aquele score saiu: um 90 sustentado por preço e idade é diferente de um 90 que veio só de categoria.</dd>',
   '<dt>Responsável</dt>',

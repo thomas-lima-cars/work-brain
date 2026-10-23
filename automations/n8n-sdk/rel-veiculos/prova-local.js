@@ -906,12 +906,52 @@ ok(D.lojas.length === (MIN > 0 ? 4 : 5),
     'desagio do veiculo = 100*(1 - 100000/105000) = 4,76% — tem ' + v1.desagio);
 })();
 
-/* ── o teto por veiculo ────────────────────────────────────────────────
-   Com TETO_LOJAS = 30 e so 5 lojas sinteticas, o teto nao morde aqui; o que
-   se prova e que ele foi PUBLICADO e que nada foi cortado em silencio. */
-ok(D.resumo.teto_lojas === 30, 'o teto viaja no resumo — tem ' + D.resumo.teto_lojas);
+/* ── quais pares saem por veiculo (22/10) ──────────────────────────────
+   Piso de publicacao (70) + minimo por veiculo (30) + trava de seguranca
+   (150). Com 5 lojas sinteticas nada morde no run; o que se prova no run e
+   que os tres numeros viajam e que nada foi derrubado em silencio. A regra
+   em si e provada abaixo, executando a funcao pura do no. */
+ok(D.resumo.teto_lojas === 150, 'a trava de seguranca viaja no resumo — tem ' + D.resumo.teto_lojas);
+ok(D.resumo.piso_publicacao === 70, 'o piso de publicacao viaja — tem ' + D.resumo.piso_publicacao);
+ok(D.resumo.min_por_veiculo === 30, 'o minimo por veiculo viaja — tem ' + D.resumo.min_por_veiculo);
 ok(D.resumo.cortados_pelo_teto === 0,
-  'com 5 lojas o teto nao corta nada — tem ' + D.resumo.cortados_pelo_teto);
+  'com 5 lojas a trava nao corta nada — tem ' + D.resumo.cortados_pelo_teto);
+(function () {
+  const fonte = fs.readFileSync(path.join(AQUI, 'montar-html.js'), 'utf8').split(String.fromCharCode(13)).join('');
+  const i = fonte.indexOf('/* SELECAO:INICIO */');
+  const f = fonte.indexOf('/* SELECAO:FIM */');
+  ok(i > 0 && f > i, 'a regra de selecao esta delimitada por marcadores');
+  const sel = new Function(fonte.slice(i, f) + String.fromCharCode(10) + 'return selecionaPares;')();
+  /* `s` em decimos, ordem decrescente, como o no entrega */
+  const lista = (n, topo, passo) => Array.from({ length: n }, (_, k) => ({ i: k, s: Math.round((topo - k * passo) * 10) }));
+  /* 200 lojas de 99,0 a 0,1: 30 estao >= 70 e o resto nao */
+  let r = sel(lista(200, 99, 0.495), 70, 30, 150);
+  ok(r.acima_do_piso > 0 && r.fica.length === Math.max(r.acima_do_piso, 30),
+    'tudo >= 70 sai, e nunca menos de 30 — acima do piso ' + r.acima_do_piso + ', saem ' + r.fica.length);
+  ok(r.fica.every((x, k) => k === 0 || r.fica[k - 1].s >= x.s), 'a ordem por score segue decrescente');
+  ok(r.cortados_pelo_teto === 0, 'sem excesso, a trava nao corta');
+  /* poucos bons: o minimo completa ate 30 com pares abaixo do piso */
+  r = sel(lista(200, 69, 0.3), 70, 30, 150);
+  ok(r.acima_do_piso === 0 && r.fica.length === 30,
+    'ninguem passa do piso: saem as 30 melhores mesmo assim — saem ' + r.fica.length);
+  /* muitos bons: 180 acima de 70 -> a trava segura em 150 e DECLARA os 30 */
+  r = sel(lista(180, 99, 0.1), 70, 30, 150);
+  ok(r.acima_do_piso === 180 && r.fica.length === 150 && r.cortados_pelo_teto === 30,
+    'a trava segura em 150 e declara os 30 de score alto derrubados — saem ' + r.fica.length +
+    ', cortados ' + r.cortados_pelo_teto);
+  /* menos lojas que o minimo: publica as que existem */
+  r = sel(lista(5, 80, 5), 70, 30, 150);
+  ok(r.fica.length === 5 && r.cortados_pelo_teto === 0, 'menos de 30 lojas elegiveis: saem todas');
+  /* borda do piso: 70,0 exato entra, 69,9 nao (quando o minimo nao o puxa) */
+  r = sel([{ i: 0, s: 700 }, { i: 1, s: 699 }], 70, 0, 150);
+  ok(r.fica.length === 1 && r.fica[0].s === 700, 'a borda: 70,0 entra e 69,9 nao');
+  r = sel([], 70, 30, 150);
+  ok(r.fica.length === 0 && r.cortados_pelo_teto === 0, 'veiculo sem nenhum par continua sem par');
+  /* teto 0 desliga a trava */
+  r = sel(lista(300, 99, 0.1), 70, 30, 0);
+  ok(r.fica.length === r.acima_do_piso && r.fica.length > 150 && r.cortados_pelo_teto === 0,
+    'teto 0 desliga a trava: saem todos os >= 70 (' + r.fica.length + ')');
+})();
 
 /* A CORRESPONDENCIA MINIMA, nos dois modos.
    Desligada em 18/09 (CORRESP_MIN = 0). A prova NAO crava mais o 50: ela le

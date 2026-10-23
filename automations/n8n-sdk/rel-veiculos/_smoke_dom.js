@@ -349,17 +349,49 @@ function smoke(html) {
   });
 
   /* Farol PARTICIONA os veiculos -- todo veiculo tem exatamente uma cor,
-     nunca nulo -- e e o espelho do responsavel: nao existe do lado da
-     loja, entao a tabela de lojas fica PARADA (fecha com o total, uma vez
-     por opcao), como a de veiculos fica parada no filtro de responsavel. */
+     nunca nulo. Desde 22/10 ele TAMBEM chega a tabela de lojas (filtro de
+     veiculo: so loja com score >= 70 em algum dos veiculos filtrados), entao
+     a soma das lojas deixou de fechar com o total repetido: cada opcao
+     mostra no maximo `totalL`, nunca mais. O que se cobra aqui e que o
+     filtro nunca ACRESCENTE loja. */
   const faVals = opcoes(cache['f_fa'].innerHTML).filter(function (v) { return v !== ''; });
   exercita('f_fa', 'filtro de farol de oferta', function (sv, sl) {
     if (sv !== totalV) erros.push('a soma dos farois (' + sv + ') nao fecha com o total de veiculos (' + totalV + ')');
-    if (sl !== totalL * faVals.length) {
-      erros.push('o filtro de farol mexeu na lista de lojas: somou ' + sl +
-        ', esperado ' + (totalL * faVals.length) + ' (' + totalL + ' × ' + faVals.length + ' opções)');
+    if (sl > totalL * faVals.length) {
+      erros.push('o filtro de farol ACRESCENTOU lojas: somou ' + sl +
+        ', no maximo ' + (totalL * faVals.length) + ' (' + totalL + ' × ' + faVals.length + ' opções)');
     }
   });
+
+  /* 5b. filtro de VEICULO na tabela de lojas (22/10): com um evento
+     escolhido, cabecalho e celula andam juntos (a coluna `Veiculos >= 70%`
+     entra so neste modo), cada linha tem n >= 1, e o KPI "Lojas elegiveis"
+     fecha com a quantidade de linhas -- a incoerencia que motivou a troca. */
+  (function () {
+    const evs = opcoes(cache['f_ev'].innerHTML).filter(function (v) { return v !== ''; });
+    /* TODOS os eventos: com so o primeiro, o corte de 70 pode nao morder
+       (o dado sintetico tem um evento so de pares bons) e o teste passa em vazio */
+    evs.forEach(function (ev) {
+      cache['f_ev'].value = ev;
+      cache['f_ev'].onchange();
+      const h = cache['t_l'].innerHTML;
+      if (h) {
+        const cab = (h.match(/<th[ >]/g) || []).length;
+        const linha = primeiraLinhaDeDado(h);
+        const cel = linha ? (linha.match(/<td[ >]/g) || []).length : cab;
+        if (cab !== cel) erros.push('lojas com filtro de evento ' + ev + ': ' + cab + ' colunas no cabecalho x ' + cel + ' celulas');
+        if (h.indexOf('Veículos ≥') < 0) erros.push('lojas com filtro de evento ' + ev + ': falta a coluna de veiculos acima do minimo');
+      }
+      const m = /Lojas eleg[^<]*<\/div><div class='vl'>([^<]+)</.exec(cache['kpis'].innerHTML);
+      const nLinhas = h ? linhasNoCorpo(h) : 0;
+      if (!m) erros.push('nao achei o KPI Lojas elegiveis');
+      else if (Number(String(m[1]).split('.').join('')) !== nLinhas) {
+        erros.push('o KPI Lojas elegiveis (' + m[1] + ') nao fecha com as linhas da tabela de lojas (' + nLinhas + ') no evento ' + ev);
+      }
+    });
+    cache['f_ev'].value = '';
+    cache['f_ev'].onchange();
+  })();
 
   /* 6. dois filtros ao mesmo tempo nao podem se anular sem motivo */
   const wlVals = opcoes(cache['f_wl'].innerHTML).filter(function (v) { return v !== ''; });
