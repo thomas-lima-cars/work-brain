@@ -1,5 +1,6 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
+> ⚠️ **4 commits locais não enviados** desde 2026-10-26 (o push foi negado pelo modo automático). Rodar `git push`.
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
 > **Última atualização:** 2026-10-26 — Radar: botão de exportar, publicação por score e filtro de veículo nas lojas, tudo no n8n e **ainda sem run** (22–23/10). Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
