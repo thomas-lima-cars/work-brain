@@ -19,6 +19,7 @@
 | Lance Fácil BTB Associados — cadastros diários | `K8XX09IOxufdhilb` | Diário | E-mail | ❓ sem alerta |
 | C6 Lojista — Análise de base de cadastros | `2ECmLRceNEgCCYyb` | Semanal | Análise grupo 10 / loja 594 | ❓ sem alerta |
 | IGA — Análise de base de cadastros | `mgDSyxuO0Mzjkrfy` | Semanal | Análise grupo 10 / loja 594 | ❓ sem alerta |
+| Análise de Base de Clientes, 6 canais | `XkRFB5dYc1EFWZkN` | Diário 08h (fuso do workflow: America/Sao_Paulo), ativo desde 20/10/2026 | HTML por e-mail para Thomas, Caio, Tuunelis, Everton e Guilherme (lista em `n8n-sdk/analise-base-geral/gen_wf.py`) | ❓ sem alerta; a trava de contagem aborta sem enviar |
 
 ## Disparo manual (não agendado, de propósito)
 

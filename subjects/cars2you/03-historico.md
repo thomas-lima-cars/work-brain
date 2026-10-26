@@ -278,3 +278,9 @@ precificar.
   últimos 30 dias, preço do modelo × VMV do cliente. Execução 61975 ✅. Fuso em Brasília,
   **agendamento ainda desligado**.
 - VMV de R$ 100.000 identificado como valor provisório de cadastro (`plataforma/dominios.md`).
+
+## 2026-10-22
+- **Radar de Estoque:** botão Exportar analítico nas tabelas de veículos e lojas; publicação por
+  score (≥ 70, mínimo 30, teto 150) no lugar do teto fixo de 30; filtro de veículo chega à tabela
+  de lojas e ao KPI Lojas elegíveis. Transcrito ao n8n e conferido (commit `84545af`); run pendente.
+  Detalhes em `automations/n8n-sdk/rel-veiculos/README.md`.

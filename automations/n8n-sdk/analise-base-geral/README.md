@@ -118,15 +118,18 @@ Pedidos do Thomas depois da v2:
 
 ## Estado no n8n
 
-> **20/10/2026: PENDENTE de subir** (conector do n8n fora da sessão). Já está no
-> `gen_wf.py`, falta no n8n:
-> 1. `toRecipients` do "Enviar para Thomas" com os 5 de `DESTINOS` (+ Everton
->    `everton.vieira@`, Guilherme `guilherme.pinheiro@`).
-> 2. Nó novo "Diariamente as 08h" (`scheduleTrigger` 1.3, `triggerAtHour: 8`)
->    ligado ao Template Topo; o "Rodar" manual fica.
-> 3. `setWorkflowSettings` timezone `America/Sao_Paulo` **antes** de ativar.
-> 4. Ativar (publicar). Atenção: a primeira execução real no MCP ainda não
->    aconteceu; o ideal é rodar à mão uma vez antes do primeiro disparo das 8h.
+> **20/10/2026: ATIVO, disparo diário às 8h.** Subido e conferido nesta data: gatilho
+> "Diariamente as 08h" (`scheduleTrigger` 1.3, `triggerAtHour: 8`) ligado ao Template Topo
+> (o "Rodar" manual ficou); fuso do workflow `America/Sao_Paulo`; 5 destinatários de
+> `DESTINOS`; publicado (versão ativa = rascunho). `confere_n8n.py` IGUAL em tudo.
+> ⚠️ A v3 nunca rodou no MCP: a primeira execução real pode ser a das 8h, já com e-mail
+> para os cinco. Se falhar, a trava de contagem aborta sem enviar.
+
+> **21/10/2026: primeira execução agendada OK.** Execução `64522` (modo trigger), status
+> `success`, 08h00:20 → 08h06:24 (6min04s). Montar Queries saiu com 148 itens (148 chamadas:
+> sim). Montar HTML: `total` 22553 (Marketplace Cars2You 14937, C6 Auto 3468, Colaboradores C6
+> 3077, Trucks2you 823, Lance Fácil BTB Associados 156, Lance Fácil BTB 92). Enviar para Thomas
+> sem erro (`success: true`). Nenhum erro. Conferido só por leitura via conector n8n.
 
 > **16/10/2026: e-mail para Thomas, Caio (`caio.ledesma@`) e Tuunelis
 > (`fernando.tuunelis@`), com texto curto.** Lista em `DESTINOS` no `gen_wf.py`, que

@@ -1,7 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-10-20 (tarde) — Análise de Base v2/v3 (de 16/10) commitada; 4 mudanças aprovadas no n8n esperam o conector. Em 15/10: Estudo de Vendas IGA. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-10-26 — Radar: botão de exportar, publicação por score e filtro de veículo nas lojas, tudo no n8n e **ainda sem run** (22–23/10). Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -13,6 +13,12 @@
   `ult_acesso` sobre `access_logs` (3,3 mi linhas, sem índice), refeito nas 27 páginas.
   Direção do Thomas: **consultas diretas, processamento no n8n, nada de fundir consulta.**
   ✅ Carteira comercial ao vivo desde 21/09 (39 lojas sem responsável).
+  ✅ **22–23/10: três mudanças no `Montar HTML`, transcritas e conferidas (4 nós idênticos),
+  commit `84545af`, run NÃO feito:** botão **Exportar analítico** (CSV nas duas tabelas,
+  lojistas com e-mail e telefone); **publicação por score** (todos os pares ≥ 70, mínimo 30,
+  teto 150 — substituiu o teto fixo de 30); **filtro de veículo** (evento, farol, busca) chega à
+  tabela de lojas e ao KPI Lojas elegíveis (≥ 70 em algum veículo filtrado). Estimativa
+  +0,4 MB (~5,4 MB). Detalhes e medições no README da pasta.
 - **design system** — 🔥 `design/tokens/tema.css` é fonte única (produto com cara própria = camada de cor `tema-<produto>.css`, o C6 foi o primeiro); dela saem os dois modelos
   **e** o `kit-de-painel.md`, o arquivo único que vai para o time (68 KB, autossuficiente).
   172 provas. ❓ **A fonte segue em aberto** — `dashboard-teste.html` é o laboratório.
@@ -41,15 +47,14 @@
   frente `itau`. Tabela de compradores (15/10): todas as lojas com compra em 12 meses, ordena pela
   coluna clicada; gráfico mês a mês soma todas sem seleção. Re-extraído em 15/10; série até set/26.
   Números em `projetos/vendas-iga/indicadores.md`. ❓ Incluir quem parou há mais de 12 meses?
-- **Análise de Base de Clientes, 6 canais** — 🔥 **v3 no n8n desde 16/10, sem rodar.** Wf
-  `XkRFB5dYc1EFWZkN` (projeto **pessoal** do Thomas, **inativo**), pasta
+- **Análise de Base de Clientes, 6 canais** — 🔥 **v3 no n8n desde 16/10.** Wf
+  `XkRFB5dYc1EFWZkN` (projeto **pessoal** do Thomas), pasta
   `automations/n8n-sdk/analise-base-geral/`. A v2 trouxe o Raio-X e o filtro de período. A v3
   trouxe a coorte por faixa, o top 100 e o filtro de comitente. Números e provas estão no
   README da pasta.
-  ⏳ **Aprovado em 20/10 e ainda não aplicado** (o conector do n8n estava fora da sessão): os
-  5 destinatários, o gatilho diário às 8h, o fuso `America/Sao_Paulo` e a ativação. O passo a
-  passo está no README, em "Estado no n8n". A primeira execução real da v3 ainda não aconteceu:
-  rodar à mão uma vez antes do primeiro disparo das 8h.
+  ✅ **Ativo desde 20/10: diário às 8h** (fuso `America/Sao_Paulo`), e-mail para Thomas, Caio,
+  Tuunelis, Everton e Guilherme. ✅ 1ª execução agendada OK em 21/10 (exec `64522`, 6min04s,
+  148 chamadas, base total 22553, e-mail enviado sem erro).
 - **bradesco** — _(estado a preencher)_
 
 ## ⚙️ Rodando em produção (sem demanda ativa minha)
@@ -86,8 +91,6 @@
   maior efeito de preço do estudo. Decisão de modelo de dados.
 - 🔴 **O que são as 39 vendas do Agile (004362-1)?** `km NULL`, VMV igual ao preço, até
   R$ 503 mil para FIPE de R$ 28 mil. Não é ruído estatístico.
-- 🔵 **`TETO_LOJAS = 30` deve subir?** É ele quem corta hoje. Sem teto, 20 MB e o
-  navegador trava — a pergunta é qual teto, não se existe.
 - 🔵 `schema.md` e `schema-gerado.md` se fundem? · 🔴 **`automations/bancos/` virou nome
   errado** · **As 4 lojas "internas" contam no ranking?** · **Modelo casa por id ou nome?**
 - **Onde hospedar os relatórios** · **Skip/Adapta** (Caio, Gui, Daniel) ·
@@ -95,11 +98,12 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
-- [ ] 🔥 **Análise de Base (6 canais): aplicar no n8n as 4 mudanças aprovadas em 20/10** — 5
-      destinatários, gatilho das 8h, fuso `America/Sao_Paulo`, ativar. Exige o conector do n8n na
-      sessão (ficou fora em 20/10, até numa sessão nova). Passo a passo no README da pasta
-- [ ] **Rodar à mão a Análise de Base v3 uma vez** antes do primeiro disparo das 8h (148 chamadas
-      nunca rodaram no MCP; só na coleta direta)
+- [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
+      `resumo.cortados_pelo_teto` = 0, `resumo.fora_do_piso` e o tamanho (~5,4 MB esperado)
+- [ ] **Carteira Comercial (`ksZI8cqSbexqLOre`) aparece `active: false` no n8n** (22/10) — o brain
+      diz que roda às 6h. Conferir pela interface; sem ela o Radar usa carteira velha
+- [ ] Lista de compradores do **Premium BMW** incompleta em 5 de 8 veículos (30 lojas por carro no
+      arquivo). Completar pelo banco com a VPN ligada
 - [ ] 🔥 **Ligar o agendamento do Painel de Precificação** (com ok) e rodar para publicar a
       versão com o VMV provisório — o SharePoint ainda mostra a execução 61975
 - [ ] Confirmar com quem cadastra que VMV = R$ 100.000 é provisório (maioria C6 Bank Lojista)
