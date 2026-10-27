@@ -178,3 +178,23 @@
   de entrada; `executeOnce` resolveu.
 - Falta: mandar o link ao C6; arquivar `6o9MSr1CriZ1VUBa` e `53RGtYzUzMoVtxpJ` (o modo
   automático barra o arquivamento).
+
+## 2026-10-26
+- **Nasceu o Eventos Fenauto C6** (`automations/n8n-sdk/painel-eventos-fenauto-c6/`): cópia
+  do Painel de Eventos C6, mesmo recorte (WL 43), **sem representante** — saíram GN, GP, a
+  carteira, a tabela de gerentes, os dois rankings e os dois filtros deles, e o CNPJ da
+  consulta. Seis nós, nenhuma tabela de dados.
+- **Pedidos do Thomas, na ordem em que vieram:** logo do C6 sozinha à esquerda e a da
+  **Fenauto no centro do topo**, no lugar do título e do subtítulo; **loja nova só com
+  cadastro num dos dias do evento** (no painel todo, confirmado); **pontuação fora** do
+  ranking; ranking de lojas embaixo dos acessos por hora; o **filtro de Data** saiu da gaveta
+  e virou botões numa linha própria acima do funil (cadastros, acessos e negociações do dia);
+  logo da Fenauto **preta** no claro, com a azul guardada; o painel **abre no escuro**.
+- **Duas versões descartadas no caminho:** Fenauto à esquerda do C6 com um fio entre as duas;
+  botões de dia de **cadastro** dentro do cartão do funil, cortando só o funil.
+- Logo da Fenauto vetorizada do PNG (`design/marca/fenauto/`), inline no HTML para o nó não
+  passar de 105 KB. Números da coleta de 26/10 em
+  [`indicadores.md`](../../context/banco-de-dados/projetos/c6/indicadores.md).
+- 231 provas, `.wf.ts` pronto. **Workflow não criado no n8n** — o Thomas disse "ainda não".
+- **Regra nova para todos os projetos:** painel novo abre no tema escuro
+  ([decisão](../../memory/decisions/2026-10-26-tema-escuro-padrao.md)).

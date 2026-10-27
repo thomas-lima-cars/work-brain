@@ -1,8 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
-> ⚠️ **4 commits locais não enviados** desde 2026-10-26 (o push foi negado pelo modo automático). Rodar `git push`.
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-10-26 — Radar: botão de exportar, publicação por score e filtro de veículo nas lojas, tudo no n8n e **ainda sem run** (22–23/10). Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-10-26 (noite; salvo em 27/10) — nasceu o **Eventos Fenauto C6** (local, sem n8n) e a logo da Fenauto; **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -20,9 +19,18 @@
   teto 150 — substituiu o teto fixo de 30); **filtro de veículo** (evento, farol, busca) chega à
   tabela de lojas e ao KPI Lojas elegíveis (≥ 70 em algum veículo filtrado). Estimativa
   +0,4 MB (~5,4 MB). Detalhes e medições no README da pasta.
+- **Eventos Fenauto C6** — 🔥 nasceu em 26/10, pasta `automations/n8n-sdk/painel-eventos-fenauto-c6/`,
+  frente `c6`. Cópia do Painel de Eventos C6, mesmo recorte (WL 43), **sem representante**.
+  Pedidos do Thomas: C6 à esquerda e **logo da Fenauto no centro do topo** (preta no claro,
+  branca no escuro); loja nova **só com cadastro num dia do evento**; ranking sem pontuação,
+  embaixo dos acessos por hora; **Data em botões** acima do funil; abre no escuro. HTML com
+  dados de 26/10 enviado ao Thomas. 231 provas, `.wf.ts` de 6 nós pronto — **workflow não
+  criado: "ainda não"**. Números em `projetos/c6/indicadores.md`.
 - **design system** — 🔥 `design/tokens/tema.css` é fonte única (produto com cara própria = camada de cor `tema-<produto>.css`, o C6 foi o primeiro); dela saem os dois modelos
   **e** o `kit-de-painel.md`, o arquivo único que vai para o time (68 KB, autossuficiente).
   172 provas. ❓ **A fonte segue em aberto** — `dashboard-teste.html` é o laboratório.
+  **26/10: painel novo abre no ESCURO** (regra 7) — o kit ainda diz o contrário, regerar.
+  Marca nova: `design/marca/fenauto/` (preta, branca e a **azul guardada**) + `paletas/fenauto.json`.
 - **bancos (cars2you + dealers)** — 🔥 acesso direto, só leitura. **Depende de VPN.**
   🔴 **O `schema.md` documenta 149 tabelas e o banco tem 193.** Faltam 44 desde 09/09.
   ❓ **O objetivo do acesso à Dealers segue sem ser declarado.**
@@ -109,6 +117,8 @@
       versão com o VMV provisório — o SharePoint ainda mostra a execução 61975
 - [ ] Confirmar com quem cadastra que VMV = R$ 100.000 é provisório (maioria C6 Bank Lojista)
 - [ ] 🔥 **Mandar o link do Painel C6 ao C6** — `Painel de Eventos C6/painel-eventos-c6.html`, site N8N
+- [ ] **Eventos Fenauto C6: criar o workflow no n8n** quando o Thomas der o ok (`.wf.ts` pronto;
+      depois de criar, `_confere_transcricao.py` antes de rodar)
 - [ ] **Arquivar pela interface** `6o9MSr1CriZ1VUBa` e `53RGtYzUzMoVtxpJ` (versões velhas do
       painel) — o modo automático barra o `archive_workflow`
 - [ ] Linhas de teste do Caio nas duas tabelas da carteira C6 ("apagar antes de produção") —
@@ -124,7 +134,8 @@
 - [ ] 🔥 **Apagar no SharePoint** as 2 pastas antigas, o arquivo de 18/09 e o
       `radar-de-estoque-2026-09-21.html`, órfão desde que o nome perdeu a data
 - [ ] **Levar as 39 lojas sem responsável ao comercial**
-- [ ] **Distribuir o `design/kit-de-painel.md` ao time** — 68 KB, autossuficiente
+- [ ] **Distribuir o `design/kit-de-painel.md` ao time** — 68 KB, autossuficiente. Antes, regerar
+      (`design/monta-kit.js`): ele ainda diz que o claro é o padrão
 - [ ] Conferir a transcrição do `tratar-carteira.js` contra o workflow Carteira
       Comercial — só os 4 nós do Radar têm essa prova
 - [ ] Novembro: `ULTIMO = "2026-10"` no `analise.py` do estudo do IGA e rodar o fluxo de novo
@@ -154,6 +165,8 @@
 ## ⚠️ Alertas críticos
 - 🛑 **Nada vai ao n8n sem a aprovação final do Thomas** (28/09) — criar, atualizar ou rodar.
   Preparar local, mostrar a tela, perguntar.
+- 🌙 **Painel novo abre no tema ESCURO** (Thomas, 26/10) — `data-tema="escuro"` no gerador.
+  Os publicados não mudam sem pedido. Regra 7 de `design/regras-de-layout.md`.
 - 🔁 **Nó de tabela de dados (e todo nó de leitura) roda uma vez POR ITEM de entrada.** Em
   série depois da carteira (30.719 itens), o Ler Nomes derrubou o run 55187 por memória.
   `executeOnce: true`. Configuração de nó muda pela `update_workflow`, sem tocar no código.

@@ -249,3 +249,51 @@ com fim desde 25/08/2026.
 Os números por evento batem com a medição independente acima (23957: 48
 veículos, 506 lances, 50 lojas; 23852: 57/262/44; 23969: 25/130/32;
 23938: 20/200/31) — travados em `automations/n8n-sdk/painel-eventos-c6/prova-local.js`.
+
+## Eventos Fenauto C6 — coleta de 2026-10-26, 20:57
+
+Medido com `automations/n8n-sdk/painel-eventos-fenauto-c6/coleta_local.py` (conexão
+direta, VPN; o SQL exato do Montar Consultas) e `monta_local.js` (o próprio
+Montar Painel, sem filtro). Evento **24052**, "Mega Evento Exclusivo C6 - 13/10/26",
+**05/10 16:00 → 13/10 16:00**, encerrado. Regras do painel no
+[README da pasta](../../../../automations/n8n-sdk/painel-eventos-fenauto-c6/README.md).
+
+| medida | valor |
+|---|---:|
+| veículos publicados | 156 |
+| com algum acesso ao anúncio | 146 |
+| com oferta | 79 |
+| com VMV atingido | 34 |
+| vendidos (status 2, 3, 7) | 68 |
+| valor vendido | R$ 3.484.200 |
+| vendido ÷ soma do VMV dos publicados | 41,4% |
+| recuperação ÷ FIPE (vendidos com FIPE) | 68,0% |
+| recuperação ÷ VMV (vendidos com VMV) | 96,7% |
+| lances | 594 |
+| lojas ofertantes | 58 |
+| lojas compradoras | 24 |
+| lojas que acessaram o evento | 178 |
+| lojas no ranking (ofertaram, acessaram ou são novas) | 422 |
+| HTML | 317 KB |
+
+### Lojas novas pela regra da Fenauto (grupo 146, desde 01/10, cadastro num dia do evento)
+
+**310**, contra **320** pela regra do Painel C6 (grupo 146 desde 01/10, sem olhar o
+dia): 10 se cadastraram entre 01 e 04/10, antes de o evento abrir.
+
+| dia do cadastro | 05/10 | 06/10 | 07/10 | 08/10 | 09/10 | 10/10 | 11/10 | 12/10 | 13/10 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| novas | 3 | 43 | 8 | 147 | 35 | 11 | 3 | 3 | 57 |
+
+Funil: cadastrados 310 → aprovados 310 → acessaram o evento 66 → ofertaram 11 →
+compraram 3. Engajamento 21,3%.
+
+Na coleta de 08/10 09:59 (a do Painel C6, com o evento ainda aberto e o fim em
+08/10 16:00), a mesma regra dava **54 contra 60**.
+
+### Pacotes da coleta de prova (recorte e loja nova desde 01/09, 25 eventos)
+
+veiculos 221 KB, ofertas 279 KB, acessos_anuncio 282 KB — **acima dos ~130 KB que
+o MCP já provou passar**. Não afeta a produção, que hoje é um evento só (24052:
+o maior pacote, acessos_anuncio, tem 40 KB). Se o recorte voltar a ter vários
+eventos, medir antes de publicar.

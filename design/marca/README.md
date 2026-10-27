@@ -7,6 +7,7 @@ variações, ícone, imagem de capa, selo de parceiro.
 marca/
 ├── cars2you/    ✅ logo azul + logo branca
 ├── c6/          ✅ monograma preto + branco (SVG), desde 24/09
+├── fenauto/     ✅ FENAUTO com a Cars2You embaixo: preta (claro), branca (escuro) e azul guardada (SVG), desde 26/10
 ├── itau/        ⬜ vazia
 ├── dealers/     ⬜ vazia
 ├── lm/          ⬜ vazia

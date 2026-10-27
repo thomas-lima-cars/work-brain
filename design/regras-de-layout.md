@@ -405,6 +405,15 @@ cada coleta — o alinhamento passa a depender do **conteúdo**.
 claro, `[data-tema="escuro"]` para o escuro. Dois arquivos irmãos divergem
 sempre do mesmo jeito — o mais usado fica certo e o outro apodrece calado.
 
+- **Painel novo abre no ESCURO** (Thomas, 2026-10-26: "vale para todos os
+  projetos daqui em diante"). O gerador escreve `<html data-tema="escuro">`, e
+  o JS que lê o tema cai no escuro quando o atributo falta. O botão continua
+  levando ao claro. **Não muda o que já está publicado** — Radar, Painel C6,
+  Precificação, Análise de Base e o estudo do IGA seguem como estão até
+  alguém pedir. O primeiro a nascer assim foi o Eventos Fenauto C6.
+  ⚠️ Isto é o tema em que o **arquivo** abre. O **CSS** não muda: o claro
+  segue sendo o `:root` e o "sem atributo" do tema.css — por isso a regra do
+  seletor negativo, mais abaixo, continua valendo.
 - **O tema do arquivo manda.** A troca **não** é gravada em `localStorage`:
   painel que vai por link precisa abrir igual para todo mundo, e arquivo
   chamado "claro" que abre escuro é armadilha.

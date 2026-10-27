@@ -1,0 +1,31 @@
+{
+  "produto": "fenauto",
+  "rotulo": "Fenauto",
+  "atualizado": "2026-10-26",
+  "origem": "logo em PNG entregue pelo Thomas em 26/10 (1076 x 199, uma tinta só); vetorizada em design/marca/fenauto/",
+  "pensada_para": "a marca no topo do painel Eventos Fenauto C6, ao lado da do C6",
+
+  "marca": {
+    "roxo": { "hex": "#403172", "rgb": [64, 49, 114], "papel": "a cor original da logo. GUARDADA (Thomas, 26/10): fica na logo-fenauto-azul.svg, para usar depois; hoje nenhum painel usa" }
+  },
+
+  "contraste_medido": {
+    "_metodo": "WCAG 2.1, medido em 26/10 com a fórmula de luminância relativa",
+    "403172_sobre_branco": 11.05,
+    "403172_sobre_0B0D12": 1.76,
+    "_leitura": "O roxo some no fundo escuro dos modelos, como o azul #1523A0 da Cars2You (1,65). Por isso a logo do escuro é branca."
+  },
+
+  "logo": {
+    "pasta": "design/marca/fenauto/",
+    "formato": "SVG de verdade (traço do PNG com o potracer), FENAUTO + Cars2You extensa embaixo, caixa 1076 x 298,3",
+    "claro": "logo-fenauto-claro.svg",
+    "escuro": "logo-fenauto-escuro.svg",
+    "azul_guardado": "logo-fenauto-azul.svg",
+    "tinta_do_preto": "#242424",
+    "_nota_preto": "A preta (26/10) usa #242424 nas duas partes: a tinta do C6 e o --texto do tema claro dele, onde ela mora hoje. Num painel com a camada da Cars2You, conferir se não pede o #3A4552.",
+    "tinta_do_branco": "#FFFFFF"
+  },
+
+  "sem_camada_de_tema": "A Fenauto não tem tema-fenauto.css: o único painel que a usa (Eventos Fenauto C6) veste a camada do C6. A marca entra só como logo."
+}
