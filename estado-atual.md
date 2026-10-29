@@ -1,5 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
+> ⚠️ **2 commits locais não enviados** desde 2026-10-29 (o push foi negado pelo modo automático). Rodar `git push`.
+
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
 > **Última atualização:** 2026-10-28 (tarde; salvo em 29/10) — nasceu o **Painel de Eventos Cars2You** (local, sem n8n), esperando a revisão do Thomas. Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
