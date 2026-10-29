@@ -1,8 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
-> ⚠️ **2 commits locais não enviados** desde 2026-10-27 (o push foi negado pelo modo automático). Rodar `git push`.
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-10-26 (noite; salvo em 27/10) — nasceu o **Eventos Fenauto C6** (local, sem n8n) e a logo da Fenauto; **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-10-28 (tarde; salvo em 29/10) — nasceu o **Painel de Eventos Cars2You** (local, sem n8n), esperando a revisão do Thomas. Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
@@ -20,6 +19,13 @@
   teto 150 — substituiu o teto fixo de 30); **filtro de veículo** (evento, farol, busca) chega à
   tabela de lojas e ao KPI Lojas elegíveis (≥ 70 em algum veículo filtrado). Estimativa
   +0,4 MB (~5,4 MB). Detalhes e medições no README da pasta.
+- **Painel de Eventos Cars2You** — 🔥 nasceu em 28/10, pasta `automations/n8n-sdk/painel-eventos-cars2you/`,
+  frente `cars2you`. Eventos dos 6 canais já abertos com fim nos últimos 30 dias: cartões do dia
+  por status (removidos = inativos não vendidos), veículos ativos por dia com os novos e o % com
+  acesso/oferta/venda, lojistas por dia, tabela de veículos; filtros whitelabel, comitente,
+  evento, responsável (carteira comercial) e data. 46 provas e conferência contra o banco
+  (dias fechados exatos), `.wf.ts` de 7 nós pronto — **workflow não criado: Thomas vai revisar
+  a tela e as seis escolhas minhas antes**. Números em `projetos/painel-eventos-cars2you/indicadores.md`.
 - **Eventos Fenauto C6** — 🔥 nasceu em 26/10, pasta `automations/n8n-sdk/painel-eventos-fenauto-c6/`,
   frente `c6`. Cópia do Painel de Eventos C6, mesmo recorte (WL 43), **sem representante**.
   Pedidos do Thomas: C6 à esquerda e **logo da Fenauto no centro do topo** (preta no claro,
@@ -78,6 +84,10 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔴 **Painel de Eventos Cars2You — seis escolhas minhas** (README da pasta): novo = estreia em
+  evento, não o cadastro · acessou = abriu anúncio · agendado fora · responsável recorta só lojas ·
+  cartões num dia passado com o status de hoje · removido = tudo que não é ativo, análise nem venda.
+  E: ganha cron?
 - 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
   quem comprou nos últimos 12 meses; nos meses antigos o gráfico conta menos que o total do IGA.
 - 🔵 **Representante com CNPJ repartido entre filiais:** fica o mais frequente, empate →
@@ -108,6 +118,8 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] 🔥 **Revisar o Painel de Eventos Cars2You** (`previa-radar`, porta 8777) e responder as
+      escolhas; depois do ok, criar o workflow (`.wf.ts` pronto) e conferir a transcrição
 - [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
       `resumo.cortados_pelo_teto` = 0, `resumo.fora_do_piso` e o tamanho (~5,4 MB esperado)
 - [ ] **Carteira Comercial (`ksZI8cqSbexqLOre`) aparece `active: false` no n8n** (22/10) — o brain
@@ -140,7 +152,8 @@
 - [ ] Conferir a transcrição do `tratar-carteira.js` contra o workflow Carteira
       Comercial — só os 4 nós do Radar têm essa prova
 - [ ] Novembro: `ULTIMO = "2026-10"` no `analise.py` do estudo do IGA e rodar o fluxo de novo
-- [ ] Destino do `WorkBrain.zip` (raiz), solto fora do git
+- [ ] Destino do `WorkBrain.zip` (raiz), solto fora do git — e do `painel-eventos-fenauto-c6/Fenauto_C6.html`
+      (326 KB, de 26/10, também fora do git: tem nome real de loja)
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
 - [ ] **Estudo de precificação:** multivariado só com o que se sabe antes da venda · `laudo`

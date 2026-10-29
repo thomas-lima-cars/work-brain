@@ -584,6 +584,35 @@ Consequência: VMV = 100.000 **não é o pedido do cliente**. Comparado ao preç
 do modelo, aparece como "VMV mais de 100% acima" e polui o confronto.
 ⚠️ Não confirmado com quem cadastra — é inferência do padrão.
 
+## O veículo, o anúncio e a negociação: quem é estável
+
+Medido em **2026-10-28** por conexão direta, sobre as 27.864 negociações dos
+eventos dos seis canais com fim nos últimos 30 dias (números em
+[`projetos/painel-eventos-cars2you/indicadores.md`](../projetos/painel-eventos-cars2you/indicadores.md)).
+
+| | o que é | estável entre eventos? |
+|---|---|---|
+| `vehicles.id` | o carro | **sim** — a chave de "veículo distinto" |
+| `advertisements.id` | o anúncio | **não na LM**: um anúncio novo a cada feirão (23.495 anúncios de 2.781 veículos em 30 dias). Fora da LM, também um por negociação nessa janela |
+| `advertisement_negotiations.id` | o carro naquele evento | não — uma por evento |
+
+- 🔴 **`vehicles.created_at` é o dia da primeira negociação do carro**, não o
+  dia em que ele estreia em evento: 4.936 de 4.940 veículos foram criados no
+  mesmo dia da primeira negociação da vida, e o evento é montado dias antes
+  de abrir. Para "veículo novo no dia", usar o início das ofertas do
+  primeiro evento (`MIN(events.start_date_offer)` sobre as negociações do
+  veículo).
+- Contar anúncio ou negociação como "veículo" multiplica a LM por ~8 em 30
+  dias.
+
+## Oferta vencedora sem loja existe fora do C6
+
+Medido em **2026-10-28**: 3 vendas (status 2 e 7) do Marketplace com a oferta
+vencedora (`offer_actual_id`) de `buyer_shop_id` **nulo**, não apagada. No C6
+nunca aconteceu (seção acima, "O desfecho de uma negociação do C6"). Quem
+conta "lojas que compraram" perde essas vendas; quem conta "veículos
+vendidos", não deve perder.
+
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`

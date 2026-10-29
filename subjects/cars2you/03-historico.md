@@ -284,3 +284,14 @@ precificar.
   score (≥ 70, mínimo 30, teto 150) no lugar do teto fixo de 30; filtro de veículo chega à tabela
   de lojas e ao KPI Lojas elegíveis. Transcrito ao n8n e conferido (commit `84545af`); run pendente.
   Detalhes em `automations/n8n-sdk/rel-veiculos/README.md`.
+
+## 2026-10-28
+- **Painel de Eventos Cars2You** (pedido do Thomas): eventos dos 6 canais já abertos com fim nos
+  últimos 30 dias — cartões dos eventos ativos no dia por status (removidos = inativos não
+  vendidos), veículos ativos por dia com os novos e o % com acesso/oferta/venda, lojistas por dia,
+  tabela de veículos, filtros de whitelabel, comitente, evento, responsável (carteira comercial) e
+  data. Pasta `automations/n8n-sdk/painel-eventos-cars2you/`. Local: HTML, 46 provas, conferido
+  contra o banco (dias fechados exatos). **Workflow não criado** — Thomas vai revisar a tela e as
+  escolhas antes. Números em `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`.
+- Medido: a LM recria o anúncio a cada feirão; `vehicles.created_at` é o dia da 1ª negociação, não
+  da estreia; oferta vencedora sem loja existe no Marketplace (`plataforma/dominios.md`).
