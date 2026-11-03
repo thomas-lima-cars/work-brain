@@ -1,11 +1,16 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
-> ⚠️ **2 commits locais não enviados** desde 2026-10-29 (o push foi negado pelo modo automático). Rodar `git push`.
-
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-10-28 (tarde; salvo em 29/10) — nasceu o **Painel de Eventos Cars2You** (local, sem n8n), esperando a revisão do Thomas. Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-10-30 (salvo em 03/11) — em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 28/10 nasceu o **Painel de Eventos Cars2You** (local, sem n8n), esperando a revisão do Thomas. Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
+- **Projeção de vendas 2027** — 🔥 nasceu em 29/10, pedido do **Tuunelis** (ata
+  `memory/inputs/meetings/2026-10-29-projecao-2027.md`), pasta `automations/projecao-vendas-2027/`.
+  Excel por fórmulas a partir dos 9 fechamentos (jan–set/26, aba geral + caixa): Base consolidada e
+  Projeção 2027 — comparação anual por comitente no topo (recolhe até o total) e um bloco por
+  comitente no formato da origem, 2026 em cima e 2027 embaixo, premissas % / # / êxito / receita por
+  venda. Regras em `memory/decisions/2026-10-29-regras-projecao-2027.md`; números no README.
+  ✅ Validada (30/10). **Falta mandar ao Tuunelis** e criar o projeto no Claude com ele e o Mattera.
 - **Radar de Estoque** — 🔥 wf `8fiTFsjWG9RQinz8`, pasta `automations/n8n-sdk/rel-veiculos/`.
   ✅ **Run 53433** (23/09, 16min15s), tudo transcrito e conferido byte a byte. Novidades:
   **farol de oferta** (VMV) e o filtro dele; **trava de grupo de cliente** no cruzamento
@@ -86,6 +91,8 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔵 **Projeção 2027 — mesclas a validar com o Mattera:** "Multifrota - Netcarros" → "Outlet Netcarros"
+  e os 5 "Dealers - Venda Direta - Ajuste <mês>" numa linha (aba De-para, oculta).
 - 🔴 **Painel de Eventos Cars2You — seis escolhas minhas** (README da pasta): novo = estreia em
   evento, não o cadastro · acessou = abriu anúncio · agendado fora · responsável recorta só lojas ·
   cartões num dia passado com o status de hoje · removido = tudo que não é ativo, análise nem venda.
@@ -120,6 +127,10 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] 🔥 **Mandar a Projeção 2027 ao Tuunelis** (`automations/projecao-vendas-2027/projecao-vendas-2027.xlsx`)
+      — o prazo era sexta 30/10; confirmar se já foi
+- [ ] Projeção 2027: criar o **projeto no Claude** e compartilhar com Tuunelis e Mattera (pedido da reunião)
+- [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
 - [ ] 🔥 **Revisar o Painel de Eventos Cars2You** (`previa-radar`, porta 8777) e responder as
       escolhas; depois do ok, criar o workflow (`.wf.ts` pronto) e conferir a transcrição
 - [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
@@ -171,6 +182,7 @@
       em `context/stakeholders.md` · preencher `01-contexto.md` de `itau` e `lm`
 
 ## ⏳ Esperando outros
+- **Tuunelis** — premissas da projeção 2027 por comitente (ele preenche) · **Mattera** — fechamentos de out–dez/26
 - **Thomas** — objetivo do acesso à Dealers? · REPASSE/TRADICIONAL vira coluna? · o que
   são as vendas do Agile? · as 4 lojas do ranking são contas internas? · qual fonte? ·
   a logo azul entra em uso? · o cabeçalho do modelo vai pra gaveta?

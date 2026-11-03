@@ -295,3 +295,11 @@ precificar.
   escolhas antes. Números em `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`.
 - Medido: a LM recria o anúncio a cada feirão; `vehicles.created_at` é o dia da 1ª negociação, não
   da estreia; oferta vencedora sem loja existe no Marketplace (`plataforma/dominios.md`).
+
+## 2026-10-29/30
+- **Projeção de vendas 2027** (pedido do Tuunelis em reunião, ata
+  `memory/inputs/meetings/2026-10-29-projecao-2027.md`): os 9 fechamentos de 2026 (jan–set, aba
+  geral + caixa) consolidados e a projeção 2027 em Excel por fórmulas — mesmo mês de 2026 ×
+  premissas por comitente (% e # de publicados, êxito, receita por venda). Pasta
+  `automations/projecao-vendas-2027/`; regras em `memory/decisions/2026-10-29-regras-projecao-2027.md`.
+  Validada; falta mandar ao Tuunelis.

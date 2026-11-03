@@ -25,8 +25,11 @@
 |---|---|---|
 | **Doni** (Donizeti Junior) | Operação — interlocutor do Pulso de Eventos | Ata 02/09 (alinhar bolinha colorida); fallback da Lista LM |
 | **Thais** (Martins) | Consultora — rota de fallback das propostas LM | `automations/n8n-flows/lista-lm-propostas.md` |
-| **Fernando** (Tuunelis) | Destinatário de relatórios | Listas de e-mail IGA/Auditoria |
-| **Carlos Mattera**, **Ana Luz**, **Raiane Silva** | Destinatários de relatórios | Lista da Auditoria de Estoque |
+| **Fernando** (Tuunelis, "Tuna") | Faz as projeções anuais e o EBITDA mensal; dono do pedido da projeção 2027. Também destinatário de relatórios | Listas de e-mail IGA/Auditoria; ata 29/10 |
+| **Carlos Mattera** ("Matera") | Manda os relatórios de fechamento mensais (Excel, regime de caixa); conhece o BI e as exceções dele | Lista da Auditoria de Estoque; ata 29/10 |
+| **Ana Luz**, **Raiane Silva** | Destinatárias de relatórios | Lista da Auditoria de Estoque |
+
+Everton é **Everton Souza Vieira** (ata 29/10).
 
 ## Lado Itaú
 
