@@ -52,6 +52,7 @@ O que vale para as duas bases e para qualquer projeto.
 | [`precificacao/`](projetos/precificacao/) | Definições de venda e deságio, indicadores medidos, dicionário do texto livre |
 | [`c6/`](projetos/c6/) | _(a preencher — hoje o conhecimento está em `subjects/c6/` e `automations/n8n-sdk/`)_ |
 | [`painel-eventos-cars2you/`](projetos/painel-eventos-cars2you/) | Recorte de 30 dias nos seis canais, LM recriando anúncio, `vehicles.created_at`, volume e pacotes, o que o painel mostrou (28/10) |
+| [`mega-evento-fenauto/`](projetos/mega-evento-fenauto/) | C6 + IGA da semana, a campanha da Fenauto 2025 (226 lojas), a semana atual e a de prova (03/11) |
 | [`radar-de-estoque/`](projetos/radar-de-estoque/) | _(a preencher — hoje em `automations/n8n-sdk/rel-veiculos/README.md` — o projeto se chama **Radar de Estoque**)_ |
 
 ## ⚠️ O estado da documentação

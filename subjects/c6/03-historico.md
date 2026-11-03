@@ -198,3 +198,12 @@
 - 231 provas, `.wf.ts` pronto. **Workflow não criado no n8n** — o Thomas disse "ainda não".
 - **Regra nova para todos os projetos:** painel novo abre no tema escuro
   ([decisão](../../memory/decisions/2026-10-26-tema-escuro-padrao.md)).
+
+## 2026-11-03
+- **Mega Evento Fenauto (Cars2You)** — irmão do Eventos Fenauto C6 com a identidade da Cars2You
+  (`tema.css` sem a camada do C6), logo da Fenauto à esquerda, título no centro. Recorte: eventos
+  do **C6 e do IGA** da semana corrente (seg a dom, anda sozinha), teto de 31 dias. Loja nova =
+  cadastro pela **campanha da Fenauto** (`user_profiles.register_form_value`) num dia do evento.
+  Filtro de evento em botões acima da Data. Pasta `automations/n8n-sdk/painel-eventos-fenauto-cars2you/`,
+  273 provas, `.wf.ts` pronto — **workflow não criado**. Feito numa sessão de manhã que não passou
+  pelo `/salve`; salvo junto com a da tarde.

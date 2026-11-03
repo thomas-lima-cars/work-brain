@@ -9,7 +9,7 @@ Pedido do Thomas em **28/10/2026**. Nasceu do Painel de Eventos C6: mesmo jeito
 de empacotar consulta, mesma gaveta, mesma tabela ordenável. O recorte e a tela
 são outros.
 
-**Estado em 2026-10-28:** HTML, 46 provas, conferência contra o banco e o
+**Estado em 2026-10-28:** HTML, 57 provas, conferência contra o banco e o
 `.wf.ts` prontos, **local**. **Workflow ainda não criado no n8n** — espera o ok
 final do Thomas.
 
@@ -25,10 +25,12 @@ site N8N. Gatilho manual (cron só com o ok).
 | pedido | na tela |
 |---|---|
 | Cartões dos eventos ativos no dia, com veículos ativos por status e os removidos (inativos não vendidos) | cinco cartões: **Eventos ativos** (veículos e comitentes), **Veículos ativos** (com acesso, com oferta), **Em análise** (comprador, vendedor), **Vendidos** (aguardando pagamento, vendido, valor), **Removidos** (cancelados, sem ofertas, rejeitados) |
+| Cartões de infográfico por comitente, com os indicadores do dia, abaixo dos big numbers, servindo de filtro (03/11) | **um cartão por comitente com evento ativo no dia**, **três por linha**, do maior para o menor: nome e eventos em cima; **parte dos gráficos (60% da largura)**: o nome do indicador centralizado em cima, sem rótulo embaixo de cada gráfico; uma **rosca com o % do indicador** no centro e, ao lado, **um gráfico de área dos últimos 7 dias** do mesmo indicador (linha com preenchimento transparente, ponto de hoje marcado, valor de cada dia no balão), e centralizados embaixo o "x de y" e a **diferença em p.p. para o dia anterior** (▲ verde, ▼ vermelho); **parte da tabela (40%)**: a tabela de status (veículos, ativos, em análise, vendidos, removidos); no pé, o valor vendido. **A luz do cartão** (o véu do canto, o `--brilho` do tema) fica **verde quando a diferença sobe e vermelha quando cai**, e **a rosca e a área ganham a mesma cor**; igual ou sem dado, a luz normal e os gráficos em azul. **Clique filtra** o painel inteiro pelo comitente (o mesmo filtro da gaveta), clique de novo solta; o escolhido fica com contorno e os outros apagados. No telefone viram uma fileira que corre de lado |
+| Lista por evento abaixo (03/11) | **Retrátil** (o `<details>` é o cartão, como o glossário): **nasce fechada**, abre ao escolher um comitente e fecha ao soltá-lo, ou abre e fecha no clique do título — quem abriu ou fechou com a mão manda até o comitente mudar de novo. **Eventos ativos hoje**: uma linha por evento ativo no dia — nome, comitente e fim; os mesmos status; termômetro do indicador com o Δ p.p., **coluna de largura fixa** (barra, % e diferença alinhados em toda linha; o "vs ontem" mora só no cabeçalho) e **a mesma luz dos cartões por linha** (verde subiu, vermelha caiu), com **o termômetro na mesma cor**. **Clique filtra pelo evento.** Segue o comitente escolhido (com a LM marcada, só os 14 eventos dela). Evento aberto sem veículo aparece com zeros, para bater com o big number |
 | Barras de veículos ativos por dia, separando os novos, com a linha do % com acesso, oferta e venda | **Veículos ativos por dia**: barra empilhada (já em evento + novos do dia), linha do indicador com eixo próprio à direita |
-| Botões do KPI à esquerda, novos/todos à direita | `Com acesso · Com oferta · Vendidos` à esquerda; `Todos · Novos` à direita. Com Novos, a barra e a linha são só dos novos do dia |
+| Botões do KPI à esquerda, novos/todos à direita; depois, **filtros de indicador no topo** (03/11) | `Com acesso · Com oferta · Vendidos` numa barra **no topo da página**, antes dos big numbers: valem para a rosca, a lista de eventos e a linha do gráfico. **`Todos · Novos` subiu também** (03/11), à direita na mesma barra: com Novos, a rosca, o termômetro e o gráfico contam só os veículos que estrearam no dia |
 | Tabela de veículos como a do painel de eventos | um veículo por linha: farol, link do anúncio, ano, km, estreia, evento mais recente e comitente, acessos, ofertas, maior oferta, FIPE, % FIPE, VMV, % VMV, resultado e comprador. Busca e "mostrar mais" de 100 em 100 |
-| Curva de lojistas que logaram, acessaram, ofertaram e compraram por dia | **Lojistas por dia**, quatro linhas, e o total do período embaixo |
+| Curva de lojistas que logaram, acessaram, ofertaram e compraram por dia; depois **sem o Logaram, com rótulos** (03/11) | **Lojistas por dia**, três linhas — acessaram (branco), ofertaram (azul), compraram (verde) — e o total do período embaixo. Logaram saiu da tela (o cálculo segue, as provas usam). **Rótulo em cada ponto**: pílula com o fundo transparente (28%) na cor da linha, sem contorno, número na cor do texto (AA nos dois temas, de 4,99 a 11,63:1); com rótulo, sem eixo Y. Rótulos do mesmo dia que encostariam são afastados na vertical (31 dias: 93 rótulos, 0 sobrepostos). Se o rótulo não cabe no espaço de um dia (telefone com 31 dias), volta o eixo e o valor fica no balão |
 | Filtros: whitelabel, comitente, evento, responsável da carteira comercial, data | gaveta, nessa ordem. Data = De / Até |
 
 ## As regras
@@ -41,6 +43,8 @@ As marcadas **(minha)** são escolhas minhas, a confirmar com o Thomas.
 | **Veículo ativo no dia** | Veículo **distinto** com negociação num evento aberto no dia, do dia do início das ofertas ao dia do fim. O carro da LM que sai de um feirão às 16h e entra no seguinte às 18h conta uma vez |
 | **Novo no dia** **(minha)** | O dia em que o veículo **estreou**: o início das ofertas do primeiro evento da vida dele, em qualquer canal. O pedido diz "cadastrados no dia"; o motivo da troca está abaixo |
 | **Status nos cartões** | Dos veículos dos eventos ativos no dia, o status da negociação no evento **mais recente**. Ativo = 1; Em análise = 9, 13; Vendido = 2, 3, 7; **Removido = todo o resto** (8, 10, 11, 14, 15, 18) — "inativo não vendido", a definição do pedido |
+| **Cartões por comitente** (03/11) | A mesma conta dos cartões do topo (`cartoes()` no `calcula`, uma função só), uma vez por comitente: o cartão do comitente é, por construção, o topo com aquele comitente filtrado — a prova confere campo a campo, hoje, num dia passado e com filtro de canal. Seguem canal, evento e data; **ignoram o próprio filtro de comitente**, para o escolhido não sumir com os outros |
+| **Rosca, termômetro e Δ p.p.** (03/11) | O indicador do topo no dia, para os veículos do comitente ou do evento **ativos no dia** (a base pode ser maior que a coluna Ativos, que é o status agora): é a conta do gráfico com o comitente ou o evento filtrado, no dia e no dia anterior — a prova confere campo a campo em quatro recortes. Δ = % do dia − % do dia anterior, em pontos percentuais; sem veículo ativo num dos dois dias, "—". O modelo em lista no lugar dos cartões foi feito e descartado no mesmo dia: ficaram os cartões |
 | **Cartões num dia passado** | Com Até antes de hoje, os cartões mostram os eventos ativos naquele dia com o status **de hoje** — o banco não guarda o status de cada dia |
 | **% com acesso / oferta / venda** | Dos veículos ativos no dia, quantos tiveram o anúncio aberto por alguma loja, receberam lance ou venderam **naquele dia**. Venda pela data da oferta vencedora |
 | **Logou** | Qualquer linha de `access_logs` da loja no canal (`dominios.md`, rota `/bem-vindo` e afins) |
@@ -137,8 +141,22 @@ escuro** (regra 7). Três cores derivadas, que o `tema.css` não tem, medidas no
 | `--serie-2` | `#748290` (3,19 no canto do cartão) | `#646E86` (3,18 no cartão) | barra "já em evento" |
 | `--farol-abaixo` | `#946200` (4,25) | `#E3B341` (9,38) | farol de oferta abaixo do VMV |
 
-A linha do indicador usa `--atencao`; as quatro linhas de lojistas usam
-`--texto-3`, `--acento-cheio`, `--atencao` e `--positivo`.
+**Sem rosa nem vinho (Thomas, 03/11).** O `--atencao` do `tema.css` (vinho
+no claro, rosa `#C98A92` no escuro) é redefinido no painel para o amarelo do
+farol, e nada desenha com ele de propósito. A linha do indicador usa
+`--texto` (branca no escuro). Lojistas: Logaram `--texto-3` (cinza),
+**Acessaram `--texto` (branco no escuro, grafite no claro)**, **Ofertaram
+`--acento-cheio` (azul)**, Compraram `--positivo` (verde). Varredura no
+navegador, nos dois temas, de toda cor computada: nenhum rosa ou vinho.
+
+**Fontes mais claras no escuro (Thomas, 03/11)**, só neste painel — o
+`tema.css` segue igual. Medidas sobre o cartão `#12151D`:
+
+| token | era | ficou |
+|---|---|---|
+| `--texto` | `#EDEFF5` | `#F3F5FA` (16,7:1) |
+| `--texto-2` | `#A4ABBF` (8,0:1) | `#C0C6D4` (10,7:1) |
+| `--texto-3` | `#6E7589` (**4,0:1, abaixo de AA**) | `#8E95A8` (6,1:1) |
 
 Os gráficos são séries de até 31 dias com duas medidas no mesmo desenho: a
 exceção da regra 3 — eixo com grade, sem rótulo em cada ponto, valor de cada
@@ -151,7 +169,7 @@ pixels), para o texto do eixo sair legível também no telefone.
 python coleta_local.py               # coleta real (VPN) + carteira local → dados-local.json
 node _aplica-modelo.js               # tema + logos para dentro do Montar Painel
 for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
-node prova-local.js                  # 46 provas
+node prova-local.js                  # 57 provas
 python _confere_banco.py 22          # o dia 22 da janela contra SQL escrito de novo (VPN)
 node monta_local.js                  # saida-local.html
 python build_wf.py                   # painel-eventos-cars2you.wf.ts
@@ -171,7 +189,7 @@ Para ver: `previa-radar` em `.claude/launch.json`, em
 | `_roda_no.js`, `_enxuga.js` | iguais aos do Painel C6 |
 | `coleta_local.py` | roda o SQL exato do Montar Consultas pela conexão direta e mede cada pacote; avisa o que passar de 130 KB |
 | `monta_local.js` | regera a tela sem n8n e sem banco |
-| `prova-local.js` | 46 provas: fonte (sem barra invertida, blocos injetados iguais ao injetor, enxuto = original), consultas (uma por parte, pacote único, sem NOW), o que derruba o run (pacote cortado, parte faltando, resposta a menos), carteira ausente/com erro/truncada/velha, HTML (escuro, offline, CNPJ que não vaza, ordem dos blocos e da gaveta, glossário), e as contas refeitas do cru sem máscara: ativos e novos de cada dia, cartões, responsável repartindo as lojas, De = Até, evento, canal e comitente, tabela |
+| `prova-local.js` | 57 provas: fonte (sem barra invertida, blocos injetados iguais ao injetor, enxuto = original), consultas (uma por parte, pacote único, sem NOW), o que derruba o run (pacote cortado, parte faltando, resposta a menos), carteira ausente/com erro/truncada/velha, HTML (escuro, offline, CNPJ que não vaza, ordem dos blocos e da gaveta, glossário), e as contas refeitas do cru sem máscara: ativos e novos de cada dia, cartões, responsável repartindo as lojas, De = Até, evento, canal e comitente, tabela |
 | `_confere_banco.py` | o dia escolhido e o período contra SQL de contagem distinta, escrito de novo, sem máscara e sem o `calcula()`; os cartões de hoje por um terceiro caminho |
 | `build_wf.py` | gera o `.wf.ts` (7 nós, sem cron, sem e-mail) |
 

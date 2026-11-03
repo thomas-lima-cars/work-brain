@@ -433,52 +433,118 @@ function calcula(D, F) {
     });
   });
   const ref = ate;
-  const evRef = {};
-  let nEvRef = 0;
-  D.eventos.forEach((e, i) => { if (evOk[i] && e.d0 <= ref && ref <= e.d1) { evRef[i] = 1; nEvRef++; } });
-  const melhor = {};
-  D.negs.forEach((n, i) => {
-    if (!evRef[n[0]] || !nOk(n)) return;
-    const j = melhor[n[1]];
-    if (j === undefined) { melhor[n[1]] = i; return; }
-    const a = D.eventos[n[0]].fim;
-    const b = D.eventos[D.negs[j][0]].fim;
-    if (a > b || (a === b && i > j)) melhor[n[1]] = i;
-  });
-  const k = {
-    ref: ref, eventos: nEvRef, veiculos: 0, comitentes: 0,
-    ativos: 0, ativos_acesso: 0, ativos_oferta: 0,
-    analise: 0, analise_comprador: 0, analise_vendedor: 0,
-    vendidos: 0, aguardando: 0, vendido: 0, valor: 0,
-    removidos: 0, rem_cancelado: 0, rem_sem_oferta: 0, rem_rejeitado: 0, rem_outros: 0
+  const ativoNoRef = (e) => e.d0 <= ref && ref <= e.d1;
+  const cartoes = (evAtivo, passa) => {
+    let nEv = 0;
+    D.eventos.forEach((e, i) => { if (evAtivo(e, i)) nEv++; });
+    const melhor = {};
+    D.negs.forEach((n, i) => {
+      if (!evAtivo(D.eventos[n[0]], n[0]) || !passa(n)) return;
+      const j = melhor[n[1]];
+      if (j === undefined) { melhor[n[1]] = i; return; }
+      const a = D.eventos[n[0]].fim;
+      const b = D.eventos[D.negs[j][0]].fim;
+      if (a > b || (a === b && i > j)) melhor[n[1]] = i;
+    });
+    const c = {
+      ref: ref, eventos: nEv, veiculos: 0, comitentes: 0,
+      ativos: 0, ativos_acesso: 0, ativos_oferta: 0,
+      analise: 0, analise_comprador: 0, analise_vendedor: 0,
+      vendidos: 0, aguardando: 0, vendido: 0, valor: 0,
+      removidos: 0, rem_cancelado: 0, rem_sem_oferta: 0, rem_rejeitado: 0, rem_outros: 0
+    };
+    const comRef = {};
+    Object.keys(melhor).forEach((v) => {
+      const i = melhor[v];
+      const n = D.negs[i];
+      const st = n[3];
+      c.veiculos++;
+      if (n[2] >= 0) comRef[n[2]] = 1;
+      if (st === 1) {
+        c.ativos++;
+        if (X.ac[i].length) c.ativos_acesso++;
+        if (X.of[i].length) c.ativos_oferta++;
+      } else if (ST_ANALISE.indexOf(st) >= 0) {
+        c.analise++;
+        if (st === 9) c.analise_comprador++; else c.analise_vendedor++;
+      } else if (ST_VENDA.indexOf(st) >= 0) {
+        c.vendidos++;
+        if (st === 7) c.vendido++; else c.aguardando++;
+        if (X.ven[i]) c.valor += X.ven[i][2];
+      } else {
+        c.removidos++;
+        if (st === 8 || st === 10) c.rem_cancelado++;
+        else if (st === 11) c.rem_sem_oferta++;
+        else if (st === 14 || st === 15 || st === 18) c.rem_rejeitado++;
+        else c.rem_outros++;
+      }
+    });
+    c.comitentes = Object.keys(comRef).length;
+    return c;
   };
-  const comRef = {};
-  Object.keys(melhor).forEach((v) => {
-    const i = melhor[v];
-    const n = D.negs[i];
-    const st = n[3];
-    k.veiculos++;
-    if (n[2] >= 0) comRef[n[2]] = 1;
-    if (st === 1) {
-      k.ativos++;
-      if (X.ac[i].length) k.ativos_acesso++;
-      if (X.of[i].length) k.ativos_oferta++;
-    } else if (ST_ANALISE.indexOf(st) >= 0) {
-      k.analise++;
-      if (st === 9) k.analise_comprador++; else k.analise_vendedor++;
-    } else if (ST_VENDA.indexOf(st) >= 0) {
-      k.vendidos++;
-      if (st === 7) k.vendido++; else k.aguardando++;
-      if (X.ven[i]) k.valor += X.ven[i][2];
-    } else {
-      k.removidos++;
-      if (st === 8 || st === 10) k.rem_cancelado++;
-      else if (st === 11) k.rem_sem_oferta++;
-      else if (st === 14 || st === 15 || st === 18) k.rem_rejeitado++;
-      else k.rem_outros++;
-    }
+  const k = cartoes((e, i) => evOk[i] && ativoNoRef(e), nOk);
+  const evOkSemCom = D.eventos.map((e, i) => (!wl || e.wls.indexOf(wl) >= 0) && (ev < 0 || i === ev));
+  const comHoje = {};
+  D.eventos.forEach((e, i) => { if (evOkSemCom[i] && ativoNoRef(e)) e.comits.forEach((c) => { comHoje[c] = 1; }); });
+  const porComit = Object.keys(comHoje).map(Number).map((c) => Object.assign({ comit: c },
+    cartoes((e, i) => evOkSemCom[i] && ativoNoRef(e) && e.comits.indexOf(c) >= 0, (n) => n[2] === c)))
+    .filter((c) => c.veiculos > 0)
+    .sort((a, b) => b.veiculos - a.veiculos || a.comit - b.comit);
+  const evListaOk = D.eventos.map((e, i) => ativoNoRef(e) && (!wl || e.wls.indexOf(wl) >= 0) &&
+    (comit < 0 || e.comits.indexOf(comit) >= 0));
+  const doComit = (n) => comit < 0 || n[2] === comit;
+  const porEvento = [];
+  evListaOk.forEach((ok, i) => {
+    if (!ok) return;
+    porEvento.push(Object.assign({ ev: i }, cartoes((e, j) => j === i, doComit)));
   });
-  k.comitentes = Object.keys(comRef).length;
+  porEvento.sort((a, b) => b.veiculos - a.veiculos || (D.eventos[a.ev].fim < D.eventos[b.ev].fim ? -1 : 1));
+  const vazioDia = () => ({ ativos: 0, novos: 0, acesso: 0, oferta: 0, venda: 0, acesso_n: 0, oferta_n: 0, venda_n: 0 });
+  const indicadorDia = (grupoDe, d) => {
+    const out = {};
+    if (d < 0) return out;
+    const b = 1 << d;
+    const pv = {};
+    D.negs.forEach((n, i) => {
+      const g = grupoDe(n);
+      if (g === null) return;
+      const kk = g + '|' + n[1];
+      const p = pv[kk] || (pv[kk] = { g: g, v: n[1], at: 0, ac: 0, of: 0, ve: 0 });
+      if (X.evMask[n[0]] & b) p.at = 1;
+      X.ac[i].forEach((a) => { if (lojaOk[a[1]] && (a[2] & b)) p.ac = 1; });
+      X.of[i].forEach((o) => { if (lojaOk[o[1]] && (o[4] & b)) p.of = 1; });
+      const s = X.ven[i];
+      if (s && s[3] === d && (s[1] < 0 ? resp === '' : lojaOk[s[1]])) p.ve = 1;
+    });
+    Object.keys(pv).forEach((kk) => {
+      const p = pv[kk];
+      if (!p.at) return;
+      const g = out[p.g] || (out[p.g] = vazioDia());
+      const nv = D.veics[p.v][5] === d;
+      g.ativos++;
+      if (nv) g.novos++;
+      if (p.ac) { g.acesso++; if (nv) g.acesso_n++; }
+      if (p.of) { g.oferta++; if (nv) g.oferta_n++; }
+      if (p.ve) { g.venda++; if (nv) g.venda_n++; }
+    });
+    return out;
+  };
+  const grupoComit = (n) => (n[2] >= 0 && comHoje[n[2]] && evOkSemCom[n[0]] ? n[2] : null);
+  const grupoEvento = (n) => (evListaOk[n[0]] && doComit(n) ? n[0] : null);
+  const SEMANA = 7;
+  const semana = [];
+  for (let j = SEMANA - 1; j >= 0; j--) semana.push({ d: ref - j, g: indicadorDia(grupoComit, ref - j) });
+  porComit.forEach((c) => {
+    c.hist = semana.map((s) => (s.d < 0 ? null : Object.assign({ d: s.d }, s.g[c.comit] || vazioDia())));
+    c.dia = c.hist[SEMANA - 1];
+    c.dia_ant = c.hist[SEMANA - 2];
+  });
+  const evHoje = indicadorDia(grupoEvento, ref);
+  const evAnt = indicadorDia(grupoEvento, ref - 1);
+  porEvento.forEach((c) => {
+    c.dia = evHoje[c.ev] || vazioDia();
+    c.dia_ant = ref > 0 ? (evAnt[c.ev] || vazioDia()) : null;
+  });
   const veiculos = [];
   for (let v = 0; v < NV; v++) {
     const ns = vNegs[v];
@@ -524,7 +590,7 @@ function calcula(D, F) {
       estreia: vv[5], farol: farol
     });
   }
-  return { de: de, ate: ate, kpi: k, dias: dias, lojistas: lojistas, tot_lojistas: totLoj,
+  return { de: de, ate: ate, kpi: k, por_comit: porComit, por_evento: porEvento, dias: dias, lojistas: lojistas, tot_lojistas: totLoj,
     veiculos_periodo: noPeriodo, veiculos: veiculos };
 }
 function APP(D, LOGO) {
@@ -723,31 +789,55 @@ function APP(D, LOGO) {
     const W = largura(alvo);
     const n = grupos.length;
     if (!n) { alvo.innerHTML = '<p class="dim">Nenhum dia no período.</p>'; return; }
-    const esq = 44;
-    const dir = 12;
-    const topo = 12;
+    const ALT_R = 15;
+    const largRot = (v) => String(nf(v)).length * 6.4 + 10;
+    const maiorRot = Math.max.apply(null, grupos.map((g) => Math.max.apply(null, series.map((se) => largRot(g[se.k])))));
+    const comRotulo = (W - 16) / n >= maiorRot + 2;
+    const esq = comRotulo ? 8 : 44;
+    const dir = comRotulo ? 8 : 12;
+    const topo = comRotulo ? ALT_R + 8 : 12;
     const base = ALT_G - 24;
     const slot = (W - esq - dir) / n;
     const topoV = Math.max(1, Math.max.apply(null, grupos.map((g) => Math.max.apply(null, series.map((se) => g[se.k])))));
     const passo = passoRedondo(topoV);
-    const topoN = Math.ceil(topoV / passo) * passo;
+    const topoN = comRotulo ? topoV : Math.ceil(topoV / passo) * passo;
     const y = (v) => base - (base - topo) * v / topoN;
     const s = ['<svg class="graf" viewBox="0 0 ' + W + ' ' + ALT_G + '" width="' + W + '" height="' + ALT_G + '" role="img" aria-label="' + esc(alvo.getAttribute('data-rot')) + '">'];
-    for (let v = passo; v <= topoN; v += passo) {
-      s.push('<line class="linha-grade" x1="' + esq + '" x2="' + (W - dir) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/>' +
-        '<text class="eixo" x="' + (esq - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end">' + nf(v) + '</text>');
+    if (!comRotulo) {
+      for (let v = passo; v <= topoN; v += passo) {
+        s.push('<line class="linha-grade" x1="' + esq + '" x2="' + (W - dir) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/>' +
+          '<text class="eixo" x="' + (esq - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end">' + nf(v) + '</text>');
+      }
+      s.push('<text class="eixo" x="' + (esq - 6) + '" y="' + (base + 3.5) + '" text-anchor="end">0</text>');
     }
-    s.push('<text class="eixo" x="' + (esq - 6) + '" y="' + (base + 3.5) + '" text-anchor="end">0</text>');
     eixoX(s, grupos, esq, slot, base, ALT_G);
     series.forEach((se) => {
       const pts = grupos.map((g, i) => [esq + i * slot + slot / 2, y(g[se.k])]);
       s.push('<path class="linha ' + se.cls + '" d="' + pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('') + '"/>');
       if (n <= 45) pts.forEach((p) => s.push('<circle class="ponto ' + se.cls + '" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="2.5"/>'));
     });
+    if (comRotulo) {
+      grupos.forEach((g, i) => {
+        const x = esq + i * slot + slot / 2;
+        const rs = series.map((se) => ({ se: se, v: g[se.k], c: y(g[se.k]) - ALT_R / 2 - 4 }))
+          .sort((p, q) => p.c - q.c);
+        rs.forEach((r, j) => {
+          r.c = Math.max(r.c, ALT_R / 2 + 1);
+          if (j && r.c - rs[j - 1].c < ALT_R + 1) r.c = rs[j - 1].c + ALT_R + 1;
+        });
+        const sobra = rs.length ? rs[rs.length - 1].c + ALT_R / 2 - base : 0;
+        if (sobra > 0) rs.forEach((r) => { r.c -= sobra; });
+        rs.forEach((r) => {
+          const w = largRot(r.v);
+          s.push('<g class="rot-p ' + r.se.cls + '"><rect x="' + (x - w / 2).toFixed(1) + '" y="' + (r.c - ALT_R / 2).toFixed(1) + '" width="' + w.toFixed(1) +
+            '" height="' + ALT_R + '" rx="4"/><text x="' + x.toFixed(1) + '" y="' + (r.c + 3.6).toFixed(1) + '" text-anchor="middle">' + nf(r.v) + '</text></g>');
+        });
+      });
+    }
     grupos.forEach((g, i) => {
       const txt = '<b>' + esc(g.longo) + '</b>' + series.map((se) => '<br><span class="amostra ' + se.cls + '"></span>' +
         esc(se.nome) + ': ' + nf(g[se.k])).join('');
-      s.push('<rect class="alvo" x="' + (esq + i * slot).toFixed(1) + '" y="' + topo + '" width="' + slot.toFixed(1) + '" height="' + (base - topo + 22) +
+      s.push('<rect class="alvo" x="' + (esq + i * slot).toFixed(1) + '" y="0" width="' + slot.toFixed(1) + '" height="' + (base + 22) +
         '" tabindex="0" data-dica="' + esc(txt) + '"/>');
     });
     alvo.innerHTML = s.join('') + '</svg>';
@@ -816,6 +906,8 @@ function APP(D, LOGO) {
     kpi = b.getAttribute('data-v');
     alterna('seg-kpi', kpi);
     desenhaAtivos();
+    desenhaComitentes();
+    desenhaEventos();
   });
   $('#seg-modo').addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-v]');
@@ -823,6 +915,8 @@ function APP(D, LOGO) {
     modo = b.getAttribute('data-v');
     alterna('seg-modo', modo);
     desenhaAtivos();
+    desenhaComitentes();
+    desenhaEventos();
   });
   let esperaBusca = null;
   $('#busca').addEventListener('input', (ev) => {
@@ -858,6 +952,156 @@ function APP(D, LOGO) {
     $('#leg-linha').textContent = KPI[kpi].linha + (novos ? ' dos novos' : '');
     combo($('#g-ativos'), grupos);
   }
+  const STATUS_C = [['veiculos', 'Veículos'], ['ativos', 'Ativos'], ['analise', 'Em análise'],
+    ['vendidos', 'Vendidos'], ['removidos', 'Removidos']];
+  const baseDe = (g) => (g ? (modo === 'novos' ? g.novos : g.ativos) : 0);
+  const acertoDe = (g) => (g ? (modo === 'novos' ? g[kpi + '_n'] : g[kpi]) : 0);
+  const pctDe = (g) => (baseDe(g) ? acertoDe(g) / baseDe(g) : null);
+  const rotIndicador = () => KPI[kpi].linha + (modo === 'novos' ? ' dos novos' : '');
+  const quandoRef = () => (R.ate === D.hoje ? 'hoje' : 'em ' + rotDia(R.ate));
+  const contraAnt = () => (R.ate === D.hoje ? 'ontem' : rotDia(R.ate - 1));
+  const difPP = (c) => {
+    const a = pctDe(c.dia);
+    const b = pctDe(c.dia_ant);
+    return a === null || b === null ? null : Math.round(1000 * (a - b)) / 10;
+  };
+  const delta = (c, curto) => {
+    const vs = curto ? '' : '<span class="dim"> vs ' + contraAnt() + '</span>';
+    const d = difPP(c);
+    if (d === null) return '<span class="dim">—</span>' + vs;
+    const t = (d > 0 ? '+' : '') + d.toFixed(1).replace('.', ',') + ' p.p.';
+    const cls = d > 0 ? 'sobe' : d < 0 ? 'desce' : 'dim';
+    return '<span class="' + cls + '">' + (d > 0 ? '▲ ' : d < 0 ? '▼ ' : '') + t + '</span>' + vs;
+  };
+  const areaSemana = (hist) => {
+    const W = 98;
+    const H = 80;
+    const topo = 6;
+    const base = H - 3;
+    const n = hist.length;
+    const passo = (W - 8) / (n - 1);
+    const vals = hist.map((g) => (g ? pctDe(g) : null));
+    const max = Math.max(0.05, Math.max.apply(null, vals.map((v) => (v === null ? 0 : v))));
+    const xDe = (i) => 4 + i * passo;
+    const yDe = (v) => base - (base - topo) * v / max;
+    let s = '<svg class="semana" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
+      '<line class="s-base" x1="0" x2="' + W + '" y1="' + base + '" y2="' + base + '"/>';
+    const trechos = [];
+    let atual = [];
+    vals.forEach((v, i) => {
+      if (v === null) { if (atual.length) trechos.push(atual); atual = []; return; }
+      atual.push([xDe(i), yDe(v)]);
+    });
+    if (atual.length) trechos.push(atual);
+    trechos.forEach((t) => {
+      const linha = t.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+      if (t.length > 1) {
+        s += '<path class="s-area" d="' + linha + 'L' + t[t.length - 1][0].toFixed(1) + ' ' + base + 'L' + t[0][0].toFixed(1) + ' ' + base + 'Z"/>' +
+          '<path class="s-linha" d="' + linha + '"/>';
+      }
+    });
+    const ult = vals[n - 1];
+    if (ult !== null) s += '<circle class="s-hoje" cx="' + xDe(n - 1).toFixed(1) + '" cy="' + yDe(ult).toFixed(1) + '" r="3"/>';
+    hist.forEach((g, i) => {
+      const v = vals[i];
+      const dica = g ? '<b>' + esc(rotDiaLongo(g.d)) + '</b><br>' + esc(rotIndicador()) + ': ' + (v === null ? '—' : pc(v)) +
+        '<br>' + nf(acertoDe(g)) + ' de ' + nf(baseDe(g)) + (modo === 'novos' ? ' novos' : ' veículos') : 'antes da janela';
+      s += '<rect class="s-alvo" x="' + (xDe(i) - passo / 2).toFixed(1) + '" y="0" width="' + passo.toFixed(1) + '" height="' + H + '" data-dica="' + esc(dica) + '"/>';
+    });
+    return s + '</svg>';
+  };
+  const rosca = (x) => {
+    const raio = 36;
+    const volta = 2 * Math.PI * raio;
+    const arco = x === null ? 0 : Math.max(0, Math.min(1, x)) * volta;
+    return '<svg class="rosca" viewBox="0 0 88 88" aria-hidden="true">' +
+      '<circle class="r-fundo" cx="44" cy="44" r="' + raio + '"/>' +
+      (arco > 0 ? '<circle class="r-arco" cx="44" cy="44" r="' + raio + '" stroke-dasharray="' + arco.toFixed(2) + ' ' +
+        volta.toFixed(2) + '" transform="rotate(-90 44 44)"/>' : '') +
+      '<text class="r-pc" x="44" y="49" text-anchor="middle">' + (x === null ? '—' : pc(x)) + '</text></svg>';
+  };
+  function desenhaComitentes() {
+    const lista = R.por_comit;
+    $('#comit-rot').textContent = 'Comitentes com evento ativo ' + quandoRef() + ' · clique para filtrar';
+    $('#comit-nota').textContent = rotIndicador() + ': ' + quandoRef() + ' na rosca, os últimos 7 dias na área, e a diferença para ' + contraAnt();
+    const sel = F.comit === '' ? null : Number(F.comit);
+    $('#g-comit').innerHTML = lista.length ? lista.map((c) => {
+      const marcado = sel === c.comit;
+      const nome = D.comitentes[c.comit];
+      const x = pctDe(c.dia);
+      const dif = difPP(c);
+      const luz = dif === null || dif === 0 ? '' : dif > 0 ? ' luz-sobe' : ' luz-desce';
+      return '<button type="button" class="cartao comit' + luz + (sel !== null && !marcado ? ' apagado' : '') + '" data-c="' + c.comit + '"' +
+        ' aria-pressed="' + marcado + '" aria-label="' + esc((marcado ? 'Tirar o filtro do comitente ' : 'Filtrar pelo comitente ') + nome) + '">' +
+        '<span class="comit-topo"><span class="comit-nome">' + esc(nome) + '</span>' +
+        '<span class="tag">' + nf(c.eventos) + (c.eventos === 1 ? ' evento' : ' eventos') + '</span></span>' +
+        '<span class="comit-meio"><span class="comit-graf"><span class="comit-ind">' + esc(rotIndicador()) + '</span><span class="comit-minis">' +
+          '<span class="mini m-rosca">' + rosca(x) + '</span>' +
+          '<span class="mini m-sem">' + areaSemana(c.hist) + '</span></span>' +
+          '<span class="comit-num"><b class="num">' + nf(acertoDe(c.dia)) + ' de ' + nf(baseDe(c.dia)) +
+            (modo === 'novos' ? ' novos' : '') + '</b><span class="sep">·</span><span>' + delta(c, true) + '</span></span></span>' +
+        '<span class="comit-st">' + STATUS_C.map((s) => '<span' + (s[0] === 'veiculos' ? ' class="tot"' : '') + '>' + s[1] +
+          '<b class="num">' + nf(c[s[0]]) + '</b></span>').join('') + '</span></span>' +
+        (c.valor ? '<span class="comit-rodape">Vendido <b class="num">' + rs(c.valor) + '</b></span>' : '') +
+        '</button>';
+    }).join('') : '<p class="dim">Nenhum comitente com evento ativo neste dia.</p>';
+  }
+  $('#g-comit').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-c]');
+    if (!b) return;
+    const c = b.getAttribute('data-c');
+    F.comit = F.comit === c ? '' : c;
+    montaFiltros();
+    if (TABELAS.veic) TABELAS.veic.lim = PASSO;
+    render();
+  });
+  function desenhaEventos() {
+    const lista = R.por_evento;
+    $('#ev-rot').textContent = 'Eventos ativos ' + quandoRef();
+    $('#n-evlista').textContent = nf(lista.length) + (lista.length === 1 ? ' evento' : ' eventos');
+    $('#cab-ev').innerHTML = '<span>Evento</span>' + STATUS_C.map((s) => '<span class="n">' + s[1] + '</span>').join('') +
+      '<span>' + esc(rotIndicador() + ' ' + quandoRef() + ' · vs ' + contraAnt()) + '</span>';
+    const sel = F.ev === '' ? null : Number(F.ev);
+    $('#g-ev').innerHTML = lista.length ? lista.map((c) => {
+      const e = D.eventos[c.ev];
+      const marcado = sel === c.ev;
+      const x = pctDe(c.dia);
+      const dif = difPP(c);
+      const luz = dif === null || dif === 0 ? '' : dif > 0 ? ' luz-sobe' : ' luz-desce';
+      return '<button type="button" class="lin' + luz + (marcado ? ' marcada' : '') + (sel !== null && !marcado ? ' apagado' : '') + '" data-e="' + c.ev + '"' +
+        ' aria-pressed="' + marcado + '" aria-label="' + esc((marcado ? 'Tirar o filtro do evento ' : 'Filtrar pelo evento ') + e.nome) + '">' +
+        '<span class="c-nome"><b title="' + esc(e.nome) + '">' + esc(e.nome) + '</b><span class="dim sub">' +
+          esc(e.comits.map((j) => D.comitentes[j]).join(', ')) + ' · até ' + dt(e.fim) + '</span></span>' +
+        STATUS_C.map((s) => '<span class="n num" data-r="' + s[1] + '">' + nf(c[s[0]]) + '</span>').join('') +
+        '<span class="termo">' + trilho(x) + '<span class="pc num">' + (x === null ? '—' : pc(x)) + '</span>' +
+          '<span class="de">' + delta(c, true) + '</span></span>' +
+        '</button>';
+    }).join('') : '<p class="dim">Nenhum evento ativo neste dia.</p>';
+  }
+  const dobra = $('#dobra-ev');
+  let evMao = false;
+  let ultComit = '';
+  let esperado = null;
+  dobra.addEventListener('toggle', () => {
+    if (esperado !== null && dobra.open === esperado) { esperado = null; return; }
+    esperado = null;
+    evMao = dobra.open;
+  });
+  function dobraEventos() {
+    if (F.comit === ultComit) return;
+    ultComit = F.comit;
+    const quer = F.comit !== '' || evMao;
+    if (dobra.open !== quer) { esperado = quer; dobra.open = quer; }
+  }
+  $('#g-ev').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-e]');
+    if (!b) return;
+    const e = b.getAttribute('data-e');
+    F.ev = F.ev === e ? '' : e;
+    montaFiltros();
+    if (TABELAS.veic) TABELAS.veic.lim = PASSO;
+    render();
+  });
   function desenhaVeiculos() {
     const linhasV = busca
       ? R.veiculos.filter((r) => (r.nome + ' ' + D.eventos[r.ev].nome + ' ' + (r.comit >= 0 ? D.comitentes[r.comit] : '')).toLowerCase().indexOf(busca) >= 0)
@@ -922,16 +1166,18 @@ function APP(D, LOGO) {
     $('#k-rm-can').textContent = nf(k.rem_cancelado + k.rem_outros);
     $('#k-rm-sem').textContent = nf(k.rem_sem_oferta);
     $('#k-rm-rej').textContent = nf(k.rem_rejeitado);
+    desenhaComitentes();
+    desenhaEventos();
+    dobraEventos();
     $('#n-ativos').textContent = nf(R.veiculos_periodo) + ' veículos no período';
     desenhaAtivos();
-    $('#n-lojistas').textContent = nf(R.tot_lojistas.logaram) + ' lojas logaram';
+    $('#n-lojistas').textContent = nf(R.tot_lojistas.acessaram) + ' lojas acessaram';
     linhas($('#g-lojistas'), R.lojistas.map((g) => Object.assign({ rot: rotDia(g.d), longo: rotDiaLongo(g.d) }, g)), [
-      { k: 'logaram', nome: 'Logaram', cls: 's-log' },
       { k: 'acessaram', nome: 'Acessaram', cls: 's-ac' },
       { k: 'ofertaram', nome: 'Ofertaram', cls: 's-of' },
       { k: 'compraram', nome: 'Compraram', cls: 's-co' }
     ]);
-    $('#tot-lojistas').innerHTML = [['Logaram', 'logaram'], ['Acessaram', 'acessaram'], ['Ofertaram', 'ofertaram'], ['Compraram', 'compraram']]
+    $('#tot-lojistas').innerHTML = [['Acessaram', 'acessaram'], ['Ofertaram', 'ofertaram'], ['Compraram', 'compraram']]
       .map((p) => '<span>' + p[0] + ' no período <b class="num">' + nf(R.tot_lojistas[p[1]]) + '</b></span>').join('');
     desenhaVeiculos();
   }
@@ -1017,20 +1263,23 @@ const nomesCanais = DADOS.canais.map((c) => c[1] + ' (' + c[0] + ')').join(', ')
 DADOS.glossario = [
   ['Evento no painel', 'Evento que alveja algum dos canais ' + nomesCanais + ', que já abriu as ofertas e termina a partir de ' +
     META.dias + ' dias atrás: os ativos e os encerrados recentes. Agendado, com as ofertas ainda fechadas, não entra.'],
-  ['Filtros', 'Na aba lateral. Canal, comitente e evento recortam os veículos, e tudo que nasce deles acompanha. O canal também escolhe em que canal contam os logins. Responsável recorta as lojas. Data escolhe os dias dos gráficos e da tabela, e o dia dos cartões.'],
+  ['Filtros', 'Na aba lateral. Canal, comitente e evento recortam os veículos, e tudo que nasce deles acompanha. Responsável recorta as lojas. Data escolhe os dias dos gráficos e da tabela, e o dia dos cartões.'],
   ['Comitente', 'A loja que anuncia o veículo no evento — o banco, a locadora ou a frota que está vendendo.'],
-  ['Responsável', 'O consultor comercial dono da loja na carteira comercial, pelo CNPJ. Recorta as lojas: acessos, ofertas, vendas e logins de quem é da carteira dele. Os veículos não têm responsável, então os cartões e as barras de veículos ativos não mudam com ele. Não distribuído: loja fora da carteira.'],
+  ['Responsável', 'O consultor comercial dono da loja na carteira comercial, pelo CNPJ. Recorta as lojas: acessos, ofertas e vendas de quem é da carteira dele. Os veículos não têm responsável, então os cartões e as barras de veículos ativos não mudam com ele. Não distribuído: loja fora da carteira.'],
   ['Data', 'De e Até escolhem os dias dos dois gráficos e da tabela de veículos. Os cartões mostram os eventos ativos no dia do Até — hoje, sem filtro.'],
   ['Eventos ativos', 'Eventos abertos no dia: do dia do início das ofertas ao dia do fim. Embaixo, os veículos distintos desses eventos e os comitentes deles.'],
   ['Status nos cartões', 'De cada veículo dos eventos ativos no dia, o status da negociação no evento mais recente. O mesmo carro num feirão que fecha e noutro que abre no mesmo dia conta uma vez. O percentual é sobre os veículos dos eventos ativos.'],
+  ['Indicador e Todos/Novos', 'Os botões no topo da página. Indicador: com acesso, com oferta ou vendidos. Veículos: todos ou só os novos do dia. Valem juntos para a rosca dos cartões, o termômetro da lista de eventos e o gráfico de veículos ativos por dia — os três mostram a mesma conta: dos veículos ativos no dia (com Novos, dos que estrearam no dia), quantos tiveram o anúncio aberto, receberam lance ou foram vendidos naquele dia.'],
+  ['Cartões por comitente', 'Logo abaixo dos números do dia, três por linha, um cartão por comitente com evento ativo no dia. À esquerda, sob o nome do indicador, dois gráficos do indicador do topo para os veículos do comitente: a rosca, com o percentual do dia no centro, e a área dos últimos 7 dias (linha com o preenchimento transparente, o ponto de hoje marcado; o valor de cada dia no balão). Embaixo deles, na mesma linha, quantos de quantos e a diferença em pontos percentuais (p.p.) para o dia anterior. À direita, os status: veículos dos eventos ativos, ativos, em análise, vendidos e removidos. A base da rosca são os veículos ativos no dia, que podem ser mais que os com status Ativo agora. A luz do cartão, no canto, e a cor dos dois gráficos ficam verdes quando o indicador subiu contra o dia anterior e vermelhas quando caiu; igual ou sem dado, azul. Clicar num cartão filtra o painel inteiro por aquele comitente; clicar de novo tira o filtro. Os cartões seguem os outros filtros (canal, evento, responsável, data), mas não o de comitente: o escolhido fica marcado e os demais, apagados.'],
+  ['Lista de eventos', 'Abaixo dos cartões, uma linha por evento ativo no dia: os mesmos status e o termômetro do indicador do topo, com a diferença em p.p. para o dia anterior; a linha acende verde quando o indicador subiu e vermelha quando caiu, e o termômetro ganha a mesma cor, como os cartões. Clicar numa linha filtra pelo evento; clicar de novo tira. Ela segue o comitente escolhido: com um cartão marcado, só os eventos dele. Nasce fechada; abre ao escolher um comitente ou ao clicar no título.'],
   ['Veículos ativos', 'Negociação ativa, ainda recebendo lance. Embaixo, quantos já tiveram o anúncio aberto por alguma loja e quantos já receberam oferta nesse evento.'],
   ['Em análise', 'Há oferta na mesa e a decisão está com o comprador ou com o vendedor.'],
   ['Vendidos', 'Aguardando pagamento, aguardando confirmação de pagamento ou vendido. O valor é a soma das ofertas vencedoras.'],
   ['Removidos', 'Inativos não vendidos: cancelados ou suspensos, sem ofertas, e rejeitados pelo vendedor ou pelo comprador ou com a venda cancelada.'],
   ['Veículos ativos por dia', 'Veículos distintos com negociação num evento aberto no dia. A barra separa os que já estavam em evento dos novos do dia.'],
   ['Novo', 'Veículo que estreou no dia: o dia de início das ofertas do primeiro evento da vida dele, em qualquer canal. O carro que volta num feirão seguinte não é novo de novo. Na tabela, a data da estreia fica embaixo do veículo.'],
-  ['% com acesso, com oferta, vendidos', 'A linha do gráfico, escolhida nos botões acima dele: dos veículos ativos no dia, quantos tiveram o anúncio aberto por alguma loja, receberam lance ou foram vendidos (pela data da oferta vencedora) naquele dia. Com Novos, a conta é só dos novos do dia.'],
-  ['Lojistas por dia', 'Lojas distintas por dia. Logaram: entraram no canal (qualquer acesso registrado). Acessaram: abriram algum anúncio dos eventos filtrados. Ofertaram: deram lance. Compraram: têm a oferta vencedora de uma venda, no dia dela. Embaixo, as lojas distintas do período inteiro.'],
+  ['% com acesso, com oferta, vendidos', 'A linha do gráfico, escolhida nos botões do indicador, no topo da página: dos veículos ativos no dia, quantos tiveram o anúncio aberto por alguma loja, receberam lance ou foram vendidos (pela data da oferta vencedora) naquele dia. Com Novos, a conta é só dos novos do dia.'],
+  ['Lojistas por dia', 'Lojas distintas por dia, com o número de cada dia no ponto. Acessaram: abriram algum anúncio dos eventos filtrados. Ofertaram: deram lance. Compraram: têm a oferta vencedora de uma venda, no dia dela. Embaixo, as lojas distintas do período inteiro.'],
   ['Acessos (tabela)', 'Lojas distintas que abriram o anúncio do veículo no período. Uma loja que abriu dez vezes conta uma.'],
   ['Ofertas', 'Lances nas negociações do veículo no período e, embaixo, quantas lojas deram lance.'],
   ['Maior oferta', 'O maior lance do veículo nas negociações do período.'],
@@ -1042,6 +1291,8 @@ DADOS.glossario = [
 const CSS_PAINEL = [
   ':root{--serie-2:#748290;--farol-abaixo:#946200}',
   '[data-tema="escuro"]{--serie-2:#646E86;--farol-abaixo:#E3B341}',
+  ':root,[data-tema="escuro"]{--atencao:var(--farol-abaixo)}',
+  '[data-tema="escuro"]{--texto:#F3F5FA;--texto-2:#C0C6D4;--texto-3:#8E95A8}',
   '[hidden]{display:none!important}',
   '.aviso{position:relative}.aviso .cont{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:8px;',
   'background:var(--negativo);color:var(--superficie);font-size:10px;font-weight:700;line-height:16px;text-align:center}',
@@ -1063,13 +1314,89 @@ const CSS_PAINEL = [
   '@media (max-width:1400px){.g4.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}',
   '@media (max-width:900px){.g4.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}',
   '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
+  '.barra-ind{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}',
+  '.grupo-ind{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap}',
+  '.rot-ind{font-size:12px;font-weight:600;color:var(--texto-2)}.nota-ind{font-size:12px;color:var(--texto-2)}',
+  '.barra-comit{display:flex;justify-content:space-between;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:0 0 10px}',
+  '.rot-comit,.nota-comit{font-size:12px;font-weight:600;color:var(--texto-2)}.nota-comit{font-weight:500}',
+  '.g-comit{display:grid;gap:var(--gap);grid-template-columns:repeat(3,minmax(0,1fr))}',
+  '@media (max-width:1100px){.g-comit{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+  'button.cartao.comit{font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%;display:flex;flex-direction:column;',
+  'gap:10px;padding:13px 14px;transition:opacity .15s ease}',
+  'button.cartao.comit > span{display:block}',
+  'button.cartao.comit:hover{border-color:var(--borda-forte)}',
+  'button.cartao.comit:focus-visible{outline:2px solid var(--acento);outline-offset:2px}',
+  'button.cartao.comit[aria-pressed="true"]{outline:2px solid var(--acento-cheio);outline-offset:-1px}',
+  'button.cartao.comit.apagado{opacity:.5}button.cartao.comit.apagado:hover{opacity:.85}',
+  'button.cartao.comit > .comit-topo{display:flex;align-items:center;gap:8px}',
+  '.comit-nome{font-size:12.5px;font-weight:650;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.comit-topo .tag{margin-left:auto;flex:none}',
+  '.mini.m-rosca{flex:1 1 0;max-width:110px}',
+  '.rosca{width:100%;height:auto;display:block}',
+  '.rosca .r-fundo{fill:none;stroke:var(--acento-veu);stroke-width:6}',
+  '.rosca .r-arco{fill:none;stroke:var(--acento-cheio);stroke-width:6;stroke-linecap:round}',
+  '.rosca .r-pc{font-size:14px;font-weight:700;fill:var(--texto);font-variant-numeric:tabular-nums}',
+  'button.cartao.comit > .comit-meio{display:grid;grid-template-columns:3fr 2fr;gap:14px;align-items:center}',
+  '.comit-graf{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}',
+  '.comit-minis{display:flex;align-items:flex-end;justify-content:center;gap:6px;width:100%}',
+  '.mini{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}',
+  '.comit-ind{font-size:11.5px;font-weight:600;color:var(--texto-2);text-align:center;white-space:nowrap}',
+  'button.cartao.comit.luz-sobe{--brilho:radial-gradient(420px 220px at 0% 0%,color-mix(in srgb,var(--positivo) 24%,transparent),transparent 72%)}',
+  'button.cartao.comit.luz-desce{--brilho:radial-gradient(420px 220px at 0% 0%,color-mix(in srgb,var(--negativo) 24%,transparent),transparent 72%)}',
+  '.mini.m-sem{flex:1 1 0;max-width:150px}',
+  '.semana{width:100%;height:auto;display:block;overflow:visible}',
+  '.semana .s-base{stroke:var(--borda-forte);stroke-width:1}',
+  '.semana .s-area{fill:var(--acento-cheio);fill-opacity:.22;stroke:none}',
+  '.semana .s-linha{fill:none;stroke:var(--acento-cheio);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}',
+  '.semana .s-hoje{fill:var(--acento-cheio);stroke:var(--superficie);stroke-width:1.5}',
+  '.semana .s-alvo{fill:transparent}.semana .s-alvo:hover{fill:var(--acento-veu)}',
+  '.comit-num{display:flex;align-items:baseline;justify-content:center;gap:5px;white-space:nowrap;font-size:11.5px;color:var(--texto-2)}',
+  '.comit-num .sep{color:var(--texto-3)}',
+  '.comit-num b{font-size:12.5px;color:var(--texto);font-weight:650}',
+  '.comit-st{min-width:0;display:grid;gap:4px;font-size:12px;color:var(--texto-2)}',
+  '.comit-st > span{display:flex;justify-content:space-between;gap:8px;white-space:nowrap}',
+  '.comit-st b{color:var(--texto);font-weight:650}',
+  '.comit-st .tot{color:var(--texto);font-weight:600;border-bottom:1px solid var(--borda);padding-bottom:4px;margin-bottom:1px}',
+  '.comit-rodape{font-size:11px;color:var(--texto-3);border-top:1px solid var(--borda);padding-top:7px}',
+  '.comit-rodape b{color:var(--texto-2);font-weight:650}',
+  '.lin{display:grid;grid-template-columns:minmax(200px,2.6fr) repeat(5,minmax(62px,.7fr)) minmax(250px,2.6fr);',
+  'gap:12px;align-items:center;padding:9px 10px}',
+  '.lin .n{text-align:right;font-variant-numeric:tabular-nums}',
+  '.lin.cab{font-size:11.5px;font-weight:600;color:var(--texto-3);border-bottom:1px solid var(--borda);padding-top:0}',
+  'button.lin{font:inherit;color:inherit;text-align:left;width:100%;background:none;border:0;border-bottom:1px solid var(--borda);',
+  'cursor:pointer;border-radius:0;transition:opacity .15s ease}',
+  'button.lin:last-child{border-bottom:0}',
+  'button.lin:hover{background-color:var(--acento-veu)}',
+  'button.lin:focus-visible{outline:2px solid var(--acento);outline-offset:-2px}',
+  'button.lin.marcada{background-color:var(--acento-veu);box-shadow:inset 3px 0 0 var(--acento-cheio)}',
+  'button.lin.luz-sobe{background-image:radial-gradient(320px 70px at 0% 50%,color-mix(in srgb,var(--positivo) 22%,transparent),transparent 75%)}',
+  'button.lin.luz-desce{background-image:radial-gradient(320px 70px at 0% 50%,color-mix(in srgb,var(--negativo) 22%,transparent),transparent 75%)}',
+  'button.comit.luz-sobe .r-arco,button.comit.luz-sobe .s-linha{stroke:var(--positivo)}',
+  'button.comit.luz-sobe .s-area,button.comit.luz-sobe .s-hoje{fill:var(--positivo)}',
+  'button.comit.luz-desce .r-arco,button.comit.luz-desce .s-linha{stroke:var(--negativo)}',
+  'button.comit.luz-desce .s-area,button.comit.luz-desce .s-hoje{fill:var(--negativo)}',
+  'button.lin.luz-sobe .termo .trilho i{background:var(--positivo)}',
+  'button.lin.luz-desce .termo .trilho i{background:var(--negativo)}',
+  'button.lin.apagado{opacity:.5}button.lin.apagado:hover{opacity:.85}',
+  '.c-nome{min-width:0}.c-nome b{display:block;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  '.termo{display:grid;grid-template-columns:minmax(60px,1fr) 52px 84px;align-items:center;gap:10px;min-width:0}',
+  '.termo .trilho{height:8px;border-radius:4px;min-width:0}',
+  '.termo .pc{font-weight:700;text-align:right}.termo .de{font-size:11px;white-space:nowrap;text-align:right}',
+  '.lista-ev .clique{font-size:11.5px}',
+  '.lista-ev > .rolo-ev{padding:0 18px 12px}',
+  '@media (max-width:900px){.rolo-ev .cab{display:none}',
+  '.lin{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px 10px}',
+  '.lin .c-nome,.lin .termo{grid-column:1 / -1}.lin .termo{order:-1}.lin .c-nome{order:-2}',
+  '.lin .n{text-align:left;font-weight:650}.lin .n::before{content:attr(data-r);display:block;font-size:10.5px;font-weight:500;color:var(--texto-3)}}',
+  '@media (max-width:620px){.g-comit{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:86%;',
+  'overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}.g-comit > .comit{scroll-snap-align:start}',
+  'button.cartao.comit > .comit-meio{grid-template-columns:1fr}}',
   '.seg{display:inline-flex;padding:2px;gap:2px;border-radius:var(--r-p);background:var(--superficie-2);border:1px solid var(--borda)}',
   '.seg button{font:inherit;font-size:12px;font-weight:600;color:var(--texto-2);background:transparent;border:0;',
   'border-radius:8px;padding:5px 10px;cursor:pointer}',
   '.seg button[aria-pressed="true"]{background:var(--acento);color:var(--superficie)}',
   '.seg button:focus-visible{outline:2px solid var(--acento);outline-offset:1px}',
   '.cartao-topo{flex-wrap:wrap}',
-  '.ctrl-graf{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}',
   'button.ord{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;display:inline-flex;gap:4px;',
   'align-items:center;white-space:nowrap;text-align:inherit}',
   'button.ord.at{color:var(--texto)}button.ord:focus-visible{outline:2px solid var(--acento);outline-offset:2px}',
@@ -1090,14 +1417,16 @@ const CSS_PAINEL = [
   '.amostra.traco{height:3px;border-radius:2px;vertical-align:2px;width:14px}',
   '.graf .serie-a,.amostra.serie-a{fill:var(--acento-cheio);background:var(--acento-cheio)}',
   '.graf .serie-b,.amostra.serie-b{fill:var(--serie-2);background:var(--serie-2)}',
-  '.graf .linha-kpi{fill:none;stroke:var(--atencao);stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}',
-  '.graf .ponto-kpi{fill:var(--atencao)}.amostra.linha-kpi{background:var(--atencao)}',
-  '.graf .eixo-p{fill:var(--atencao)}',
+  '.graf .linha-kpi{fill:none;stroke:var(--texto);stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}',
+  '.graf .ponto-kpi{fill:var(--texto)}.amostra.linha-kpi{background:var(--texto)}',
+  '.graf .eixo-p{fill:var(--texto-2)}',
   '.graf .linha-grade.forte{stroke:var(--borda-forte)}',
   '.graf .linha{fill:none;stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}',
-  '.graf .linha.s-log{stroke:var(--texto-3)}.graf .ponto.s-log,.amostra.s-log{fill:var(--texto-3);background:var(--texto-3)}',
-  '.graf .linha.s-ac{stroke:var(--acento-cheio)}.graf .ponto.s-ac,.amostra.s-ac{fill:var(--acento-cheio);background:var(--acento-cheio)}',
-  '.graf .linha.s-of{stroke:var(--atencao)}.graf .ponto.s-of,.amostra.s-of{fill:var(--atencao);background:var(--atencao)}',
+  '.graf .rot-p text{font-size:10.5px;font-weight:700;fill:var(--texto);font-variant-numeric:tabular-nums;pointer-events:none}',
+  '.graf .rot-p rect{pointer-events:none;fill-opacity:.28;stroke:none}',
+  '.graf .rot-p.s-ac rect{fill:var(--texto)}.graf .rot-p.s-of rect{fill:var(--acento-cheio)}.graf .rot-p.s-co rect{fill:var(--positivo)}',
+  '.graf .linha.s-ac{stroke:var(--texto)}.graf .ponto.s-ac,.amostra.s-ac{fill:var(--texto);background:var(--texto)}',
+  '.graf .linha.s-of{stroke:var(--acento-cheio)}.graf .ponto.s-of,.amostra.s-of{fill:var(--acento-cheio);background:var(--acento-cheio)}',
   '.graf .linha.s-co{stroke:var(--positivo)}.graf .ponto.s-co,.amostra.s-co{fill:var(--positivo);background:var(--positivo)}',
   '.graf .alvo{fill:transparent;cursor:default}.graf .alvo:hover,.graf .alvo:focus{fill:var(--acento-veu);outline:none}',
   '.caixa-g{width:100%;min-height:280px}.caixa-g > svg{display:block;width:100%;height:auto}',
@@ -1188,6 +1517,10 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<b>Data</b> escolhe os dias dos gráficos e da tabela; os cartões mostram o dia do Até.</p>' +
   '</div></aside>' +
   '<main class="area">' +
+  '<div class="barra-ind"><span class="grupo-ind"><span class="rot-ind" id="seg-kpi-rot">Indicador</span>' +
+  seg('seg-kpi', 'Indicador', [['acesso', 'Com acesso'], ['oferta', 'Com oferta'], ['venda', 'Vendidos']], 'acesso') + '</span>' +
+  '<span class="grupo-ind"><span class="rot-ind" id="seg-modo-rot">Veículos</span>' +
+  seg('seg-modo', 'Veículos', [['todos', 'Todos'], ['novos', 'Novos']], 'todos') + '</span></div>' +
   '<section class="g4 g5" aria-label="Eventos ativos no dia">' +
   kpiCard('evento', 'Eventos ativos hoje', 'k-ev', '<div class="kpi-pc"><span class="txt" id="k-ev-dia">—</span></div>',
     [['Veículos', 'k-ev-veic'], ['Comitentes', 'k-ev-com']], 'k-ev-rot') +
@@ -1200,20 +1533,25 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   kpiCard('removido', 'Removidos', 'k-rm', meioPc('k-rm-pc', 'k-rm-bar'),
     [['Cancelados', 'k-rm-can'], ['Sem ofertas', 'k-rm-sem'], ['Rejeitados', 'k-rm-rej']]) +
   '</section>' +
+  '<section class="comitentes" aria-labelledby="comit-rot">' +
+  '<div class="barra-comit"><span class="rot-comit" id="comit-rot">Comitentes com evento ativo hoje</span>' +
+  '<span class="nota-comit" id="comit-nota"></span></div>' +
+  '<div class="g-comit" id="g-comit"></div></section>' +
+  '<details class="cartao gloss lista-ev" id="dobra-ev"><summary class="cartao-topo">' + chip('evento') + '<h2 id="ev-rot">Eventos ativos hoje</h2>' +
+  '<span class="dir"><span class="dim clique">clique numa linha para filtrar</span><span class="tag" id="n-evlista">—</span>' +
+  '<span class="seta" aria-hidden="true">▾</span></span></summary>' +
+  '<div class="rolo-ev"><div class="lin cab" id="cab-ev"></div><div id="g-ev"></div></div></details>' +
   '<article class="cartao">' + topoCartao('grafico', 'Veículos ativos por dia', 'n-ativos') +
-  '<div class="ctrl-graf">' +
-  seg('seg-kpi', 'Indicador da linha', [['acesso', 'Com acesso'], ['oferta', 'Com oferta'], ['venda', 'Vendidos']], 'acesso') +
-  seg('seg-modo', 'Veículos', [['todos', 'Todos'], ['novos', 'Novos']], 'todos') + '</div>' +
   '<div class="legenda"><span id="leg-a"><span class="amostra serie-b"></span>Já em evento</span>' +
   '<span><span class="amostra serie-a"></span>Novos no dia</span>' +
   '<span><span class="amostra traco linha-kpi"></span><span id="leg-linha">% com acesso</span> (eixo da direita)</span></div>' +
   '<div class="caixa-g" id="g-ativos" data-rot="Veículos ativos por dia, já em evento e novos, com o percentual do indicador escolhido"></div></article>' +
   '<article class="cartao">' + topoCartao('pessoa', 'Lojistas por dia', 'n-lojistas') +
-  '<div class="legenda"><span><span class="amostra traco s-log"></span>Logaram</span>' +
+  '<div class="legenda">' +
   '<span><span class="amostra traco s-ac"></span>Acessaram</span>' +
   '<span><span class="amostra traco s-of"></span>Ofertaram</span>' +
   '<span><span class="amostra traco s-co"></span>Compraram</span></div>' +
-  '<div class="caixa-g" id="g-lojistas" data-rot="Lojas distintas por dia que logaram, acessaram, ofertaram e compraram"></div>' +
+  '<div class="caixa-g" id="g-lojistas" data-rot="Lojas distintas por dia que acessaram, ofertaram e compraram"></div>' +
   '<div class="tot" id="tot-lojistas"></div></article>' +
   '<section class="cartao">' + topoCartao('lista', 'Veículos', 'n-veic',
     '<input class="ctrl busca" id="busca" type="search" placeholder="Buscar veículo, evento ou comitente" aria-label="Buscar veículo, evento ou comitente">') +

@@ -613,6 +613,38 @@ nunca aconteceu (seção acima, "O desfecho de uma negociação do C6"). Quem
 conta "lojas que compraram" perde essas vendas; quem conta "veículos
 vendidos", não deve perder.
 
+## `user_profiles.register_form` — a campanha do cadastro
+
+Medido em **2026-11-03**. Mora no **perfil do usuário**, não na loja: a loja
+"veio da campanha" quando algum usuário dela (`user_shops`) tem o perfil.
+
+| `register_form` | perfis | |
+|---|---:|---|
+| vazio | 58.355 | o grosso, sem formulário |
+| `padrao` | 6.739 | 2 valores |
+| `null` (o texto) | 4.565 | 3 valores |
+| **`campanha`** | **557** | 14 valores em `register_form_value`, desde 10/2023 |
+| `teste` | 1 | |
+
+Em `campanha`, o `register_form_value` é o nome da campanha ou da pessoa que
+cadastrou: "Fenauto 2025 IGA" (227, de 19 a 24/11/2025), "Outlet NetCarros"
+(110), "Evento C6 Exclusivo SP" (98, 06 a 16/10/2026), "Club 50" (41), dois
+"VD IGA - <região>" e oito com nome de consultor.
+
+- **A data do perfil não é a da loja.** Das 226 lojas da Fenauto 2025, 11
+  existiam antes (2020 a 2023, uma em 09/2025): o usuário novo entrou numa
+  loja antiga.
+- O `LIKE` é sem caixa (a colação acha "Fenauto" com `'%fenauto%'`).
+- Em 03/11/2026 **não há perfil da Fenauto de 2026**. Uma campanha nova com
+  outro nome no formulário não é achada por `'%fenauto%'`.
+
+## O evento 266 "Anúncios cancelados" é um balde, não um evento
+
+Aberto de **2021-05-25 a 2025-12-16**, whitelabel 7, 10.127 negociações (7.676
+de vendedores do IGA), status 0. Quem recorta evento "aberto num período"
+pega ele em qualquer janela até dez/2025. Medido em 2026-11-03; o Mega
+Evento Fenauto corta evento com mais de 31 dias de duração por causa dele.
+
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`

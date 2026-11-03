@@ -161,10 +161,15 @@ prova('gaveta na ordem do pedido: whitelabel, comitente, evento, responsável, d
   const pos = ['id="f-wl"', 'id="f-comit"', 'id="f-ev"', 'id="f-resp"', 'id="f-de"', 'id="f-ate"', 'id="limpar"'].map((m) => html.indexOf(m));
   verdade(pos.every((p, i) => p > 0 && (!i || p > pos[i - 1])), JSON.stringify(pos));
 });
-prova('acima do gráfico: indicador à esquerda, Todos/Novos à direita', () => {
-  const a = html.indexOf('class="ctrl-graf"');
-  verdade(a > 0 && html.indexOf('id="seg-kpi"') > a && html.indexOf('id="seg-modo"') > html.indexOf('id="seg-kpi"'));
-  verdade(html.indexOf('.ctrl-graf{display:flex;justify-content:space-between') >= 0, 'space-between');
+prova('indicador e Todos/Novos moram no topo, antes dos big numbers, nessa ordem', () => {
+  const corpo = html.split('<script>')[0].split('<body>')[1];
+  const ind = corpo.indexOf('class="barra-ind"');
+  const kpis = corpo.indexOf('aria-label="Eventos ativos no dia"');
+  const a = corpo.indexOf('id="seg-kpi"');
+  const b = corpo.indexOf('id="seg-modo"');
+  verdade(ind > 0 && a > ind && b > a && b < kpis, 'topo');
+  verdade(corpo.indexOf('ctrl-graf') < 0, 'sobrou controle no gráfico');
+  igual(corpo.split('id="seg-kpi"').length + corpo.split('id="seg-modo"').length, 4, 'um seletor de cada');
 });
 prova('glossário fora de qualquer <section>', () => {
   const antes = html.slice(0, html.indexOf('id="gloss"'));
@@ -211,7 +216,105 @@ prova('cartões: ativos + análise + vendidos + removidos = veículos', () => {
   igual(k.analise_comprador + k.analise_vendedor, k.analise);
   igual(k.aguardando + k.vendido, k.vendidos);
 });
-prova('cartões: os veículos dos eventos de hoje são os ativos do último dia', () => igual(T0.kpi.veiculos, T0.dias[D.hoje].ativos));
+const CAMPOS_K = ['eventos', 'veiculos', 'ativos', 'ativos_acesso', 'ativos_oferta', 'analise', 'analise_comprador',
+  'analise_vendedor', 'vendidos', 'aguardando', 'vendido', 'valor', 'removidos', 'rem_cancelado', 'rem_sem_oferta', 'rem_rejeitado', 'rem_outros'];
+prova('comitentes: cada cartão é igual aos cartões do topo com aquele comitente filtrado', () => {
+  verdade(T0.por_comit.length >= 5, 'poucos comitentes hoje: ' + T0.por_comit.length);
+  T0.por_comit.forEach((c) => {
+    const k = C({ comit: String(c.comit) }).kpi;
+    CAMPOS_K.forEach((f) => igual(c[f], k[f], D.comitentes[c.comit] + ' ' + f));
+  });
+});
+prova('comitentes: num dia passado e com filtro de canal, também', () => [[{ ate: '22' }], [{ wl: '4' }], [{ ate: '10', wl: '7' }]].forEach((p) => {
+  const base = C(p[0]);
+  verdade(base.por_comit.length > 0, JSON.stringify(p[0]));
+  base.por_comit.forEach((c) => {
+    const k = C(Object.assign({ comit: String(c.comit) }, p[0])).kpi;
+    CAMPOS_K.forEach((f) => igual(c[f], k[f], JSON.stringify(p[0]) + ' ' + D.comitentes[c.comit] + ' ' + f));
+  });
+}));
+const CAMPOS_DIA = ['ativos', 'novos', 'acesso', 'oferta', 'venda', 'acesso_n', 'oferta_n', 'venda_n'];
+const ultimos = (r) => [r.dias[r.dias.length - 1], r.dias.length > 1 ? r.dias[r.dias.length - 2] : null];
+prova('rosca: o indicador do dia e do dia anterior de cada comitente são os do gráfico filtrado por ele', () =>
+  [{}, { ate: '22' }, { resp: '0' }, { wl: '7', de: '10' }].forEach((F) => {
+    C(F).por_comit.forEach((c) => {
+      const u = ultimos(C(Object.assign({ comit: String(c.comit) }, F)));
+      CAMPOS_DIA.forEach((f) => {
+        igual(c.dia[f], u[0][f], JSON.stringify(F) + ' ' + D.comitentes[c.comit] + ' ' + f);
+        igual(c.dia_ant[f], u[1][f], JSON.stringify(F) + ' ' + D.comitentes[c.comit] + ' anterior ' + f);
+      });
+    });
+  }));
+prova('semana: os 7 dias do cartão são os do gráfico filtrado pelo comitente', () =>
+  [{}, { ate: '22' }, { resp: '0' }, { ate: '3' }].forEach((F) => {
+    C(F).por_comit.forEach((c) => {
+      igual(c.hist.length, 7, 'sete dias');
+      const ref = F.ate === undefined ? D.hoje : Number(F.ate);
+      /* o gráfico com De = 0 cobre a semana inteira; dia antes da janela é null */
+      const r = C(Object.assign({}, F, { comit: String(c.comit), de: '0' }));
+      c.hist.forEach((g, i) => {
+        const d = ref - 6 + i;
+        if (d < 0) { igual(g, null, 'antes da janela'); return; }
+        igual(g.d, d, 'dia');
+        CAMPOS_DIA.forEach((f) => igual(g[f], r.dias[d][f], JSON.stringify(F) + ' ' + D.comitentes[c.comit] + ' dia ' + d + ' ' + f));
+      });
+      igual(c.dia, c.hist[6], 'o dia é o último da semana');
+      igual(c.dia_ant, c.hist[5], 'o anterior é o penúltimo');
+    });
+  }));
+prova('lista de eventos: cada linha é igual aos cartões do topo com aquele evento filtrado', () =>
+  [{}, { ate: '22' }, { wl: '4' }].forEach((F) => {
+    const lista = C(F).por_evento;
+    verdade(lista.length > 0, JSON.stringify(F));
+    lista.forEach((c) => {
+      const r = C(Object.assign({ ev: String(c.ev) }, F));
+      CAMPOS_K.forEach((f) => igual(c[f], r.kpi[f], JSON.stringify(F) + ' ' + D.eventos[c.ev].nome + ' ' + f));
+      const u = ultimos(r);
+      CAMPOS_DIA.forEach((f) => {
+        igual(c.dia[f], u[0][f], D.eventos[c.ev].nome + ' ' + f);
+        igual(c.dia_ant[f], u[1][f], D.eventos[c.ev].nome + ' anterior ' + f);
+      });
+    });
+  }));
+prova('lista de eventos: segue o comitente escolhido, e não some ao escolher um evento', () => {
+  const c = T0.por_comit[0].comit;
+  const r = C({ comit: String(c) });
+  verdade(r.por_evento.length > 0 && r.por_evento.every((e) => D.eventos[e.ev].comits.indexOf(c) >= 0), 'só os eventos dele');
+  r.por_evento.forEach((e) => {
+    const k = C({ comit: String(c), ev: String(e.ev) }).kpi;
+    CAMPOS_K.forEach((f) => igual(e[f], k[f], D.eventos[e.ev].nome + ' ' + f));
+  });
+  igual(JSON.stringify(C({ ev: String(T0.por_evento[0].ev) }).por_evento), JSON.stringify(T0.por_evento), 'filtro de evento');
+});
+prova('lista de eventos: retrátil, o <details> é o cartão e nasce fechado', () => {
+  const corpo = html.split('<script>')[0];
+  verdade(corpo.indexOf('<details class="cartao gloss lista-ev" id="dobra-ev"><summary class="cartao-topo">') > 0, 'details');
+  verdade(corpo.indexOf('id="dobra-ev" open') < 0, 'nasce aberto');
+  verdade(corpo.indexOf('id="g-ev"') > corpo.indexOf('id="dobra-ev"'), 'a lista mora dentro');
+});
+prova('lista de eventos: só eventos ativos no dia, e todos eles', () => {
+  const ativos = D.eventos.map((e, i) => (e.d0 <= D.hoje && D.hoje <= e.d1 ? i : -1)).filter((i) => i >= 0);
+  igual(T0.por_evento.length, T0.kpi.eventos, 'quantos');
+  verdade(T0.por_evento.every((e) => ativos.indexOf(e.ev) >= 0), 'evento fora do dia');
+});
+prova('comitentes: escolher um não muda a lista (o escolhido não some, os outros ficam)', () => {
+  const c = T0.por_comit[0].comit;
+  igual(JSON.stringify(C({ comit: String(c) }).por_comit), JSON.stringify(T0.por_comit));
+});
+prova('comitentes: só quem tem evento ativo no dia, do maior para o menor', () => {
+  verdade(T0.por_comit.every((c) => c.veiculos > 0 && c.eventos > 0), 'cartão vazio');
+  verdade(T0.por_comit.every((c, i) => !i || T0.por_comit[i - 1].veiculos >= c.veiculos), 'ordem');
+});
+prova('comitentes: logo abaixo dos big numbers, a lista de eventos, e então o gráfico', () => {
+  const a = html.indexOf('aria-label="Eventos ativos no dia"');
+  const b = html.indexOf('id="g-comit"');
+  const c = html.indexOf('id="g-ev"');
+  verdade(a > 0 && b > a && c > b && html.indexOf('id="g-ativos"') > c);
+  /* só a marcação: o script da página tem o texto do cartão (regra 12) */
+  verdade(html.split('<script>')[0].indexOf('class="cartao comit') < 0, 'cartão pronto no HTML: tem que nascer do dado');
+  verdade(html.indexOf('.g-comit{display:grid;gap:var(--gap);grid-template-columns:repeat(3,minmax(0,1fr))}') >= 0, 'três por linha');
+});
+prova('cartões: os veículos dos eventos de hoje são os ativos do último dia',() => igual(T0.kpi.veiculos, T0.dias[D.hoje].ativos));
 prova('o responsável reparte as lojas: a soma dos consultores + não distribuído dá o total', () => {
   ['logaram', 'acessaram', 'ofertaram', 'compraram'].forEach((k) => {
     let s = C({ resp: 'nd' }).tot_lojistas[k];

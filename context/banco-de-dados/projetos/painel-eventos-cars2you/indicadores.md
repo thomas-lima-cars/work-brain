@@ -100,3 +100,28 @@ Com o literal do Radar (21/09, 1.436 CNPJ em 7 carteiras): **1.080 das 2.306
 lojas** do painel casam pelo CNPJ (47%); 1.226 ficam "Não distribuído"; 0 sem
 CNPJ. No Radar o casamento é 94% porque as lojas dele são as elegíveis, quase
 todas clientes da carteira; aqui entra toda loja que logou.
+
+## Coleta de 2026-11-03 18:13
+
+`coleta_local.py`, conexão direta: 43 consultas, 45,4 s no banco, nenhum
+pacote acima de 130 KB. 264 eventos (fim desde 04/10) · 29.574 negociações ·
+4.857 veículos · 2.313 lojas · HTML 2.598 KB. Conferido com
+`_confere_banco.py 26`: 30/10 fechado exato, e os cartões de hoje iguais ao banco.
+
+**Hoje (03/11, até 18:13):** 26 eventos ativos no dia · 1.620 veículos · 9
+comitentes · ativos 1.409 (146 com acesso, 11 com oferta) · **em análise 136,
+todos do vendedor** · vendidos 0 · removidos 75 (44 sem ofertas, 31 cancelados).
+No dia: 36 novos; 530 com acesso, 135 com oferta. Lojistas: logaram 660,
+acessaram 407, ofertaram 90, compraram 0.
+
+**Por comitente hoje** (eventos · veículos · ativos · análise · removidos):
+LM Transportes 14 · 1.260 · 1.162 · 68 · 30 — Banco Volkswagen 2 · 130 · 19 ·
+67 · 44 — Outlet Netcarros 2 · 95 · 93 · 1 · 1 — C6 Bank Lojista 1 · 75 · 75 —
+Banco Volkswagen S.A. 1 · 20 · 20 — Multifrota 1 · 18 — Kovi 1 · 13 — Vamos 2 · 8
+— BB Consórcios 1 · 1.
+
+**30/10 (fechado):** 1.679 veículos ativos, 41 novos · com acesso 614 · com
+oferta 86 · vendidos 21 · lojistas 754 / 445 / 103 / 20.
+**Período (04/10 a 03/11):** ofertaram 765 lojas · compraram 425.
+
+Vendas com a oferta vencedora **sem loja**: **12** na janela (eram 3 em 28/10).

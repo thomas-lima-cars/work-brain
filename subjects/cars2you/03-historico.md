@@ -303,3 +303,13 @@ precificar.
   premissas por comitente (% e # de publicados, êxito, receita por venda). Pasta
   `automations/projecao-vendas-2027/`; regras em `memory/decisions/2026-10-29-regras-projecao-2027.md`.
   Validada; falta mandar ao Tuunelis.
+
+## 2026-11-03
+- **Painel de Eventos Cars2You — rodada de layout com o Thomas.** Coleta nova de 03/11 18:13
+  (conferida contra o banco). Entraram: cartões por comitente que filtram (3 por linha; rosca do
+  indicador + área dos últimos 7 dias à esquerda, 60%; status à direita; "x de y · Δ p.p." numa
+  linha; luz e cor dos gráficos verde/vermelha pela diferença contra o dia anterior), lista por
+  evento retrátil abaixo deles (abre ao escolher comitente; termômetro de largura fixa com a mesma
+  luz), indicador e Todos/Novos no topo. Lojistas por dia sem o Logaram, com rótulo em pílula
+  transparente. Sem rosa/vinho; fontes mais claras no escuro. Modo lista dos comitentes feito e
+  descartado. 57 provas. **Workflow ainda não criado.**
