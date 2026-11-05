@@ -1,0 +1,299 @@
+{
+  "id": "f6Bw2iiuaWECy9Uz",
+  "name": "🟩 C6 Lojista - Analise de base de cadastros",
+  "description": "Roda semanalmente, consulta a base de clientes do grupo 10 na loja 594 (IGA) e envia por e-mail o relatorio HTML com o mesmo layout da analise manual.",
+  "active": true,
+  "versionId": "df75b54b-5d3a-4a83-8864-6243f15b5b69",
+  "activeVersionId": "df75b54b-5d3a-4a83-8864-6243f15b5b69",
+  "updatedAt": "2026-11-04T16:29:32.467Z",
+  "parentFolderId": "Hew2ccndGtmb5OYA",
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "@arquivo n8n/montar-html.js"
+      },
+      "id": "446201a5-ddaf-45e9-b463-266136decd94",
+      "name": "Montar HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "toRecipients": "guilherme.pinheiro@cars2you.com.br,fernando.tuunelis@cars2you.com.br,caio.ledesma@cars2you.com.br,carlos.mattera@cars2you.com.br,ana.luz@cars2you.com.br,donizeti.junior@cars2you.com.br,thomas.lima@cars2you.com.br,bianca.santos@cars2you.com.br,vernon.matheus@c6bank.com,maikon.melchiades@c6bank.com,ana.silva@c6bank.com,ricardo.cabral@c6bank.com,juliana.damadi@c6bank.com",
+        "subject": "=Base de Clientes - C6 Lojista - {{ $now.toFormat(\"dd/MM/yyyy\") }}",
+        "bodyContent": "=Prezados,\n\nSegue em anexo o relatório de Análise de Base de Clientes do C6 Lojista (whitelabel 43), com KPIs, funil de conversão, recência, evolução mensal, distribuição geográfica e rankings de compradores.\n\nAtenciosamente,\nAutomação Cars2You",
+        "additionalFields": {
+          "attachments": {
+            "attachments": [
+              {
+                "binaryPropertyName": "html"
+              }
+            ]
+          }
+        }
+      },
+      "id": "1d160ab3-0d4e-4970-b3e9-17ce019bcab0",
+      "name": "Enviar Relatorio por Email",
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ],
+      "webhookId": "c42f57a0-cc17-414a-a7e1-af6af061ab24",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "G3MiTRT9jTVPx6Wn",
+          "name": "Microsoft Outlook Power BI/Automações"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "@arquivo n8n/montar-queries.js"
+      },
+      "id": "d7aa6c87-68f7-4451-bd07-6475fc332def",
+      "name": "Montar Queries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "serverTransport": "sse",
+        "endpointUrl": "https://mcp-cars2you-readonly.cars2you.com.br/sse",
+        "authentication": "bearerAuth",
+        "tool": {
+          "__rl": true,
+          "mode": "id",
+          "value": "run_query",
+          "cachedResultName": "run_query"
+        },
+        "inputMode": "json",
+        "jsonInput": "={{ JSON.stringify({ sql: $json.sql, database: $json.database }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "151d7fa9-a7f7-4b57-957e-725194281052",
+      "name": "MCP Run",
+      "type": "@n8n/n8n-nodes-langchain.mcpClient",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Cc8CxzVDwvA3EysZ",
+          "name": "MCP Cars2You Readonly - BD SQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "@arquivo n8n/anexar-html.js"
+      },
+      "id": "30f5a1f2-bba7-4939-b06f-5532ebe0f8f1",
+      "name": "Anexar HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "@arquivo n8n/expandir-destinos-whatsapp.js"
+      },
+      "id": "fd67338b-073e-4a02-b62b-18fe9f19ed7b",
+      "name": "Expandir Destinos WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://52.206.207.64:8080/message/sendText/Cars2You%20Comercial",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $json.number, text: $json.resumo }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "213aa446-f5a3-496e-aa4b-886c7c8d32b2",
+      "name": "Enviar WhatsApp Resumo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1568,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "A46wz7IuxLPWqy5Z",
+          "name": "Evolution API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://52.206.207.64:8080/message/sendMedia/Cars2You%20Comercial",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $('Expandir Destinos WhatsApp').item.json.number, mediatype: \"document\", mimetype: \"text/html\", media: $('Expandir Destinos WhatsApp').item.json.b64, fileName: $('Expandir Destinos WhatsApp').item.json.fileName, caption: \"\" }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "76398159-fe8d-43a2-86c0-f71a5f1e897a",
+      "name": "Enviar WhatsApp Documento",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1792,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "A46wz7IuxLPWqy5Z",
+          "name": "Evolution API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "fda5eaae-28e1-48c1-b4a2-a172d46de882",
+      "name": "Diariamente às 08h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Montar HTML": {
+      "main": [
+        [
+          {
+            "node": "Anexar HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Queries": {
+      "main": [
+        [
+          {
+            "node": "MCP Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Run": {
+      "main": [
+        [
+          {
+            "node": "Montar HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anexar HTML": {
+      "main": [
+        [
+          {
+            "node": "Enviar Relatorio por Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expandir Destinos WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp Resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp Resumo": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp Documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Relatorio por Email": {
+      "main": [
+        [
+          {
+            "node": "Expandir Destinos WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Diariamente às 08h": {
+      "main": [
+        [
+          {
+            "node": "Montar Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

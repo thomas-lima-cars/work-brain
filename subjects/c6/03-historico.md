@@ -207,3 +207,14 @@
   Filtro de evento em botões acima da Data. Pasta `automations/n8n-sdk/painel-eventos-fenauto-cars2you/`,
   273 provas, `.wf.ts` pronto — **workflow não criado**. Feito numa sessão de manhã que não passou
   pelo `/salve`; salvo junto com a da tarde.
+
+## 2026-11-04
+- **Análise de Base de Clientes do C6 Lojista trazida para o repo:** o workflow que gera o
+  `Analise_Base_Clientes_C6_Lojista_<data>.html` é o **`f6Bw2iiuaWECy9Uz`**, diário às 8h
+  (não semanal, e não o `2ECmLRceNEgCCYyb`, que virou legado). Cópia conferida em
+  `automations/n8n-sdk/analise-base-c6-lojista/`. Falhas no mês: 17–19/10 (servidor MCP,
+  521, nada saiu) e 26–28/10 (Evolution API, 500, o e-mail saiu e o WhatsApp não).
+- **Velocidade de Ativação por Coorte em faixas exclusivas** (até 30d · 31–60 · 61–90 ·
+  91–180), como na análise dos 6 canais. Provado com o dado do run 68010, colado no n8n pelo
+  Thomas e conferido (versão `df75b54b…`). Primeiro run com ela: 05/11, 8h.
+- Achado: o comentário do nó de WhatsApp diz que o Tuunelis está fora, e o código o inclui.

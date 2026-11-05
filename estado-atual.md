@@ -1,9 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
-> ⚠️ **2 commits locais não enviados** desde 2026-11-03 (o push foi negado pelo modo automático). Rodar `git push`.
-
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-03 (tarde/noite) — rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-11-05 (manhã) — em 04/11, a **Análise de Base do C6 Lojista** (`f6Bw2iiuaWECy9Uz`, diário 8h) veio para o repo e a coorte dela passou a faixas exclusivas, colada pelo Thomas e conferida; o run de 05/11 já saiu assim. Em 03/11: rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Projeção de vendas 2027** — 🔥 nasceu em 29/10, pedido do **Tuunelis** (ata
@@ -92,6 +90,10 @@
 - **bradesco** — _(estado a preencher)_
 
 ## ⚙️ Rodando em produção (sem demanda ativa minha)
+- **Análise de Base de Clientes, C6 Lojista** (`f6Bw2iiuaWECy9Uz`) — diário 8h, e-mail (13) +
+  WhatsApp (2). Código em `automations/n8n-sdk/analise-base-c6-lojista/` desde 04/11, conferido
+  com `extrai_do_n8n.py --confere` (versão `df75b54b…`, coorte em faixas). Falhou 17–19/10
+  (MCP, nada saiu) e 26–28/10 (WhatsApp, o e-mail saiu). O `2ECmLRceNEgCCYyb` é legado.
 - **Carteira Comercial** (`ksZI8cqSbexqLOre`) — 6h da manhã, ~6s. Publica
   `carteira-comercial.json`. **Falha alto de propósito**: carteira ruim substitui a boa.
 - **itau** — operação IGA, 8 workflows 🟩. Evento ~1x/semana, fecha 16h.
@@ -102,6 +104,9 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔴 **Tuunelis recebe o WhatsApp da Análise de Base C6 todo dia** — o comentário do nó diz que
+  ele ficaria fora (o Caio aprovou semanal), mas a linha está ativa. Trocar o gatilho, tirar ele
+  ou aceitar o diário? E: falha do WhatsApp deve marcar o run como erro se o e-mail saiu?
 - 🔵 **Projeção 2027 — mesclas a validar com o Mattera:** "Multifrota - Netcarros" → "Outlet Netcarros"
   e os 5 "Dealers - Venda Direta - Ajuste <mês>" numa linha (aba De-para, oculta).
 - 🔴 **Painel de Eventos Cars2You — seis escolhas minhas** (README da pasta): novo = estreia em
@@ -140,6 +145,8 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] Republicar o **catálogo** (artifact 6PcahstRhTsxXVfUm4eXXZ): o `relatorios.json` foi corrigido
+      em 04/11 (C6 base diário, e-mail e WhatsApp) e a página só foi regerada no local
 - [ ] 🔥 **Mandar a Projeção 2027 ao Tuunelis** (`automations/projecao-vendas-2027/projecao-vendas-2027.xlsx`)
       — o prazo era sexta 30/10; confirmar se já foi
 - [ ] Projeção 2027: criar o **projeto no Claude** e compartilhar com Tuunelis e Mattera (pedido da reunião)
@@ -235,7 +242,9 @@
 - 🔑 **`git push` liberado em `.claude/settings.local.json`** (`Bash(git push:*)`).
   O arquivo é **ignorado pelo git**, então noutra máquina ele não existe e o push
   volta a pedir prompt. O conteúdo está em `memory/sessions/2026-09-22.md`.
-- 📤 **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único
+- 📤 **Nó Code grande sobe colado pelo Thomas, não pela API** (87 KB já falhou). Caminho
+  provado em 04/11 no C6: ele cola, eu confiro com o script de conferência da pasta.
+  **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único
   parâmetro, `setNodeParameter` é tudo-ou-nada, e um envio truncado gravaria um nó
   quebrado por cima do que funciona. O caminho é o Thomas colar e eu conferir.
 - 🎨 **A PONTE do Radar vem DEPOIS do TEMA e ganha no empate de especificidade.** Apagar

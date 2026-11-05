@@ -17,7 +17,7 @@
 | IGA — Controle de cadastros diários | `DVpaCz02psdgKb5J` | Diário 08h | E-mail com cadastros do dia anterior | ❓ sem alerta |
 | Lance Fácil BTB — cadastros diários | `oJPNgFxQZXQLDa06` | Diário | E-mail | ❓ sem alerta |
 | Lance Fácil BTB Associados — cadastros diários | `K8XX09IOxufdhilb` | Diário | E-mail | ❓ sem alerta |
-| C6 Lojista — Análise de base de cadastros | `2ECmLRceNEgCCYyb` | Semanal | Análise grupo 10 / loja 594 | ❓ sem alerta |
+| C6 Lojista — Análise de base de cadastros | `f6Bw2iiuaWECy9Uz` (o `2ECmLRceNEgCCYyb` virou "[Legado]", inativo) | Diário 08h (conferido no n8n em 04/11/2026) | HTML da base do WL 43 por e-mail (13 pessoas) + WhatsApp (2). Código em `n8n-sdk/analise-base-c6-lojista/` | ❓ sem alerta; falha do WhatsApp marca o run como erro mesmo com o e-mail entregue |
 | IGA — Análise de base de cadastros | `mgDSyxuO0Mzjkrfy` | Semanal | Análise grupo 10 / loja 594 | ❓ sem alerta |
 | Análise de Base de Clientes, 6 canais | `XkRFB5dYc1EFWZkN` | Diário 08h (fuso do workflow: America/Sao_Paulo), ativo desde 20/10/2026 | HTML por e-mail para Thomas, Caio, Tuunelis, Everton e Guilherme (lista em `n8n-sdk/analise-base-geral/gen_wf.py`) | ❓ sem alerta; a trava de contagem aborta sem enviar |
 

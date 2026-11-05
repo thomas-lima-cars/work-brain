@@ -92,8 +92,8 @@
     {
       "ops": ["c6"], "nome": "Análise de base de cadastros C6", "wf": "f6Bw2iiuaWECy9Uz",
       "mostra": "Retrato da base de lojistas cadastrados, no mesmo layout da análise que era feita à mão.",
-      "formato": "HTML por e-mail", "quando": "Semanal", "modo": "agendado",
-      "onde": "E-mail", "para": "Time do C6",
+      "formato": "HTML por e-mail e WhatsApp", "quando": "Diário, 8h", "modo": "agendado",
+      "onde": "E-mail e WhatsApp", "para": "Time do C6 e da Cars2You (13 por e-mail, 2 por WhatsApp)",
       "situacao": "producao"
     },
     {

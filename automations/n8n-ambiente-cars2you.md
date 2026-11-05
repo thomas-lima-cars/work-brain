@@ -63,7 +63,7 @@ vazio até criarmos a cópia descrita na seção 4.
 - `ehsqQo6hiPDRf58I` — 🟩 Relatório de Evento C6 Lojistas
 - `lXJNM4hbE92vEDsu` — 🟩 Planilha de Evento C6 Lojistas (2 .xlsx: completo c/ comprador; banco s/ comprador)
 - `f2DWD6yFNuLg5AE4` — 🟩 Remanescentes C6 Lojistas
-- `2ECmLRceNEgCCYyb` — 🟩 C6 Lojista - Análise de base de cadastros (semanal, grupo 10 loja 594)
+- `2ECmLRceNEgCCYyb` — 🟨 C6 Lojista - Análise de base de cadastros **[Legado]**, inativo. O que roda é o `f6Bw2iiuaWECy9Uz`, diário 8h (04/11/2026; código em `n8n-sdk/analise-base-c6-lojista/`)
 
 ### IGA
 - `Vx8DTLJmho0OvSKJ` — 🟩 Gatilho Fim de Evento IGA

@@ -11,7 +11,7 @@ Origem: `2ECmLRceNEgCCYyb` (produção).
 
 | Arquivo | O que é |
 |---|---|
-| `nodes-originais/` | Os 3 nós Code de **produção**, verbatim, com md5. Ponto de partida de tudo |
+| `nodes-originais/` | Os 3 nós Code de produção **em 03/09**, verbatim, com md5. Ponto de partida do port. ⚠️ Defasados: a produção hoje é o `f6Bw2iiuaWECy9Uz`, copiado em `analise-base-c6-lojista/` (04/11/2026) |
 | `montar-queries-LOTE1-todos.js` | Transformação mecânica: tira o `whitelabel_id = 43`, base vira a plataforma |
 | `montar-queries-LOTE1b-coorte.js` | Troca `kpi`+`situacao` pela coorte (o `kpi` estourava o deadline) |
 | `montar-queries-LOTE1d.js` | **No ar.** `status2` via PC, `total_ofertas` via JOIN, paginação medida |
