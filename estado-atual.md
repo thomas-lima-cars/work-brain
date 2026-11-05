@@ -1,5 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
+> ⚠️ **2 commits locais não enviados** desde 2026-11-05 (o push foi negado pelo modo automático). Rodar `git push`.
+
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
 > **Última atualização:** 2026-11-05 (manhã) — em 04/11, a **Análise de Base do C6 Lojista** (`f6Bw2iiuaWECy9Uz`, diário 8h) veio para o repo e a coorte dela passou a faixas exclusivas, colada pelo Thomas e conferida; o run de 05/11 já saiu assim. Em 03/11: rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
