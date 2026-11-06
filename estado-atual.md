@@ -1,9 +1,8 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
-> ⚠️ **2 commits locais não enviados** desde 2026-11-05 (o push foi negado pelo modo automático). Rodar `git push`.
-
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-05 (manhã) — em 04/11, a **Análise de Base do C6 Lojista** (`f6Bw2iiuaWECy9Uz`, diário 8h) veio para o repo e a coorte dela passou a faixas exclusivas, colada pelo Thomas e conferida; o run de 05/11 já saiu assim. Em 03/11: rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-11-05 (tarde; `/salve` em 06/11) — na tarde de 05/11 nasceu o
+> **Mega Evento Fenauto (IGA)**: a cara do IGA e só os eventos do IGA, local, sem n8n. Em 04/11, a **Análise de Base do C6 Lojista** (`f6Bw2iiuaWECy9Uz`, diário 8h) veio para o repo e a coorte dela passou a faixas exclusivas, colada pelo Thomas e conferida; o run de 05/11 já saiu assim. Em 03/11: rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
 - **Projeção de vendas 2027** — 🔥 nasceu em 29/10, pedido do **Tuunelis** (ata
@@ -38,6 +37,12 @@
   lojistas sem Logaram e com rótulos, sem rosa/vinho, fontes mais claras no escuro. Coleta de
   03/11 conferida contra o banco. 57 provas, `.wf.ts` de 7 nós pronto — **workflow não criado**.
   Números em `projetos/painel-eventos-cars2you/indicadores.md`.
+- **Mega Evento Fenauto (IGA)** — 🔥 nasceu em 05/11 (tarde), pasta
+  `automations/n8n-sdk/painel-eventos-fenauto-iga/`, frente `itau`. Cópia do Mega Evento da Cars2You
+  com a **identidade do IGA** (`tema.css` + `tema-iga.css`) e **só os eventos do IGA** (o que alveja
+  o WL 43 fica fora): logo do IGA à esquerda, título no centro, Fenauto à direita, botão de tema numa
+  linha abaixo do cabeçalho. Semana atual: 24350 (05/11) e 24363 (06/11). 287 provas, `.wf.ts`
+  pronto — **workflow não criado**. Números em `projetos/mega-evento-fenauto/indicadores.md`.
 - **Mega Evento Fenauto (Cars2You)** — 🔥 nasceu em 03/11 (sessão da manhã), pasta
   `automations/n8n-sdk/painel-eventos-fenauto-cars2you/`, frente `c6`. O painel do Fenauto com a
   identidade da Cars2You: eventos do **C6 e do IGA** da semana corrente (anda sozinha), loja nova =
@@ -115,6 +120,8 @@
   evento, não o cadastro · acessou = abriu anúncio · agendado fora · responsável recorta só lojas ·
   cartões num dia passado com o status de hoje · removido = tudo que não é ativo, análise nem venda.
   E: ganha cron? · As fontes mais claras e a paleta sem rosa do painel sobem para o `tema.css`?
+- 🔵 **Mega Evento Fenauto (IGA) substitui o da Cars2You ou os dois convivem?** Hoje cada um publica
+  num caminho. E, escolhas minhas: barra Total no laranja do IGA, botão de avisos junto do de tema.
 - 🔵 **Mega Evento Fenauto — três escolhas minhas:** loja nova vale para C6 e IGA · data do perfil,
   não da loja · acesso sem trava de canal. E: a campanha de 2026 com outro nome zera a loja nova calada.
 - 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
@@ -156,6 +163,8 @@
 - [ ] 🔥 **Painel de Eventos Cars2You:** responder as escolhas; com o ok, criar o workflow (`.wf.ts`
       pronto) e conferir a transcrição. A tela está sendo revisada pedido a pedido (03/11)
 - [ ] **Mega Evento Fenauto (Cars2You): criar o workflow no n8n** quando houver ok (`.wf.ts` pronto)
+- [ ] **Mega Evento Fenauto (IGA): criar o workflow no n8n** quando houver ok (`.wf.ts` pronto;
+      depois de criar, `_confere_transcricao.py` antes de rodar)
 - [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
       `resumo.cortados_pelo_teto` = 0, `resumo.fora_do_piso` e o tamanho (~5,4 MB esperado)
 - [ ] **Carteira Comercial (`ksZI8cqSbexqLOre`) aparece `active: false` no n8n** (22/10) — o brain
@@ -189,7 +198,9 @@
       Comercial — só os 4 nós do Radar têm essa prova
 - [ ] Novembro: `ULTIMO = "2026-10"` no `analise.py` do estudo do IGA e rodar o fluxo de novo
 - [ ] Destino do `WorkBrain.zip` (raiz), solto fora do git — e do `painel-eventos-fenauto-c6/Fenauto_C6.html`
-      (326 KB, de 26/10, também fora do git: tem nome real de loja)
+      (326 KB, de 26/10) do `painel-eventos-fenauto-cars2you/fenauto_cars.html` (158 KB, de 03/11) e do
+      `painel-eventos-fenauto-iga/Fenauto_iga.html` (de 05/11),
+      também fora do git: têm nome real de loja
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
 - [ ] **Estudo de precificação:** multivariado só com o que se sabe antes da venda · `laudo`
@@ -249,6 +260,8 @@
   **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único
   parâmetro, `setNodeParameter` é tudo-ou-nada, e um envio truncado gravaria um nó
   quebrado por cima do que funciona. O caminho é o Thomas colar e eu conferir.
+- 🎨 **`.topo-acoes` do `tema.css` tem `justify-self:end`:** fora da grade do topo, a linha encolhe e
+  centraliza. Botão que sair do cabeçalho precisa de `justify-self:stretch` (achado em 05/11).
 - 🎨 **A PONTE do Radar vem DEPOIS do TEMA e ganha no empate de especificidade.** Apagar
   uma regra só no `tema.css` pode não chegar no relatório — e não quebra nada, só não
   muda. Aconteceu com o fundo do `.topo`.

@@ -27,3 +27,11 @@
 - Tabela de compradores do estudo: ordena pela coluna clicada, mostra todas as lojas com compra
   em 12 meses (não só as 50 maiores) e o gráfico mês a mês soma todas elas sem seleção.
 - Re-extraído do banco: manchetes iguais às de 08/10 (série segue até set/26).
+
+## 2026-11-05
+- Nasce o **Mega Evento Fenauto (IGA)** (`automations/n8n-sdk/painel-eventos-fenauto-iga/`): o
+  painel da Fenauto com a identidade do IGA e **só os eventos do IGA** (vendedores 594, 598 e
+  16036; o que alveja o WL 43 fica fora). Na semana da Fenauto 2025, 7 eventos; na de 02 a
+  08/11/2026, 2 (24350 e 24363). Números em
+  `context/banco-de-dados/projetos/mega-evento-fenauto/indicadores.md`. Local, 287 provas;
+  **workflow não criado** (espera ok).
