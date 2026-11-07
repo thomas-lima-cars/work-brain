@@ -19,6 +19,7 @@
 | Lance Fácil BTB Associados — cadastros diários | `K8XX09IOxufdhilb` | Diário | E-mail | ❓ sem alerta |
 | C6 Lojista — Análise de base de cadastros | `f6Bw2iiuaWECy9Uz` (o `2ECmLRceNEgCCYyb` virou "[Legado]", inativo) | Diário 08h (conferido no n8n em 04/11/2026) | HTML da base do WL 43 por e-mail (13 pessoas) + WhatsApp (2). Código em `n8n-sdk/analise-base-c6-lojista/` | ❓ sem alerta; falha do WhatsApp marca o run como erro mesmo com o e-mail entregue |
 | IGA — Análise de base de cadastros | `mgDSyxuO0Mzjkrfy` | Semanal | Análise grupo 10 / loja 594 | ❓ sem alerta |
+| Painel de Eventos Cars2You | `cRChMwAnLYGRMesM` (projeto Cars2You) | `0 9-18 * * *` — de hora em hora, 9h às 18h, todo dia (fuso do workflow: America/Sao_Paulo), ativo desde 06/11/2026 | HTML em `Painel de Eventos Cars2You/painel-eventos-cars2you.html` no SharePoint (site N8N), com as metas de `Comitente - Metas/metas-painel-eventos.xlsx`. Código em `n8n-sdk/painel-eventos-cars2you/` | ❓ sem alerta; sem a planilha ou a carteira o painel sai e avisa no resumo do run. Guarda só as execuções com erro (~16 MB cada) |
 | Análise de Base de Clientes, 6 canais | `XkRFB5dYc1EFWZkN` | Diário 08h (fuso do workflow: America/Sao_Paulo), ativo desde 20/10/2026 | HTML por e-mail para Thomas, Caio, Tuunelis, Everton e Guilherme (lista em `n8n-sdk/analise-base-geral/gen_wf.py`) | ❓ sem alerta; a trava de contagem aborta sem enviar |
 
 ## Disparo manual (não agendado, de propósito)

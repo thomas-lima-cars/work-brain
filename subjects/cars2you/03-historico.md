@@ -313,3 +313,12 @@ precificar.
   luz), indicador e Todos/Novos no topo. Lojistas por dia sem o Logaram, com rótulo em pílula
   transparente. Sem rosa/vinho; fontes mais claras no escuro. Modo lista dos comitentes feito e
   descartado. 57 provas. **Workflow ainda não criado.**
+
+## 2026-11-06
+- **Painel de Eventos Cars2You no ar.** Status do cartão em funil, gráfico acumulado no evento,
+  aba Mensal (12 meses), **metas** de % com oferta e % vendidos por comitente e categoria (planilha
+  `Comitente - Metas/metas-painel-eventos.xlsx` no site N8N, gerada por `gera_metas.py`), filtro
+  de categoria e cores pela meta. Workflow **`cRChMwAnLYGRMesM`** (projeto Cars2You): run 68395
+  publicou `Painel de Eventos Cars2You/painel-eventos-cars2you.html`; **ativo de hora em hora,
+  9h às 18h**, histórico só de erro. Detalhes no README da pasta e em
+  `memory/sessions/2026-11-06.md`.

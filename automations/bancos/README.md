@@ -10,6 +10,7 @@
 | Somente-leitura | por desenho do serviço | **depende da credencial** + guardas daqui |
 | Teto de linhas | 50, silencioso | `--limite`, com aviso quando estoura |
 | Janelas / CTE | ⚠️ `ROW_NUMBER()` é rejeitada pelo validador | permitido |
+| `GROUP BY ... WITH ROLLUP` | ⚠️ rejeitado pelo validador ("syntax error near 'with'", run 68394 do Painel de Eventos Cars2You, 06/11): escrever cada subtotal num `GROUP BY` e unir com `UNION ALL` | permitido |
 
 O nó MCP só aceita `{sql, database}` — **não tem campo de host**
 ([n8n-ambiente:120](../n8n-ambiente-cars2you.md)). Por isso a Dealers não cabia

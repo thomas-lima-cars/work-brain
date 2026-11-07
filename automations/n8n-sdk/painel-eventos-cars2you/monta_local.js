@@ -8,12 +8,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { roda } = require('./_roda_no');
+const { roda, nosLocais } = require('./_roda_no');
 
 const entrada = path.resolve(__dirname, process.argv[2] || 'dados-local.json');
 const saida = process.argv[3] || 'saida-local.html';
 const d = JSON.parse(fs.readFileSync(entrada, 'utf8'));
-const out = roda('montar-painel.js', { 'Montar Consultas': d.consultas, 'MCP Consultas': d.mcp, 'Ler Carteira': d.carteira });
+const out = roda('montar-painel.js', nosLocais(d));
 fs.writeFileSync(path.resolve(__dirname, saida), out[0].json.html, 'utf8');
 const r = out[0].json.resumo;
 console.log('✓ %s · %d KB · %d eventos · %d negociações · %d veículos · %d lojas · %d aviso(s)',

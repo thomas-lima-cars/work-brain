@@ -21,7 +21,17 @@ function roda(arquivo, nos, input) {
   return fn($, $input, Buffer);
 }
 
-module.exports = { roda };
+/* os nós que o Montar Painel lê, de uma coleta local: as consultas, as
+   respostas, a carteira e as metas (metas-local.json, do le_metas.py; sem
+   ele, as metas não vêm, como no n8n sem a planilha) */
+function nosLocais(d, semMetas) {
+  const nos = { 'Montar Consultas': d.consultas, 'MCP Consultas': d.mcp, 'Ler Carteira': d.carteira };
+  const arq = path.resolve(__dirname, 'metas-local.json');
+  if (!semMetas && fs.existsSync(arq)) Object.assign(nos, JSON.parse(fs.readFileSync(arq, 'utf8')));
+  return nos;
+}
+
+module.exports = { roda, nosLocais };
 
 if (require.main === module) {
   const itens = roda(process.argv[2]);

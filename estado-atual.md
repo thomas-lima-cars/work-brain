@@ -1,7 +1,10 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-05 (tarde; `/salve` em 06/11) — na tarde de 05/11 nasceu o
+> **Última atualização:** 2026-11-06 (noite) — o **Painel de Eventos Cars2You foi ao ar**:
+> workflow `cRChMwAnLYGRMesM` (projeto Cars2You), **ativo de hora em hora das 9h às 18h**, com
+> status em funil, aba Mensal, **metas** por comitente e categoria (planilha em `Comitente - Metas/`
+> no site N8N) e filtro de categoria. Na tarde de 05/11 nasceu o
 > **Mega Evento Fenauto (IGA)**: a cara do IGA e só os eventos do IGA, local, sem n8n. Em 04/11, a **Análise de Base do C6 Lojista** (`f6Bw2iiuaWECy9Uz`, diário 8h) veio para o repo e a coorte dela passou a faixas exclusivas, colada pelo Thomas e conferida; o run de 05/11 já saiu assim. Em 03/11: rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
 
 ## 🔹 Frentes quentes agora
@@ -27,15 +30,15 @@
   teto 150 — substituiu o teto fixo de 30); **filtro de veículo** (evento, farol, busca) chega à
   tabela de lojas e ao KPI Lojas elegíveis (≥ 70 em algum veículo filtrado). Estimativa
   +0,4 MB (~5,4 MB). Detalhes e medições no README da pasta.
-- **Painel de Eventos Cars2You** — 🔥 nasceu em 28/10, pasta `automations/n8n-sdk/painel-eventos-cars2you/`,
-  frente `cars2you`. Eventos dos 6 canais já abertos com fim nos últimos 30 dias: cartões do dia
-  por status (removidos = inativos não vendidos), veículos ativos por dia com os novos e o % com
-  acesso/oferta/venda, lojistas por dia, tabela de veículos; filtros whitelabel, comitente,
-  evento, responsável (carteira comercial) e data. **03/11, rodada de layout com o Thomas:**
-  cartões por comitente que filtram (rosca do indicador + área de 7 dias, luz e cor verde/vermelha
-  pela diferença contra ontem), lista por evento retrátil abaixo, indicador e Todos/Novos no topo,
-  lojistas sem Logaram e com rótulos, sem rosa/vinho, fontes mais claras no escuro. Coleta de
-  03/11 conferida contra o banco. 57 provas, `.wf.ts` de 7 nós pronto — **workflow não criado**.
+- **Painel de Eventos Cars2You** — 🔥 **no ar desde 06/11**: wf **`cRChMwAnLYGRMesM`** (projeto
+  Cars2You), **ativo de hora em hora, 9h às 18h, todo dia** (fuso Brasília), histórico só de erro;
+  publica `Painel de Eventos Cars2You/painel-eventos-cars2you.html` (site N8N; run 68395 ✅). Pasta
+  `automations/n8n-sdk/painel-eventos-cars2you/`, frente `cars2you`. 06/11: status em **funil**
+  (com oferta ⊃ VMV ⊃ vendidos; removidos 8/10), gráfico **acumulado no evento**, **aba Mensal**
+  (12 meses), **metas** de % com oferta e % vendidos por comitente e categoria lidas da planilha
+  `Comitente - Metas/metas-painel-eventos.xlsx` (`gera_metas.py`; travada, editável só nas metas),
+  **filtro de categoria** (Leves com motos, Pesados, Equipamentos, Não informada), cores pela meta,
+  indicador nasce em Com oferta. Montar Painel vai **dividido em 3 nós** (`_divide.js`). 91 provas.
   Números em `projetos/painel-eventos-cars2you/indicadores.md`.
 - **Mega Evento Fenauto (IGA)** — 🔥 nasceu em 05/11 (tarde), pasta
   `automations/n8n-sdk/painel-eventos-fenauto-iga/`, frente `itau`. Cópia do Mega Evento da Cars2You
@@ -116,10 +119,10 @@
   ou aceitar o diário? E: falha do WhatsApp deve marcar o run como erro se o e-mail saiu?
 - 🔵 **Projeção 2027 — mesclas a validar com o Mattera:** "Multifrota - Netcarros" → "Outlet Netcarros"
   e os 5 "Dealers - Venda Direta - Ajuste <mês>" numa linha (aba De-para, oculta).
-- 🔴 **Painel de Eventos Cars2You — seis escolhas minhas** (README da pasta): novo = estreia em
-  evento, não o cadastro · acessou = abriu anúncio · agendado fora · responsável recorta só lojas ·
-  cartões num dia passado com o status de hoje · removido = tudo que não é ativo, análise nem venda.
-  E: ganha cron? · As fontes mais claras e a paleta sem rosa do painel sobem para o `tema.css`?
+- 🔵 **Painel de Eventos Cars2You — escolhas minhas** (README, marcadas "(minha)"): novo = estreia
+  em evento · acessou = abriu anúncio · agendado fora · evento > 31 dias fora do mensal · cortes de
+  base pequena das metas (3 meses/30 veículos; 30 dias/100 veículos-dia). E: as fontes mais claras e
+  a paleta sem rosa sobem para o `tema.css`?
 - 🔵 **Mega Evento Fenauto (IGA) substitui o da Cars2You ou os dois convivem?** Hoje cada um publica
   num caminho. E, escolhas minhas: barra Total no laranja do IGA, botão de avisos junto do de tema.
 - 🔵 **Mega Evento Fenauto — três escolhas minhas:** loja nova vale para C6 e IGA · data do perfil,
@@ -160,8 +163,8 @@
       — o prazo era sexta 30/10; confirmar se já foi
 - [ ] Projeção 2027: criar o **projeto no Claude** e compartilhar com Tuunelis e Mattera (pedido da reunião)
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
-- [ ] 🔥 **Painel de Eventos Cars2You:** responder as escolhas; com o ok, criar o workflow (`.wf.ts`
-      pronto) e conferir a transcrição. A tela está sendo revisada pedido a pedido (03/11)
+- [ ] 🔥 **Painel de Eventos Cars2You:** conferir a 1ª rodada agendada (07/11 9h) no SharePoint — o
+      histórico do n8n só guarda erro — e mandar o link a quem vai usar
 - [ ] **Mega Evento Fenauto (Cars2You): criar o workflow no n8n** quando houver ok (`.wf.ts` pronto)
 - [ ] **Mega Evento Fenauto (IGA): criar o workflow no n8n** quando houver ok (`.wf.ts` pronto;
       depois de criar, `_confere_transcricao.py` antes de rodar)
@@ -257,6 +260,11 @@
   volta a pedir prompt. O conteúdo está em `memory/sessions/2026-09-22.md`.
 - 📤 **Nó Code grande sobe colado pelo Thomas, não pela API** (87 KB já falhou). Caminho
   provado em 04/11 no C6: ele cola, eu confiro com o script de conferência da pasta.
+  **Ou, provado em 06/11 (Painel de Eventos Cars2You, 164 KB):** partir o nó em pedaços ≤ 56 KB
+  (`_divide.js`, prova de HTML idêntico), criar o esqueleto e mandar cada pedaço num
+  `update_workflow` por subagente, depois md5 dos nós (`_confere_n8n.py`). Mudou nó? `publish_workflow`.
+- 🧮 **O MCP do banco recusa `GROUP BY … WITH ROLLUP`** ("syntax error near 'with'", run 68394):
+  um `GROUP BY` por subtotal, unidos por `UNION ALL` (`automations/bancos/README.md`).
   **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único
   parâmetro, `setNodeParameter` é tudo-ou-nada, e um envio truncado gravaria um nó
   quebrado por cima do que funciona. O caminho é o Thomas colar e eu conferir.

@@ -297,6 +297,20 @@ A coincidência de duas tabelas começarem no **mesmo dia** aponta migração ou
 política de retenção, não início de operação — `user_access` vai a 2022 para as
 mesmas lojas.
 
+### `access_logs` tem um buraco de 34 dias: 06/02 a 11/03/2026
+
+Medido em **2026-11-06** (conexão direta, `COUNT(DISTINCT DATE(created_at))`
+por mês): fevereiro/2026 tem registro em **5 dias** (01 a 05/02) e março em
+**20** (12 a 31/03). Entre 06/02 e 11/03 não há **nenhuma** linha. Os dias
+vizinhos têm 10 a 19 mil linhas. Os demais meses, de dez/2025 a out/2026, estão
+completos.
+
+Consequência: todo "acessou" ou "com acesso" de fevereiro e março/2026 sai
+**subcontado**. No Painel de Eventos Cars2You (aba Mensal), fevereiro mostra 16%
+dos veículos com acesso, contra ~90% nos outros meses. O painel conta os dias
+com registro por mês e avisa o mês incompleto. A causa (falha de gravação,
+expurgo) não foi apurada.
+
 ⚠️ **Corrigido em 2026-09-11 (sonda 50347): isto vale para essas três
 tabelas, NÃO para o banco todo.** `offers` começa em **2020-06-24**, com
 749.109 ofertas. A generalização anterior ("o banco só tem um ano") estava
@@ -644,6 +658,35 @@ Aberto de **2021-05-25 a 2025-12-16**, whitelabel 7, 10.127 negociações (7.676
 de vendedores do IGA), status 0. Quem recorta evento "aberto num período"
 pega ele em qualquer janela até dez/2025. Medido em 2026-11-03; o Mega
 Evento Fenauto corta evento com mais de 31 dias de duração por causa dele.
+
+## Categoria do veículo: `categories` e `category_groups`
+
+Medido em **2026-11-06** (conexão direta), para as metas do Painel de
+Eventos Cars2You. `vehicles.category_id` → `categories.category_group_id` →
+`category_groups`.
+
+| grupo | categorias (id) |
+|---|---|
+| 10 Leves | 1 Veiculos, 2 e 9 Automovel, **6 Motocicleta**, 8 Utilitario |
+| 2 Pesados | 3 Cavalo Mecânico, 5 Caminhao, 7 Onibus, 10 Semireboque, 14 Pesados, 16 Chassi, 18 e 24 Guindaste, 19 Cavalo mecânico com implemento, 20 Máquina, 21 Reboque, 13 "asdasd" |
+| 8 Equipamentos | 4 Ferroviários, 17 Equipamentos |
+| 11 Não informada | 22 Não informada |
+| 1 "Grupo de categorias" | 11 zzTeste, 15 Particular, **23 Caminhao** |
+| 6 "zGrupo Categoria" | 12 Categoria |
+
+⚠️ **Moto está no grupo Leves** e há um **segundo "Caminhao" (23) fora de
+Pesados**: agrupar só por `category_group_id` erra os dois. Nomes repetidos
+(Automovel 2 e 9, Guindaste 18 e 24): agrupar por id, nunca por nome.
+
+Nos eventos dos seis canais com fim desde 01/11/2025 (veículos distintos):
+Automovel 21.217 · Utilitario 6.096 · **Não informada 4.964** · Caminhao (5)
+1.993 · Motocicleta 363 · Reboque 214 · Semireboque 176 · Equipamentos 40 ·
+Onibus 23. O resto não aparece.
+
+A regra usada no painel (o `CASE` de `gera_metas.py` e `montar-consultas.js`):
+Pesados = grupo 2 ou categoria 23; Leves = grupo 10, **motos inclusive**
+(pedido do Thomas, 06/11 — numa primeira versão Motos era à parte);
+Equipamentos = grupo 8; o resto (inclusive sem categoria) = Não informada.
 
 ## Ainda sem decodificar
 

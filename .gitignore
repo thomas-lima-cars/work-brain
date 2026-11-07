@@ -28,6 +28,8 @@ automations/n8n-sdk/saida-teste-local.html
 # Reproduz rodando o workflow e extraindo com _extrai_execucao.py.
 automations/n8n-sdk/*/dados-*.json
 automations/n8n-sdk/*/saida-*.html
+automations/n8n-sdk/*/metas-local.json
+automations/n8n-sdk/*/n8n/_envio/
 
 # Exports do workflow baixados da interface do n8n, guardados depois de
 # conferir a transcricao (_confere_transcricao.py). Um por colagem: o codigo
