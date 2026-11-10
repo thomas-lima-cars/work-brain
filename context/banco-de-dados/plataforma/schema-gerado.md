@@ -1,6 +1,6 @@
 # Schema gerado — cars2you_production
 
-> 🤖 **Gerado por `automations/bancos/gera-schema.py`** em 2026-09-18, direto do
+> 🤖 **Gerado por `automations/bancos/gera-schema.py`** em 2026-11-10, direto do
 > `information_schema` de `cars2you_production` (MySQL 8.4.8).
 >
 > **Não editar à mão** — rode o script de novo.
@@ -10,7 +10,7 @@
 > descrição de cada tabela em português, agrupamento por domínio e notas de
 > leitura, que o `information_schema` não sabe. Os dois convivem.
 >
-> 🔒 **79 nomes de coluna sensíveis** (placa, chassi, renavam, documento, senha,
+> 🔒 **80 nomes de coluna sensíveis** (placa, chassi, renavam, documento, senha,
 > token) foram **contados e não nomeados** — listá-los seria um mapa de onde
 > procurar. Ver a política em [`qualidade.md`](qualidade.md).
 
@@ -19,44 +19,44 @@
 
 | | |
 |---|---:|
-| Tabelas | **193** |
-| Colunas | 2.075 |
-| Chaves estrangeiras | 310 |
-| Tabelas vazias | 40 |
+| Tabelas | **194** |
+| Colunas | 2.090 |
+| Chaves estrangeiras | 316 |
+| Tabelas vazias | 41 |
 
 ## As 15 maiores
 
 | tabela | linhas | colunas |
 |---|---:|---:|
-| `audits` | 12.037.022 | 14 |
-| `access_logs` | 3.190.565 | 8 |
-| `vehicle_image_galleries` | 2.754.569 | 11 |
-| `notifications` | 2.119.710 | 20 |
-| `oauth_access_tokens` | 1.155.726 | 9 |
-| `advertisement_negotiation_client_groups` | 927.734 | 5 |
-| `offers` | 754.445 | 21 |
-| `vehicle_accessories` | 639.521 | 5 |
-| `user_access` | 481.869 | 3 |
-| `import_row_logs` | 277.057 | 8 |
-| `advertisement_negotiation_whitelabels` | 273.078 | 5 |
-| `advertisements` | 252.982 | 12 |
-| `advertisement_negotiations` | 240.053 | 37 |
-| `advertisement_page_views` | 235.868 | 5 |
-| `failed_jobs` | 232.776 | 7 |
+| `audits` | 14.925.741 | 14 |
+| `access_logs` | 3.737.788 | 8 |
+| `vehicle_image_galleries` | 2.876.166 | 11 |
+| `notifications` | 2.357.324 | 20 |
+| `oauth_access_tokens` | 1.424.246 | 9 |
+| `advertisement_negotiation_client_groups` | 1.225.470 | 5 |
+| `offers` | 792.418 | 25 |
+| `vehicle_accessories` | 639.480 | 5 |
+| `user_access` | 566.058 | 3 |
+| `advertisement_negotiation_whitelabels` | 322.711 | 5 |
+| `import_row_logs` | 316.921 | 8 |
+| `failed_jobs` | 302.998 | 7 |
+| `advertisements` | 298.756 | 12 |
+| `advertisement_negotiations` | 285.813 | 37 |
+| `advertisement_page_views` | 280.076 | 5 |
 
 ## Tabelas
 
 
 ### access_logs
 
-_3.190.565 linhas · 8 colunas_
+_3.737.788 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
 whitelabel_id                              bigint unsigned NOT NULL
 advertisement_id                           bigint unsigned
 event_id                                   bigint unsigned
-route                                      varchar(255) NOT NULL
+route                                      varchar(500) NOT NULL
 user_id                                    bigint unsigned NOT NULL
 shop_id                                    bigint unsigned
 created_at                                 timestamp NOT NULL
@@ -125,7 +125,7 @@ updated_at                                 timestamp
 
 ### advertisement_negotiation_client_groups
 
-_927.734 linhas · 5 colunas_
+_1.225.470 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -139,7 +139,7 @@ updated_at                                 timestamp
 
 ### advertisement_negotiation_whitelabels
 
-_273.078 linhas · 5 colunas_
+_322.711 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -153,7 +153,7 @@ updated_at                                 timestamp
 
 ### advertisement_negotiations
 
-_240.053 linhas · 37 colunas_
+_285.813 linhas · 37 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -201,7 +201,7 @@ seller_at                                  datetime
 
 ### advertisement_page_views
 
-_235.868 linhas · 5 colunas_
+_280.076 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -234,7 +234,7 @@ updated_at                                 timestamp
 
 ### advertisement_request_status_logs
 
-_40.466 linhas · 12 colunas_
+_95.322 linhas · 12 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -286,7 +286,7 @@ updated_at                                 timestamp
 
 ### advertisements
 
-_252.982 linhas · 12 colunas_
+_298.756 linhas · 12 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -309,7 +309,7 @@ updated_at                                 timestamp
 
 ### aliases
 
-_23 linhas · 7 colunas_
+_33 linhas · 7 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -327,7 +327,7 @@ updated_at                                 timestamp
 
 ### audits
 
-_12.037.022 linhas · 14 colunas_
+_14.925.741 linhas · 14 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -336,8 +336,8 @@ user_id                                    bigint unsigned
 event                                      varchar(255) NOT NULL
 auditable_type                             varchar(255) NOT NULL
 auditable_id                               bigint unsigned NOT NULL
-old_values                                 text
-new_values                                 text
+old_values                                 longtext
+new_values                                 longtext
 url                                        text
 ip_address                                 varchar(45)
 user_agent                                 varchar(1023)
@@ -431,7 +431,7 @@ updated_at                                 timestamp
 
 ### benefit_club_users
 
-_141.294 linhas · 7 colunas_
+_138.636 linhas · 7 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -490,7 +490,7 @@ deleted_at                                 timestamp
 
 ### bodyworks
 
-_107 linhas · 10 colunas_
+_113 linhas · 10 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -511,7 +511,7 @@ integration_category                       int
 
 ### brands
 
-_352 linhas · 10 colunas_
+_361 linhas · 10 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -548,7 +548,7 @@ updated_at                                 timestamp
 
 ### campaign_client_groups
 
-_24 linhas · 5 colunas_
+_30 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -562,7 +562,7 @@ updated_at                                 timestamp
 
 ### campaign_links
 
-_26 linhas · 7 colunas_
+_31 linhas · 7 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -578,7 +578,7 @@ updated_at                                 timestamp
 
 ### campaigns
 
-_22 linhas · 8 colunas_
+_27 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -645,7 +645,7 @@ updated_at                                 timestamp
 
 ### chat_messages
 
-_3.220 linhas · 10 colunas_
+_3.633 linhas · 10 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -664,7 +664,7 @@ updated_at                                 timestamp
 
 ### chat_participants
 
-_1.569 linhas · 9 colunas_
+_1.750 linhas · 9 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -682,7 +682,7 @@ deleted_at                                 timestamp
 
 ### chats
 
-_1.569 linhas · 8 colunas_
+_1.750 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -701,7 +701,7 @@ updated_at                                 timestamp
 
 ### client_groups
 
-_145 linhas · 7 colunas_
+_149 linhas · 7 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -895,7 +895,7 @@ deleted_at                                 timestamp
 
 ### contacts
 
-_1.177 linhas · 9 colunas_
+_1.274 linhas · 9 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -913,7 +913,7 @@ updated_at                                 timestamp
 
 ### content_components
 
-_600 linhas · 17 colunas_
+_625 linhas · 17 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -955,7 +955,7 @@ updated_at                                 timestamp
 
 ### content_components_items
 
-_2.223 linhas · 18 colunas_
+_2.321 linhas · 18 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -984,7 +984,7 @@ updated_at                                 timestamp
 
 ### content_whitelabel
 
-_3.426 linhas · 5 colunas_
+_3.464 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -998,7 +998,7 @@ updated_at                                 timestamp
 
 ### contents
 
-_121 linhas · 29 colunas_
+_130 linhas · 29 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1034,7 +1034,7 @@ updated_at                                 timestamp
 
 **Aponta para:** `shop_id` → `shops.id`
 
-**Referenciada por (6):** `advertisement_negotiations` · `content_whitelabel` · `contents_variables` · `events` · `regulation_acceptances` · `review_negotiations`
+**Referenciada por (7):** `advertisement_negotiations` · `content_whitelabel` · `contents_variables` · `events` · `regulation_acceptances` · `review_negotiations` · `whitelabel_signatures`
 
 ### contents_variables
 
@@ -1097,7 +1097,7 @@ updated_at                                 timestamp
 
 ### event_client_groups
 
-_27.689 linhas · 5 colunas_
+_30.128 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1111,7 +1111,7 @@ updated_at                                 timestamp
 
 ### event_shops
 
-_4.747 linhas · 5 colunas_
+_5.179 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1125,7 +1125,7 @@ updated_at                                 timestamp
 
 ### event_tags
 
-_12 linhas · 5 colunas_
+_13 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1139,7 +1139,7 @@ updated_at                                 timestamp
 
 ### event_user_alerts
 
-_156 linhas · 6 colunas_
+_301 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1154,7 +1154,7 @@ updated_at                                 timestamp
 
 ### event_whitelabels
 
-_7.663 linhas · 5 colunas_
+_8.219 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1168,7 +1168,7 @@ updated_at                                 timestamp
 
 ### events
 
-_8.321 linhas · 22 colunas_
+_8.753 linhas · 23 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1181,6 +1181,7 @@ description                                text
 status                                     tinyint(1) NOT NULL
 home_highlight                             tinyint(1) NOT NULL
 content_regulation_id                      bigint unsigned
+send_leftover_to_event_id                  bigint unsigned
 start_date_display                         datetime
 start_date_offer                           datetime
 finish_date_event                          datetime
@@ -1195,13 +1196,13 @@ created_at                                 timestamp
 updated_at                                 timestamp
 ```
 
-**Aponta para:** `content_regulation_id` → `contents.id` · `event_tag` → `event_tags.id`
+**Aponta para:** `content_regulation_id` → `contents.id` · `event_tag` → `event_tags.id` · `send_leftover_to_event_id` → `events.id`
 
-**Referenciada por (8):** `access_logs` · `advertisement_negotiations` · `event_client_groups` · `event_shops` · `event_user_alerts` · `event_whitelabels` · `fee_applicabilities` · `regulation_acceptances`
+**Referenciada por (9):** `access_logs` · `advertisement_negotiations` · `event_client_groups` · `event_shops` · `event_user_alerts` · `event_whitelabels` · `events` · `fee_applicabilities` · `regulation_acceptances`
 
 ### failed_jobs
 
-_232.776 linhas · 7 colunas_
+_302.998 linhas · 7 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1347,7 +1348,7 @@ updated_at                                 timestamp
 
 ### import_logs
 
-_5.369 linhas · 20 colunas_
+_6.231 linhas · 20 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1376,7 +1377,7 @@ updated_at                                 timestamp
 
 ### import_row_logs
 
-_277.057 linhas · 8 colunas_
+_316.921 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1476,7 +1477,7 @@ deleted_at                                 timestamp
 
 ### interest_region_preference
 
-_65 linhas · 6 colunas_
+_72 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1539,7 +1540,7 @@ type_items                                 text
 
 ### leads
 
-_37 linhas · 10 colunas_
+_39 linhas · 10 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1585,7 +1586,7 @@ updated_at                                 timestamp
 
 ### migrations
 
-_386 linhas · 3 colunas_
+_402 linhas · 3 colunas_
 
 ```
 id                                         int unsigned NOT NULL PK auto_increment
@@ -1607,7 +1608,7 @@ model_id                                   bigint unsigned NOT NULL PK
 
 ### model_has_roles
 
-_74.053 linhas · 3 colunas_
+_75.595 linhas · 3 colunas_
 
 ```
 role_id                                    bigint unsigned NOT NULL PK
@@ -1619,7 +1620,7 @@ model_id                                   bigint unsigned NOT NULL PK
 
 ### model_preference
 
-_1.819 linhas · 6 colunas_
+_1.831 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1634,7 +1635,7 @@ deleted_at                                 timestamp
 
 ### models
 
-_2.938 linhas · 10 colunas_
+_2.993 linhas · 10 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1655,7 +1656,7 @@ created_by                                 bigint unsigned
 
 ### notifications
 
-_2.119.710 linhas · 20 colunas_
+_2.357.324 linhas · 20 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1684,7 +1685,7 @@ deleted_at                                 timestamp
 
 ### oauth_access_tokens
 
-_1.155.726 linhas · 9 colunas_
+_1.424.246 linhas · 9 colunas_
 
 ```
 id                                         varchar(100) NOT NULL PK
@@ -1753,7 +1754,7 @@ expires_at                                 datetime
 
 ### offers
 
-_754.445 linhas · 21 colunas_
+_792.418 linhas · 25 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1774,18 +1775,22 @@ deleted_at                                 timestamp
 deleted_by                                 bigint unsigned
 deletion_ticket_url                        varchar(255)
 deletion_observation                       text
+withdrawal_reason                          text
+withdrawn_at                               timestamp
+withdrawn_by                               bigint unsigned
+replaced_offer_id                          bigint unsigned
 created_at                                 timestamp
 updated_at                                 timestamp
 negotiation_type_filtered                  int STORED GENERATED
 ```
 
-**Aponta para:** `advertisement_id` → `advertisements.id` · `advs_negotiation_id` → `advertisement_negotiations.id` · `buyer_shop_id` → `shops.id` · `buyer_user_id` → `users.id` · `deleted_by` → `users.id` · `internal_user_id` → `users.id` · `seller_shop_id` → `shops.id` · `seller_user_id` → `users.id`
+**Aponta para:** `advertisement_id` → `advertisements.id` · `advs_negotiation_id` → `advertisement_negotiations.id` · `buyer_shop_id` → `shops.id` · `buyer_user_id` → `users.id` · `deleted_by` → `users.id` · `internal_user_id` → `users.id` · `replaced_offer_id` → `offers.id` · `seller_shop_id` → `shops.id` · `seller_user_id` → `users.id` · `withdrawn_by` → `users.id`
 
-**Referenciada por (1):** `transactions`
+**Referenciada por (2):** `offers` · `transactions`
 
 ### offers_automatics
 
-_26.168 linhas · 10 colunas_
+_29.562 linhas · 10 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1804,7 +1809,7 @@ updated_at                                 timestamp
 
 ### password_histories
 
-_3.722 linhas · 4 colunas_
+_4.470 linhas · 4 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1817,7 +1822,7 @@ created_at                                 timestamp NOT NULL
 
 ### password_reset_tokens
 
-_1.527 linhas · 6 colunas_
+_1.625 linhas · 6 colunas_
 
 ```
 email                                      varchar(255) NOT NULL PK
@@ -1896,7 +1901,7 @@ updated_at                                 timestamp
 
 ### permissions
 
-_458 linhas · 9 colunas_
+_469 linhas · 9 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1931,7 +1936,7 @@ updated_at                                 timestamp
 
 ### photo_tags
 
-_41 linhas · 8 colunas_
+_42 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1948,7 +1953,7 @@ updated_at                                 timestamp
 
 ### pickup_authorizations
 
-_619 linhas · 14 colunas_
+_1.587 linhas · 15 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -1958,6 +1963,7 @@ stock_id                                   bigint unsigned NOT NULL
 vehicle_id                                 bigint unsigned NOT NULL
 buyer_user_id                              bigint unsigned NOT NULL
 authorized_name                            varchar(255) NOT NULL
+···                                        (coluna sensível — nome omitido)
 ···                                        (coluna sensível — nome omitido)
 is_active                                  tinyint(1) NOT NULL
 consent_checked                            tinyint(1) NOT NULL
@@ -1971,7 +1977,7 @@ updated_at                                 timestamp
 
 ### preferences
 
-_108 linhas · 20 colunas_
+_121 linhas · 20 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2002,7 +2008,7 @@ deleted_at                                 timestamp
 
 ### publishing_channel_client_groups
 
-_232 linhas · 6 colunas_
+_260 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2017,7 +2023,7 @@ updated_at                                 timestamp
 
 ### publishing_channel_whitelabels
 
-_442 linhas · 5 colunas_
+_450 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2031,7 +2037,7 @@ updated_at                                 timestamp
 
 ### publishing_channels
 
-_76 linhas · 9 colunas_
+_81 linhas · 9 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2051,7 +2057,7 @@ updated_at                                 timestamp
 
 ### purchase_origin_preference
 
-_38 linhas · 6 colunas_
+_46 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2094,7 +2100,7 @@ updated_at                                 timestamp
 
 ### registration_logs
 
-_3.466 linhas · 13 colunas_
+_3.753 linhas · 13 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2133,7 +2139,7 @@ updated_at                                 timestamp
 
 ### report_status_preference
 
-_32 linhas · 6 colunas_
+_42 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2162,7 +2168,7 @@ deleted_at                                 timestamp
 
 ### reports
 
-_13.103 linhas · 13 colunas_
+_15.054 linhas · 13 colunas_
 
 ```
 id                                         char(36) NOT NULL PK
@@ -2240,7 +2246,7 @@ updated_at                                 timestamp
 
 ### role_has_permissions
 
-_2.227 linhas · 2 colunas_
+_2.254 linhas · 2 colunas_
 
 ```
 permission_id                              bigint unsigned NOT NULL PK
@@ -2268,7 +2274,7 @@ updated_at                                 timestamp
 
 ### sale_networks
 
-_563 linhas · 6 colunas_
+_567 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2281,7 +2287,7 @@ updated_at                                 timestamp
 
 ### schedules
 
-_976 linhas · 14 colunas_
+_2.195 linhas · 15 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2298,6 +2304,7 @@ deleted_at                                 timestamp
 created_at                                 timestamp
 updated_at                                 timestamp
 ···                                        (coluna sensível — nome omitido)
+client_is_withdrawer                       tinyint(1) NOT NULL
 ```
 
 **Aponta para:** `advertisement_id` → `advertisements.id` · `client_id` → `users.id` · `shop_id` → `shops.id` · `stock_id` → `shop_stocks.id`
@@ -2306,7 +2313,7 @@ updated_at                                 timestamp
 
 ### shop_addresses
 
-_23.210 linhas · 15 colunas_
+_23.901 linhas · 15 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2363,7 +2370,7 @@ updated_at                                 timestamp
 
 ### shop_automation_logs
 
-_8.532 linhas · 11 colunas_
+_29.229 linhas · 11 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2383,7 +2390,7 @@ updated_at                                 timestamp
 
 ### shop_automations
 
-_4 linhas · 12 colunas_
+_7 linhas · 12 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2421,13 +2428,14 @@ deleted_at                                 timestamp
 
 ### shop_signatures
 
-_1 linhas · 8 colunas_
+_1 linhas · 9 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
 shop_id                                    bigint unsigned NOT NULL
 started_at                                 date NOT NULL
 ended_at                                   date
+end_reason                                 varchar(255)
 created_by                                 bigint unsigned
 updated_by                                 bigint unsigned
 created_at                                 timestamp
@@ -2438,7 +2446,7 @@ updated_at                                 timestamp
 
 ### shop_stock_schedules
 
-_3.980 linhas · 11 colunas_
+_5.953 linhas · 11 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2458,7 +2466,7 @@ updated_at                                 timestamp
 
 ### shop_stocks
 
-_2.505 linhas · 33 colunas_
+_2.733 linhas · 33 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2516,7 +2524,7 @@ updated_at                                 timestamp
 
 ### shops
 
-_23.246 linhas · 50 colunas_
+_23.937 linhas · 50 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2573,7 +2581,7 @@ profile_type                               varchar(255)
 
 **Aponta para:** `business_consultant_2_id` → `users.id` · `business_consultant_id` → `users.id` · `deleted_by` → `users.id` · `key_account_id` → `users.id` · `whitelabel_id` → `whitelabels.id`
 
-**Referenciada por (23):** `access_logs` · `accounts` · `advertisements` · `contents` · `event_shops` · `fee_applicabilities` · `inspection` · `offers` · `offers_automatics` · `publishing_channels` · `reviews` · `schedules` · `shop_addresses` · `shop_api_tokens` · `shop_automations` · `shop_integrations` · `shop_signatures` · `shop_stocks` · `shop_webhooks` · `transactions` · `type_inspection_items` · `user_shops` · `vehicles`
+**Referenciada por (24):** `access_logs` · `accounts` · `advertisements` · `contents` · `event_shops` · `fee_applicabilities` · `inspection` · `offers` · `offers_automatics` · `publishing_channels` · `reviews` · `schedules` · `shop_addresses` · `shop_api_tokens` · `shop_automations` · `shop_integrations` · `shop_signatures` · `shop_stocks` · `shop_webhooks` · `transactions` · `type_inspection_items` · `user_advertiser_blacklists` · `user_shops` · `vehicles`
 
 ### tag_applicabilities
 
@@ -2627,7 +2635,7 @@ updated_at                                 timestamp
 
 ### transactions
 
-_13.754 linhas · 42 colunas_
+_16.080 linhas · 42 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2732,7 +2740,7 @@ updated_at                                 timestamp
 
 ### user_access
 
-_481.869 linhas · 3 colunas_
+_566.058 linhas · 3 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2744,7 +2752,7 @@ created_at                                 timestamp NOT NULL
 
 ### user_addresses
 
-_69.502 linhas · 14 colunas_
+_70.287 linhas · 14 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2797,9 +2805,23 @@ deleted_at                                 timestamp
 
 **Aponta para:** `advertisement_id` → `advertisements.id` · `user_id` → `users.id`
 
+### user_advertiser_blacklists
+
+_0 linhas · 5 colunas_
+
+```
+id                                         bigint unsigned NOT NULL PK auto_increment
+user_id                                    bigint unsigned NOT NULL
+shop_id                                    bigint unsigned NOT NULL
+created_at                                 timestamp
+updated_at                                 timestamp
+```
+
+**Aponta para:** `shop_id` → `shops.id` · `user_id` → `users.id`
+
 ### user_alerts
 
-_57 linhas · 17 colunas_
+_61 linhas · 17 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2825,7 +2847,7 @@ deleted_at                                 timestamp
 
 ### user_clients_group
 
-_79.593 linhas · 5 colunas_
+_82.107 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2839,7 +2861,7 @@ updated_at                                 timestamp
 
 ### user_communications
 
-_69.502 linhas · 17 colunas_
+_70.288 linhas · 17 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2888,7 +2910,7 @@ updated_at                                 timestamp
 
 ### user_favorites
 
-_34.597 linhas · 6 colunas_
+_43.654 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2926,7 +2948,7 @@ updated_at                                 timestamp
 
 ### user_profiles
 
-_69.499 linhas · 15 colunas_
+_70.284 linhas · 15 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2950,7 +2972,7 @@ benefit_club_id                            int
 
 ### user_shops
 
-_21.444 linhas · 6 colunas_
+_22.246 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2979,7 +3001,7 @@ updated_at                                 timestamp
 
 ### user_whitelabels
 
-_52.384 linhas · 5 colunas_
+_53.122 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -2993,7 +3015,7 @@ updated_at                                 timestamp
 
 ### users
 
-_74.014 linhas · 26 colunas_
+_74.799 linhas · 26 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3026,7 +3048,7 @@ updated_at                                 timestamp
 
 **Aponta para:** `deleted_by` → `users.id` · `whitelabel_origin_id` → `whitelabels.id`
 
-**Referenciada por (48):** `access_logs` · `advertisements` · `aliases` · `campaign_links` · `chat_messages` · `chat_participants` · `communication_item_views` · `communication_items` · `communication_responses` · `event_user_alerts` · `inspection` · `notifications` · `offers` · `offers_automatics` · `password_histories` · `password_reset_tokens` · `pending_device_authorizations` · `pending_location_authorizations` · `pickup_authorizations` · `preferences` · `regulation_acceptances` · `reports` · `schedules` · `shop_signatures` · `shops` · `transactions` · `transport_contracts` · `user_access` · `user_addresses` · `user_advertisement_favorites` · `user_advertisement_financings` · `user_alerts` · `user_clients_group` · `user_communications` · `user_devices` · `user_favorites` · `user_login_locations` · `user_profiles` · `user_shops` · `user_stocks` · `user_whitelabels` · `users` · `vehicle_documents` · `vehicles` · `vozis_inactivity_progress` · `vozis_user_contacts` · `whitelabel_permissions` · `whitelabels`
+**Referenciada por (49):** `access_logs` · `advertisements` · `aliases` · `campaign_links` · `chat_messages` · `chat_participants` · `communication_item_views` · `communication_items` · `communication_responses` · `event_user_alerts` · `inspection` · `notifications` · `offers` · `offers_automatics` · `password_histories` · `password_reset_tokens` · `pending_device_authorizations` · `pending_location_authorizations` · `pickup_authorizations` · `preferences` · `regulation_acceptances` · `reports` · `schedules` · `shop_signatures` · `shops` · `transactions` · `transport_contracts` · `user_access` · `user_addresses` · `user_advertisement_favorites` · `user_advertisement_financings` · `user_advertiser_blacklists` · `user_alerts` · `user_clients_group` · `user_communications` · `user_devices` · `user_favorites` · `user_login_locations` · `user_profiles` · `user_shops` · `user_stocks` · `user_whitelabels` · `users` · `vehicle_documents` · `vehicles` · `vozis_inactivity_progress` · `vozis_user_contacts` · `whitelabel_permissions` · `whitelabels`
 
 ### users_restriction_actives
 
@@ -3072,7 +3094,7 @@ updated_at                                 timestamp
 
 ### vehicle_accessories
 
-_639.521 linhas · 5 colunas_
+_639.480 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3114,7 +3136,7 @@ updated_at                                 timestamp
 
 ### vehicle_data_cache
 
-_25.292 linhas · 8 colunas_
+_31.259 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3129,7 +3151,7 @@ updated_at                                 timestamp
 
 ### vehicle_documents
 
-_452 linhas · 7 colunas_
+_1.318 linhas · 7 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3145,7 +3167,7 @@ updated_at                                 timestamp
 
 ### vehicle_extra_fields
 
-_121.002 linhas · 25 colunas_
+_127.067 linhas · 25 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3179,7 +3201,7 @@ reason                                     text
 
 ### vehicle_image_galleries
 
-_2.754.569 linhas · 11 colunas_
+_2.876.166 linhas · 11 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3199,7 +3221,7 @@ updated_at                                 timestamp
 
 ### vehicle_precautionary_reports
 
-_90.327 linhas · 8 colunas_
+_96.355 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3261,7 +3283,7 @@ updated_at                                 timestamp
 
 ### vehicle_video_galleries
 
-_2.206 linhas · 6 colunas_
+_3.336 linhas · 6 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3276,7 +3298,7 @@ updated_at                                 timestamp
 
 ### vehicles
 
-_120.909 linhas · 29 colunas_
+_126.951 linhas · 29 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3316,7 +3338,7 @@ updated_at                                 timestamp
 
 ### versions
 
-_45.911 linhas · 15 colunas_
+_46.967 linhas · 15 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3533,7 +3555,7 @@ updated_at                                 timestamp
 
 ### whitelabel_addresses
 
-_73 linhas · 14 colunas_
+_74 linhas · 14 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3556,7 +3578,7 @@ updated_at                                 timestamp
 
 ### whitelabel_business_unit
 
-_22 linhas · 5 colunas_
+_23 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3646,7 +3668,7 @@ updated_at                                 timestamp
 
 ### whitelabel_images
 
-_22 linhas · 11 colunas_
+_23 linhas · 11 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3685,7 +3707,7 @@ updated_at                                 timestamp
 
 ### whitelabel_permissions
 
-_74 linhas · 69 colunas_
+_75 linhas · 69 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3778,7 +3800,7 @@ updated_at                                 timestamp
 
 ### whitelabel_signatures
 
-_1 linhas · 9 colunas_
+_1 linhas · 11 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3788,17 +3810,19 @@ name                                       varchar(255)
 logo                                       varchar(255)
 footer_logo                                varchar(255)
 favicon                                    varchar(255)
+regulation_id                              bigint unsigned
+next_draw_at                               datetime
 created_at                                 timestamp
 updated_at                                 timestamp
 ```
 
-**Aponta para:** `whitelabel_id` → `whitelabels.id`
+**Aponta para:** `regulation_id` → `contents.id` · `whitelabel_id` → `whitelabels.id`
 
 **Referenciada por (1):** `whitelabel_themes`
 
 ### whitelabel_themes
 
-_1.207 linhas · 8 colunas_
+_1.288 linhas · 8 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3815,7 +3839,7 @@ updated_at                                 timestamp
 
 ### whitelabel_wallet
 
-_22 linhas · 5 colunas_
+_23 linhas · 5 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
@@ -3829,7 +3853,7 @@ updated_at                                 timestamp
 
 ### whitelabels
 
-_75 linhas · 43 colunas_
+_76 linhas · 43 colunas_
 
 ```
 id                                         bigint unsigned NOT NULL PK auto_increment
