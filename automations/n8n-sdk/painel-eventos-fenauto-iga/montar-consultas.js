@@ -11,10 +11,17 @@
    do MCP não corta nada e não existe paginação. O "total" sai da MESMA
    varredura do array: se o pacote chegar menor, o Montar Painel para o run.
 
-   ─── O RECORTE (Thomas, 2026-11-03; só IGA desde 2026-11-05) ─────────
-   Os eventos do IGA abertos em algum momento da SEMANA corrente,
-   de segunda 00:00 a domingo 23:59 em hora de Brasília: começam antes da
-   segunda seguinte e terminam a partir da segunda. A semana anda sozinha.
+   ─── O RECORTE (Thomas, 2026-11-03; só IGA desde 05/11; Fenauto do mês
+   desde 09/11) ─────────────────────────────────────────────────────────
+   Os eventos do IGA com "fenauto" no NOME abertos em algum momento do MÊS
+   corrente, do dia 1 00:00 ao último dia 23:59 em hora de Brasília:
+   começam antes do dia 1 do mês seguinte e terminam a partir do dia 1.
+   O mês anda sozinho. Em 09/11 (medido): 24377, 24378 e 24379, "VD IGA
+   exclusivo Fenauto – 11, 12 e 13/11/26", os três abrindo 11/11 09:00.
+   Os do C6 com Fenauto no nome (24384, 24368) caem pela trava do 43.
+     Nome evento com NOME_EVENTO no nome, sem caixa (a collation do banco
+          não diferencia maiúscula). Até 08/11 entrava todo evento do IGA
+          da semana; o Thomas pediu só os da Fenauto (09/11).
      IGA  evento com veículo dos vendedores 594 (Itaú Unibanco), 598
           (Repasse Itaú) ou 16036 (IGA Participações) — o critério do
           Estudo de Vendas IGA (projetos/vendas-iga/indicadores.md). Os
@@ -38,7 +45,7 @@
 
    ─── FUSO ────────────────────────────────────────────────────────────
    O banco responde NOW() em UTC, mas grava as datas de evento E de oferta
-   em hora de Brasília (medido em 2026-09-24). Por isso a semana é calculada
+   em hora de Brasília (medido em 2026-09-24). Por isso o mês é calculado
    aqui, em hora de Brasília, e viaja como literal. Não trocar por
    NOW()/CURDATE().
 
@@ -50,6 +57,8 @@ const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
 /* loja nova (03/11): o valor do formulário de cadastro, sem caixa */
 const CAMPANHA_NOVAS = 'fenauto';
+/* o recorte (09/11): só evento com isto no nome, sem caixa */
+const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
 const FUSO_MIN = -180;          /* America/Sao_Paulo, sem horário de verão */
 const DB = 'cars2you_production';
@@ -58,10 +67,10 @@ const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-/* a semana de segunda a domingo que contém hoje (getUTCDay: 0 = domingo) */
-const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+/* o mês que contém hoje (09/11; antes, a semana de segunda a domingo):
+   do dia 1 ao dia 1 do mês seguinte, 00:00 */
+const MES_INI = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
+const MES_FIM = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
 
 const EH_C6 = "EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
@@ -71,8 +80,9 @@ const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
 /* o recorte de evento, escrito uma vez só e reusado em todas as consultas.
    Cópias à mão seriam chances de uma divergir das outras. */
 const EVENTO =
-  " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
+  " e.deleted_at IS NULL AND e.start_date_offer < '" + MES_FIM + "' AND e.finish_date_event >= '" + MES_INI + "'" +
   " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DURACAO_MAX_DIAS +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND " + EH_IGA + " AND NOT " + EH_C6;
 
 /* ofertas das negociações dos eventos do recorte — base de três consultas */
@@ -182,7 +192,7 @@ const TABELAS = [
   {
     /* as lojas que o painel cita: quem ofertou no recorte MAIS quem acessou
        um evento do recorte MAIS as lojas com cadastro pela Fenauto feito
-       desde o início do evento mais antigo da semana. O UNION deduplica.
+       desde o início do evento mais antigo do recorte. O UNION deduplica.
        "fenauto" = a data do primeiro perfil da campanha (nulo sem ele). */
     nome: 'lojas',
     de: " FROM (SELECT o.buyer_shop_id AS id" + OFERTAS_DO_RECORTE +
@@ -284,8 +294,8 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        semana: [SEMANA_INI, SEMANA_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS
+        mes: [MES_INI, MES_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS, nome_evento: NOME_EVENTO
       }
     }
   };

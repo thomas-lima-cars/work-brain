@@ -6,10 +6,10 @@
     python coleta_local.py --semana 2026-11-09 -> outra semana (a segunda-feira), em dados-local.json
 
 --prova roda o MESMO SQL com a semana trocada pela de 17/11/2025, a da
-Fenauto 2025: eventos do C6 e do IGA ao mesmo tempo e as 226 lojas da
-campanha "Fenauto 2025 IGA". A semana corrente (03/11/2026) tem dois
-eventos do C6, nenhum do IGA e nenhum cadastro da Fenauto: as provas
-precisam de dado variado para refazer as contas.
+Fenauto 2025: com a trava do nome (09/11), o 22231 do C6 e o 22223 do IGA
+ao mesmo tempo (19 a 21/11/2025) e as lojas da campanha "Fenauto 2025
+IGA". A semana corrente (09/11/2026) tem 5 eventos da Fenauto e nenhum
+lance ainda: as provas precisam de dado variado para refazer as contas.
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com

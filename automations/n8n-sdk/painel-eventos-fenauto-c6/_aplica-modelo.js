@@ -3,7 +3,7 @@
        node automations/n8n-sdk/painel-eventos-fenauto-c6/_aplica-modelo.js
 
    Entra:  design/tokens/tema.css + design/tokens/tema-c6.css (nessa ordem)
-           design/marca/c6/logo-c6-{preto,branco}.svg
+           design/marca/c6-auto/logo-c6-auto-preto.svg (09/11; inline, o escuro é CSS)
            design/marca/fenauto/logo-fenauto-claro.svg (26/10; inline, o escuro é CSS)
    Sai:    os blocos TEMA e LOGOS de montar-painel.js, reescritos.
 
@@ -55,11 +55,19 @@ recusa(css, 'tema.css + tema-c6.css');
 const blocoTema = 'const CSS_TEMA = [\n' +
   emLinhas(css, 96).map((l) => "  '" + l + "'").join(',\n') + '\n].join(\'\');';
 
-const uri = (pasta, arq) => 'data:image/svg+xml;base64,' +
-  fs.readFileSync(path.join(DESIGN, 'marca', pasta, arq)).toString('base64');
-const claro = uri('c6', 'logo-c6-preto.svg');
-const escuro = uri('c6', 'logo-c6-branco.svg');
-recusa(claro + escuro, 'logos em base64');
+/* a logo "C6 Auto" (Thomas, 09/11), no lugar do monograma C6 em base64:
+   vetor traçado do PNG que ele mandou (design/marca/c6-auto), dentro do HTML
+   numa cópia só, como a da Fenauto. A cor de cada tema é CSS: sem o fill,
+   sem width/height (o tamanho é do CSS), com nome para leitor de tela. */
+const c6 = ler('marca', 'c6-auto', 'logo-c6-auto-preto.svg')
+  .split(String.fromCharCode(10)).join('')
+  .replace(/ width="[^"]*" height="[^"]*"/, ' role="img" aria-label="C6 Auto"')
+  .replace(/ fill="#242424"/, '');
+if (c6.indexOf('<svg ') !== 0 || c6.indexOf('viewBox="2.1 1.5 112.2 22.9"') < 0 || c6.indexOf('fill=') >= 0) {
+  console.error('✗ logo-c6-auto-preto.svg mudou de forma: conferir o viewBox e a cor antes de injetar');
+  process.exit(1);
+}
+recusa(c6, 'logo C6 Auto em SVG');
 
 /* a da Fenauto vai DENTRO do HTML, como SVG, numa cópia só (26/10): em base64,
    claro e escuro somavam 57 KB e o nó passava de 87 para 145 KB — e o nó é
@@ -81,7 +89,7 @@ if (fenauto.indexOf('<svg ') !== 0 || fenauto.indexOf('viewBox="0 8.1 1076 298.3
   process.exit(1);
 }
 recusa(fenauto, 'logo da Fenauto em SVG');
-const blocoLogos = "const LOGO = {\n  claro: '" + claro + "',\n  escuro: '" + escuro + "'\n};\n" +
+const blocoLogos = "const LOGO_C6 = '" + c6 + "';\n" +
   "const LOGO_FEN = '" + fenauto + "';";
 
 function troca(fonte, marca, conteudo) {
@@ -93,12 +101,12 @@ function troca(fonte, marca, conteudo) {
   return fonte.slice(0, a + ini.length) + '\n' + conteudo + '\n' + fonte.slice(b);
 }
 
-module.exports = { blocoTema, blocoLogos, logoFenauto: fenauto, alvo: ALVO };
+module.exports = { blocoTema, blocoLogos, logoFenauto: fenauto, logoC6: c6, alvo: ALVO };
 
 if (require.main === module) {
   let fonte = semCR(fs.readFileSync(ALVO, 'utf8'));
   fonte = troca(fonte, 'TEMA', blocoTema);
   fonte = troca(fonte, 'LOGOS', blocoLogos);
   fs.writeFileSync(ALVO, fonte, 'utf8');
-  console.log('✓ montar-painel.js: tema %d bytes compactados · logos do C6 + Fenauto inline (%d bytes)', css.length, fenauto.length);
+  console.log('✓ montar-painel.js: tema %d bytes compactados · C6 Auto (%d bytes) + Fenauto (%d bytes) inline', css.length, c6.length, fenauto.length);
 }

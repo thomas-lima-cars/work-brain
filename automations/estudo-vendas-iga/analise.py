@@ -25,8 +25,8 @@ try:
 except Exception:
     pass
 
-HOJE = pd.Timestamp("2026-10-08")
-PRIMEIRO, ULTIMO = "2023-01", "2026-09"      # outubro/26 e parcial: fora
+HOJE = pd.Timestamp("2026-11-09")
+PRIMEIRO, ULTIMO = "2023-01", "2026-10"      # novembro/26 e parcial: fora
 D = json.load(open(AQUI / "dados-brutos.json", encoding="utf-8"))
 iga = pd.DataFrame(D["iga"]["linhas"], columns=D["iga"]["cols"])
 par = pd.DataFrame(D["pares"]["linhas"], columns=D["pares"]["cols"])
@@ -265,8 +265,9 @@ def foi_recorrente(i):
     return False
 cand = [mat.index[i] for i in range(len(mat)) if foi_recorrente(i)]
 janelas = dict(base=[MESES_TODOS[base[0]], MESES_TODOS[base[1]]], rec=[MESES_TODOS[rec[0]], MESES_TODOS[rec[1]]])
+# base_fim = ultimo dia REAL do mes: "2026-06-31" nao e data e zerava a janela no MySQL (09/11)
 (AQUI / "compradores-ids.json").write_text(json.dumps(dict(ids=ids, cand=[int(x) for x in cand],
-    base_ini=janelas["base"][0] + "-01", base_fim=janelas["base"][1] + "-31", rec_ini=janelas["rec"][0] + "-01")),
+    base_ini=janelas["base"][0] + "-01", base_fim=str(pd.Period(janelas["base"][1], freq="M").end_time.date()), rec_ini=janelas["rec"][0] + "-01")),
     encoding="utf-8", newline="\n")
 print("candidatos (foram recorrentes na janela-base):", len(cand), janelas)
 

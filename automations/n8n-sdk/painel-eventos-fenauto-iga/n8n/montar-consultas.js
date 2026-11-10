@@ -1,6 +1,7 @@
 const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
 const CAMPANHA_NOVAS = 'fenauto';
+const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
 const FUSO_MIN = -180;
 const DB = 'cars2you_production';
@@ -8,16 +9,16 @@ const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const MES_INI = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
+const MES_FIM = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
 const EH_C6 = "EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
   " INNER JOIN advertisements ai ON ai.id = ani.advertisement_id" +
   " WHERE ani.event_id = e.id AND ani.deleted_at IS NULL AND ai.shop_id IN (" + VENDEDORES_IGA.join(',') + "))";
 const EVENTO =
-  " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
+  " e.deleted_at IS NULL AND e.start_date_offer < '" + MES_FIM + "' AND e.finish_date_event >= '" + MES_INI + "'" +
   " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DURACAO_MAX_DIAS +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND " + EH_IGA + " AND NOT " + EH_C6;
 const OFERTAS_DO_RECORTE =
   " FROM offers o" +
@@ -163,8 +164,8 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        semana: [SEMANA_INI, SEMANA_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS
+        mes: [MES_INI, MES_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS, nome_evento: NOME_EVENTO
       }
     }
   };

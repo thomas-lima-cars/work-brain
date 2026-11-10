@@ -8,8 +8,10 @@
 > O **botão de tema** (e o de avisos) desceu para uma linha logo abaixo do
 > cabeçalho.
 
-**Estado em 2026-11-05:** HTML, 287 provas e o `.wf.ts` prontos, local, com as
-duas coletas refeitas no recorte só do IGA.
+**Estado em 2026-11-09:** o recorte virou **os eventos do IGA com "Fenauto" no
+nome, abertos no mês corrente** (pedido do Thomas). Em novembro/2026: 24377,
+24378 e 24379, "VD IGA exclusivo Fenauto – 11, 12 e 13/11/26", os três abrindo
+11/11 09:00, 32 veículos. HTML, 289 provas e o `.wf.ts` regerados, local.
 **Workflow ainda não criado no n8n** — espera o ok final do Thomas.
 
 ```
@@ -55,7 +57,7 @@ Números das duas coletas (as do IGA na seção própria): [`projetos/mega-event
 
 | | |
 |---|---|
-| **Recorte** | os eventos do **IGA** abertos em algum momento da **semana corrente**, de segunda 00:00 a domingo 23:59, hora de Brasília. A semana anda sozinha: o nó calcula a segunda de hoje (05/11: os do C6 saíram) |
+| **Recorte** | os eventos do **IGA** com **"fenauto" no nome** (sem caixa) abertos em algum momento do **mês corrente**, do dia 1 00:00 ao último dia 23:59, hora de Brasília. O mês anda sozinho (09/11; até 08/11 era todo evento do IGA da semana, de segunda a domingo; 05/11: os do C6 saíram). Os do C6 com Fenauto no nome (24384, 24368 em nov/26) caem pela trava do 43 |
 | IGA | evento com veículo dos vendedores 594, 598 ou 16036 — o critério do Estudo de Vendas IGA. Os eventos do IGA alvejam os whitelabels 5 e 7, então o canal não acha eles |
 | C6, fora | evento que alveja o whitelabel 43 (o critério do Painel de Eventos C6) não entra, nem se tiver veículo do IGA |
 | **Loja nova** | loja com um usuário cadastrado pela campanha da Fenauto: `user_profiles.register_form_value` contendo "fenauto", **com esse cadastro num dos dias de um evento do filtro**, o dia inteiro. Vale a data do **perfil**, não a da loja |
@@ -97,8 +99,8 @@ qualquer semana até dez/2025 o pegaria.
 ## Ciclo
 
 ```bash
-python coleta_local.py               # a semana de hoje (VPN) -> dados-local.json
-python coleta_local.py --prova       # a semana da Fenauto 2025 (17/11/2025) -> dados-prova.json
+python coleta_local.py               # o mês de hoje (VPN) -> dados-local.json
+python coleta_local.py --prova       # novembro/2025, o da Fenauto 2025 (só o 22223) -> dados-prova.json
 node _aplica-modelo.js               # tema.css + Fenauto inline para dentro do Montar Painel
 for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
 node prova-local.js                  # 287 provas
@@ -107,7 +109,7 @@ node monta_local.js dados-prova.json saida-prova.html
 python build_wf.py                   # mega-evento-fenauto-iga.wf.ts
 ```
 
-`--semana 2026-11-09` coleta outra semana (a segunda-feira).
+`--mes 2026-12` coleta outro mês.
 
 Para ver: `previa-radar` em `.claude/launch.json`, em
 `http://localhost:8777/automations/n8n-sdk/painel-eventos-fenauto-iga/saida-local.html`
@@ -131,6 +133,13 @@ rodar: `python _confere_transcricao.py <dump-do-get_workflow_details>`.
 `dados-*.json` e `saida-*.html` ficam fora do git (`.gitignore`): têm nome real de loja.
 
 ## Pendências
+
+- ❓ **A prova de dois eventos no mesmo horário saiu (09/11).** Com o recorte da
+  Fenauto, novembro/2025 tem um evento só (o 22223) e ela ficou sem dado real.
+  Os 3 de novembro/2026 abrem juntos em 11/11: depois que tiverem acesso,
+  trazer a prova de volta sobre eles (coleta `--mes 2026-11`).
+- ❓ A trava é o **nome** do evento: um evento da Fenauto cadastrado sem
+  "Fenauto" no nome some calado.
 
 - 🛑 **Criar o workflow no n8n** — `.wf.ts` pronto, espera o ok.
 - ❓ **Este substitui o da Cars2You ou os dois convivem?** Hoje cada um publica num caminho.

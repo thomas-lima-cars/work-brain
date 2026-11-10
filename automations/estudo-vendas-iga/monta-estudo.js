@@ -61,7 +61,7 @@ const NOTAS = {
 const METODO = [
   ['O que é "IGA" aqui', [
     'Todo anúncio cujo vendedor é Itaú Unibanco (loja 594), Repasse Itaú (598) ou IGA Participações (16036) na plataforma Cars2You. A série do estudo vai de ' + rotMes(R.primeiro_mes) + ' a ' + rotMes(ult) +
-    ', mês a mês, em todos os gráficos. ' + rotMes('2026-10') + ' fica de fora: o mês ainda está aberto. O histórico de compradores começa em out/21, para as janelas de recorrência de 2023 terem 6 meses para trás.',
+    ', mês a mês, em todos os gráficos. ' + rotMes(R.gerado.slice(0, 7)) + ' fica de fora: o mês ainda está aberto. O histórico de compradores começa em out/21, para as janelas de recorrência de 2023 terem 6 meses para trás.',
     'Veículo publicado = veículo único no mês: uma passagem do mesmo veículo por dois eventos do mesmo mês conta uma vez. Veículo vendido = o que teve uma negociação vendida naquele mês.'
   ]],
   ['% sobre a FIPE', [

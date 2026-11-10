@@ -1,6 +1,7 @@
 const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
 const CAMPANHA_NOVAS = 'fenauto';
+const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
 const FUSO_MIN = -180;
 const DB = 'cars2you_production';
@@ -18,6 +19,7 @@ const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
 const EVENTO =
   " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
   " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DURACAO_MAX_DIAS +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND (" + EH_C6 + " OR " + EH_IGA + ")";
 const OFERTAS_DO_RECORTE =
   " FROM offers o" +
@@ -163,7 +165,7 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        semana: [SEMANA_INI, SEMANA_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
         wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS
       }
     }

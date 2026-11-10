@@ -801,7 +801,7 @@ function APP(D) {
     const ev = sel === 'todos' ? null : R.eventos[0];
     $('#sub').textContent = (ev
       ? ev.nome + ' · ' + dt(ev.ini) + ' → ' + dt(ev.fim) + ' · ' + ev.estado
-      : 'C6 e IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' na semana de ' +
+      : 'C6 e IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' da Fenauto na semana de ' +
         dia(D.semana[0]).slice(0, 5) + ' a ' + diaAntes(D.semana[1]).slice(0, 5) +
         (R.periodo[0] ? ' · ' + dt(R.periodo[0]) + ' → ' + dt(R.periodo[1]) : '')) +
       (FILTROS.some((x) => F[x]) ? ' · com filtros' : '');
@@ -1018,7 +1018,7 @@ function APP(D) {
   $('#gloss-n').textContent = D.glossario.length + ' termos';
   $('#gerado').textContent = dt(D.agora);
   $('#base').textContent = D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') +
-    ' do C6 e do IGA abertos na semana de ' + dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
+    ' da Fenauto no C6 e no IGA abertos na semana de ' + dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
   const ICO = {
     claro: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
     escuro: '<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>'
@@ -1039,7 +1039,7 @@ function APP(D) {
   render();
 }
 DADOS.glossario = [
-  ['Evento no painel', 'Evento do C6 (alveja o Canal de vendas C6 Auto, whitelabel 43) ou do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações) aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados. Evento aberto por mais de 31 dias não entra.'],
+  ['Evento no painel', 'Evento do C6 (alveja o Canal de vendas C6 Auto, whitelabel 43) ou do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações), com "Fenauto" no nome, aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados. Evento aberto por mais de 31 dias não entra.'],
   ['Evento', 'Os botões acima da Data: Todos e um por evento da semana, na ordem de início, com a operação (C6 ou IGA) e o estado. Escolher um evento recorta o painel inteiro para ele: veículos, lances, acessos, novos lojistas e os dias da Data.'],
   ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso e cadastro fora dele não contam.'],
   ['Filtros', 'Na aba lateral. Pátio e status do veículo recortam os veículos, e tudo que nasce deles acompanha: lances, ofertantes, compradores, rankings, pátios e os degraus do funil que dependem de anúncio. Evento e data ficam nos botões acima do funil.'],

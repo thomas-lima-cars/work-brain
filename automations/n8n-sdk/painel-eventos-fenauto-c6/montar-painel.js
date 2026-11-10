@@ -3,8 +3,11 @@
 
    Nasceu em 26/10 como cópia do Painel de Eventos C6 (montar-painel.js de
    painel-eventos-c6), SEM o representante comercial: nada de GN, GP,
-   carteira ou tabela de gerentes. Logo do C6 à esquerda e a da Fenauto no
-   centro do topo, no lugar do título e do subtítulo.
+   carteira ou tabela de gerentes. Desde 09/11 (Thomas): a logo "C6 Auto"
+   à esquerda, o título e o subtítulo no centro, a logo da Fenauto à
+   direita, o botão de tema numa linha logo abaixo do cabeçalho, e só os
+   eventos do C6 com Fenauto no nome da semana corrente. Até 08/11: o
+   monograma C6 sozinho à esquerda e a Fenauto no centro, sem título.
 
    Recebe as tabelas do "MCP Consultas", confere cada pacote contra o
    próprio total e monta o HTML: KPIs, ranking de lojas, funil dos novos cadastros, acessos únicos por dia e por hora,
@@ -203,10 +206,7 @@ const CSS_TEMA = [
 /* TEMA:FIM */
 
 /* LOGOS:INICIO */
-const LOGO = {
-  claro: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQuMDYiIGhlaWdodD0iMjMuNjciIHZpZXdCb3g9IjE3Ljg1IDE4LjA1IDQ0LjA2IDIzLjY3IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTMyLjg1NDIgMzMuNzQwOEMzMy42MDk0IDMzLjA5MjEgMzQuMTAyNiAzMi4yMzk5IDM0LjMzNDYgMzEuMTgzOUg0MS43OTU2QzQxLjQ1MjkgMzQuMjAwOSA0MC4yMTQ0IDM2LjY0NDYgMzguMDc5OSAzOC41MTUzQzM1Ljk0NTMgNDAuMzg1NiAzMy4zMTcxIDQxLjMyMDkgMzAuMTk2IDQxLjMyMDlDMjcuOTIwNSA0MS4zMjA5IDI1Ljg3MTMgNDAuODMwNyAyNC4wNDkgMzkuODUwM0MyMi4yMjY4IDM4Ljg2OTYgMjAuODA0MiAzNy41MDcgMTkuNzgyMyAzNS43NjIyQzE4Ljc2MDMgMzQuMDE3NSAxOC4yNDk1IDMyLjA1ODcgMTguMjQ5NSAyOS44ODY4QzE4LjI0OTUgMjcuNzE0NiAxOC43NjAzIDI1Ljc1NjIgMTkuNzgyMyAyNC4wMTEzQzIwLjgwNDIgMjIuMjY2NiAyMi4yMjY4IDIwLjkwNCAyNC4wNDkgMTkuOTIzNUMyNS44NzEzIDE4Ljk0MyAyNy45MjA1IDE4LjQ1MjggMzAuMTk2IDE4LjQ1MjhDMzMuMjY2OCAxOC40NTI4IDM1Ljg1OTkgMTkuMzU1NSAzNy45NzQ0IDIxLjE2MDVDNDAuMDg4NiAyMi45NjU3IDQxLjMzNzEgMjUuMzMxMiA0MS43MTk3IDI4LjI1NzdIMzQuMzY0NkMzNC4wNTIzIDI3LjI5MjIgMzMuNTE4NyAyNi41MTU0IDMyLjc2MzYgMjUuOTI3MUMzMi4wMDg4IDI1LjMzODcgMzEuMTYyOSAyNS4wNDQ2IDMwLjIyNiAyNS4wNDQ2QzI4LjkzNzIgMjUuMDQ0NiAyNy44OTc3IDI1LjQ4OTcgMjcuMTA3NCAyNi4zNzk2QzI2LjMxNjcgMjcuMjY5NyAyNS45MjE3IDI4LjQzODggMjUuOTIxNyAyOS44ODY4QzI1LjkyMTcgMzEuMzI0OSAyNi4zMTk0IDMyLjQ4ODggMjcuMTE0OSAzMy4zNzg3QzI3LjkxMDUgMzQuMjY4OCAyOC45NDczIDM0LjcxMzcgMzAuMjI2IDM0LjcxMzdDMzEuMjIyOSAzNC43MTM3IDMyLjA5OTEgMzQuMzg5NCAzMi44NTQyIDMzLjc0MDhaTTU5LjMzNDQgMjcuNzk1M0M2MC43ODM3IDI5LjE1ODEgNjEuNTA4NyAzMC45MiA2MS41MDg3IDMzLjA4MUM2MS41MDg3IDM1LjU1MDkgNjAuNjc0NiAzNy41NDE2IDU5LjAwNjcgMzkuMDUzNUM1Ny4zMzg1IDQwLjU2NTEgNTUuMTM5NyA0MS4zMjEgNTIuNDExMSA0MS4zMjFDNDkuNzE0NiA0MS4zMjEgNDcuNTIxMyA0MC41NjIyIDQ1LjgzMTkgMzkuMDQ1NEM0NC4xNDI0IDM3LjUyODEgNDMuMjk3OSAzNS41NjE2IDQzLjI5NzkgMzMuMTQ0N0M0My4yOTc5IDMxLjgyNDggNDMuNTI5OSAzMC40OTY4IDQzLjk5MzMgMjkuMTYwNkM0NC40NTcgMjcuODI0OSA0NS4xNzM3IDI2LjM2MzcgNDYuMTQzOCAyNC43NzcyTDQ5LjU3MzggMTkuMTg1MUw1Ni44MTk3IDE5LjE4MzVMNTIuNzYyOSAyNS43ODMzQzUzLjE2NzggMjUuNzYyIDUzLjQ4NzUgMjUuNzUxNCA1My43MjI1IDI1Ljc1MTRDNTYuMDEzOSAyNS43NTE0IDU3Ljg4NDMgMjYuNDMyNyA1OS4zMzQ0IDI3Ljc5NTNaTTU0LjQ0MiAzNS4xMDg5QzU0Ljk2MzggMzQuNTg3NSA1NS4yMjUxIDMzLjkxMTMgNTUuMjI1MSAzMy4wODFDNTUuMjI1MSAzMi4yNTA2IDU0Ljk2MzggMzEuNTY5MyA1NC40NDIgMzEuMDM2OUM1My45MTk2IDMwLjUwNDYgNTMuMjQyNiAzMC4yMzg1IDUyLjQxMTEgMzAuMjM4NUM1MS41Nzk5IDMwLjIzODUgNTAuOTAyNiAzMC41MDQ2IDUwLjM4MDkgMzEuMDM2OUM0OS44NTgzIDMxLjU2OTMgNDkuNTk3MSAzMi4yNTA2IDQ5LjU5NzEgMzMuMDgxQzQ5LjU5NzEgMzMuOTExMyA0OS44NTgzIDM0LjU4NzUgNTAuMzgwOSAzNS4xMDg5QzUwLjkwMjYgMzUuNjMwNyA1MS41Nzk5IDM1Ljg5MTQgNTIuNDExMSAzNS44OTE0QzUzLjI0MjYgMzUuODkxNCA1My45MTk2IDM1LjYzMDcgNTQuNDQyIDM1LjEwODlaIiBmaWxsPSIjMjQyNDI0Ii8+Cjwvc3ZnPgo=',
-  escuro: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQuMDYiIGhlaWdodD0iMjMuNjciIHZpZXdCb3g9IjE4LjA1IDE4LjA1IDQ0LjA2IDIzLjY3IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTMzLjA1NzIgMzMuNzQwOEMzMy44MTI0IDMzLjA5MjEgMzQuMzA1NiAzMi4yMzk5IDM0LjUzNzYgMzEuMTgzOUg0MS45OTg2QzQxLjY1NTkgMzQuMjAwOSA0MC40MTc0IDM2LjY0NDYgMzguMjgyOSAzOC41MTUzQzM2LjE0ODMgNDAuMzg1NiAzMy41MjAxIDQxLjMyMDkgMzAuMzk5IDQxLjMyMDlDMjguMTIzNSA0MS4zMjA5IDI2LjA3NDMgNDAuODMwNyAyNC4yNTIxIDM5Ljg1MDNDMjIuNDI5OCAzOC44Njk2IDIxLjAwNzIgMzcuNTA3IDE5Ljk4NTQgMzUuNzYyMkMxOC45NjMzIDM0LjAxNzUgMTguNDUyNSAzMi4wNTg3IDE4LjQ1MjUgMjkuODg2OEMxOC40NTI1IDI3LjcxNDYgMTguOTYzMyAyNS43NTYyIDE5Ljk4NTQgMjQuMDExM0MyMS4wMDcyIDIyLjI2NjYgMjIuNDI5OCAyMC45MDQgMjQuMjUyMSAxOS45MjM1QzI2LjA3NDMgMTguOTQzIDI4LjEyMzUgMTguNDUyOCAzMC4zOTkgMTguNDUyOEMzMy40Njk4IDE4LjQ1MjggMzYuMDYyOSAxOS4zNTU1IDM4LjE3NzQgMjEuMTYwNUM0MC4yOTE2IDIyLjk2NTcgNDEuNTQwMSAyNS4zMzEyIDQxLjkyMjcgMjguMjU3N0gzNC41Njc2QzM0LjI1NTQgMjcuMjkyMiAzMy43MjE3IDI2LjUxNTQgMzIuOTY2NiAyNS45MjcxQzMyLjIxMTggMjUuMzM4NyAzMS4zNjU5IDI1LjA0NDYgMzAuNDI5IDI1LjA0NDZDMjkuMTQwMiAyNS4wNDQ2IDI4LjEwMDcgMjUuNDg5NyAyNy4zMTA0IDI2LjM3OTZDMjYuNTE5NyAyNy4yNjk3IDI2LjEyNDcgMjguNDM4OCAyNi4xMjQ3IDI5Ljg4NjhDMjYuMTI0NyAzMS4zMjQ5IDI2LjUyMjQgMzIuNDg4OCAyNy4zMTggMzMuMzc4N0MyOC4xMTM1IDM0LjI2ODggMjkuMTUwMyAzNC43MTM3IDMwLjQyOSAzNC43MTM3QzMxLjQyNTkgMzQuNzEzNyAzMi4zMDIxIDM0LjM4OTQgMzMuMDU3MiAzMy43NDA4Wk01OS41Mzc0IDI3Ljc5NTNDNjAuOTg2NyAyOS4xNTgxIDYxLjcxMTcgMzAuOTIgNjEuNzExNyAzMy4wODFDNjEuNzExNyAzNS41NTA5IDYwLjg3NzYgMzcuNTQxNiA1OS4yMDk3IDM5LjA1MzVDNTcuNTQxNSA0MC41NjUxIDU1LjM0MjcgNDEuMzIxIDUyLjYxNDEgNDEuMzIxQzQ5LjkxNzYgNDEuMzIxIDQ3LjcyNDMgNDAuNTYyMiA0Ni4wMzQ5IDM5LjA0NTRDNDQuMzQ1NCAzNy41MjgxIDQzLjUwMDkgMzUuNTYxNiA0My41MDA5IDMzLjE0NDdDNDMuNTAwOSAzMS44MjQ4IDQzLjczMjkgMzAuNDk2OCA0NC4xOTYzIDI5LjE2MDZDNDQuNjYgMjcuODI0OSA0NS4zNzY3IDI2LjM2MzcgNDYuMzQ2OCAyNC43NzcyTDQ5Ljc3NjggMTkuMTg1MUw1Ny4wMjI3IDE5LjE4MzVMNTIuOTY1OSAyNS43ODMzQzUzLjM3MDggMjUuNzYyIDUzLjY5MDUgMjUuNzUxNCA1My45MjU1IDI1Ljc1MTRDNTYuMjE2OSAyNS43NTE0IDU4LjA4NzMgMjYuNDMyNyA1OS41Mzc0IDI3Ljc5NTNaTTU0LjY0NSAzNS4xMDg5QzU1LjE2NjggMzQuNTg3NSA1NS40MjgxIDMzLjkxMTMgNTUuNDI4MSAzMy4wODFDNTUuNDI4MSAzMi4yNTA2IDU1LjE2NjggMzEuNTY5MyA1NC42NDUgMzEuMDM2OUM1NC4xMjI2IDMwLjUwNDYgNTMuNDQ1NiAzMC4yMzg1IDUyLjYxNDEgMzAuMjM4NUM1MS43ODI5IDMwLjIzODUgNTEuMTA1NiAzMC41MDQ2IDUwLjU4MzkgMzEuMDM2OUM1MC4wNjEzIDMxLjU2OTMgNDkuODAwMSAzMi4yNTA2IDQ5LjgwMDEgMzMuMDgxQzQ5LjgwMDEgMzMuOTExMyA1MC4wNjEzIDM0LjU4NzUgNTAuNTgzOSAzNS4xMDg5QzUxLjEwNTYgMzUuNjMwNyA1MS43ODI5IDM1Ljg5MTQgNTIuNjE0MSAzNS44OTE0QzUzLjQ0NTYgMzUuODkxNCA1NC4xMjI2IDM1LjYzMDcgNTQuNjQ1IDM1LjEwODlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'
-};
+const LOGO_C6 = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="2.1 1.5 112.2 22.9" role="img" aria-label="C6 Auto"><path fill-rule="evenodd" d="M11.88,23.74C10.01,23.41 8.64,22.87 7.12,21.86C5.53,20.81 4.63,19.74 3.48,17.54C2.68,16.01 2.65,15.85 2.64,13.04C2.64,10.26 2.67,10.04 3.46,8.38C5.34,4.35 9.19,2.00 13.87,2.00C19.09,2.00 22.40,4.33 24.57,9.52C25.23,11.09 24.94,11.25 21.38,11.25L18.27,11.25L17.34,10.13C16.82,9.51 16.04,8.84 15.60,8.63C13.83,7.79 11.64,8.45 10.50,10.15C9.98,10.93 9.88,11.38 9.88,12.89C9.88,14.52 9.95,14.81 10.66,15.79C11.18,16.51 11.83,17.04 12.59,17.35C14.44,18.13 15.55,17.63 17.88,14.98L18.62,14.12L21.62,14.25C24.51,14.37 24.63,14.40 24.71,14.94C24.75,15.26 24.59,16.10 24.35,16.82C22.76,21.62 17.22,24.70 11.88,23.74ZM34.00,23.84C33.66,23.79 32.71,23.55 31.90,23.32C30.15,22.82 28.06,21.06 27.28,19.43C26.25,17.27 26.37,14.17 27.60,11.19C28.25,9.61 31.60,3.90 32.27,3.23C32.69,2.81 33.13,2.75 35.74,2.75C37.51,2.75 38.78,2.85 38.88,3.01C38.97,3.15 38.66,3.85 38.19,4.57C35.38,8.92 35.36,9.00 37.21,9.01C39.49,9.02 42.20,10.78 43.16,12.88C44.06,14.86 44.15,16.16 43.52,18.24C42.49,21.64 40.03,23.44 35.88,23.83C35.19,23.89 34.34,23.90 34.00,23.84ZM46.59,23.12C46.46,22.79 47.65,20.09 52.50,9.62C53.01,8.53 53.80,6.78 54.24,5.75C55.51,2.84 55.93,2.25 56.75,2.25C57.54,2.25 58.13,3.13 59.55,6.38C59.96,7.34 60.74,9.06 61.28,10.19C61.81,11.33 62.25,12.31 62.25,12.38C62.25,12.48 63.31,14.74 66.03,20.40C66.56,21.52 67.00,22.61 67.00,22.83C67.00,23.95 65.64,23.39 65.08,22.04C64.26,20.05 63.24,18.05 62.89,17.76C62.45,17.40 50.83,17.30 50.52,17.66C50.42,17.78 49.84,18.94 49.25,20.25C47.93,23.13 46.98,24.15 46.59,23.12ZM73.16,23.13C71.89,22.68 70.57,21.40 69.91,20.00C69.45,19.01 69.38,18.29 69.30,13.93C69.19,8.65 69.26,7.89 69.90,7.65C70.89,7.27 71.00,7.82 71.00,13.39C71.00,16.32 71.10,18.99 71.23,19.33C71.61,20.31 73.23,21.72 74.22,21.93C74.72,22.03 75.79,22.10 76.59,22.08C78.42,22.03 80.03,21.11 81.12,19.49L81.88,18.38L81.96,13.20C82.03,9.15 82.13,7.96 82.40,7.73C82.67,7.51 82.84,7.51 83.12,7.75C83.44,8.01 83.50,9.20 83.50,15.52C83.50,22.52 83.47,23.00 83.04,23.23C82.38,23.58 82.00,23.10 82.00,21.95C82.00,20.78 81.63,20.73 80.63,21.79C79.48,23.01 78.16,23.49 76.00,23.48C74.97,23.48 73.69,23.32 73.16,23.13ZM91.38,23.26C90.67,22.97 89.58,21.76 89.27,20.92C89.11,20.50 89.00,18.02 89.00,14.78C89.00,10.89 88.91,9.26 88.70,9.05C88.53,8.88 87.93,8.75 87.35,8.75C86.71,8.75 86.25,8.62 86.17,8.41C85.93,7.79 86.43,7.42 87.45,7.46C88.68,7.50 88.95,7.20 89.05,5.62C89.12,4.47 89.18,4.37 89.81,4.30C90.54,4.21 90.63,4.40 90.52,5.83C90.42,7.12 91.09,7.53 93.17,7.46C95.07,7.40 95.69,7.65 95.42,8.36C95.30,8.67 94.85,8.75 93.28,8.75C90.38,8.75 90.50,8.48 90.50,14.83C90.50,19.64 90.55,20.20 90.99,20.92C91.66,22.03 93.05,22.44 94.63,22.00C95.45,21.77 95.85,21.75 96.05,21.95C96.44,22.34 96.11,22.97 95.37,23.25C94.59,23.55 92.08,23.55 91.38,23.26ZM103.12,23.17C100.94,22.31 99.57,20.98 98.46,18.62C97.59,16.78 97.64,13.88 98.58,12.07C99.99,9.34 101.75,7.99 104.56,7.47C106.02,7.21 106.45,7.22 107.78,7.59C110.38,8.32 112.12,9.81 113.23,12.26C113.87,13.67 113.94,16.98 113.36,18.37C112.41,20.64 110.55,22.50 108.53,23.20C107.45,23.58 104.11,23.56 103.12,23.17ZM107.06,22.01C108.97,21.70 110.45,20.66 111.36,18.99C111.99,17.82 112.07,17.44 112.07,15.39C112.07,12.76 111.83,12.15 110.21,10.57C107.86,8.29 104.38,8.14 101.81,10.19C100.21,11.46 99.50,13.06 99.50,15.33C99.50,18.89 101.31,21.39 104.30,21.98C104.89,22.10 105.43,22.21 105.50,22.22C105.57,22.24 106.27,22.14 107.06,22.01ZM36.41,18.34C38.17,17.51 38.52,15.47 37.15,14.10C36.46,13.41 36.11,13.25 35.28,13.25C32.57,13.25 31.51,16.85 33.81,18.25C34.80,18.86 35.29,18.87 36.41,18.34ZM61.60,16.10C62.09,15.91 62.12,15.03 61.66,14.37C61.47,14.10 60.45,11.91 59.39,9.50C57.09,4.26 57.15,4.38 56.75,4.38C56.40,4.38 56.22,4.65 55.66,6.00C55.46,6.48 55.00,7.55 54.63,8.38C54.27,9.20 53.72,10.44 53.42,11.12C53.12,11.81 52.50,13.10 52.05,13.99C50.91,16.25 50.92,16.25 56.65,16.25C59.16,16.25 61.39,16.18 61.60,16.10Z"/></svg>';
 const LOGO_FEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 8.1 1076 298.3" role="img" aria-label="FENAUTO com Cars2You"><title>FENAUTO com Cars2You</title><path fill="#242424" fill-rule="evenodd" d="M666.5,192.9C665.4,192.6 662.3,192.2 660.2,192C658.9,191.9 657.1,191.6 656.3,191.4C655.4,191.2 654.1,190.9 653.4,190.8C652.7,190.7 651.8,190.4 651.4,190.3C651,190.2 649.6,189.7 648.3,189.3C641.5,187.1 637.2,185.1 631.4,181.3C624.1,176.6 617.7,170.4 612.3,162.9C610.5,160.3 609,158 607.5,155.4C606.9,154.2 605,150 605,149.7C605,149.6 604.8,149 604.5,148.4C603.6,146.3 602.3,142.7 602,140.9C601.8,140.2 601.5,139.3 601.4,139C601.2,138.6 601,137.9 601,137.4C601,136.9 600.8,135.8 600.5,135.1C600.2,134.3 599.8,132 599.5,130C599,126.4 599,125.9 599.1,68.8L599.1,11.1L627.5,11.1L655.9,11.1L656,68.6L656.1,126.1L656.7,127.6C657.4,129.8 657.9,130.7 659.4,132.5C663.7,137.9 670.8,139.5 676.9,136.4C678.1,135.8 681,133.7 681.4,133.1C683.1,130.7 683.6,129.7 684.3,127.6L684.9,126.1L685,68.6L685.1,11.1L713.5,11.1L741.9,11.1L741.9,70.5C742,121.3 742,129.8 741.6,130.3C741.5,130.6 741.2,131.7 741.1,132.6C741,134.6 740.1,138 739.6,139.1C739.4,139.5 739.2,140.3 739.1,141C739,141.6 738.7,142.5 738.5,143.1C738.2,143.6 738,144.2 738,144.5C738,144.8 737.8,145.5 737.5,146C737.2,146.5 737,147.2 737,147.4C737,147.6 736.8,148.2 736.5,148.7C735.8,150.2 735,151.8 734.9,152.5C734.7,152.9 732.6,156.8 731.7,158.3C731.6,158.5 731.3,159 731.1,159.4C730.4,160.7 728,164 726.1,166.4C720,174.1 711.6,180.8 702.8,185.3C701.2,186 699.6,186.8 699.3,186.9C698.9,187 698.2,187.3 697.8,187.5C697.3,187.8 696.7,188 696.5,188C696.2,188 696,188.1 695.9,188.2C695.8,188.4 694,189 689,190.5C688.1,190.8 687,191 686.5,191C686,191 684.9,191.2 684.1,191.5C683.3,191.7 681.5,192 680.2,192.1C678.9,192.2 677.5,192.4 677,192.5C676.2,192.8 667.3,193.1 666.5,192.9ZM976.4,192.8C973.2,192.2 971.5,192 970.1,192C969.3,192 968.1,191.8 967.5,191.6C966.9,191.4 965.6,191.2 964.6,191.1C963.7,191 962.6,190.8 962.3,190.6C961.9,190.4 961.1,190.2 960.4,190.1C959.3,190 957.6,189.5 955.1,188.7C954.7,188.6 953.9,188.3 953.4,188.2C952.8,188.1 951.9,187.7 951.4,187.5C950.8,187.2 950.1,187 949.9,187C949.6,187 949,186.8 948.6,186.5C948.2,186.2 947.7,186 947.4,186C947.2,186 946.6,185.8 946,185.5C945.5,185.3 944.6,184.8 944,184.6C940.6,183 937.4,181.4 934.8,179.8C934.3,179.5 933.6,179.2 933.4,179C933.1,178.9 932.7,178.6 932.5,178.4C932.3,178.2 932.1,178 932,178C931.9,178 931.3,177.7 930.7,177.2C930.1,176.8 929.1,176.1 928.4,175.6C927.7,175.2 926.8,174.6 926.5,174.3C925.6,173.7 922.2,171 921.9,170.6C921.7,170.5 920.9,169.8 920,169C916.6,166.1 908,156.9 908,156.1C908,156.1 907.3,155.1 906.5,154.1C905.7,153.1 905,152.1 905,152C905,151.8 904.8,151.4 904.4,151C903.5,149.8 899.8,143.6 898.6,141.1C898.3,140.3 897.8,139.5 897.7,139.3C897.6,139 897.4,138.6 897.2,138.3C897.1,137.9 896.8,137.2 896.5,136.6C895.7,134.9 895,133.1 895,132.7C895,132.5 894.8,131.9 894.5,131.4C894.2,130.8 894,130.2 894,129.9C894,129.7 893.8,129.1 893.5,128.6C893.2,128.1 893,127.4 893,127C893,126.7 892.8,126.2 892.6,125.8C892.4,125.3 892.1,124.4 892,123.6C891.9,122.8 891.6,121.7 891.4,121.1C891.2,120.6 891,119.7 891,119.2C891,118.7 890.8,117.8 890.6,117.2C890.4,116.6 890.2,115.2 890.1,114.1C890,113 889.8,111.3 889.5,110.3C889.2,108.7 889.1,107 889.1,100.4C889.1,94.7 889.2,92.1 889.5,91.4C889.6,90.8 889.9,89.1 890,87.6C890.1,86.1 890.4,84.4 890.6,83.9C890.8,83.3 891,82.2 891.1,81.3C891.2,80.4 891.4,79.4 891.6,79.2C891.8,78.9 892,78.1 892.1,77.4C892.2,76.7 892.6,75.1 893,73.9C893.4,72.6 893.9,71.2 894,70.7C894.1,70.2 894.4,69.5 894.6,69.2C894.8,68.9 895,68.2 895.1,67.8C895.2,67.3 895.4,66.8 895.5,66.6C895.6,66.5 896,65.5 896.5,64.3C896.9,63.2 897.4,62.2 897.6,62C897.8,61.8 898,61.5 898,61.3C898,61 899.9,57.2 901.1,55.2C903.1,51.7 904.3,49.9 906.6,46.7C908.6,43.8 913.5,38.1 916.3,35.4C920.1,31.6 925.8,27 930.1,24.1C931.8,23 933.3,22 933.5,21.9C933.7,21.8 934.3,21.4 934.9,21.1C935.4,20.8 936.3,20.3 936.9,20C937.4,19.7 938.3,19.2 938.9,18.9C939.4,18.6 940,18.2 940.3,18.1C940.5,18 941.5,17.5 942.6,17C943.7,16.4 944.7,16 944.9,16C945.1,16 945.7,15.8 946.2,15.5C948.2,14.4 949.3,14 949.8,14C950.1,14 950.6,13.8 951,13.6C951.9,13.1 955.3,12 956,12C956.3,12 957.1,11.8 957.7,11.5C958.4,11.3 959.4,11 960.1,10.9C960.8,10.8 961.7,10.6 962.1,10.4C962.5,10.2 963.3,10 963.9,10C964.5,10 965.7,9.8 966.8,9.5C967.8,9.3 969.7,9 971.1,8.9C972.4,8.8 974.8,8.6 976.3,8.3C979.7,7.9 987.1,8 991,8.6C992.3,8.8 994.1,9 994.9,9C995.8,9 996.9,9.2 997.5,9.4C998.1,9.6 999.3,9.8 1000.2,9.9C1001.1,10 1002.5,10.3 1003.3,10.5C1004.1,10.8 1005,11 1005.4,11C1005.7,11 1006.5,11.2 1007.3,11.5C1008,11.8 1008.8,12 1009.1,12C1009.5,12 1010.2,12.2 1010.8,12.5C1011.3,12.8 1012,13 1012.3,13C1012.5,13 1013.2,13.2 1013.8,13.5C1014.3,13.8 1014.9,14 1015.2,14C1015.4,14 1016,14.2 1016.4,14.5C1016.8,14.8 1017.3,15 1017.6,15C1017.8,15 1018.4,15.2 1018.9,15.5C1019.5,15.8 1020,16 1020.2,16C1020.4,16 1020.8,16.2 1021.2,16.5C1021.5,16.8 1022,17 1022.2,17C1022.4,17 1022.9,17.2 1023.5,17.5C1024,17.8 1024.5,18 1024.8,18.1C1025,18.2 1025.6,18.5 1026.1,18.9C1026.7,19.2 1028,19.9 1029,20.4C1030,20.9 1030.9,21.5 1031,21.7C1031.2,21.9 1031.4,22 1031.5,22C1032.2,22 1041.3,28.6 1044.6,31.6C1047.2,33.8 1053.4,40.1 1054.1,41.2C1054.4,41.6 1055.2,42.6 1055.9,43.5C1057.8,45.8 1061.3,50.6 1061.8,51.8C1062,52.1 1062.5,53 1063,53.8C1063.5,54.5 1064,55.4 1064.2,55.6C1064.8,56.6 1067,61.1 1067,61.3C1067,61.5 1067.2,61.8 1067.5,62.2C1067.8,62.5 1068,63 1068,63.2C1068,63.4 1068.2,64 1068.5,64.6C1069.7,67.4 1070,68 1070,68.3C1070,68.5 1070.2,69.1 1070.5,69.6C1070.8,70.2 1071,70.8 1071,71.1C1071,71.3 1071.2,71.9 1071.5,72.4C1071.8,73 1072,73.7 1072,74.1C1072,74.5 1072.2,75.3 1072.5,75.9C1072.8,76.4 1073,77.2 1073,77.7C1073,78.1 1073.2,79 1073.5,79.8C1073.8,80.5 1074,81.5 1074,82.1C1074,82.7 1074.2,83.7 1074.4,84.3C1074.6,84.9 1074.9,86.8 1075,88.6C1075.2,91.9 1075.4,92.8 1075.8,92.8C1075.9,92.8 1076,96.3 1076,100.9C1076,108.1 1076,109.1 1075.6,109.7C1075.3,110.1 1075.1,111.1 1075,112.9C1074.9,114.3 1074.6,116 1074.4,116.6C1074.2,117.2 1074,118.3 1074,118.9C1074,119.5 1073.8,120.5 1073.5,121.3C1073.2,122 1073,122.9 1073,123.3C1073,123.8 1072.8,124.6 1072.5,125.1C1072.2,125.7 1072,126.4 1072,126.8C1072,127.1 1071.8,127.8 1071.5,128.4C1071.2,128.9 1071,129.6 1071,129.9C1071,130.2 1070.8,130.8 1070.5,131.4C1070.2,131.9 1070,132.5 1070,132.7C1070,132.8 1069.8,133.5 1069.5,134.2C1069.2,134.8 1068.8,135.8 1068.5,136.4C1067.7,138.2 1067,139.8 1066.4,141C1065.8,142.2 1062.7,147.8 1061.9,148.9C1061.7,149.3 1061.3,150.1 1061,150.6C1060.1,152.2 1056.4,157 1053.1,160.7C1048.4,166 1041.8,172.2 1039.1,173.9C1038.7,174.2 1037.9,174.7 1037.4,175.1C1036.8,175.6 1035.9,176.2 1035.3,176.6C1034.6,177 1034.1,177.4 1034,177.5C1033.9,177.6 1033.5,177.9 1033.1,178.1C1032.7,178.3 1032,178.7 1031.6,179C1031.2,179.3 1030.5,179.7 1030.1,179.9C1029.7,180.1 1028.8,180.6 1028.2,181C1026.7,181.8 1022.6,183.9 1020.8,184.7C1020,185 1019.1,185.5 1018.7,185.7C1018.4,185.8 1017.9,186 1017.7,186C1017.5,186 1017,186.2 1016.4,186.5C1015.9,186.8 1015.3,187 1015.1,187C1014.8,187 1014.2,187.2 1013.7,187.5C1013.2,187.8 1012.5,188 1012.2,188C1011.9,188 1011.2,188.2 1010.7,188.5C1010.2,188.8 1009.6,189 1009.4,189C1009.3,189 1008.4,189.2 1007.5,189.5C1006.6,189.7 1005.3,190.1 1004.6,190.2C1003.9,190.3 1002.9,190.6 1002.4,190.7C1000,191.3 996.9,191.8 994.3,192C992.8,192.2 991,192.4 990.4,192.5C989.1,192.8 978,193 976.4,192.8ZM371.8,191.8C371.3,191.6 370.6,191.4 370.3,191.3C370,191.1 369.5,191 369.1,191C368.7,191 367.9,190.8 367.4,190.5C366.9,190.3 366.2,190 365.8,189.9C364.9,189.7 361.7,188 358.8,186C357.6,185.3 355.4,183.3 353.8,181.8C350.8,178.8 349.5,177 347.6,173.3C347.1,172.2 346.3,170.9 345.8,170.3C345.4,169.7 345,169 345,168.8C345,168.6 344.8,168.2 344.5,167.8C344.2,167.5 344,167 344,166.8C344,166.6 343.8,166.2 343.5,165.8C343.2,165.5 343,165 343,164.8C343,164.5 342.8,164.1 342.5,163.9C342.2,163.6 342,163.2 342,162.8C342,162.5 341.8,162.2 341.6,162.1C341.5,162 341.1,161.5 340.9,161C340.7,160.5 339.8,158.9 339,157.4C338.2,155.9 337.3,154.2 337,153.6C336.7,153.1 336.4,152.4 336.3,152.2C335.8,151.4 335.5,150.9 334.9,149.8C334.6,149.1 333.7,147.4 332.9,145.9C332.1,144.4 330.8,141.8 329.9,140.3C329.1,138.7 327.8,136.1 327,134.6C326.2,133.1 325.1,131 324.6,130C324,129 322.9,126.9 322.1,125.4C320.8,122.8 319.4,120.3 317.6,116.7C317.1,115.8 316.6,115.1 316.5,115.1C316.2,115.1 316.1,121.5 316,152L315.9,188.9L288,188.9L260.1,188.9L260.1,113.8L260.1,38.6L260.7,36.2C262.3,29.2 265.3,23.7 270,19C274.7,14.3 280.3,11.3 287.2,9.7C290.4,9 296.6,8.9 299.8,9.6C302.2,10.1 305.3,11.1 306.4,11.6C306.8,11.8 307.3,12 307.5,12C307.8,12 308.1,12.2 308.2,12.4C308.4,12.6 308.9,12.8 309.3,12.9C309.7,13 310.1,13.2 310.1,13.3C310.2,13.4 310.6,13.7 311,13.8C312.7,14.6 315.4,16.8 318.3,19.6C321.3,22.5 324,25.8 324,26.4C324,26.6 324.2,26.9 324.5,27C324.8,27.2 325,27.5 325,28C325,28.4 325.2,28.8 325.4,28.9C325.7,29.1 326.4,30.3 327.6,32.8C327.9,33.2 328.2,33.8 328.3,34C328.4,34.2 328.9,35.3 329.5,36.4C330.1,37.5 331.4,40.1 332.5,42.1C333.6,44.2 335.4,47.7 336.5,49.9C337.6,52.1 339.4,55.6 340.5,57.7C348,72.2 350.7,77.4 352.7,81.4C354.6,85.1 355.3,86.2 355.7,85.9C355.9,85.8 356,75.1 356,48.6C356,28.1 356.1,11.3 356.2,11.2C356.3,11.1 368.9,11 384.1,11.1L411.9,11.1L411.9,87.6C411.9,158.3 411.8,164.2 411.5,165.4C411.2,166.1 410.9,167.1 410.8,167.6C410.3,169.5 409.2,172.4 408.5,173.5C408.4,173.7 408.1,174.1 408,174.5C407.3,176.2 404.6,179.7 402.1,182.1C399.2,185.1 396.1,187.4 393,188.8C392.7,188.9 392.2,189.2 391.9,189.3C391.2,189.7 388.8,190.5 387.6,190.8C387.1,190.9 386.1,191.2 385.5,191.4C384.6,191.8 383.1,191.8 378.6,191.9C375.5,191.9 372.4,191.9 371.8,191.8ZM0,124.2C0,80.3 0.1,59.3 0.3,59.1C0.4,59 0.7,57.5 1,56C1.6,52.7 2.4,49.8 3.6,46.5C4.1,45.2 4.7,43.6 4.9,43C5.1,42.4 5.3,41.8 5.5,41.8C5.7,41.6 7,39 7,38.7C7,38.6 7.4,38 7.8,37.4C8.3,36.8 8.7,36.2 8.8,36C9,35.5 10.3,33.7 12.4,30.9C13.3,29.9 14,28.8 14,28.6C14,28.4 14.2,28.2 14.4,28.1C15.1,27.8 16.4,26.8 20.5,22.9C21,22.4 21.5,22 21.7,22C21.8,22 22.5,21.6 23.2,21.1C27.9,17.6 35.5,14.2 41.7,12.7C48,11.1 47,11.1 77.3,11.1L104.9,11.1L104.9,36.5L104.9,61.9L86,62L67.1,62.1L65.4,62.9C63.2,63.8 60.6,66.1 59.6,68.2C58.2,70.8 58,71.9 58.1,77.2L58.1,81.9L81.5,82L104.9,82.1L104.9,106L104.9,129.9L81.5,130L58.1,130.1L58,159.5L57.9,188.9L28.9,188.9L0,189L0,124.2ZM201.5,188.8C200.9,188.8 198.7,188.5 196.7,188.2C176.2,185.5 158,176.4 143.6,161.4C141.6,159.4 139.8,157.4 139.6,157.1C139.4,156.7 138.6,155.8 138,155C136.6,153.3 131.1,145.3 130.8,144.4C130.6,144.1 130.3,143.3 129.9,142.8C128.9,141.2 127,137.6 127,137.2C127,136.9 126.1,134.7 125.4,133.5C125.2,133.2 125,132.5 124.9,132.1C124.8,131.6 124.6,131.2 124.4,131C124.2,130.8 124,130.3 124,129.9C124,129.5 123.8,128.8 123.5,128.4C123.2,128 123,127.3 123,126.9C123,126.5 122.8,125.8 122.6,125.4C122.4,125 122.1,124 122,123.2C121.8,122.4 121.6,121.5 121.4,121.2C121.2,120.9 121,119.8 120.9,118.8C120.8,117.8 120.6,116.6 120.4,116.2C120.2,115.8 120,114.9 120,114.2C120,113.4 119.8,111.8 119.5,110.5C119.1,108.4 119,107.2 119,100.1C119,94 119.1,91.8 119.4,90.8C119.6,90 119.8,88.5 119.9,87.4C120,86.3 120.2,84.8 120.4,84.1C120.6,83.4 120.9,82.1 121,81.2C121.2,79.6 121.8,77 122.3,75.6C122.4,75.2 122.7,74.4 122.9,73.8C123.9,70.5 124.1,69.8 126,65.4C135.3,43.5 153.2,26 174.9,17.4C182.3,14.5 188.3,12.9 196.7,11.7C200.2,11.2 201.4,11.2 219,11.1L237.7,11L238.3,11.6L239,12.3L238.9,37.1L238.9,61.9L226.5,62C215.2,62.1 213.8,62.2 211,62.7C202.1,64.3 195.9,66.7 189.8,70.8C187.5,72.4 181.9,77.9 182.1,78.5C182.1,78.8 184.4,78.9 210,79L237.9,79.1L237.9,100L237.9,120.9L209.8,120.9C193.1,121 181.6,121.1 181.4,121.2C180.9,121.8 183.3,125.3 186.2,128.1C187.2,129.1 190.9,132 191.2,132C191.3,132 191.8,132.3 192.3,132.7C193.2,133.3 197.4,135.5 199.3,136.1C202.2,137.2 204.9,138 205.5,138C205.9,138 206.9,138.2 207.8,138.5C208.7,138.8 209.9,139 210.5,139C211.1,139 212.3,139.2 213.1,139.4C214.4,139.8 216.6,139.8 226.8,140L238.9,140.1L238.9,164.5L238.9,188.9L220.8,188.9C210.8,188.9 202.1,188.9 201.5,188.8ZM434.1,188.7C434,188.5 434,162.5 434.1,130.9C434.1,73.6 434.1,73.4 434.7,70.3C435.6,65 436.6,60.8 437.8,57.4C438.7,55 440.1,51.3 440.6,50.4C440.8,50 441,49.5 441,49.3C441,49.2 441.2,48.9 441.4,48.8C441.5,48.6 441.8,48.2 441.8,47.9C442.1,46.9 446.4,39.5 447.7,38C447.9,37.8 448.8,36.7 449.7,35.5C451.8,32.8 457.8,26.8 460.5,24.7C461.7,23.8 462.8,22.9 463,22.7C463.5,22.3 468.3,19.1 468.8,18.9C469,18.8 469.6,18.5 470.1,18.1C471.9,17 475.6,15.3 477.5,14.6C482.7,12.7 486.7,11.5 489.4,10.9C492.1,10.3 493.7,10 499.5,9.2C500.5,9.1 503.6,9 506.4,9C510.7,8.9 511.7,9 513.9,9.5C515.2,9.8 516.7,10 517.1,10C517.5,10 518.7,10.2 519.8,10.5C520.8,10.8 522,11 522.5,11C523.4,11 524,11.2 529,12.7C535.8,14.7 544.3,19.3 550.8,24.4C556.8,29.1 563.3,36.3 566.6,41.9C568.1,44.4 569.5,46.8 569.8,47.5C569.9,47.8 570.1,48.3 570.3,48.5C570.4,48.7 570.6,49.2 570.8,49.5C570.9,49.8 571.3,50.6 571.5,51.1C571.7,51.7 572.1,52.6 572.4,53.3C573,54.7 573.7,56.6 574,57.8C574.1,58.4 574.4,59 574.6,59.3C574.8,59.6 575,60.4 575.1,61.1C575.2,61.7 575.4,62.6 575.6,63C575.8,63.4 576,64.2 576,64.7C576,65.2 576.2,66.2 576.5,67C576.8,67.8 577,68.8 577,69.3C577,69.8 577.2,70.9 577.4,71.8C577.9,73.3 577.9,76.9 577.9,131.1L577.9,188.9L549.5,188.9L521.1,188.9L521,161.5L520.9,134.1L509.5,134L498.1,133.9L498.1,110.5L498.1,87.1L509.5,87L520.9,86.9L520.8,83.5C520.8,81.6 520.6,79.3 520.4,78.3C520.2,77.3 520,75.8 520,74.9C520,73.5 519.9,73.2 519.5,73C519.2,72.8 519,72.5 519,72C519,71.6 518.8,71.2 518.6,71C518.4,70.8 518.2,70.5 518.1,70.2C517.8,69 514,65 513.2,65C513,65 512.6,64.8 512.2,64.6C511.1,63.7 509.1,63.2 506.6,63.1C504.4,63 503.8,63 502.3,63.5C501.3,63.8 500.4,64 500.3,64C499.6,64 496.6,66.5 495,68.4C494.6,68.8 493.9,70 493.5,71C493.1,72 492.6,73.1 492.4,73.4C492.2,73.8 492.1,87 492,131.4L491.9,188.9L463.1,188.9C439.8,189 434.2,188.9 434.1,188.7ZM789.1,188.7C789,188.5 789,159.7 788.9,124.8L788.9,61.1L772,61L755.1,60.9L755.1,36L755.1,11.1L818,11.1L880.9,11.1L880.9,36L880.9,60.9L863.5,61L846.1,61.1L846,125L845.9,188.9L817.6,188.9C795,189 789.2,188.9 789.1,188.7ZM990,136.2C1000.5,133.7 1009,127 1013.9,117.4C1015.6,114 1016.5,111.5 1017.3,107.7C1017.8,105.6 1017.9,104.3 1017.9,100.5C1017.9,96.7 1017.8,95.4 1017.3,93.3C1016.5,89.5 1015.6,87 1013.9,83.6C1011.8,79.5 1010.6,77.9 1007.3,74.5C1001.8,69 996.2,66 988.3,64.5C980.3,63 970.6,65 963.6,69.6C962.7,70.2 961.9,70.8 961.8,70.8C961.3,70.8 956.1,76 954.8,77.7C951.1,82.5 948.8,87.7 947.6,93.9C946.9,97.3 947,104.3 947.7,107.7C948.5,111.5 949.4,114 951.1,117.4C956,127.1 965,134.1 975.4,136.2C979,137 979,137 983.4,136.9C986.5,136.8 987.9,136.7 990,136.2Z"/><g fill="#242424" transform="translate(323.00 229.00) scale(0.46088) translate(-20 -14)"><path d="M540.4 64 540.4 39 465.5 39 465.5 14 540.4 14 540.4 39 565.4 39 565.4 64 540.4 64ZM465.5 138.9 465.5 89 490.4 89 490.4 113.9 565.4 113.9 565.4 138.9 465.5 138.9ZM490.4 89 490.4 64 540.4 64 540.4 89 490.4 89Z"/><path d="M319.7 43.4 314.8 64.1C310.4 61.8 304 60.6 298.9 60.6 285.6 60.6 276.1 70 276.1 86.3L276.1 138.9 255.2 138.9 255.2 43.2 275.9 43.2 275.9 54C282.2 44.9 292 40.7 303.7 40.7 315.4 40.7 315 41.5 319.7 43.4Z"/><path d="M404.2 67.2C398.4 63.6 386.5 59 374.6 59 362.7 59 356.5 63.6 356.5 70.4 356.5 77.2 363.5 79 372.3 80.3L382.2 81.8C403.1 84.8 415.5 93.7 415.5 110 415.5 126.4 399.5 141.3 371.9 141.3 344.3 141.3 344.8 139.4 330.8 129L340.5 113.3C347.4 118.6 356.5 123.1 372.1 123.1 387.7 123.1 393.9 118.6 393.9 111.4 393.9 104.2 388.7 102.4 377.3 100.8L367.3 99.5C346.1 96.7 334.8 86.9 334.8 71.5 334.8 56.1 350 40.8 374.4 40.8 398.8 40.8 403.3 44.5 413.2 50.9L404.2 67.2Z"/><path d="M644.7 182 621.5 182 655.7 121.7 613.3 45.7 636.8 45.7 667.5 100.6 697.2 45.7 720.2 45.7 644.7 182Z"/><path d="M952.8 100.8C952.8 131.3 930.8 143.9 908.4 143.9 886 143.9 864 131.3 864 100.8L864 45.7 885 45.7 885 98.9C885 117.4 895.3 124.2 908.4 124.2 921.5 124.2 931.8 117.4 931.8 98.9L931.8 45.7 952.8 45.7 952.8 100.8Z"/><path d="M106.4 56 93 70.3C86.3 64 79.2 60.4 70 60.4 53.9 60.4 41.7 73 41.7 91.1 41.7 109.1 53.9 121.7 70 121.7 86.1 121.7 87.4 117.4 93.5 111.7L106.4 126.1C97.7 136.2 84.9 141.4 70.6 141.4 40.1 141.4 20.2 119.7 20.2 91.1 20.2 62.4 40.1 40.7 70.6 40.7 101.1 40.7 97.9 45.9 106.4 56Z"/><path d="M221.9 138.9 201 138.9 201 127.4C194.4 135.9 184.5 141.4 170.9 141.4 144.2 141.4 123.1 120.3 123.1 91.1 123.1 61.8 144.2 40.7 170.9 40.7 197.7 40.7 194.4 46.3 201 54.8L201 43.2 221.9 43.2 221.9 138.9ZM144.6 91.1C144.6 107.8 155.4 121.7 173.4 121.7 191.4 121.7 202.3 108.5 202.3 91.1 202.3 73.6 190.7 60.4 173.4 60.4 156.1 60.4 144.6 74.3 144.6 91.1Z"/><path d="M835.1 93.6C835.1 122.2 813.2 143.9 783.6 143.9 754 143.9 732.1 122.2 732.1 93.6 732.1 64.9 754 43.2 783.6 43.2 813.2 43.2 835.1 64.9 835.1 93.6ZM753.6 93.6C753.6 111.6 766.5 124.2 783.6 124.2 800.7 124.2 813.7 111.6 813.7 93.6 813.7 75.5 800.7 62.9 783.6 62.9 766.5 62.9 753.6 75.5 753.6 93.6Z"/></g></svg>';
 /* LOGOS:FIM */
 
@@ -441,7 +441,7 @@ const TEXTO_AVISO = {
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
 
 const DADOS = {
-  agora: AGORA, piso: META.piso, wl: META.wl,
+  agora: AGORA, semana: META.semana, wl: META.wl,
   /* a regra de loja nova (02/10): cadastro a partir de "desde" E no grupo */
   novas_regra: META.novas,
   peso: PESO_SCORE, aprovada: SITUACAO_APROVADA,
@@ -751,7 +751,7 @@ function calcula(D, sel, F) {
    APP(D) — o que roda no navegador. Viaja pelo toString(), junto com
    calcula(). Sem biblioteca: o painel abre offline.
    ══════════════════════════════════════════════════════════════════════ */
-function APP(D, LOGO) {
+function APP(D) {
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s === null || s === undefined ? '' : s)
     .split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;');
@@ -763,6 +763,12 @@ function APP(D, LOGO) {
   const dt = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(2, 4) + ' ' + s.slice(11, 16) : '—');
   const dia = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) : '—');
   const diaCod = (c) => c.slice(4, 6) + '/' + c.slice(2, 4);
+  /* o domingo da semana: o fim dela é a segunda seguinte, 00:00 */
+  const diaAntes = (s) => {
+    const d = new Date(Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)) - 1));
+    const p2 = (n) => (n < 10 ? '0' : '') + n;
+    return p2(d.getUTCDate()) + '/' + p2(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear();
+  };
 
   const FAROL = { sem: 'Sem oferta', abaixo: 'Oferta abaixo do VMV', atingiu: 'VMV atingido' };
 
@@ -1062,8 +1068,15 @@ function APP(D, LOGO) {
     contaFiltros();
     const R = calcula(D, sel, F);
     const k = R.kpi;
-    /* sem subtítulo (26/10): o centro do topo é a logo da Fenauto. O evento
-       escolhido aparece na gaveta, e o número na aba conta os filtros */
+    /* o subtítulo voltou (09/11), como no Mega Evento Fenauto: o evento
+       escolhido ou a semana, o período e se há filtro ligado */
+    const ev = sel === 'todos' ? null : R.eventos[0];
+    $('#sub').textContent = (ev
+      ? ev.nome + ' · ' + dt(ev.ini) + ' → ' + dt(ev.fim) + ' · ' + ev.estado
+      : 'C6 · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' da Fenauto na semana de ' +
+        dia(D.semana[0]).slice(0, 5) + ' a ' + diaAntes(D.semana[1]).slice(0, 5) +
+        (R.periodo[0] ? ' · ' + dt(R.periodo[0]) + ' → ' + dt(R.periodo[1]) : '')) +
+      (sel !== 'todos' || FILTROS.some((x) => F[x]) ? ' · com filtros' : '');
 
     /* KPIs: todo percentual logo abaixo do número grande leva barra */
     const pcBar = (idTxt, idBar, x, rot) => {
@@ -1302,8 +1315,9 @@ function APP(D, LOGO) {
     '<dt>' + esc(g[0]) + '</dt><dd>' + esc(g[1]) + '</dd>').join('');
   $('#gloss-n').textContent = D.glossario.length + ' termos';
   $('#gerado').textContent = dt(D.agora);
-  $('#base').textContent = D.eventos.length + ' eventos do Canal de vendas C6 Auto (whitelabel ' + D.wl +
-    ') com fim desde ' + dia(D.piso);
+  $('#base').textContent = D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') +
+    ' da Fenauto no Canal de vendas C6 Auto (whitelabel ' + D.wl + ') abertos na semana de ' +
+    dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
 
   /* tema: nasce no do arquivo, troca ao vivo, não é gravado */
   const ICO = {
@@ -1312,7 +1326,6 @@ function APP(D, LOGO) {
   };
   function tema(t) {
     document.documentElement.dataset.tema = t;
-    $('#logo').src = LOGO[t];
     const alvo = t === 'escuro' ? 'claro' : 'escuro';
     const b = $('#b-tema');
     b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO[alvo] + '</svg>';
@@ -1330,8 +1343,7 @@ function APP(D, LOGO) {
 
 /* ── 11. glossário: só a regra vigente ────────────────────────────────── */
 DADOS.glossario = [
-  ['Evento no painel', 'Evento que alveja o Canal de vendas C6 Auto (whitelabel 43) e termina a partir de ' +
-    DADOS.dias + ' dias atrás: os abertos, os agendados e os encerrados recentes.'],
+  ['Evento no painel', 'Evento que alveja o Canal de vendas C6 Auto (whitelabel 43), com "Fenauto" no nome, aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados.'],
   ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso e cadastro fora dele não contam.'],
   ['Filtros', 'Na aba lateral. Pátio e status do veículo recortam os veículos, e tudo que nasce deles acompanha: lances, ofertantes, compradores, rankings, pátios e os degraus do funil que dependem de anúncio. A data fica nos botões acima do funil.'],
   ['Estado do evento', 'Agendado: as ofertas ainda não abriram. Em andamento: dentro do horário. Encerrando: passou do horário de fim e ainda há veículo ativo — os lances da prorrogação caem depois do fim oficial. Encerrado: nenhum veículo ativo.'],
@@ -1371,16 +1383,32 @@ const CSS_PAINEL = [
   /* ".ctrl.so-icone" declara display e venceria o atributo hidden: o ícone
      de avisos apareceria em dia sem aviso nenhum */
   '[hidden]{display:none!important}',
-  '.marca .logo{height:26px}',
-  /* a logo da Fenauto no CENTRO do topo, no lugar do título e do subtítulo
-     (Thomas, 26/10); o C6 fica sozinho à esquerda. Ela é SVG inline
-     (LOGO_FEN) dentro do h1: tamanho e cor do escuro são daqui. Caixa
-     1076 x 298,3 (design/marca/fenauto); 44px de altura cabem nos 48 do topo
-     e deixam a Cars2You de baixo legível */
-  '.topo-tit h1.logo-fen{display:flex;justify-content:center;line-height:0;margin:0}',
+  /* o topo (Thomas, 09/11), o do Mega Evento Fenauto: a logo "C6 Auto" à
+     esquerda, o título e o subtítulo CENTRADOS e a Fenauto (com a Cars2You)
+     à direita. A grade é a do tema, 1fr auto 1fr: o meio é o meio da barra,
+     qualquer que seja a largura de cada logo; cada logo encosta na sua
+     ponta. As duas são SVG inline (LOGO_C6, LOGO_FEN): a cor de cada tema
+     é daqui — #242424 (a tinta do C6) no claro, branco no escuro.
+     C6 Auto, caixa 112,2 x 22,9 (design/marca/c6-auto): 24px de altura dão
+     ao "C6" a altura das letras da FENAUTO.
+     Fenauto, caixa 1076 x 298,3 (design/marca/fenauto). */
+  '.marca.logo-c6,.marca.logo-fen{line-height:0}',
+  '.marca.logo-c6{justify-self:start}.marca.logo-fen{justify-self:end}',
+  '.logo-c6 svg{display:block;height:24px;width:auto;aspect-ratio:112.2/22.9}',
+  '.logo-c6 path{fill:#242424}[data-tema="escuro"] .logo-c6 path{fill:#FFFFFF}',
   '.logo-fen svg{display:block;height:44px;width:auto;aspect-ratio:1076/298.3}',
   '[data-tema="escuro"] .logo-fen path,[data-tema="escuro"] .logo-fen g{fill:#FFFFFF}',
-  '@media (max-width:620px){.logo-fen svg{height:30px}}',
+  /* o botão de tema (e o de avisos, quando há aviso) saiu da barra (09/11):
+     uma linha própria logo abaixo do cabeçalho, à direita, fora do topo
+     fixo — rola com a página. O justify-self:stretch desfaz o
+     justify-self:end do .topo-acoes do tema, que fora da grade encolhe a
+     linha ao tamanho dos botões e, com margin auto, a centraliza */
+  '.sob-topo{max-width:1680px;margin:0 auto;padding:10px 20px 0;display:flex;justify-content:flex-end;align-items:center;gap:8px;justify-self:stretch}',
+  /* no telefone o título e o subtítulo ficam numa linha cada, cortados com
+     reticências */
+  '@media (max-width:620px){.logo-c6 svg{height:15px}.logo-fen svg{height:26px}.topo-in{grid-template-columns:auto minmax(0,1fr) auto}',
+  '.sob-topo{padding:8px 12px 0}',
+  '.topo-tit h1,.topo-tit .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.topo-tit h1{font-size:15px}.topo-tit .sub{font-size:11px}}',
   '.aviso{position:relative}.aviso .cont{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:8px;',
   'background:var(--negativo);color:var(--superficie);font-size:10px;font-weight:700;line-height:16px;text-align:center}',
   '#dica{position:fixed;z-index:40;top:calc(var(--topo-h) + 4px);right:20px;width:max-content;max-width:min(560px,92vw);',
@@ -1532,7 +1560,6 @@ const filtro = (id, rotulo) => '<div class="fg"><label for="' + id + '" id="' + 
    nenhum nome de loja fechar a tag. A barra é montada em tempo de execução
    porque este arquivo não pode ter barra invertida literal. */
 const dadosJs = JSON.stringify(DADOS).split('<').join(String.fromCharCode(92) + 'u003c');
-const logoJs = JSON.stringify(LOGO);
 
 /* abre no ESCURO (Thomas, 26/10: padrão de todo painel novo, regra 7 de
    design/regras-de-layout.md). O botão troca para o claro; não é gravado */
@@ -1540,15 +1567,19 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<meta name="viewport" content="width=device-width, initial-scale=1">' +
   '<title>Eventos Fenauto C6</title><style>' + CSS_TEMA + CSS_PAINEL + '</style></head><body>' +
   '<header class="topo"><div class="topo-in">' +
-  '<span class="marca"><img class="logo" id="logo" src="" alt="C6 Bank"></span>' +
-  /* o h1 fica: o nome dele é o do SVG ("FENAUTO com Cars2You") */
-  '<div class="topo-tit"><h1 class="logo-fen" id="logo-fen">' + LOGO_FEN + '</h1></div>' +
-  '<div class="topo-acoes">' +
+  /* o C6 Auto à esquerda, o título e o subtítulo no centro, a Fenauto à
+     direita (09/11) */
+  '<span class="marca logo-c6" id="logo-c6">' + LOGO_C6 + '</span>' +
+  '<div class="topo-tit"><h1>Mega evento Fenauto</h1><p class="sub" id="sub"></p></div>' +
+  '<span class="marca logo-fen" id="logo-fen">' + LOGO_FEN + '</span>' +
+  '</div></header>' +
+  /* os botões numa linha logo abaixo do cabeçalho (09/11) */
+  '<div class="sob-topo topo-acoes">' +
   '<button class="ctrl so-icone aviso" id="b-aviso" type="button" hidden aria-label="Pontos de atenção">' +
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>' +
   '<span class="cont"></span></button>' +
   '<button class="ctrl so-icone" id="b-tema" type="button" aria-label="Mudar o tema"></button>' +
-  '</div></div></header><div id="dica" hidden></div><div id="dica-g" hidden></div><div id="dica-lk" hidden></div>' +
+  '</div><div id="dica" hidden></div><div id="dica-g" hidden></div><div id="dica-lk" hidden></div>' +
   /* a gaveta de filtros (29/09) */
   '<button id="aba" class="aba" type="button" aria-expanded="false" aria-controls="gaveta">' +
   '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONE.filtros + '</svg><span class="rot">Filtros</span>' +
@@ -1611,7 +1642,7 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<p class="rodape">Atualizado em <span id="gerado">—</span> · <span id="base"></span></p>' +
   '</main><script>' +
   calcula.toString() + APP.toString() +
-  'APP(' + dadosJs + ',' + logoJs + ');' +
+  'APP(' + dadosJs + ');' +
   '</script></body></html>';
 
 /* ── 13. o resumo, que as provas conferem ─────────────────────────────── */
@@ -1635,6 +1666,6 @@ const resumo = {
 /* A página não pode sair sem os blocos injetados: sem tema ela abre crua,
    sem logo abre com imagem quebrada — e nenhum dos dois dá erro. */
 if (CSS_TEMA.length < 5000) throw new Error('CSS do tema nao injetado (rode _aplica-modelo.js)');
-if (!LOGO.claro || !LOGO.escuro || LOGO_FEN.indexOf('<svg ') !== 0) throw new Error('logos nao injetadas (rode _aplica-modelo.js)');
+if (LOGO_C6.indexOf('<svg ') !== 0 || LOGO_FEN.indexOf('<svg ') !== 0) throw new Error('logos nao injetadas (rode _aplica-modelo.js)');
 
 return [{ json: { html: html, resumo: resumo } }];

@@ -6,7 +6,8 @@
    tema-iga.css), a logo do IGA à esquerda, o título e o subtítulo no
    centro, a logo da Fenauto (com a Cars2You) à direita, e o botão de tema
    (com o de avisos) numa linha logo abaixo do cabeçalho. E só os eventos
-   do IGA da semana: os do C6 saíram (05/11). O resto é o irmão: o filtro
+   do IGA: os do C6 saíram (05/11). Desde 09/11, só os com "Fenauto" no
+   nome, abertos no mês corrente. O resto é o irmão: o filtro
    de evento em botões à vista, acima da Data.
 
    Recebe as tabelas do "MCP Consultas", confere cada pacote contra o
@@ -27,9 +28,9 @@
    Período             do menor início ao maior fim dos eventos filtrados.
                        Acesso fora dele não conta. (28/09)
    Recorte             SÓ eventos do IGA (05/11; o irmão soma o C6, WL 43)
-                       — vendedores 594, 598
-                       e 16036) abertos em algum momento da semana corrente,
-                       segunda a domingo (Thomas, 03/11).
+                       — vendedores 594, 598 e 16036 — com "fenauto" no
+                       nome, abertos em algum momento do MÊS corrente
+                       (Thomas, 09/11; até 08/11, todos os da semana).
    Loja nova           loja com usuário cadastrado pela campanha da Fenauto
                        (perfil com register_form_value contendo "fenauto";
                        Thomas, 03/11), com esse cadastro num dos DIAS do
@@ -451,7 +452,7 @@ const TEXTO_AVISO = {
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
 
 const DADOS = {
-  agora: AGORA, semana: META.semana,
+  agora: AGORA, mes: META.mes,
   peso: PESO_SCORE, aprovada: SITUACAO_APROVADA,
   status_nome: STATUS_NOME,
   eventos: eventos, veiculos: veiculos, lojas: lojas, ofertas: ofertas,
@@ -770,7 +771,7 @@ function APP(D) {
   const dt = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(2, 4) + ' ' + s.slice(11, 16) : '—');
   const dia = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) : '—');
   const diaCod = (c) => c.slice(4, 6) + '/' + c.slice(2, 4);
-  /* o domingo da semana: o fim dela é a segunda seguinte, 00:00 */
+  /* o último dia do mês: o fim dele é o dia 1 do seguinte, 00:00 */
   const diaAntes = (s) => {
     const d = new Date(Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)) - 1));
     const p2 = (n) => (n < 10 ? '0' : '') + n;
@@ -1075,11 +1076,11 @@ function APP(D) {
     const k = R.kpi;
     const ev = sel === 'todos' ? null : R.eventos[0];
     /* o subtítulo volta (03/11), como no painel do C6: o evento escolhido ou
-       a semana, o período e se há filtro ligado */
+       o mês (09/11; antes a semana), o período e se há filtro ligado */
     $('#sub').textContent = (ev
       ? ev.nome + ' · ' + dt(ev.ini) + ' → ' + dt(ev.fim) + ' · ' + ev.estado
-      : 'IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' na semana de ' +
-        dia(D.semana[0]).slice(0, 5) + ' a ' + diaAntes(D.semana[1]).slice(0, 5) +
+      : 'IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' da Fenauto de ' +
+        dia(D.mes[0]).slice(0, 5) + ' a ' + diaAntes(D.mes[1]).slice(0, 5) +
         (R.periodo[0] ? ' · ' + dt(R.periodo[0]) + ' → ' + dt(R.periodo[1]) : '')) +
       (FILTROS.some((x) => F[x]) ? ' · com filtros' : '');
     /* os botões de Evento (03/11): Todos e um por evento, o escolhido marcado */
@@ -1334,7 +1335,7 @@ function APP(D) {
   $('#gloss-n').textContent = D.glossario.length + ' termos';
   $('#gerado').textContent = dt(D.agora);
   $('#base').textContent = D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') +
-    ' do IGA abertos na semana de ' + dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
+    ' da Fenauto no IGA abertos de ' + dia(D.mes[0]) + ' a ' + diaAntes(D.mes[1]);
 
   /* tema: nasce no do arquivo, troca ao vivo, não é gravado */
   const ICO = {
@@ -1360,8 +1361,8 @@ function APP(D) {
 
 /* ── 11. glossário: só a regra vigente ────────────────────────────────── */
 DADOS.glossario = [
-  ['Evento no painel', 'Evento do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações) aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados. Os eventos do C6 (os que alvejam o Canal de vendas C6 Auto) ficam fora. Evento aberto por mais de 31 dias não entra.'],
-  ['Evento', 'Os botões acima da Data: Todos e um por evento da semana, na ordem de início, com a operação (C6 ou IGA) e o estado. Escolher um evento recorta o painel inteiro para ele: veículos, lances, acessos, novos lojistas e os dias da Data.'],
+  ['Evento no painel', 'Evento do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações) com "Fenauto" no nome, aberto em algum momento do mês corrente: os em andamento, os agendados e os já encerrados. Os eventos do C6 (os que alvejam o Canal de vendas C6 Auto) ficam fora. Evento aberto por mais de 31 dias não entra.'],
+  ['Evento', 'Os botões acima da Data: Todos e um por evento do mês, na ordem de início, com o estado. Escolher um evento recorta o painel inteiro para ele: veículos, lances, acessos, novos lojistas e os dias da Data.'],
   ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso e cadastro fora dele não contam.'],
   ['Filtros', 'Na aba lateral. Pátio e status do veículo recortam os veículos, e tudo que nasce deles acompanha: lances, ofertantes, compradores, rankings, pátios e os degraus do funil que dependem de anúncio. Evento e data ficam nos botões acima do funil.'],
   ['Estado do evento', 'Agendado: as ofertas ainda não abriram. Em andamento: dentro do horário. Encerrando: passou do horário de fim e ainda há veículo ativo — os lances da prorrogação caem depois do fim oficial. Encerrado: nenhum veículo ativo.'],

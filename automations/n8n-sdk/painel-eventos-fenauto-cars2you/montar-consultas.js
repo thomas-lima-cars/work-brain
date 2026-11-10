@@ -10,10 +10,15 @@
    do MCP não corta nada e não existe paginação. O "total" sai da MESMA
    varredura do array: se o pacote chegar menor, o Montar Painel para o run.
 
-   ─── O RECORTE (Thomas, 2026-11-03) ──────────────────────────────────
-   Os eventos do C6 E do IGA abertos em algum momento da SEMANA corrente,
-   de segunda 00:00 a domingo 23:59 em hora de Brasília: começam antes da
-   segunda seguinte e terminam a partir da segunda. A semana anda sozinha.
+   ─── O RECORTE (Thomas, 2026-11-03; o nome em 2026-11-09) ────────────
+   Os eventos do C6 E do IGA com "fenauto" no NOME, abertos em algum
+   momento da SEMANA corrente, de segunda 00:00 a domingo 23:59 em hora de
+   Brasília: começam antes da segunda seguinte e terminam a partir da
+   segunda. A semana anda sozinha. Os mesmos dos painéis irmãos: o Fenauto
+   C6 trava o nome no 43, o Fenauto IGA trava o nome no IGA.
+   Em 09/11 (medido): C6 24368 e 24384; IGA 24377, 24378 e 24379. Ficam
+   fora as vendas diretas do IGA da semana (24364 e 24382). Até 08/11 todo
+   evento do C6 e do IGA da semana entrava.
      C6   evento que alveja o whitelabel 43 (Canal de vendas C6 Auto) — o
           critério do Painel de Eventos C6.
      IGA  evento com veículo dos vendedores 594 (Itaú Unibanco), 598
@@ -47,6 +52,9 @@ const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
 /* loja nova (03/11): o valor do formulário de cadastro, sem caixa */
 const CAMPANHA_NOVAS = 'fenauto';
+/* o recorte (09/11): só evento com isto no nome, sem caixa (a collation
+   do banco não diferencia maiúscula) */
+const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
 const FUSO_MIN = -180;          /* America/Sao_Paulo, sem horário de verão */
 const DB = 'cars2you_production';
@@ -70,6 +78,7 @@ const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
 const EVENTO =
   " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
   " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DURACAO_MAX_DIAS +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND (" + EH_C6 + " OR " + EH_IGA + ")";
 
 /* ofertas das negociações dos eventos do recorte — base de três consultas */
@@ -280,7 +289,7 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        semana: [SEMANA_INI, SEMANA_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
         wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS
       }
     }

@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """Roda as consultas do painel pela conexao direta, sem n8n.
 
-    python coleta_local.py                     -> grava dados-local.json (a semana de hoje)
-    python coleta_local.py --prova             -> grava dados-prova.json (a semana da Fenauto 2025)
-    python coleta_local.py --semana 2026-11-09 -> outra semana (a segunda-feira), em dados-local.json
+    python coleta_local.py                -> grava dados-local.json (o mes de hoje)
+    python coleta_local.py --prova        -> grava dados-prova.json (novembro/2025, o da Fenauto 2025)
+    python coleta_local.py --mes 2026-12  -> outro mes, em dados-local.json
 
---prova roda o MESMO SQL com a semana trocada pela de 17/11/2025, a da
-Fenauto 2025: eventos do C6 e do IGA ao mesmo tempo e as 226 lojas da
-campanha "Fenauto 2025 IGA". A semana corrente (03/11/2026) tem dois
-eventos do C6, nenhum do IGA e nenhum cadastro da Fenauto: as provas
-precisam de dado variado para refazer as contas.
+--prova roda o MESMO SQL com o mes trocado por novembro/2025, o da
+Fenauto 2025: o evento 22223 "VD IGA exclusivo Fenauto - 21/11/25" e as
+226 lojas da campanha "Fenauto 2025 IGA". Desde 09/11 o recorte e o mes
+(antes, a semana de 17/11/2025) e so evento com Fenauto no nome.
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com
@@ -19,7 +18,7 @@ real, e a medicao de tempo e tamanho e do SQL que vai para producao.
 Precisa de VPN. O arquivo gerado tem dado real de loja: fica fora do git.
 """
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import subprocess
 import sys
@@ -42,21 +41,21 @@ itens = json.loads(saida.stdout)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--prova", action="store_true")
-ap.add_argument("--semana", help="a segunda-feira da semana, AAAA-MM-DD")
+ap.add_argument("--mes", help="o mes, AAAA-MM")
 args = ap.parse_args()
-SEMANA_PROVA = "2025-11-17"
-segunda = SEMANA_PROVA if args.prova else args.semana
-if segunda:
-    ini = datetime.strptime(segunda, "%Y-%m-%d")
-    assert ini.weekday() == 0, "a semana comeca na segunda-feira"
-    novo = [ini.strftime("%Y-%m-%d 00:00:00"), (ini + timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")]
+MES_PROVA = "2025-11"
+mes = MES_PROVA if args.prova else args.mes
+if mes:
+    ini = datetime.strptime(mes + "-01", "%Y-%m-%d")
+    fim = datetime(ini.year + (ini.month == 12), ini.month % 12 + 1, 1)
+    novo = [ini.strftime("%Y-%m-%d 00:00:00"), fim.strftime("%Y-%m-%d 00:00:00")]
     for it in itens:
         q = it["json"]
-        velho = q["meta"]["semana"]
+        velho = q["meta"]["mes"]
         for a, b in zip(velho, novo):
-            assert q["sql"].count("'" + a + "'") > 0 or q["queryName"] == "nenhuma", "semana fora do SQL"
+            assert q["sql"].count("'" + a + "'") > 0, "mes fora do SQL"
             q["sql"] = q["sql"].replace("'" + a + "'", "'" + b + "'")
-        q["meta"]["semana"] = novo
+        q["meta"]["mes"] = novo
 
 cx = conectar("cars2you")
 respostas = []

@@ -218,3 +218,11 @@
   91–180), como na análise dos 6 canais. Provado com o dado do run 68010, colado no n8n pelo
   Thomas e conferido (versão `df75b54b…`). Primeiro run com ela: 05/11, 8h.
 - Achado: o comentário do nó de WhatsApp diz que o Tuunelis está fora, e o código o inclui.
+
+## 2026-11-09
+- **Eventos Fenauto C6**: logo **C6 Auto** (`design/marca/c6-auto/`), C6 à esquerda, título no
+  centro, Fenauto à direita; só eventos do WL 43 com "Fenauto" no nome, na semana.
+- **Mega Evento Fenauto (Cars2You)**: só eventos do C6 e do IGA com "Fenauto" no nome.
+- Os três painéis da Fenauto foram para a **Rotina Fenauto** (`9CNN9FjRohxaRUZq`, projeto
+  Cars2You, de hora em hora 9h–18h seg–sáb, `Fenauto_202611/`). Criada e conferida por md5;
+  **inativa**, o run de teste e a ativação esperam o Thomas.

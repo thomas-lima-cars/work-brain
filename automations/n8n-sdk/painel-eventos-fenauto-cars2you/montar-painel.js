@@ -5,6 +5,7 @@
    com a identidade da Cars2You (tema.css sem a camada do C6), a logo da
    Fenauto à esquerda e o título e o subtítulo à direita, os eventos do C6
    E do IGA da semana e o filtro de evento em botões à vista, acima da Data.
+   Desde 09/11 (Thomas): só os eventos com Fenauto no nome.
 
    Recebe as tabelas do "MCP Consultas", confere cada pacote contra o
    próprio total e monta o HTML: KPIs, ranking de lojas, funil dos novos cadastros, acessos únicos por dia e por hora,
@@ -25,7 +26,8 @@
                        Acesso fora dele não conta. (28/09)
    Recorte             eventos do C6 (WL 43) e do IGA (vendedores 594, 598
                        e 16036) abertos em algum momento da semana corrente,
-                       segunda a domingo (Thomas, 03/11).
+                       segunda a domingo (Thomas, 03/11), com "fenauto" no
+                       nome (Thomas, 09/11).
    Loja nova           loja com usuário cadastrado pela campanha da Fenauto
                        (perfil com register_form_value contendo "fenauto";
                        Thomas, 03/11), com esse cadastro num dos DIAS do
@@ -1048,7 +1050,7 @@ function APP(D) {
        a semana, o período e se há filtro ligado */
     $('#sub').textContent = (ev
       ? ev.nome + ' · ' + dt(ev.ini) + ' → ' + dt(ev.fim) + ' · ' + ev.estado
-      : 'C6 e IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' na semana de ' +
+      : 'C6 e IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' da Fenauto na semana de ' +
         dia(D.semana[0]).slice(0, 5) + ' a ' + diaAntes(D.semana[1]).slice(0, 5) +
         (R.periodo[0] ? ' · ' + dt(R.periodo[0]) + ' → ' + dt(R.periodo[1]) : '')) +
       (FILTROS.some((x) => F[x]) ? ' · com filtros' : '');
@@ -1304,7 +1306,7 @@ function APP(D) {
   $('#gloss-n').textContent = D.glossario.length + ' termos';
   $('#gerado').textContent = dt(D.agora);
   $('#base').textContent = D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') +
-    ' do C6 e do IGA abertos na semana de ' + dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
+    ' da Fenauto no C6 e no IGA abertos na semana de ' + dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
 
   /* tema: nasce no do arquivo, troca ao vivo, não é gravado */
   const ICO = {
@@ -1330,7 +1332,7 @@ function APP(D) {
 
 /* ── 11. glossário: só a regra vigente ────────────────────────────────── */
 DADOS.glossario = [
-  ['Evento no painel', 'Evento do C6 (alveja o Canal de vendas C6 Auto, whitelabel 43) ou do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações) aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados. Evento aberto por mais de 31 dias não entra.'],
+  ['Evento no painel', 'Evento do C6 (alveja o Canal de vendas C6 Auto, whitelabel 43) ou do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações), com "Fenauto" no nome, aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados. Evento aberto por mais de 31 dias não entra.'],
   ['Evento', 'Os botões acima da Data: Todos e um por evento da semana, na ordem de início, com a operação (C6 ou IGA) e o estado. Escolher um evento recorta o painel inteiro para ele: veículos, lances, acessos, novos lojistas e os dias da Data.'],
   ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso e cadastro fora dele não contam.'],
   ['Filtros', 'Na aba lateral. Pátio e status do veículo recortam os veículos, e tudo que nasce deles acompanha: lances, ofertantes, compradores, rankings, pátios e os degraus do funil que dependem de anúncio. Evento e data ficam nos botões acima do funil.'],

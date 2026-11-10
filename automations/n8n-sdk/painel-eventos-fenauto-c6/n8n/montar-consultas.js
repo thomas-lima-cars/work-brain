@@ -1,5 +1,5 @@
 const WL_C6 = 43;
-const RECORTE_DESDE = '2026-10-01 00:00:00';
+const NOME_EVENTO = 'fenauto';
 const NOVAS_DESDE = '2026-10-01 00:00';
 const GRUPO_NOVAS = 146;
 const GRUPO_NOVAS_NOME = 'Parceiros C6 - Exclusivo SP';
@@ -9,10 +9,12 @@ const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-const PISO = RECORTE_DESDE;
-const SO_EVENTOS = '24052';
+const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
+const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
+const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
 const EVENTO =
-  " e.deleted_at IS NULL AND e.id IN (" + SO_EVENTOS + ") AND e.finish_date_event >= '" + PISO + "'" +
+  " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND EXISTS (SELECT 1 FROM event_whitelabels ew" +
   " WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 const OFERTAS_DO_RECORTE =
@@ -157,7 +159,7 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        wl: WL_C6, piso: PISO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        wl: WL_C6, semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
         novas: { desde: NOVAS_DESDE, grupo: GRUPO_NOVAS, grupo_nome: GRUPO_NOVAS_NOME }
       }
     }

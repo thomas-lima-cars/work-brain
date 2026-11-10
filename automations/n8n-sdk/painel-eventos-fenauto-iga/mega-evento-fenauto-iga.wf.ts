@@ -15,6 +15,7 @@ const consultas = node({
     parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: `const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
 const CAMPANHA_NOVAS = 'fenauto';
+const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
 const FUSO_MIN = -180;
 const DB = 'cars2you_production';
@@ -22,16 +23,16 @@ const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const MES_INI = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
+const MES_FIM = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
 const EH_C6 = "EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
   " INNER JOIN advertisements ai ON ai.id = ani.advertisement_id" +
   " WHERE ani.event_id = e.id AND ani.deleted_at IS NULL AND ai.shop_id IN (" + VENDEDORES_IGA.join(',') + "))";
 const EVENTO =
-  " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
+  " e.deleted_at IS NULL AND e.start_date_offer < '" + MES_FIM + "' AND e.finish_date_event >= '" + MES_INI + "'" +
   " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DURACAO_MAX_DIAS +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND " + EH_IGA + " AND NOT " + EH_C6;
 const OFERTAS_DO_RECORTE =
   " FROM offers o" +
@@ -177,8 +178,8 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        semana: [SEMANA_INI, SEMANA_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS
+        mes: [MES_INI, MES_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS, nome_evento: NOME_EVENTO
       }
     }
   };
@@ -543,7 +544,7 @@ const TEXTO_AVISO = {
 };
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
 const DADOS = {
-  agora: AGORA, semana: META.semana,
+  agora: AGORA, mes: META.mes,
   peso: PESO_SCORE, aprovada: SITUACAO_APROVADA,
   status_nome: STATUS_NOME,
   eventos: eventos, veiculos: veiculos, lojas: lojas, ofertas: ofertas,
@@ -1042,8 +1043,8 @@ function APP(D) {
     const ev = sel === 'todos' ? null : R.eventos[0];
     $('#sub').textContent = (ev
       ? ev.nome + ' · ' + dt(ev.ini) + ' → ' + dt(ev.fim) + ' · ' + ev.estado
-      : 'IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' na semana de ' +
-        dia(D.semana[0]).slice(0, 5) + ' a ' + diaAntes(D.semana[1]).slice(0, 5) +
+      : 'IGA · ' + D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') + ' da Fenauto de ' +
+        dia(D.mes[0]).slice(0, 5) + ' a ' + diaAntes(D.mes[1]).slice(0, 5) +
         (R.periodo[0] ? ' · ' + dt(R.periodo[0]) + ' → ' + dt(R.periodo[1]) : '')) +
       (FILTROS.some((x) => F[x]) ? ' · com filtros' : '');
     document.querySelectorAll('#f-eventos button').forEach((b) =>
@@ -1259,7 +1260,7 @@ function APP(D) {
   $('#gloss-n').textContent = D.glossario.length + ' termos';
   $('#gerado').textContent = dt(D.agora);
   $('#base').textContent = D.eventos.length + (D.eventos.length === 1 ? ' evento' : ' eventos') +
-    ' do IGA abertos na semana de ' + dia(D.semana[0]) + ' a ' + diaAntes(D.semana[1]);
+    ' da Fenauto no IGA abertos de ' + dia(D.mes[0]) + ' a ' + diaAntes(D.mes[1]);
   const ICO = {
     claro: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
     escuro: '<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>'
@@ -1280,8 +1281,8 @@ function APP(D) {
   render();
 }
 DADOS.glossario = [
-  ['Evento no painel', 'Evento do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações) aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados. Os eventos do C6 (os que alvejam o Canal de vendas C6 Auto) ficam fora. Evento aberto por mais de 31 dias não entra.'],
-  ['Evento', 'Os botões acima da Data: Todos e um por evento da semana, na ordem de início, com a operação (C6 ou IGA) e o estado. Escolher um evento recorta o painel inteiro para ele: veículos, lances, acessos, novos lojistas e os dias da Data.'],
+  ['Evento no painel', 'Evento do IGA (tem veículo do Itaú Unibanco, do Repasse Itaú ou da IGA Participações) com "Fenauto" no nome, aberto em algum momento do mês corrente: os em andamento, os agendados e os já encerrados. Os eventos do C6 (os que alvejam o Canal de vendas C6 Auto) ficam fora. Evento aberto por mais de 31 dias não entra.'],
+  ['Evento', 'Os botões acima da Data: Todos e um por evento do mês, na ordem de início, com o estado. Escolher um evento recorta o painel inteiro para ele: veículos, lances, acessos, novos lojistas e os dias da Data.'],
   ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso e cadastro fora dele não contam.'],
   ['Filtros', 'Na aba lateral. Pátio e status do veículo recortam os veículos, e tudo que nasce deles acompanha: lances, ofertantes, compradores, rankings, pátios e os degraus do funil que dependem de anúncio. Evento e data ficam nos botões acima do funil.'],
   ['Estado do evento', 'Agendado: as ofertas ainda não abriram. Em andamento: dentro do horário. Encerrando: passou do horário de fim e ainda há veículo ativo — os lances da prorrogação caem depois do fim oficial. Encerrado: nenhum veículo ativo.'],

@@ -57,7 +57,13 @@ itens.forEach((it) => {
     q.sql.toUpperCase().indexOf('OVER (') < 0);
   prova(q.queryName + ': sem NOW/CURDATE (o banco é UTC)', q.sql.indexOf('NOW(') < 0 && q.sql.indexOf('CURDATE') < 0);
   prova(q.queryName + ': recorte no whitelabel 43', q.sql.indexOf('ew.whitelabel_id = 43') > 0);
-  prova(q.queryName + ': piso literal', q.sql.indexOf("'" + q.meta.piso + "'") > 0, q.meta.piso);
+  /* 09/11: a semana em literal e só evento com Fenauto no nome */
+  prova(q.queryName + ': a semana em literal, nas duas pontas', q.sql.indexOf("e.start_date_offer < '" + q.meta.semana[1] + "'") > 0 &&
+    q.sql.indexOf("e.finish_date_event >= '" + q.meta.semana[0] + "'") > 0, q.meta.semana);
+  prova(q.queryName + ': só evento com "fenauto" no nome', q.sql.indexOf("e.name LIKE '%fenauto%'") > 0 &&
+    q.meta.nome_evento === 'fenauto');
+  prova(q.queryName + ': sem evento fixo nem piso de outubro', q.sql.indexOf('e.id IN (') < 0 &&
+    q.sql.indexOf("'2026-10-01 00:00:00'") < 0 && q.meta.piso === undefined);
   prova(q.queryName + ': sem documento de pessoa',
     ['document', 'email', 'phone', 'renavam'].every((p) => low.indexOf(p) < 0));
   /* placa e chassi saíram em 28/09: nem na consulta */
@@ -66,6 +72,14 @@ itens.forEach((it) => {
   prova(q.queryName + ': sem CNPJ', low.indexOf('cnpj') < 0);
 });
 const sqlDe = (n) => itens.find((i) => i.json.queryName === n).json.sql;
+/* a semana (09/11): de segunda 00:00 à segunda seguinte, e hoje dentro dela */
+(() => {
+  const m = itens[0].json.meta;
+  const ini = new Date(m.semana[0].slice(0, 10) + 'T00:00:00Z');
+  const fim = new Date(m.semana[1].slice(0, 10) + 'T00:00:00Z');
+  prova('semana: começa numa segunda, dura 7 dias e contém agora', ini.getUTCDay() === 1 && fim - ini === 7 * 86400000 &&
+    m.semana[0].slice(11) === '00:00:00' && m.agora_br >= m.semana[0].slice(0, 16) && m.agora_br < m.semana[1].slice(0, 16), m);
+})();
 prova('acesso ao evento (08/10): por igualdade no event_id, cortado no horário do próprio evento, no minuto',
   PARTES_NOMES.concat(['lojas']).every((n) => sqlDe(n).indexOf('INNER JOIN access_logs al ON al.event_id = e.id') > 0 &&
     sqlDe(n).indexOf('al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event') > 0));
@@ -81,9 +95,11 @@ prova('acesso a anúncio: uma linha por (evento, anúncio, loja), com a máscara
   sqlDe('acessos_anuncio').indexOf('BIT_OR(1 << DATEDIFF(al.created_at, e.start_date_offer))') > 0);
 
 /* ── 3. o painel contra a coleta real ────────────────────────────────
-   A coleta DE PROVA (dados-prova.json, 02/10): o mesmo SQL com o recorte e
-   a loja nova desde 01/09. O recorte de outubro abriu quase vazio (3
-   ofertas, 0 loja nova), e conta refeita sobre zero não prova nada. */
+   A coleta DE PROVA (dados-prova.json, 09/11): o mesmo SQL com a janela de
+   01/09 a 27/10/2026, SEM a trava do nome, e a loja nova desde 01/09. A
+   semana da Fenauto de 09/11 abriu com 2 eventos e nenhum lance, e conta
+   refeita sobre zero não prova nada. A trava do nome é provada no SQL
+   (acima) e na coleta da semana (seção 3c). */
 /* a coleta própria, se houver; senão a do painel do C6 (mesmo recorte, WL 43,
    e o mesmo SQL menos o CNPJ da consulta de lojas — o Montar Painel lê as
    colunas pelo nome e ignora a que sobra) */
@@ -114,7 +130,7 @@ d.consultas.forEach((c, i) => {
 });
 const dadosDe = (html) => {
   const s = html.slice(html.lastIndexOf('APP({') + 4);
-  return JSON.parse(s.slice(0, s.lastIndexOf(',{"claro"')));
+  return JSON.parse(s.slice(0, s.lastIndexOf(');')));
 };
 const scr = out.html.slice(out.html.indexOf('<script>') + 8);
 /* a calcula() que está DENTRO do HTML publicado, e não uma cópia */
@@ -206,9 +222,12 @@ prova('lojas novas = grupo ' + REGRA_NOVAS.grupo + ', cadastro desde ' + REGRA_N
   R.kpi.novas === novasTodos.length, [R.kpi.novas, novasTodos.length]);
 prova('regra de loja nova no nó: grupo 146, desde 01/10/2026', itens[0].json.meta.novas.grupo === 146 &&
   itens[0].json.meta.novas.desde === '2026-10-01 00:00' && sqlDe('lojas').indexOf('ucg.client_group_id = 146') > 0);
-prova('recorte de outubro no nó: eventos que encerram a partir de 01/10/2026', itens[0].json.meta.piso === '2026-10-01 00:00:00' &&
-  sqlDe('eventos').indexOf("e.finish_date_event >= '2026-10-01 00:00:00'") > 0);
-prova('coleta: todo evento encerra a partir do piso dela', cru.eventos.every((e) => e.fim >= d.consultas[0].json.meta.piso.slice(0, 16)));
+prova('recorte no nó (09/11): o 43, a semana e o nome', sqlDe('eventos').indexOf('ew.whitelabel_id = 43') > 0 &&
+  sqlDe('eventos').indexOf("e.finish_date_event >= '" + itens[0].json.meta.semana[0] + "'") > 0 &&
+  sqlDe('eventos').indexOf("e.name LIKE '%fenauto%'") > 0);
+prova('coleta de prova: sem a trava do nome, na janela dela', d.consultas.every((c) => c.json.sql.indexOf('e.name LIKE') < 0) &&
+  cru.eventos.length > 2 && cru.eventos.every((e) => e.ini < d.consultas[0].json.meta.semana[1].slice(0, 16) &&
+    e.fim >= d.consultas[0].json.meta.semana[0].slice(0, 16)), cru.eventos.length);
 prova('coleta: há loja nova (no grupo e depois da data) e loja do grupo antiga, que não é nova',
   novasTodos.length > 0 && cru.lojas.some((l) => Number(l.grupo) === 1 && l.cadastro < REGRA_NOVAS.desde) &&
   cru.lojas.some((l) => Number(l.grupo) !== 1 && l.cadastro >= REGRA_NOVAS.desde && Number(l.wl) === 43), novasTodos.length);
@@ -494,7 +513,16 @@ const h = out.html;
 const semScript = h.split('<script>')[0];
 prova('HTML sem requisição de rede', semScript.indexOf('src="http') < 0 && h.indexOf('<link') < 0 &&
   h.indexOf('@import') < 0 && h.indexOf('url(http') < 0);
-prova('logo em data URI', h.indexOf('data:image/svg+xml;base64,') > 0);
+/* a logo "C6 Auto" (09/11): SVG inline, uma cópia só, traçada do PNG que
+   o Thomas mandou. Saiu o monograma C6 em base64 (claro e escuro) */
+prova('logo C6 Auto inline, a que o injetor produz da arte do design, uma vez só',
+  h.indexOf(injetor.logoC6) > 0 && h.split('aria-label="C6 Auto"').length === 2 &&
+  h.indexOf('data:image/svg+xml;base64,') < 0 && h.indexOf('<img') < 0 && semScript.indexOf('C6 Bank') < 0);
+prova('logo C6 Auto: a cor é do CSS — #242424 no claro, branco no escuro',
+  injetor.logoC6.indexOf('fill=') < 0 && h.indexOf('.logo-c6 path{fill:#242424}[data-tema="escuro"] .logo-c6 path{fill:#FFFFFF}') > 0);
+prova('logo C6 Auto: caixa apertada na tinta (112,2 x 22,9), com nome', injetor.logoC6.indexOf('viewBox="2.1 1.5 112.2 22.9"') > 0 &&
+  injetor.logoC6.indexOf('role="img" aria-label="C6 Auto"') > 0 &&
+  fs.existsSync(path.join(__dirname, '..', '..', '..', 'design', 'marca', 'c6-auto', '_original-c6-auto.png')));
 /* a logo da Fenauto (26/10): SVG inline, uma cópia só. No escuro o CSS pinta
    de branco o que a logo-fenauto-escuro.svg pinta de branco */
 prova('logo da Fenauto inline, a que o injetor produz da arte do design, uma vez só',
@@ -508,29 +536,37 @@ prova('logo da Fenauto: coordenadas com uma casa, escala da Cars2You intacta', (
   const ds = injetor.logoFenauto.match(/ d="[^"]*"/g) || [];
   return ds.length === 9 && ds.every((d) => !/[0-9][.][0-9][0-9]/.test(d)) && injetor.logoFenauto.indexOf('scale(0.46088)') > 0;
 })());
-/* topo (Thomas, 26/10, segunda versão): o C6 sozinho à esquerda; a Fenauto no
-   centro, dentro do h1, no lugar do título e do subtítulo */
-prova('topo: só a logo do C6 à esquerda', (() => {
-  const i = semScript.indexOf('<span class="marca">');
-  const fim = semScript.indexOf('</span>', i);
-  const marca = semScript.slice(i, fim);
-  return i > 0 && marca.indexOf('id="logo"') > 0 && marca.indexOf('<svg') < 0 && h.indexOf('marca duas') < 0 && h.indexOf('class="fio"') < 0;
+/* topo (Thomas, 09/11): C6 Auto à esquerda, título e subtítulo no centro,
+   Fenauto à direita, nessa ordem e só isso no cabeçalho */
+const cab = semScript.slice(semScript.indexOf('<header class="topo">'), semScript.indexOf('</header>') + 9);
+prova('topo: C6 Auto → título e subtítulo → Fenauto', (() => {
+  const c = cab.indexOf('<span class="marca logo-c6" id="logo-c6">' + injetor.logoC6 + '</span>');
+  const t = cab.indexOf('<div class="topo-tit"><h1>Mega evento Fenauto</h1><p class="sub" id="sub"></p></div>');
+  const f = cab.indexOf('<span class="marca logo-fen" id="logo-fen">' + injetor.logoFenauto + '</span>');
+  return c > 0 && t > c && f > t && cab.indexOf('<h1 class="logo-fen"') < 0;
 })());
-prova('topo: a Fenauto no centro, dentro do h1, sem título nem subtítulo', (() => {
-  const t = semScript.indexOf('<div class="topo-tit">');
-  const h1 = semScript.indexOf('<h1 class="logo-fen" id="logo-fen">');
-  const fimTit = semScript.indexOf('</div>', t);
-  return t > semScript.indexOf('<span class="marca">') && h1 === t + '<div class="topo-tit">'.length &&
-    semScript.slice(h1, fimTit) === '<h1 class="logo-fen" id="logo-fen">' + injetor.logoFenauto + '</h1>' &&
-    h.indexOf('id="sub"') < 0 && scr.indexOf("$('#sub')") < 0 && semScript.indexOf('<h1>') < 0;
+prova('topo: cada logo encosta na sua ponta, na grade do tema (1fr auto 1fr)',
+  h.indexOf('.marca.logo-c6{justify-self:start}.marca.logo-fen{justify-self:end}') > 0 && h.indexOf('grid-template-columns:1fr auto 1fr') > 0);
+prova('topo: nenhum botão dentro do cabeçalho', cab.indexOf('<button') < 0 && cab.indexOf('topo-acoes') < 0 &&
+  cab.indexOf('b-tema') < 0 && cab.indexOf('b-aviso') < 0);
+prova('botões de tema e de avisos numa linha logo abaixo do cabeçalho, à direita', (() => {
+  const fimCab = semScript.indexOf('</header>') + 9;
+  return semScript.indexOf('<div class="sob-topo topo-acoes">') === fimCab &&
+    semScript.indexOf('id="b-tema"') > fimCab && semScript.indexOf('id="b-aviso"') > fimCab &&
+    h.indexOf('.sob-topo{max-width:1680px;margin:0 auto;padding:10px 20px 0;display:flex;justify-content:flex-end;align-items:center;gap:8px;justify-self:stretch}') > 0;
 })());
-prova('o h1 tem nome: o do SVG', injetor.logoFenauto.indexOf('role="img" aria-label="FENAUTO com Cars2You"') > 0);
+prova('subtítulo: o evento escolhido ou a semana da Fenauto, e "com filtros"', scr.indexOf("$('#sub').textContent = (ev") > 0 &&
+  scr.indexOf("' da Fenauto na semana de '") > 0 && scr.indexOf("' · com filtros'") > 0);
+prova('rodapé e glossário falam da semana e da Fenauto', scr.indexOf("') abertos na semana de '") > 0 &&
+  scr.indexOf('com fim desde') < 0 && h.indexOf('Fenauto' + String.fromCharCode(92, 34) + ' no nome, aberto em algum momento da semana') > 0 &&
+  h.indexOf('dias atrás') < 0);
 prova('escuro: a Fenauto em branco pelo CSS, como a logo-fenauto-escuro.svg', h.indexOf('[data-tema="escuro"] .logo-fen path,[data-tema="escuro"] .logo-fen g{fill:#FFFFFF}') > 0 &&
   fs.readFileSync(path.join(__dirname, '..', '..', '..', 'design', 'marca', 'fenauto', 'logo-fenauto-escuro.svg'), 'utf8').indexOf('#FFFFFF') > 0);
-prova('troca de tema troca a logo do C6; a da Fenauto não depende de JS', scr.indexOf("$('#logo').src = LOGO[t];") > 0 && scr.indexOf("$('#logo-fen')") < 0);
+prova('as duas logos não dependem de JS para o tema', scr.indexOf('LOGO') < 0 && scr.indexOf("$('#logo") < 0);
 prova('aba do navegador: Eventos Fenauto C6', h.indexOf('<title>Eventos Fenauto C6</title>') > 0 && h.indexOf('Mega evento exclusivo') < 0);
-prova('Fenauto com 44px, 30px no telefone', h.indexOf('.logo-fen svg{display:block;height:44px;') > 0 &&
-  h.indexOf('@media (max-width:620px){.logo-fen svg{height:30px}}') > 0);
+prova('Fenauto com 44px e C6 Auto com 24px; 26 e 15 no telefone', h.indexOf('.logo-fen svg{display:block;height:44px;') > 0 &&
+  h.indexOf('.logo-c6 svg{display:block;height:24px;') > 0 &&
+  h.indexOf('@media (max-width:620px){.logo-c6 svg{height:15px}.logo-fen svg{height:26px}') > 0);
 prova('tema C6 depois do tema base', h.indexOf('#DCDCDC') > h.indexOf('#D8E1E9') && h.indexOf('#D8E1E9') > 0);
 prova('nenhum azul da Cars2You sobrando nos tokens do C6',
   h.slice(h.indexOf('#DCDCDC')).indexOf('#487DEA') < 0 && h.slice(h.indexOf('#DCDCDC')).indexOf('#1523A0') < 0);
@@ -680,6 +716,32 @@ prova('nada de "Arremate" na tela; Recuperações nas colunas e no cartão', (()
     .every((t) => vis.indexOf(t) < 0 && out.html.indexOf(t) < 0) &&
     ["t: 'Recuperações'", 'Recuperação / FIPE', 'Recuperação / VMV'].every((t) => out.html.indexOf(t) > 0);
 })());
+
+/* ── 3c. a coleta da SEMANA (dados-local.json), com a trava do nome ──────
+   A prova de cima roda sem o nome, para ter dado. Aqui a coleta de verdade:
+   todo evento é do 43 e tem Fenauto no nome. Na semana de 09/11/2026, os
+   dois medidos à parte (consulta independente, 09/11): 24384 (64
+   negociações) e 24368 (27). Fora: os da Fenauto do IGA (24377 a 24379). */
+(() => {
+  const arqL = path.join(__dirname, 'dados-local.json');
+  if (!fs.existsSync(arqL)) { console.log('ℹ sem dados-local.json: a prova da semana não rodou'); return; }
+  const dl = JSON.parse(fs.readFileSync(arqL, 'utf8'));
+  const iE = dl.consultas.findIndex((c) => c.json.queryName === 'eventos');
+  const cols = dl.consultas[iE].json.cols;
+  const evs = JSON.parse(dl.mcp[iE].json.structuredContent.rows[0][1] || '[]').map((a) => {
+    const o = {}; cols.forEach((k, j) => { o[k] = a[j]; }); return o;
+  });
+  const sem = dl.consultas[0].json.meta.semana;
+  prova('coleta da semana: com a trava do nome, todo evento do 43 e com Fenauto no nome',
+    dl.consultas.every((c) => c.json.sql.indexOf("e.name LIKE '%fenauto%'") > 0) &&
+    evs.every((e) => String(e.nome).toLowerCase().indexOf('fenauto') >= 0 && String(e.wls).split(',').indexOf('43') >= 0),
+    evs.map((e) => [e.id, e.nome]));
+  if (sem[0] === '2026-11-09 00:00:00') {
+    const ids = evs.map((e) => Number(e.id)).sort();
+    prova('semana de 09/11/2026: os dois eventos Fenauto do C6 medidos, e os do IGA fora',
+      JSON.stringify(ids) === JSON.stringify([24368, 24384]), ids);
+  }
+})();
 
 console.log((falhas ? '✗' : '✓') + ' %d provas, %d falha(s)', ok + falhas, falhas);
 if (falhas) process.exit(1);

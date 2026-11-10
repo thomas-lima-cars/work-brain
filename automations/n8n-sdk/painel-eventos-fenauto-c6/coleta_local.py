@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """Roda as consultas do painel pela conexao direta, sem n8n.
 
-    python coleta_local.py            -> grava dados-local.json
-    python coleta_local.py --prova    -> grava dados-prova.json
+    python coleta_local.py                     -> grava dados-local.json (a semana de hoje)
+    python coleta_local.py --semana 2026-11-16 -> outra semana (a segunda-feira)
+    python coleta_local.py --prova             -> grava dados-prova.json
 
---prova roda o MESMO SQL com as duas datas recuadas (recorte e loja nova
-desde 01/09/2026). Existe desde 02/10: o recorte de outubro abriu com 3
-ofertas, 0 acesso a anuncio e 0 loja nova, e as provas precisam de dado
-variado para refazer as contas. A tela local continua sendo a de outubro.
+--prova roda o MESMO SQL com a janela trocada por 01/09 a 27/10/2026, SEM
+a trava do nome e com a loja nova desde 01/09/2026. O recorte desde 09/11
+(Fenauto do C6 da semana) abriu com 2 eventos e nenhum lance, e as provas
+precisam de dado variado para refazer as contas. Ate 09/11 a prova era a
+mesma janela, sem o fim (o piso era 01/09).
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com
@@ -17,8 +19,8 @@ real, e a medicao de tempo e tamanho e do SQL que vai para producao.
 Precisa de VPN. O arquivo gerado tem dado real de loja: fica fora do git.
 """
 import argparse
+from datetime import datetime, timedelta
 import json
-import re
 import subprocess
 import sys
 import time
@@ -40,21 +42,35 @@ itens = json.loads(saida.stdout)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--prova", action="store_true")
+ap.add_argument("--semana", help="a segunda-feira da semana, AAAA-MM-DD")
 args = ap.parse_args()
-PISO_REAL, NOVAS_REAL = "2026-10-01 00:00:00", "2026-10-01 00:00"
-PISO_PROVA, NOVAS_PROVA = "2026-09-01 00:00:00", "2026-09-01 00:00"
+NOVAS_REAL, NOVAS_PROVA = "2026-10-01 00:00", "2026-09-01 00:00"
+JANELA_PROVA = ["2026-09-01 00:00:00", "2026-10-27 00:00:00"]
+TRAVA_NOME = " AND e.name LIKE '%fenauto%'"
+
+
+def troca_janela(q, nova):
+    for a, b in zip(q["meta"]["semana"], nova):
+        assert q["sql"].count("'" + a + "'") > 0, "semana fora do SQL"
+        q["sql"] = q["sql"].replace("'" + a + "'", "'" + b + "'")
+    q["meta"]["semana"] = nova
+
+
+if args.semana:
+    ini = datetime.strptime(args.semana, "%Y-%m-%d")
+    assert ini.weekday() == 0, "a semana comeca na segunda-feira"
+    for it in itens:
+        troca_janela(it["json"], [ini.strftime("%Y-%m-%d 00:00:00"),
+                                  (ini + timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")])
 if args.prova:
     for it in itens:
         q = it["json"]
-        assert q["meta"]["piso"] == PISO_REAL and q["meta"]["novas"]["desde"] == NOVAS_REAL, \
-            "as datas do no mudaram: ajustar PISO_REAL/NOVAS_REAL"
-        # o piso tem segundos e a data das novas nao: um literal nao contem o outro
-        q["sql"] = q["sql"].replace("'" + PISO_REAL + "'", "'" + PISO_PROVA + "'") \
-                           .replace("'" + NOVAS_REAL + "'", "'" + NOVAS_PROVA + "'")
-        # a prova precisa de dado variado: sem o filtro dos eventos fixos (05/10)
-        q["sql"] = re.sub(r"e\.id IN \([0-9,]+\) AND ", "", q["sql"])
-        q["meta"]["piso"] = PISO_PROVA
+        assert q["meta"]["novas"]["desde"] == NOVAS_REAL, "a data das novas mudou: ajustar NOVAS_REAL"
+        assert TRAVA_NOME in q["sql"], "a trava do nome mudou: ajustar TRAVA_NOME"
+        troca_janela(q, JANELA_PROVA)
+        q["sql"] = q["sql"].replace("'" + NOVAS_REAL + "'", "'" + NOVAS_PROVA + "'").replace(TRAVA_NOME, "")
         q["meta"]["novas"]["desde"] = NOVAS_PROVA
+        q["meta"]["prova"] = {"janela": JANELA_PROVA, "sem_nome": True}
 
 cx = conectar("cars2you")
 respostas = []

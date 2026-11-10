@@ -14,11 +14,15 @@
    o total (limite de tamanho do JSON_ARRAYAGG, resposta cortada no
    caminho), o Montar Painel para o run em vez de publicar meia tabela.
 
-   ─── O RECORTE (Thomas, 2026-09-24; outubro em 2026-10-02) ───────────
-   Eventos que alvejam o whitelabel 43 (Canal de vendas C6 Auto) e que
-   ENCERRAM A PARTIR DE 01/10/2026 — a seleção de outubro. Sem teto: evento
-   agendado já tem veículo publicado, e os de outubro entram sozinhos. Até
-   02/10 o piso era móvel, 30 dias antes de hoje.
+   ─── O RECORTE (Thomas, 2026-11-09) ──────────────────────────────────
+   Eventos que alvejam o whitelabel 43 (Canal de vendas C6 Auto) com
+   "fenauto" no NOME, abertos em algum momento da SEMANA corrente, de
+   segunda 00:00 a domingo 23:59 em hora de Brasília: começam antes da
+   segunda seguinte e terminam a partir da segunda. A semana anda sozinha.
+   Em 09/11 (medido): 24384 "Evento Exclusivo C6 Fenauto – 13/11/26" (06 a
+   13/11) e 24368 "Esquenta Fenauto C6 - 10/11/26" (09 a 10/11). Os da
+   Fenauto do IGA da mesma semana (24377 a 24379) não alvejam o 43.
+   Antes: só o 24052 (05/10) e fim desde 01/10/2026 (02/10).
 
    ─── LOJA NOVA (Thomas, 2026-10-02) ──────────────────────────────────
    Cadastrada a partir de 01/10/2026 E no grupo de cliente 146 ("Parceiros
@@ -34,7 +38,7 @@
    ─── FUSO ────────────────────────────────────────────────────────────
    O banco responde NOW() em UTC, mas grava as datas de evento E de oferta
    em hora de Brasília (medido em 2026-09-24: NOW() 17:22, última oferta
-   14:22, relógio local 14:22). Por isso o piso é calculado aqui, em hora
+   14:22, relógio local 14:22). Por isso a semana é calculada aqui, em hora
    de Brasília, e viaja como literal. Não trocar por NOW()/CURDATE().
 
    ⚠️ Este arquivo viaja pro n8n como string. Sem barra invertida e sem
@@ -42,8 +46,9 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 const WL_C6 = 43;
-/* a seleção de outubro (02/10): eventos que encerram a partir daqui */
-const RECORTE_DESDE = '2026-10-01 00:00:00';
+/* o recorte (09/11): só evento com isto no nome, sem caixa (a collation
+   do banco não diferencia maiúscula) */
+const NOME_EVENTO = 'fenauto';
 /* loja nova (02/10): cadastro a partir daqui E no grupo de cliente */
 const NOVAS_DESDE = '2026-10-01 00:00';
 const GRUPO_NOVAS = 146;
@@ -55,14 +60,16 @@ const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 const agora = new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-const PISO = RECORTE_DESDE;
-/* 05/10: o painel mostra SÓ o Mega Evento (24052, 145 anúncios, 05 a 08/10), a pedido do Thomas */
-const SO_EVENTOS = '24052';
+/* a semana de segunda a domingo que contém hoje (getUTCDay: 0 = domingo) */
+const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
+const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
+const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
 
 /* o recorte de evento, escrito uma vez só e reusado em todas as consultas.
    Cinco cópias à mão seriam cinco chances de uma divergir das outras. */
 const EVENTO =
-  " e.deleted_at IS NULL AND e.id IN (" + SO_EVENTOS + ") AND e.finish_date_event >= '" + PISO + "'" +
+  " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
+  " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
   " AND EXISTS (SELECT 1 FROM event_whitelabels ew" +
   " WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 
@@ -270,7 +277,7 @@ const itens = TABELAS.map((t, i) => {
       cols: t.cols.map((c) => c[0]),
       idx: i,
       meta: {
-        wl: WL_C6, piso: PISO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
+        wl: WL_C6, semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
         novas: { desde: NOVAS_DESDE, grupo: GRUPO_NOVAS, grupo_nome: GRUPO_NOVAS_NOME }
       }
     }

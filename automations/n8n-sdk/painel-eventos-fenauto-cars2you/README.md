@@ -6,7 +6,8 @@
 > no centro**, os eventos do **C6 e do IGA** da semana e um **filtro de
 > evento em botões à vista**. Sem representante, como o irmão.
 
-**Estado em 2026-11-03:** HTML, 273 provas e o `.wf.ts` prontos, local.
+**Estado em 2026-11-09:** só os eventos com **Fenauto no nome** (Thomas, 09/11);
+HTML, 273 provas e o `.wf.ts` regerados, local.
 **Workflow ainda não criado no n8n** — espera o ok final do Thomas.
 
 ```
@@ -23,7 +24,7 @@ Números das duas coletas: [`projetos/mega-evento-fenauto/indicadores.md`](../..
 
 | | |
 |---|---|
-| **Recorte** | os eventos do **C6** e do **IGA** abertos em algum momento da **semana corrente**, de segunda 00:00 a domingo 23:59, hora de Brasília. A semana anda sozinha: o nó calcula a segunda de hoje |
+| **Recorte** | os eventos do **C6** e do **IGA** com **"fenauto" no nome** (09/11), abertos em algum momento da **semana corrente**, de segunda 00:00 a domingo 23:59, hora de Brasília. A semana anda sozinha: o nó calcula a segunda de hoje. Em 09/11: C6 24368 e 24384, IGA 24377 a 24379 — os mesmos dos painéis Fenauto C6 e Fenauto IGA; ficam fora as vendas diretas do IGA (24364 e 24382). Até 08/11 entrava todo evento do C6 e do IGA da semana |
 | C6 | evento que alveja o whitelabel 43 — o critério do Painel de Eventos C6 |
 | IGA | evento com veículo dos vendedores 594, 598 ou 16036 — o critério do Estudo de Vendas IGA. Os eventos do IGA alvejam os whitelabels 5 e 7, então o canal não acha eles |
 | **Loja nova** | loja com um usuário cadastrado pela campanha da Fenauto: `user_profiles.register_form_value` contendo "fenauto", **com esse cadastro num dos dias de um evento do filtro**, o dia inteiro. Vale a data do **perfil**, não a da loja |
@@ -37,7 +38,7 @@ Números das duas coletas: [`projetos/mega-evento-fenauto/indicadores.md`](../..
 | Tema | `tema.css` + `tema-c6.css` (amarelo no escuro) | **`tema.css` sozinho** — a identidade da Cars2You |
 | Topo | C6 à esquerda, Fenauto no centro, sem título | **Fenauto à esquerda**, título e subtítulo **no centro** (a grade do tema, `1fr auto 1fr`); no telefone, uma linha cada, com reticências |
 | Cor da Fenauto no claro | `#242424` (a tinta do C6) | **`#3A4552`**, o `--texto` do tema claro e o preto da marca Cars2You (o README da marca pedia essa conferência). Branca no escuro, igual |
-| Recorte | WL 43, fim desde 01/10, só o 24052 | C6 + IGA da semana, teto de 31 dias de duração |
+| Recorte | WL 43 com Fenauto no nome, da semana | C6 + IGA com Fenauto no nome, da semana, teto de 31 dias de duração |
 | Acesso ao evento | `al.whitelabel_id = 43` | **sem trava de canal**: o `event_id` já diz de que evento é |
 | Pacote de acessos | loja × dia × hora | **evento** × loja × dia × hora — sem o evento, escolher o C6 contaria os acessos do IGA que corria na mesma hora |
 | Loja nova | grupo 146, cadastro da loja num dia do evento | campanha da Fenauto, cadastro do perfil num dia do evento |
@@ -69,7 +70,7 @@ qualquer semana até dez/2025 o pegaria.
 
 ```bash
 python coleta_local.py               # a semana de hoje (VPN) -> dados-local.json
-python coleta_local.py --prova       # a semana da Fenauto 2025 (17/11/2025) -> dados-prova.json
+python coleta_local.py --prova       # a semana da Fenauto 2025 (17/11/2025): o 22231 (C6) e o 22223 (IGA) -> dados-prova.json
 node _aplica-modelo.js               # tema.css + Fenauto inline para dentro do Montar Painel
 for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
 node prova-local.js                  # 273 provas

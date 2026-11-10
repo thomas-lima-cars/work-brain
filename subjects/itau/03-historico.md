@@ -35,3 +35,11 @@
   08/11/2026, 2 (24350 e 24363). Números em
   `context/banco-de-dados/projetos/mega-evento-fenauto/indicadores.md`. Local, 287 provas;
   **workflow não criado** (espera ok).
+
+## 2026-11-09
+- **Mega Evento Fenauto (IGA)**: só eventos do IGA com "Fenauto" no nome, abertos no mês
+  corrente (pedido do Thomas). Entra na **Rotina Fenauto** (`9CNN9FjRohxaRUZq`, criada, inativa),
+  publicando em `Fenauto_202611/IGA/`.
+- **Estudo de Vendas IGA** atualizado até out/26: êxito 12 meses 46,7%, out/26 33%, 53 de 148
+  recorrentes pararam (números em `projetos/vendas-iga/indicadores.md`). Bug da janela-base
+  ("dia 31" em junho) corrigido; a última janela fixa anda sozinha.

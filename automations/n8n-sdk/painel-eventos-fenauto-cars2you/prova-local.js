@@ -62,6 +62,8 @@ itens.forEach((it) => {
     q.sql.indexOf('ew.whitelabel_id = 43') > 0 && q.sql.indexOf('ai.shop_id IN (594,598,16036)') > 0);
   prova(q.queryName + ': a semana em literal, nas duas pontas', q.sql.indexOf("e.start_date_offer < '" + q.meta.semana[1] + "'") > 0 &&
     q.sql.indexOf("e.finish_date_event >= '" + q.meta.semana[0] + "'") > 0, q.meta.semana);
+  prova(q.queryName + ': só evento com "fenauto" no nome (09/11)', q.sql.indexOf("e.name LIKE '%fenauto%'") > 0 &&
+    q.meta.nome_evento === 'fenauto');
   prova(q.queryName + ': teto de 31 dias de duração (o balde 266)', q.sql.indexOf('DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31') > 0);
   prova(q.queryName + ': acesso sem trava de canal (o IGA vende pelos 5 e 7)', q.sql.indexOf('al.whitelabel_id') < 0);
   prova(q.queryName + ': sem documento de pessoa',
@@ -173,14 +175,17 @@ prova('lances/lojista e participações/lojista dividem pelos ofertantes',
 /* medição independente de 2026-11-03 (consulta à parte, antes do nó
    rodar): veículos publicados e operação de cada evento da semana da
    Fenauto 2025. Encerrados, não mudam mais. TODOS têm que estar na coleta:
-   um evento que sumisse do recorte seria um evento a menos, calado. */
-const MEDIDO = {
-  22212: [8, 'C6'], 22227: [0, 'C6'], 22228: [0, 'C6'], 22231: [54, 'C6'],
-  22229: [77, 'IGA'], 22223: [24, 'IGA'], 22235: [61, 'IGA'], 22241: [52, 'IGA'],
-  22237: [6, 'IGA'], 22242: [35, 'IGA'], 22248: [83, 'IGA']
-};
-prova('coleta de prova: os 11 eventos medidos, nem um a mais', R.por_evento.length === 11 &&
+   um evento que sumisse do recorte seria um evento a menos, calado.
+   Desde 09/11 só os com Fenauto no nome: dos 11 da semana, o 22231
+   ("Evento Exclusivo C6 Auto - FENAUTO 2025") e o 22223 ("VD IGA
+   exclusivo Fenauto"). Os outros 9 têm que ficar de fora. */
+const MEDIDO = { 22231: [54, 'C6'], 22223: [24, 'IGA'] };
+const MEDIDO_SEM_FENAUTO = [22212, 22227, 22228, 22229, 22235, 22241, 22237, 22242, 22248];
+prova('coleta de prova: os 2 eventos da Fenauto medidos, nem um a mais', R.por_evento.length === 2 &&
   Object.keys(MEDIDO).every((id) => R.por_evento.some((x) => x.id === Number(id))), R.por_evento.map((x) => x.id));
+prova('coleta de prova: os 9 eventos da semana sem Fenauto no nome ficam de fora',
+  MEDIDO_SEM_FENAUTO.every((id) => R.por_evento.every((x) => x.id !== id)));
+prova('coleta de prova: todo evento tem Fenauto no nome', cru.eventos.every((e) => e.nome.toLowerCase().indexOf('fenauto') >= 0));
 prova('o balde 266 "Anúncios cancelados" (2021 a 2025) fica de fora', R.por_evento.every((x) => x.id !== 266));
 Object.keys(MEDIDO).forEach((id) => {
   const e = R.por_evento.find((x) => x.id === Number(id));
@@ -787,7 +792,9 @@ prova('vendedor fora da operação vira aviso', (() => {
   const o = roda('montar-painel.js', Object.assign({}, nos, { 'MCP Consultas': sab2 }))[0].json;
   return o.resumo.avisos.some((a) => a.indexOf('1 veículo(s) de loja vendedora fora da operação') === 0);
 })());
-prova('rodapé e glossário falam da semana e das duas operações', scr.indexOf("' do C6 e do IGA abertos na semana de '") > 0 &&
+prova('rodapé e glossário falam da semana, da Fenauto e das duas operações', scr.indexOf("' da Fenauto no C6 e no IGA abertos na semana de '") > 0 &&
+  scr.indexOf("' da Fenauto na semana de '") > 0 &&
+  h.indexOf('com ' + String.fromCharCode(92, 34) + 'Fenauto' + String.fromCharCode(92, 34) + ' no nome, aberto em algum momento da semana') > 0 &&
   h.indexOf('Evento do C6 (alveja o Canal de vendas C6 Auto, whitelabel 43) ou do IGA') > 0 &&
   h.indexOf('campanha da Fenauto') > 0 && h.indexOf('grupo de clientes') < 0);
 

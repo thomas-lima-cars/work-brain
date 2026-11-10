@@ -69,8 +69,11 @@ itens.forEach((it) => {
   prova(q.queryName + ': recorte só IGA (vendedores 594, 598 e 16036), e o que alveja o 43 (C6) fora',
     q.sql.indexOf('ai.shop_id IN (594,598,16036)) AND NOT EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = 43)') > 0 &&
     q.sql.indexOf(' OR EXISTS') < 0);
-  prova(q.queryName + ': a semana em literal, nas duas pontas', q.sql.indexOf("e.start_date_offer < '" + q.meta.semana[1] + "'") > 0 &&
-    q.sql.indexOf("e.finish_date_event >= '" + q.meta.semana[0] + "'") > 0, q.meta.semana);
+  prova(q.queryName + ': o mês em literal, nas duas pontas', q.sql.indexOf("e.start_date_offer < '" + q.meta.mes[1] + "'") > 0 &&
+    q.sql.indexOf("e.finish_date_event >= '" + q.meta.mes[0] + "'") > 0, q.meta.mes);
+  /* 09/11: só evento com Fenauto no nome */
+  prova(q.queryName + ': só evento com "fenauto" no nome', q.sql.indexOf("e.name LIKE '%fenauto%'") > 0 &&
+    q.meta.nome_evento === 'fenauto');
   prova(q.queryName + ': teto de 31 dias de duração (o balde 266)', q.sql.indexOf('DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31') > 0);
   prova(q.queryName + ': acesso sem trava de canal (o IGA vende pelos 5 e 7)', q.sql.indexOf('al.whitelabel_id') < 0);
   prova(q.queryName + ': sem documento de pessoa',
@@ -81,13 +84,15 @@ itens.forEach((it) => {
   prova(q.queryName + ': sem CNPJ', low.indexOf('cnpj') < 0);
 });
 const sqlDe = (n) => itens.find((i) => i.json.queryName === n).json.sql;
-/* a semana (03/11): de segunda 00:00 à segunda seguinte, e hoje dentro dela */
+/* o mês (09/11; antes a semana): do dia 1 00:00 ao dia 1 do mês seguinte, e hoje dentro dele */
 (() => {
   const m = itens[0].json.meta;
-  const ini = new Date(m.semana[0].slice(0, 10) + 'T00:00:00Z');
-  const fim = new Date(m.semana[1].slice(0, 10) + 'T00:00:00Z');
-  prova('semana: começa numa segunda, dura 7 dias e contém agora', ini.getUTCDay() === 1 && fim - ini === 7 * 86400000 &&
-    m.semana[0].slice(11) === '00:00:00' && m.agora_br >= m.semana[0].slice(0, 16) && m.agora_br < m.semana[1].slice(0, 16), m);
+  const ini = new Date(m.mes[0].slice(0, 10) + 'T00:00:00Z');
+  const fim = new Date(m.mes[1].slice(0, 10) + 'T00:00:00Z');
+  const proximo = new Date(Date.UTC(ini.getUTCFullYear(), ini.getUTCMonth() + 1, 1));
+  prova('mês: começa no dia 1, acaba no dia 1 do seguinte e contém agora', ini.getUTCDate() === 1 &&
+    fim.getTime() === proximo.getTime() && m.mes[0].slice(11) === '00:00:00' && m.mes[1].slice(11) === '00:00:00' &&
+    m.agora_br >= m.mes[0].slice(0, 16) && m.agora_br < m.mes[1].slice(0, 16), m);
 })();
 prova('eventos: a operação sai do mesmo critério do recorte (C6 = alveja o 43)',
   sqlDe('eventos').indexOf("CASE WHEN EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = 43) THEN 'C6' ELSE 'IGA' END") > 0);
@@ -112,10 +117,11 @@ prova('acesso a anúncio: uma linha por (evento, anúncio, loja), com a máscara
   sqlDe('acessos_anuncio').indexOf('BIT_OR(1 << DATEDIFF(al.created_at, e.start_date_offer))') > 0);
 
 /* ── 3. o painel contra a coleta real ────────────────────────────────
-   A coleta DE PROVA (dados-prova.json, 03/11): o mesmo SQL com a semana da
-   Fenauto 2025 (17/11/2025). A semana de 03/11/2026 abriu com dois eventos
-   do C6, nenhum do IGA e nenhum cadastro da campanha, e conta refeita sobre
-   zero não prova nada. Sem fallback para a coleta do C6: o SQL é outro. */
+   A coleta DE PROVA (dados-prova.json, 09/11): o mesmo SQL com o mês da
+   Fenauto 2025 (novembro/2025): um evento, o 22223. Até 08/11 era a semana
+   de 17/11/2025, com 7 eventos do IGA. Novembro/2026 tem os 3 eventos da
+   Fenauto, mas eles só abrem em 11/11: sem lance, sem acesso, sem cadastro,
+   e conta refeita sobre zero não prova nada. */
 const arq = path.join(__dirname, 'dados-prova.json');
 if (!fs.existsSync(arq)) {
   console.error('dados-prova.json não existe — rode `python coleta_local.py --prova` (precisa de VPN)');
@@ -179,21 +185,23 @@ prova('lances/lojista e participações/lojista dividem pelos ofertantes',
   Math.abs(R.kpi.lances_por_lojista - ofCom.length / lojasCru) < 1e-9 &&
   Math.abs(R.kpi.part_por_lojista - partCru / lojasCru) < 1e-9);
 
-/* medição independente de 2026-11-03 (consulta à parte, antes do nó
-   rodar): veículos publicados e operação de cada evento da semana da
-   Fenauto 2025. Encerrados, não mudam mais. TODOS têm que estar na coleta:
-   um evento que sumisse do recorte seria um evento a menos, calado.
-   Desde 05/11 só os 7 do IGA; os 4 do C6 da mesma medição (22212, 22227,
-   22228 e 22231) têm que estar FORA. */
-const MEDIDO = {
-  22229: [77, 'IGA'], 22223: [24, 'IGA'], 22235: [61, 'IGA'], 22241: [52, 'IGA'],
-  22237: [6, 'IGA'], 22242: [35, 'IGA'], 22248: [83, 'IGA']
-};
+/* medição independente (consulta à parte, antes do nó rodar; 03/11 e
+   09/11): veículos publicados e operação de cada evento. Encerrados, não
+   mudam mais. TODOS têm que estar na coleta: um evento que sumisse do
+   recorte seria um evento a menos, calado. Desde 09/11 só o da Fenauto do
+   IGA de novembro/2025. FORA: os 4 do C6 da semana dela (o 22231 tem
+   "FENAUTO 2025" no nome: cai pela trava do 43) e os 21 do IGA do mês sem
+   Fenauto no nome (medidos em 09/11). */
+const MEDIDO = { 22223: [24, 'IGA'] };
 const MEDIDO_C6 = [22212, 22227, 22228, 22231];
-prova('coleta de prova: os 7 eventos do IGA medidos, nem um a mais', R.por_evento.length === 7 &&
+const MEDIDO_IGA_SEM_FENAUTO = [22142, 22146, 22162, 22167, 22179, 22189, 22198, 22205, 22210, 22214, 22229,
+  22235, 22241, 22237, 22242, 22248, 22255, 22260, 22273, 22283, 22289];
+prova('coleta de prova: o evento da Fenauto do IGA medido, nem um a mais', R.por_evento.length === 1 &&
   Object.keys(MEDIDO).every((id) => R.por_evento.some((x) => x.id === Number(id))), R.por_evento.map((x) => x.id));
-prova('coleta de prova: os 4 eventos do C6 da mesma semana ficaram fora', MEDIDO_C6.every((id) =>
+prova('coleta de prova: os 4 eventos do C6 ficaram fora, com Fenauto no nome ou não', MEDIDO_C6.every((id) =>
   R.por_evento.every((x) => x.id !== id) && cru.eventos.every((x) => Number(x.id) !== id)));
+prova('coleta de prova: os 21 eventos do IGA do mês sem Fenauto no nome ficaram fora', MEDIDO_IGA_SEM_FENAUTO.every((id) =>
+  cru.eventos.every((x) => Number(x.id) !== id)));
 prova('o balde 266 "Anúncios cancelados" (2021 a 2025) fica de fora', R.por_evento.every((x) => x.id !== 266));
 Object.keys(MEDIDO).forEach((id) => {
   const e = R.por_evento.find((x) => x.id === Number(id));
@@ -250,9 +258,10 @@ prova('lojas novas = cadastro pela Fenauto num dia de evento', R.kpi.novas === n
   [R.kpi.novas, novasTodos.length]);
 prova('loja nova evento a evento: cada um com os cadastros dos dias dele', R.por_evento.every((e) =>
   e.kpi.novas === novaCru(eventosCru.filter((x) => x.id === e.id)).length), R.por_evento.map((e) => [e.id, e.kpi.novas]));
-prova('coleta: todo evento toca a semana dela e dura no máximo 31 dias', cru.eventos.every((e) =>
-  e.ini < d.consultas[0].json.meta.semana[1].slice(0, 16) && e.fim >= d.consultas[0].json.meta.semana[0].slice(0, 16) &&
-  (new Date(e.fim.slice(0, 10)) - new Date(e.ini.slice(0, 10))) / 86400000 <= 31));
+prova('coleta: todo evento toca o mês dela, dura no máximo 31 dias e tem Fenauto no nome', cru.eventos.every((e) =>
+  e.ini < d.consultas[0].json.meta.mes[1].slice(0, 16) && e.fim >= d.consultas[0].json.meta.mes[0].slice(0, 16) &&
+  (new Date(e.fim.slice(0, 10)) - new Date(e.ini.slice(0, 10))) / 86400000 <= 31 &&
+  String(e.nome).toLowerCase().indexOf('fenauto') >= 0));
 prova('coleta: só eventos do IGA, nenhum que alveje o 43', cru.eventos.length > 0 &&
   cru.eventos.every((e) => e.op === 'IGA' && String(e.wls).split(',').indexOf('43') < 0));
 prova('coleta: cadastro da Fenauto fora dos dias de evento não é novo (23 e 24/11/2025)', (() => {
@@ -316,24 +325,22 @@ prova('evento ' + evCru.id + ': dias com acesso cortados no horário do evento',
   [ev1.kpi.lojas_acessaram, Object.keys(diasEv).length]);
 prova('evento ' + evCru.id + ': período = início → fim dele', ev1.periodo[0] === evCru.ini && ev1.periodo[1] === evCru.fim);
 
-/* o filtro de evento (03/11): dois eventos no mesmo horário. No irmão, um
-   do C6 e um do IGA; aqui (05/11), dois do IGA — o 22223 (19 a 21/11/2025)
-   e o 22235 (19/11, 10h às 16h). Cada um conta só os acessos registrados
-   com o id dele. Sem o evento no pacote, um levaria os acessos do outro na
-   mesma hora. ("c6" e "iga" ficaram como nomes: o primeiro e o segundo) */
+/* o filtro de evento (03/11). Até 08/11 havia aqui a prova de DOIS eventos
+   do IGA no mesmo horário (22223 x 22235), cada um com os acessos dele. Com
+   o recorte só da Fenauto (09/11), novembro/2025 tem um evento só e a prova
+   ficou sem dado real; o acesso de evento fora do recorte na mesma hora
+   segue provado mais abaixo (o evento 999999 plantado). Os 3 de novembro/
+   2026 abrem juntos em 11/11: depois disso, voltar com ela sobre eles.
+   ("c6" ficou como nome: o evento escolhido) */
 (() => {
   const c6 = eventosCru.find((e) => e.id === 22223);
-  const iga = eventosCru.find((e) => e.id === 22235);
   const so = (e) => diasNoPeriodo([e.ini, e.fim], null, [e.id]);
-  const juntos = diasNoPeriodo([c6.ini, c6.fim], null, [c6.id, iga.id]);
   const rc = calculaDaPagina(D0, c6.id, {});
-  const ri = calculaDaPagina(D0, iga.id, {});
-  prova('dois eventos do IGA no mesmo horário: cada um com os acessos dele, refeitos do cru',
-    rc.kpi.lojas_acessaram === Object.keys(so(c6)).length && ri.kpi.lojas_acessaram === Object.keys(so(iga)).length &&
-    Object.keys(juntos).length > Math.max(rc.kpi.lojas_acessaram, ri.kpi.lojas_acessaram),
-    [rc.kpi.lojas_acessaram, ri.kpi.lojas_acessaram, Object.keys(juntos).length]);
+  prova('o evento 22223 com os acessos dele, refeitos do cru',
+    rc.kpi.lojas_acessaram === Object.keys(so(c6)).length && rc.kpi.lojas_acessaram > 0,
+    [rc.kpi.lojas_acessaram, Object.keys(so(c6)).length]);
   prova('evento: os gráficos por dia e por hora também cortados pelo evento', rc.por_dia.every((x) => x.total <=
-    Object.keys(so(c6)).length) && rc.kpi.acessos < calculaDaPagina(D0, 'todos', {}).kpi.acessos);
+    Object.keys(so(c6)).length));
   prova('evento: veículos, lances e novos só dele', rc.veiculos.every((v) => v.ev === c6.id) &&
     rc.kpi.lances === ofCom.filter((o) => cru.veiculos.some((v) => v.neg === o.neg && Number(v.evento) === c6.id)).length &&
     rc.kpi.novas === novaCru([c6]).length);
@@ -874,7 +881,9 @@ prova('vendedor fora da operação vira aviso', (() => {
   const o = roda('montar-painel.js', Object.assign({}, nos, { 'MCP Consultas': sab2 }))[0].json;
   return o.resumo.avisos.some((a) => a.indexOf('1 veículo(s) de loja vendedora fora da operação') === 0);
 })());
-prova('rodapé e glossário falam da semana e só do IGA', scr.indexOf("' do IGA abertos na semana de '") > 0 &&
+prova('rodapé e glossário falam do mês, da Fenauto e só do IGA', scr.indexOf("' da Fenauto no IGA abertos de '") > 0 &&
+  scr.indexOf("' eventos') + ' da Fenauto de '") > 0 && scr.indexOf('semana de') < 0 &&
+  h.indexOf('Fenauto' + String.fromCharCode(92, 34) + ' no nome, aberto em algum momento do mês corrente') > 0 &&
   scr.indexOf("' do C6 e do IGA abertos") < 0 &&
   h.indexOf('Evento do IGA (tem veículo do Itaú Unibanco') > 0 && h.indexOf('Os eventos do C6 (os que alvejam o Canal de vendas C6 Auto) ficam fora.') > 0 &&
   h.indexOf('Abre o anúncio no cars2you.com.br, a vitrine dos eventos do IGA.') > 0 &&

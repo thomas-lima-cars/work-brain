@@ -356,7 +356,8 @@ const JAN = [
   { rot: 'jan–jun/24', de: idxMes('2024-01'), ate: idxMes('2024-06') },
   { rot: 'jul/24–mar/25', de: idxMes('2024-07'), ate: idxMes('2025-03') },
   { rot: 'out/25–mar/26', de: idxMes('2025-10'), ate: idxMes('2026-03') },
-  { rot: 'abr–set/26', de: idxMes('2026-04'), ate: idxMes('2026-09') }
+  /* a última vai de abr/26 até o último mês fechado (Thomas, 09/11): anda sozinha a cada atualização */
+  { rot: 'abr–' + rotMes(MESES[NM - 1]), de: idxMes('2026-04'), ate: NM - 1 }
 ];
 const faixa = (a, de, ate) => { let s = 0; for (let m = de; m <= ate; m++) s += a[m]; return s; };
 const exitoJ = (S, j) => razao(faixa(S.vend, j.de, j.ate), faixa(S.pub, j.de, j.ate), 20);   // janela com menos de 20 veículos não vira percentual

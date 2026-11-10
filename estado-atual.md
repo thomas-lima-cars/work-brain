@@ -1,7 +1,11 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-06 (noite) — o **Painel de Eventos Cars2You foi ao ar**:
+> **Última atualização:** 2026-11-09 (salvo em 10/11) — a **Rotina Fenauto** (`9CNN9FjRohxaRUZq`) leva
+> os três painéis da Fenauto num workflow só para `Fenauto_202611/` no SharePoint; **criada e
+> conferida, inativa** (run de teste e ativação esperam o Thomas). Os três painéis agora mostram só
+> eventos com **"Fenauto" no nome**, e o C6 ganhou a logo C6 Auto. O **Estudo de Vendas IGA** foi
+> até **out/26** (bug da janela de compradores corrigido). Em 06/11 o **Painel de Eventos Cars2You foi ao ar**:
 > workflow `cRChMwAnLYGRMesM` (projeto Cars2You), **ativo de hora em hora das 9h às 18h**, com
 > status em funil, aba Mensal, **metas** por comitente e categoria (planilha em `Comitente - Metas/`
 > no site N8N) e filtro de categoria. Na tarde de 05/11 nasceu o
@@ -40,25 +44,22 @@
   **filtro de categoria** (Leves com motos, Pesados, Equipamentos, Não informada), cores pela meta,
   indicador nasce em Com oferta. Montar Painel vai **dividido em 3 nós** (`_divide.js`). 91 provas.
   Números em `projetos/painel-eventos-cars2you/indicadores.md`.
-- **Mega Evento Fenauto (IGA)** — 🔥 nasceu em 05/11 (tarde), pasta
-  `automations/n8n-sdk/painel-eventos-fenauto-iga/`, frente `itau`. Cópia do Mega Evento da Cars2You
-  com a **identidade do IGA** (`tema.css` + `tema-iga.css`) e **só os eventos do IGA** (o que alveja
-  o WL 43 fica fora): logo do IGA à esquerda, título no centro, Fenauto à direita, botão de tema numa
-  linha abaixo do cabeçalho. Semana atual: 24350 (05/11) e 24363 (06/11). 287 provas, `.wf.ts`
-  pronto — **workflow não criado**. Números em `projetos/mega-evento-fenauto/indicadores.md`.
-- **Mega Evento Fenauto (Cars2You)** — 🔥 nasceu em 03/11 (sessão da manhã), pasta
-  `automations/n8n-sdk/painel-eventos-fenauto-cars2you/`, frente `c6`. O painel do Fenauto com a
-  identidade da Cars2You: eventos do **C6 e do IGA** da semana corrente (anda sozinha), loja nova =
-  cadastro pela **campanha da Fenauto** (`register_form_value`) num dia do evento, filtro de evento
-  em botões. 273 provas, `.wf.ts` pronto — **workflow não criado**. Números em
-  `projetos/mega-evento-fenauto/indicadores.md`.
-- **Eventos Fenauto C6** — 🔥 nasceu em 26/10, pasta `automations/n8n-sdk/painel-eventos-fenauto-c6/`,
-  frente `c6`. Cópia do Painel de Eventos C6, mesmo recorte (WL 43), **sem representante**.
-  Pedidos do Thomas: C6 à esquerda e **logo da Fenauto no centro do topo** (preta no claro,
-  branca no escuro); loja nova **só com cadastro num dia do evento**; ranking sem pontuação,
-  embaixo dos acessos por hora; **Data em botões** acima do funil; abre no escuro. HTML com
-  dados de 26/10 enviado ao Thomas. 231 provas, `.wf.ts` de 6 nós pronto — **workflow não
-  criado: "ainda não"**. Números em `projetos/c6/indicadores.md`.
+- **Rotina Fenauto** — 🔥 **criada no n8n em 09/11, inativa**: wf **`9CNN9FjRohxaRUZq`** (projeto
+  Cars2You), pasta `automations/n8n-sdk/rotina-fenauto/`. Os três painéis da Fenauto em série
+  (C6 → IGA → Cars2You), de hora em hora 9h–18h seg–sáb, publicando em `Fenauto_202611/C6/`,
+  `Fenauto_202611/IGA/` e na raiz. Montar Painel dividido em 3 nós (< 56 KB), 64 provas de mesmo
+  HTML, md5 dos 15 nós conferido. **Run de teste barrado pelo modo automático** (escreve no
+  SharePoint): o Thomas roda pelo nó Rodar ou libera `execute_workflow`/`publish_workflow`.
+  A pasta é de novembro, fixa no `_divide.js`.
+- **Os três painéis da Fenauto** (fonte da rotina; mudou um, rodar o ciclo dele e o da rotina):
+  - **Eventos Fenauto C6** (`painel-eventos-fenauto-c6/`, frente `c6`): WL 43, só eventos com
+    "Fenauto" no nome, na semana; **logo C6 Auto** (`design/marca/c6-auto/`) à esquerda, título no
+    centro, Fenauto à direita, botões abaixo do cabeçalho; sem representante. 253 provas;
+  - **Mega Evento Fenauto (IGA)** (`painel-eventos-fenauto-iga/`, frente `itau`): só eventos do
+    IGA com "Fenauto" no nome, no **mês corrente**. 289 provas;
+  - **Mega Evento Fenauto (Cars2You)** (`painel-eventos-fenauto-cars2you/`, frente `c6`): C6 + IGA
+    com "Fenauto" no nome, na semana (em 09/11: 24368, 24384, 24377–24379). 273 provas.
+  Números em `projetos/mega-evento-fenauto/indicadores.md` e `projetos/c6/indicadores.md`.
 - **design system** — 🔥 `design/tokens/tema.css` é fonte única (produto com cara própria = camada de cor `tema-<produto>.css`, o C6 foi o primeiro); dela saem os dois modelos
   **e** o `kit-de-painel.md`, o arquivo único que vai para o time (68 KB, autossuficiente).
   172 provas. ❓ **A fonte segue em aberto** — `dashboard-teste.html` é o laboratório.
@@ -86,8 +87,9 @@
   Lote 2 pronto e provado. Execução 48693 cancelada após 1h05 — 915 das 1.231 chamadas
   eram do Raio-X, oculto. Workflow `QImk2D4HdzIqHZe9`.
 - **Estudo de Vendas IGA** — 🔥 HTML estático (sem n8n), pasta `automations/estudo-vendas-iga/`,
-  frente `itau`. Tabela de compradores (15/10): todas as lojas com compra em 12 meses, ordena pela
-  coluna clicada; gráfico mês a mês soma todas sem seleção. Re-extraído em 15/10; série até set/26.
+  frente `itau`. **Atualizado em 09/11 até out/26**: êxito 12 meses 46,7%, out/26 33% (menor desde
+  dez/24), 53 de 148 recorrentes pararam. A última janela fixa (abr/26 → último mês) anda sozinha.
+  Bug corrigido: fim da janela-base "dia 31" zerava as ofertas quando caía em junho.
   Números em `projetos/vendas-iga/indicadores.md`. ❓ Incluir quem parou há mais de 12 meses?
 - **Análise de Base de Clientes, 6 canais** — 🔥 **v3 no n8n desde 16/10.** Wf
   `XkRFB5dYc1EFWZkN` (projeto **pessoal** do Thomas), pasta
@@ -123,8 +125,8 @@
   em evento · acessou = abriu anúncio · agendado fora · evento > 31 dias fora do mensal · cortes de
   base pequena das metas (3 meses/30 veículos; 30 dias/100 veículos-dia). E: as fontes mais claras e
   a paleta sem rosa sobem para o `tema.css`?
-- 🔵 **Mega Evento Fenauto (IGA) substitui o da Cars2You ou os dois convivem?** Hoje cada um publica
-  num caminho. E, escolhas minhas: barra Total no laranja do IGA, botão de avisos junto do de tema.
+- 🔵 **Rotina Fenauto:** guarda as execuções (três HTML de ~200 KB por run)? Ganha alerta de falha?
+  E, escolhas minhas no Mega Evento IGA: barra Total no laranja do IGA, botão de avisos junto do de tema.
 - 🔵 **Mega Evento Fenauto — três escolhas minhas:** loja nova vale para C6 e IGA · data do perfil,
   não da loja · acesso sem trava de canal. E: a campanha de 2026 com outro nome zera a loja nova calada.
 - 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
@@ -165,9 +167,12 @@
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
 - [ ] 🔥 **Painel de Eventos Cars2You:** conferir a 1ª rodada agendada (07/11 9h) no SharePoint — o
       histórico do n8n só guarda erro — e mandar o link a quem vai usar
-- [ ] **Mega Evento Fenauto (Cars2You): criar o workflow no n8n** quando houver ok (`.wf.ts` pronto)
-- [ ] **Mega Evento Fenauto (IGA): criar o workflow no n8n** quando houver ok (`.wf.ts` pronto;
-      depois de criar, `_confere_transcricao.py` antes de rodar)
+- [ ] 🔥 **Rotina Fenauto: run de teste** (nó Rodar, ou liberar `execute_workflow`), conferir os três
+      arquivos em `Fenauto_202611/` (e se as subpastas nasceram sozinhas), **ativar a agenda** e
+      atualizar README, `crons.md` e mapa
+- [ ] Rotina Fenauto em dezembro: trocar `PASTA_RAIZ` no `_divide.js` se a Fenauto seguir
+- [ ] Estudo IGA: refazer a decomposição pedido × demanda (ficou com o número de 08/10) e mandar o
+      HTML atualizado a quem usa
 - [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
       `resumo.cortados_pelo_teto` = 0, `resumo.fora_do_piso` e o tamanho (~5,4 MB esperado)
 - [ ] **Carteira Comercial (`ksZI8cqSbexqLOre`) aparece `active: false` no n8n** (22/10) — o brain
@@ -178,8 +183,6 @@
       versão com o VMV provisório — o SharePoint ainda mostra a execução 61975
 - [ ] Confirmar com quem cadastra que VMV = R$ 100.000 é provisório (maioria C6 Bank Lojista)
 - [ ] 🔥 **Mandar o link do Painel C6 ao C6** — `Painel de Eventos C6/painel-eventos-c6.html`, site N8N
-- [ ] **Eventos Fenauto C6: criar o workflow no n8n** quando o Thomas der o ok (`.wf.ts` pronto;
-      depois de criar, `_confere_transcricao.py` antes de rodar)
 - [ ] **Arquivar pela interface** `6o9MSr1CriZ1VUBa` e `53RGtYzUzMoVtxpJ` (versões velhas do
       painel) — o modo automático barra o `archive_workflow`
 - [ ] Linhas de teste do Caio nas duas tabelas da carteira C6 ("apagar antes de produção") —
@@ -199,11 +202,8 @@
       (`design/monta-kit.js`): ele ainda diz que o claro é o padrão
 - [ ] Conferir a transcrição do `tratar-carteira.js` contra o workflow Carteira
       Comercial — só os 4 nós do Radar têm essa prova
-- [ ] Novembro: `ULTIMO = "2026-10"` no `analise.py` do estudo do IGA e rodar o fluxo de novo
-- [ ] Destino do `WorkBrain.zip` (raiz), solto fora do git — e do `painel-eventos-fenauto-c6/Fenauto_C6.html`
-      (326 KB, de 26/10) do `painel-eventos-fenauto-cars2you/fenauto_cars.html` (158 KB, de 03/11) e do
-      `painel-eventos-fenauto-iga/Fenauto_iga.html` (de 05/11),
-      também fora do git: têm nome real de loja
+- [ ] Destino do `WorkBrain.zip` (raiz, de 21/10), solto fora do git. Os `fenauto_*.html` dos três
+      painéis (cópias do `saida-local`, nome real de loja) entraram no `.gitignore` em 09/11
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
 - [ ] **Estudo de precificação:** multivariado só com o que se sabe antes da venda · `laudo`
