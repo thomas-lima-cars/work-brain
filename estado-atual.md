@@ -1,5 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
+> ⚠️ **2 commit(s) local(is) não enviado(s)** desde 2026-11-13. Rodar `git push`: o modo automático barrou o push.
+
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
 > **Última atualização:** 2026-11-12 (salvo na madrugada de 13/11). A **Rotina Fenauto**
 > (`9CNN9FjRohxaRUZq`) está **ativa** de hora em hora, e a versão publicada é a `1b947c86`. Os três
