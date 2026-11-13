@@ -1,8 +1,14 @@
 const WL_C6 = 43;
 const NOME_EVENTO = 'fenauto';
-const NOVAS_DESDE = '2026-10-01 00:00';
-const GRUPO_NOVAS = 146;
-const GRUPO_NOVAS_NOME = 'Parceiros C6 - Exclusivo SP';
+const INICIO_CAMPANHA = '2026-11-10 00:00:00';
+const MESES_SEM_COMPRA = 6;
+const SEM_COMPRA_DESDE = (() => {
+  let ano = Number(INICIO_CAMPANHA.slice(0, 4));
+  let mes = Number(INICIO_CAMPANHA.slice(5, 7)) - MESES_SEM_COMPRA;
+  while (mes < 1) { mes += 12; ano--; }
+  return ano + '-' + String(mes).padStart(2, '0') + INICIO_CAMPANHA.slice(7);
+})();
+const GRUPOS_C6 = [69, 146];
 const FUSO_MIN = -180;
 const DB = 'cars2you_production';
 const pad = (n) => String(n).padStart(2, '0');
@@ -28,6 +34,27 @@ const ACESSOS_DO_EVENTO =
   " AND al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event" +
   " WHERE" + EVENTO;
 const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
+const USUARIO_EXTERNO =
+  " u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%'" +
+  " AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'";
+const VOLTA =
+  "SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al" +
+  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id";
+const COMPRAS =
+  "SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o" +
+  " INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)" +
+  " WHERE o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL" +
+  " AND o.created_at >= '" + SEM_COMPRA_DESDE + "' AND o.created_at < '" + INICIO_CAMPANHA + "'";
+const CLIENTES =
+  "SELECT sc.id, " + DATA("IF(sc.created_at >= '" + INICIO_CAMPANHA + "', sc.created_at, va.volta)") + " AS entrada" +
+  " FROM (SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users u ON u.id = ucg.user_id AND" + USUARIO_EXTERNO +
+  " INNER JOIN user_shops us ON us.user_id = u.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_C6.join(', ') + ")) cg" +
+  " INNER JOIN shops sc ON sc.id = cg.shop_id AND sc.deleted_at IS NULL AND sc.name NOT LIKE '%teste%'" +
+  " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = sc.id" +
+  " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = sc.id" +
+  " WHERE sc.created_at >= '" + INICIO_CAMPANHA + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)";
 const TABELAS = [
   {
     nome: 'eventos',
@@ -89,16 +116,15 @@ const TABELAS = [
   },
   {
     nome: 'lojas',
-    de: " FROM (SELECT o.buyer_shop_id AS id" + OFERTAS_DO_RECORTE +
+    de: " FROM (SELECT u0.id, MAX(u0.fen) AS fen FROM (" +
+        "SELECT o.buyer_shop_id AS id, NULL AS fen" + OFERTAS_DO_RECORTE +
         " AND o.buyer_shop_id IS NOT NULL" +
-        " UNION SELECT al.shop_id AS id" + ACESSOS_DO_EVENTO +
-        " UNION SELECT s2.id AS id FROM shops s2" +
+        " UNION SELECT al.shop_id AS id, NULL AS fen" + ACESSOS_DO_EVENTO +
+        " UNION SELECT s2.id AS id, NULL AS fen FROM shops s2" +
         " WHERE s2.whitelabel_id = " + WL_C6 + " AND s2.deleted_at IS NULL" +
         " AND s2.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")" +
-        " UNION SELECT us3.shop_id AS id FROM user_shops us3" +
-        " INNER JOIN user_clients_group ucg3 ON ucg3.user_id = us3.user_id AND ucg3.client_group_id = " + GRUPO_NOVAS +
-        " INNER JOIN shops s3 ON s3.id = us3.shop_id AND s3.deleted_at IS NULL" +
-        " AND s3.created_at >= '" + NOVAS_DESDE + "') ids" +
+        " UNION SELECT f.id AS id, f.entrada AS fen FROM (" + CLIENTES + ") f" +
+        ") u0 GROUP BY u0.id) ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [
       ['id', 's.id'],
@@ -107,8 +133,7 @@ const TABELAS = [
       ['situacao', 's.situation'],
       ['cadastro', DATA('s.created_at')],
       ['apagada', 's.deleted_at IS NOT NULL'],
-      ['grupo', "EXISTS (SELECT 1 FROM user_shops us INNER JOIN user_clients_group ucg ON ucg.user_id = us.user_id" +
-        " AND ucg.client_group_id = " + GRUPO_NOVAS + " WHERE us.shop_id = s.id)"]
+      ['fenauto', 'ids.fen']
     ]
   },
   {
@@ -160,7 +185,8 @@ const itens = TABELAS.map((t, i) => {
       idx: i,
       meta: {
         wl: WL_C6, semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        novas: { desde: NOVAS_DESDE, grupo: GRUPO_NOVAS, grupo_nome: GRUPO_NOVAS_NOME }
+        inicio_campanha: INICIO_CAMPANHA, sem_compra_desde: SEM_COMPRA_DESDE,
+        meses_sem_compra: MESES_SEM_COMPRA, grupos_c6: GRUPOS_C6
       }
     }
   };

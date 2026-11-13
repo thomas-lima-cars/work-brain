@@ -6,10 +6,19 @@
     python coleta_local.py --prova             -> grava dados-prova.json
 
 --prova roda o MESMO SQL com a janela trocada por 01/09 a 27/10/2026, SEM
-a trava do nome e com a loja nova desde 01/09/2026. O recorte desde 09/11
-(Fenauto do C6 da semana) abriu com 2 eventos e nenhum lance, e as provas
-precisam de dado variado para refazer as contas. Ate 09/11 a prova era a
-mesma janela, sem o fim (o piso era 01/09).
+a trava do nome. O recorte desde 09/11 (Fenauto do C6 da semana) abriu com 2
+eventos e nenhum lance, e as provas precisam de dado variado para refazer as
+contas. Ate 09/11 a prova era a mesma janela, sem o fim (o piso era 01/09).
+
+Loja nova (12/11) e a dos grupos 69 e 146 com ENTRADA na campanha: loja
+cadastrada desde inicio_campanha (10/11/2026), ou antiga sem compra em
+[sem_compra_desde, inicio_campanha) que acessou desde inicio_campanha.
+--prova troca as duas datas para o ano da prova (10/11/2025 e 10/05/2025),
+com conferencia de contagem no SQL; os grupos do C6 ficam. --semana nao
+mexe nelas: a campanha e uma data fixa. A janela de prova (set-out/2026)
+nao tem a campanha de 2026 dentro dela: as provas plantam entradas na
+coluna "fenauto" (prova-local.js). Em 11/11 a loja nova era a campanha do
+formulario "Fenauto <ano> C6"; ate 10/11, o grupo 146 desde 01/10/2026.
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com
@@ -44,7 +53,6 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--prova", action="store_true")
 ap.add_argument("--semana", help="a segunda-feira da semana, AAAA-MM-DD")
 args = ap.parse_args()
-NOVAS_REAL, NOVAS_PROVA = "2026-10-01 00:00", "2026-09-01 00:00"
 JANELA_PROVA = ["2026-09-01 00:00:00", "2026-10-27 00:00:00"]
 TRAVA_NOME = " AND e.name LIKE '%fenauto%'"
 
@@ -56,6 +64,24 @@ def troca_janela(q, nova):
     q["meta"]["semana"] = nova
 
 
+# 12/11: a campanha das novas, no ano da prova. Na consulta de lojas, o
+# inicio aparece 4 vezes (volta, fim das compras, cadastro novo no IF e no
+# WHERE) e o "sem compra desde" 1; nas outras, nenhuma.
+CAMPANHA_PROVA = {"inicio_campanha": "2025-11-10 00:00:00", "sem_compra_desde": "2025-05-10 00:00:00"}
+CONTAGEM_CAMPANHA = {"inicio_campanha": 4, "sem_compra_desde": 1}
+
+
+def troca_campanha(q):
+    for chave, nova in CAMPANHA_PROVA.items():
+        velha = q["meta"][chave]
+        esperado = CONTAGEM_CAMPANHA[chave] if q["queryName"] == "lojas" else 0
+        achado = q["sql"].count("'" + velha + "'")
+        assert achado == esperado, "%s: %s aparece %d vez(es), esperado %d" % (q["queryName"], chave, achado, esperado)
+        q["sql"] = q["sql"].replace("'" + velha + "'", "'" + nova + "'")
+        q["meta"][chave] = nova
+    assert q["meta"]["grupos_c6"] == [69, 146], "grupos do C6 mudaram: " + str(q["meta"]["grupos_c6"])
+
+
 if args.semana:
     ini = datetime.strptime(args.semana, "%Y-%m-%d")
     assert ini.weekday() == 0, "a semana comeca na segunda-feira"
@@ -65,12 +91,11 @@ if args.semana:
 if args.prova:
     for it in itens:
         q = it["json"]
-        assert q["meta"]["novas"]["desde"] == NOVAS_REAL, "a data das novas mudou: ajustar NOVAS_REAL"
         assert TRAVA_NOME in q["sql"], "a trava do nome mudou: ajustar TRAVA_NOME"
         troca_janela(q, JANELA_PROVA)
-        q["sql"] = q["sql"].replace("'" + NOVAS_REAL + "'", "'" + NOVAS_PROVA + "'").replace(TRAVA_NOME, "")
-        q["meta"]["novas"]["desde"] = NOVAS_PROVA
-        q["meta"]["prova"] = {"janela": JANELA_PROVA, "sem_nome": True}
+        troca_campanha(q)
+        q["sql"] = q["sql"].replace(TRAVA_NOME, "")
+        q["meta"]["prova"] = {"janela": JANELA_PROVA, "sem_nome": True, "campanha": CAMPANHA_PROVA}
 
 cx = conectar("cars2you")
 respostas = []

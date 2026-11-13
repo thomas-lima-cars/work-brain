@@ -225,6 +225,22 @@ As 25 UFs do pátio já vêm como sigla limpa de duas letras, sem vazios — SP 
 cauda. Normalizar (`UF_CASE`) é desnecessário ali; a validação contra a lista
 das 27 vale como guarda contra sujeira futura, não como caminho.
 
+## A UF do endereço da loja: `shop_addresses.state`
+
+**Medido em 2026-11-11** (conexão direta, `automations/bancos/consulta.py`), para o cartão
+Lojistas por região do Mega Evento Fenauto (IGA).
+
+- **Uma linha viva por loja**: 22.553 lojas com endereço, nenhuma com dois (nem com duas UFs).
+  O `MIN(...)` por loja das consultas nunca desempata. 40 das 22.593 lojas vivas não têm endereço.
+- **Quase sempre sigla limpa**: as 27 siglas somam 22.537 endereços. Fora delas, só
+  `S.P` (5), `RIO DE JANEIRO` (1), `MATO GROSSO DO SUL` (1), `ESPIRITO- SANTO` (1), vazio (6)
+  e `********` (2).
+- **A normalização da Análise de Base (`UF_CASE`, `analise-base-geral/montar-queries.js`)
+  cobre todos os casos**: as quatro grafias viram sigla; vazio e asteriscos viram nulo
+  ("Não identificada").
+- É o endereço do **cadastro da loja** (o do CNPJ) — não confundir com a UF do pátio
+  (seção acima): 68% divergem.
+
 ## As 5 colunas ocultas de `advertisement_negotiations`
 
 O diagrama do banco documenta 32 colunas; a tabela tem **37**. Como o
@@ -514,6 +530,25 @@ de 10 lojas é conta interna ou de assessoria, não comprador, e leva todos os
 seus grupos para centenas de lojas. Para medir "a loja está no grupo", decidir
 se esses usuários contam.
 
+### Os grupos da Fenauto 2026 (medido em 2026-11-12)
+
+| id | nome | status | usuários | quem alveja |
+|---:|---|---|---:|---|
+| 148 | VD Itaú - Fenauto 2026 | ativo | 188 | os três eventos do IGA 24377-24379 (só ele) |
+| 69 | Parceiros C6 - Geral | ativo | 3.707 | os eventos do C6 24368 e 24384 (com o 146) |
+| 146 | Parceiros C6 - Exclusivo SP | ativo | 1.708 | idem |
+| 149 | Fenauto 2026 | **inativo** | 0 | ninguém (criado em 06/11) |
+
+**Não existe grupo da Fenauto do C6.** Os eventos C6 da Fenauto alvejam os grupos
+largos de parceiros. O equivalente do 148 em anos anteriores é o 133 "VD Itaú -
+Fenauto 2025" (375 usuários). Os 188 do 148 entraram no grupo de 29/10 a 12/11,
+151 deles em 11/11.
+
+⚠️ **O 148 tem 15 usuários @cars2you.com.br e 6 @itau-unibanco.com.br.** Três
+dos internos estão ligados a 198, 305 e 331 lojas: sem tirá-los, "a loja está no
+grupo" vira 992 lojas em vez de 163. Os painéis da Fenauto (12/11) filtram
+usuário por e-mail: fora `@cars2you.com.br`, `@itau%`, `@c6bank%` e `%teste%`.
+
 ## `access_logs` não tem índice (shop_id, created_at)
 
 Medido em **2026-09-23**: 3,3 milhões de linhas, 1,07 GB. Os índices com
@@ -627,6 +662,15 @@ nunca aconteceu (seção acima, "O desfecho de uma negociação do C6"). Quem
 conta "lojas que compraram" perde essas vendas; quem conta "veículos
 vendidos", não deve perder.
 
+Medido em **2026-11-12**: a vencedora sem loja é **lançada por usuário
+interno**. A oferta 2094662, da negociação 516768 (evento 24377 do IGA, vendida,
+status 7), tem `buyer_user_id` 211313, um usuário @cars2you.com.br sem nenhuma
+`user_shops`. É venda registrada à mão: a negociação está vendida, mas não se
+sabe a loja compradora. Em 2026 (ofertas não apagadas, `created_at` de
+01/01/2026 em diante) há **918 ofertas sem loja**, e **93** delas são
+vencedoras de negociação em status 2, 3 ou 7. Os painéis da Fenauto contam essa
+venda nos vendidos e no valor vendido, e não nos compradores (12/11).
+
 ## `user_profiles.register_form` — a campanha do cadastro
 
 Medido em **2026-11-03**. Mora no **perfil do usuário**, não na loja: a loja
@@ -651,6 +695,10 @@ cadastrou: "Fenauto 2025 IGA" (227, de 19 a 24/11/2025), "Outlet NetCarros"
 - O `LIKE` é sem caixa (a colação acha "Fenauto" com `'%fenauto%'`).
 - Em 03/11/2026 **não há perfil da Fenauto de 2026**. Uma campanha nova com
   outro nome no formulário não é achada por `'%fenauto%'`.
+- **Em 11/11/2026 chegou a campanha de 2026: "Fenauto 2026 IGA"**, mesmo formato
+  da de 2025 ("Fenauto <ano> IGA"). No 1º dia da feira: 18 perfis de 18 lojas, de
+  09:30 a 12:37, nenhuma loja apagada. Separar as duas pede o ano no `LIKE`
+  (`'%fenauto 2026%'`) — é o que o cartão de regiões do Mega Evento Fenauto (IGA) faz.
 
 ## O evento 266 "Anúncios cancelados" é um balde, não um evento
 

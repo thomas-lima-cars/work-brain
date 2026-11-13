@@ -82,3 +82,112 @@ da coleta de 03/11 ficam fora).
 
 Vendido R$ 317.100; 13 ofertantes; 10 compradores. **Nenhuma loja nova**: ainda não há
 cadastro da campanha em 2026. HTML: 177 KB.
+
+## Lojistas Fenauto 2026 por região (versão IGA) — coleta de 2026-11-11, 1º dia da feira
+
+O cartão conta **só as lojas cadastradas pela campanha "Fenauto 2026 IGA"** (Thomas, 11/11:
+"considere somente Fenauto 2026"), pela UF de `shop_addresses` (normalização em
+`plataforma/dominios.md`, "A UF do endereço da loja"). Medido com `coleta_local.py` e
+conferido loja a loja contra o banco (mesmas 18 lojas, mesmas 9 UFs).
+
+**18 lojistas em 9 UFs, todos com UF; nenhuma loja apagada.**
+
+| região | lojistas | % | acessaram o evento | UFs |
+|---|---:|---:|---:|---|
+| Sudeste | 11 | 61% | 8 | SP 6 · ES 3 · MG 2 |
+| Nordeste | 3 | 17% | 1 | PB 1 · RN 1 · SE 1 |
+| Sul | 2 | 11% | 1 | RS 2 |
+| Centro-Oeste | 1 | 6% | 1 | GO 1 |
+| Norte | 1 | 6% | 0 | AP 1 |
+
+A consulta de lojas com a UF e a campanha do ano: 36 lojas, 3,4 KB, 0,37 s (no mês de prova,
+322 lojas, 31,8 KB, 0,59 s).
+
+## Cliente da Fenauto por operação — coletas de 2026-11-11, à tarde
+
+Regra de 11/11 nos três painéis: loja nova = cadastro pela campanha **"Fenauto <ano> <operação>"**
+num dia de evento daquela operação ("Fenauto 2026 C6" no C6, "Fenauto 2026 IGA" no IGA; no
+Cars2You, cada evento pela campanha da operação dele, com o filtro Operação Todas · C6 · Itaú).
+
+- **"Fenauto 2026 C6" ainda não tem nenhum perfil** (medido às 14h e nas coletas da tarde): o
+  Eventos Fenauto C6 e o recorte C6 do Cars2You mostram 0 novos.
+- **"Fenauto 2026 IGA": 42 lojas**, todas cadastradas em 11/11, novas nos 3 eventos do IGA
+  (24377–24379). Painel IGA: 42 novas e 42 no cartão de regiões. Cars2You, semana de 09 a
+  15/11: Itaú 42, C6 0, Todas 42.
+- Semana de prova do Cars2You (17/11/2025): Itaú 221 das 226 da "Fenauto 2025 IGA" (5 se
+  cadastraram de 22 a 24/11, fora dos dias do 22223); o evento do C6 (22231), que antes
+  contava as mesmas 221, agora tem 0.
+
+## Novos lojistas pelo grupo (regra de 12/11) — medição direta de 2026-11-12, ~11h
+
+Regra de 12/11 nos três painéis, que substitui a do formulário:
+
+- **Nova**: loja cadastrada a partir de 10/11, com usuário externo no grupo da operação. O IGA usa o 148; o C6 usa o 69 e o 146 (`plataforma/dominios.md`).
+- **Antiga sem compra que voltou**: loja do grupo sem compra de 10/05 a 09/11 que acessou a plataforma a partir de 10/11.
+- **Fora**: compradores antigos, usuários internos, contas do banco e cadastros de teste.
+
+A medição foi por conexão direta, numa consulta de 18 s.
+
+| operação | novas | voltaram | total | compradoras antigas (fora) |
+|---|---:|---:|---:|---:|
+| IGA (148) | 83 | 37 | **120** | 26 |
+| C6 (69, 146) | 7 | 69 | **76** | 121 |
+
+- **IGA**: as 83 novas são todas do WL 7. Por dia de cadastro, foram 77 em 11/11 e 6 em 12/11. Das 83, 72 trazem o formulário "Fenauto 2026 IGA". Das 37 que voltaram, o primeiro acesso foi em 10/11 para 2, em 11/11 para 30 e em 12/11 para 5.
+- **C6**: as 7 novas são do WL 43, cadastradas 1 em 10/11, 5 em 11/11 e 1 em 12/11. Das 69 que voltaram, o primeiro acesso foi em 10/11 para 47, em 11/11 para 18 e em 12/11 para 4.
+
+No n8n, a rodada 69057 (12/11, 11:40) publicou com a regra nova:
+
+| painel | total | por evento |
+|---|---:|---|
+| Eventos Fenauto C6 | 77 | 24384: 77; 24368: 48 |
+| Mega Evento Fenauto (IGA) | 124 | 24377: 110; 24378: 124; 24379: 124 |
+| Mega Evento Fenauto (Cars2You) | 201 | os mesmos números por evento |
+
+Os 48 do 24368 são só as entradas de 10/11, porque o evento termina nesse dia. No 24377, que termina em 11/11, entram as entradas até 11/11.
+
+### Novos e reativados separados — coletas locais de 2026-11-12, à tarde
+
+Desde a tarde de 12/11, os painéis mostram as lojas novas e as reativadas em cartões separados. Reativada é a loja antiga que voltou. Os números abaixo vêm de `coleta_local.py` e `monta_local.js`, pela conexão direta.
+
+| painel | hora | novos | reativados | soma |
+|---|---|---:|---:|---:|
+| Mega Evento Fenauto (IGA), todos os eventos | 12:43 | 103 | 45 | 148 |
+| Eventos Fenauto C6 | à tarde | 7 | 69 | 76 |
+
+No IGA, com o Data em 11/11: 77 novos e 32 reativados.
+
+Vendidos do IGA às 12:43: **4** vendidos, 3 compradores e R$ 398.200. Uma das vendas é a 516768: a oferta vencedora foi lançada por um usuário interno e não tem loja. Antes da correção, o cartão mostrava 3 vendidos.
+
+A rodada 69102 do n8n (12/11, 16:23) foi a primeira publicada com novos e reativados separados.
+
+| painel | novos | reativados | vendidos | compradores | valor vendido |
+|---|---:|---:|---:|---:|---:|
+| Eventos Fenauto C6 | 7 | 76 | 15 | 12 | R$ 617.600 |
+| Mega Evento Fenauto (IGA) | 147 | 57 | 12 | 9 | R$ 1.586.400 |
+| Mega Evento Fenauto (Cars2You) | 154 | 133 | 27 | 21 | R$ 2.204.000 |
+
+Por evento, em novos / reativados / vendidos:
+
+| evento | novos | reativados | vendidos |
+|---|---:|---:|---:|
+| 24384 | 7 | 76 | 2 |
+| 24368 | 1 | 47 | 13 |
+| 24379 | 147 | 57 | 0 |
+| 24378 | 147 | 57 | 8 |
+| 24377 | 77 | 35 | 4 |
+
+No IGA e no Cars2You há o aviso de 4 lances sem loja compradora.
+
+### Um veículo só — rodada 69115 do n8n (12/11, 16:53)
+
+Desde esta rodada, o carro que volta em outro evento conta uma vez. Cada evento abre uma negociação nova para o carro.
+
+| painel | negociações | veículos publicados |
+|---|---:|---:|
+| C6 | 120 | 106 |
+| IGA | 39 | 32 |
+| Cars2You | 159 | 138 |
+
+No IGA, 7 carros sem venda no 24377 voltaram no 24378; um deles vendeu lá. Por evento, nada muda: 24377 tem 11 veículos, 24378 tem 18 e 24379 tem 10.
+

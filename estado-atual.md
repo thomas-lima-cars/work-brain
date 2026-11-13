@@ -1,15 +1,17 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-09 (salvo em 10/11) — a **Rotina Fenauto** (`9CNN9FjRohxaRUZq`) leva
-> os três painéis da Fenauto num workflow só para `Fenauto_202611/` no SharePoint; **criada e
-> conferida, inativa** (run de teste e ativação esperam o Thomas). Os três painéis agora mostram só
-> eventos com **"Fenauto" no nome**, e o C6 ganhou a logo C6 Auto. O **Estudo de Vendas IGA** foi
-> até **out/26** (bug da janela de compradores corrigido). Em 06/11 o **Painel de Eventos Cars2You foi ao ar**:
-> workflow `cRChMwAnLYGRMesM` (projeto Cars2You), **ativo de hora em hora das 9h às 18h**, com
-> status em funil, aba Mensal, **metas** por comitente e categoria (planilha em `Comitente - Metas/`
-> no site N8N) e filtro de categoria. Na tarde de 05/11 nasceu o
-> **Mega Evento Fenauto (IGA)**: a cara do IGA e só os eventos do IGA, local, sem n8n. Em 04/11, a **Análise de Base do C6 Lojista** (`f6Bw2iiuaWECy9Uz`, diário 8h) veio para o repo e a coorte dela passou a faixas exclusivas, colada pelo Thomas e conferida; o run de 05/11 já saiu assim. Em 03/11: rodada longa de layout no **Painel de Eventos Cars2You** (cartões por comitente que filtram, lista por evento, indicador no topo) e, de manhã, nasceu o **Mega Evento Fenauto (Cars2You)**; os dois locais, sem n8n. Em 29–30/10, a **Projeção de vendas 2027** pedida pelo Tuunelis: planilha Excel pronta e validada, falta mandar (prazo era 30/10). Em 26/10: Eventos Fenauto C6 e **todo painel novo abre no escuro**. Radar: três mudanças de 22–23/10 no n8n e **ainda sem run**. Em 20/10: Análise de Base v3 ativa, diário 8h. ⚠️ Vários blocos abaixo são de 30/09: as sessões de 01–13/10 não passaram pelo `/salve` (o commit de 15/10 levou o trabalho delas).
+> **Última atualização:** 2026-11-12 (salvo na madrugada de 13/11). A **Rotina Fenauto**
+> (`9CNN9FjRohxaRUZq`) está **ativa** de hora em hora, e a versão publicada é a `1b947c86`. Os três
+> painéis da Fenauto mudaram em 12/11:
+> - **novos lojistas pelo grupo**: 148 no IGA; 69 e 146 no C6;
+> - **novos e reativados separados**;
+> - **vendidos** contam a venda cuja oferta vencedora não tem loja;
+> - **cada veículo conta uma vez**, mesmo em dois eventos.
+>
+> Em 11/11: cartão de lojistas por região no IGA, e cliente da Fenauto pela campanha de cada operação (essa regra foi substituída em 12/11).
+>
+> Em 09/11 os três painéis passaram a mostrar só eventos com "Fenauto" no nome. O Estudo IGA foi até out/26. Em 06/11 o **Painel de Eventos Cars2You foi ao ar** (`cRChMwAnLYGRMesM`, de hora em hora das 9h às 18h, com metas por comitente e categoria). Em 04/11 a Análise de Base do C6 Lojista veio para o repo. Em 29–30/10, a **Projeção de vendas 2027** ficou pronta e falta mandar. Radar: três mudanças de 22–23/10 continuam **sem run**. ⚠️ Vários blocos abaixo são de 30/09.
 
 ## 🔹 Frentes quentes agora
 - **Projeção de vendas 2027** — 🔥 nasceu em 29/10, pedido do **Tuunelis** (ata
@@ -44,21 +46,26 @@
   **filtro de categoria** (Leves com motos, Pesados, Equipamentos, Não informada), cores pela meta,
   indicador nasce em Com oferta. Montar Painel vai **dividido em 3 nós** (`_divide.js`). 91 provas.
   Números em `projetos/painel-eventos-cars2you/indicadores.md`.
-- **Rotina Fenauto** — 🔥 **criada no n8n em 09/11, inativa**: wf **`9CNN9FjRohxaRUZq`** (projeto
-  Cars2You), pasta `automations/n8n-sdk/rotina-fenauto/`. Os três painéis da Fenauto em série
-  (C6 → IGA → Cars2You), de hora em hora 9h–18h seg–sáb, publicando em `Fenauto_202611/C6/`,
-  `Fenauto_202611/IGA/` e na raiz. Montar Painel dividido em 3 nós (< 56 KB), 64 provas de mesmo
-  HTML, md5 dos 15 nós conferido. **Run de teste barrado pelo modo automático** (escreve no
-  SharePoint): o Thomas roda pelo nó Rodar ou libera `execute_workflow`/`publish_workflow`.
-  A pasta é de novembro, fixa no `_divide.js`.
+- **Rotina Fenauto** — 🔥 **ativa**: wf **`9CNN9FjRohxaRUZq`** (projeto Cars2You), pasta
+  `automations/n8n-sdk/rotina-fenauto/`.
+  - Os três painéis rodam em série (C6 → IGA → Cars2You), de hora em hora das 9h às 18h, de segunda a sábado. Publicam em `Fenauto_202611/`.
+  - Versão publicada: **`1b947c86`** (12/11), com o md5 dos 15 nós conferido. A rodada 69115 levou 60 s, sem erro. O histórico de versões está em `crons.md`.
+  - O maior nó, `iga/pecas-tema`, tem 55.793 bytes, para um teto de 57.344.
+  - **Antes de enviar pelo MCP, fechar a aba do editor**: em 12/11 um salvamento numa aba antiga desfez 7 nós.
+  - A pasta de novembro está fixa no `_divide.js`.
 - **Os três painéis da Fenauto** (fonte da rotina; mudou um, rodar o ciclo dele e o da rotina):
   - **Eventos Fenauto C6** (`painel-eventos-fenauto-c6/`, frente `c6`): WL 43, só eventos com
     "Fenauto" no nome, na semana; **logo C6 Auto** (`design/marca/c6-auto/`) à esquerda, título no
-    centro, Fenauto à direita, botões abaixo do cabeçalho; sem representante. 253 provas;
+    centro, Fenauto à direita, botões abaixo do cabeçalho; sem representante. 295 provas;
   - **Mega Evento Fenauto (IGA)** (`painel-eventos-fenauto-iga/`, frente `itau`): só eventos do
-    IGA com "Fenauto" no nome, no **mês corrente**. 289 provas;
+    IGA com "Fenauto" no nome, no **mês corrente**; cartão de lojistas por região. 323 provas;
   - **Mega Evento Fenauto (Cars2You)** (`painel-eventos-fenauto-cars2you/`, frente `c6`): C6 + IGA
-    com "Fenauto" no nome, na semana (em 09/11: 24368, 24384, 24377–24379). 273 provas.
+    com "Fenauto" no nome, na semana (em 09/11: 24368, 24384, 24377–24379). 341 provas.
+  As regras de 12/11 valem para os três (sessão `memory/sessions/2026-11-12.md`):
+  - **novos** = loja cadastrada a partir de 10/11 no grupo da operação; **reativados** = loja antiga sem compra nos 6 meses antes de 10/11 que voltou; ficam fora os internos, os testes e as contas do banco;
+  - os vendidos contam a venda lançada por usuário interno;
+  - um veículo conta uma vez.
+  A data de início (`INICIO_CAMPANHA`) e os grupos estão fixos no código: trocar para 2027.
   Números em `projetos/mega-evento-fenauto/indicadores.md` e `projetos/c6/indicadores.md`.
 - **design system** — 🔥 `design/tokens/tema.css` é fonte única (produto com cara própria = camada de cor `tema-<produto>.css`, o C6 foi o primeiro); dela saem os dois modelos
   **e** o `kit-de-painel.md`, o arquivo único que vai para o time (68 KB, autossuficiente).
@@ -125,10 +132,9 @@
   em evento · acessou = abriu anúncio · agendado fora · evento > 31 dias fora do mensal · cortes de
   base pequena das metas (3 meses/30 veículos; 30 dias/100 veículos-dia). E: as fontes mais claras e
   a paleta sem rosa sobem para o `tema.css`?
+- 🔵 **Fenauto: os internos saem também dos acessos e dos rankings?** Hoje saem só da contagem de novos, por escolha minha (12/11), e a pergunta ficou sem resposta. E o cartão de regiões do IGA segue contando pelo formulário: deve seguir a regra do grupo?
 - 🔵 **Rotina Fenauto:** guarda as execuções (três HTML de ~200 KB por run)? Ganha alerta de falha?
   E, escolhas minhas no Mega Evento IGA: barra Total no laranja do IGA, botão de avisos junto do de tema.
-- 🔵 **Mega Evento Fenauto — três escolhas minhas:** loja nova vale para C6 e IGA · data do perfil,
-  não da loja · acesso sem trava de canal. E: a campanha de 2026 com outro nome zera a loja nova calada.
 - 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
   quem comprou nos últimos 12 meses; nos meses antigos o gráfico conta menos que o total do IGA.
 - 🔵 **Representante com CNPJ repartido entre filiais:** fica o mais frequente, empate →
@@ -167,10 +173,10 @@
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
 - [ ] 🔥 **Painel de Eventos Cars2You:** conferir a 1ª rodada agendada (07/11 9h) no SharePoint — o
       histórico do n8n só guarda erro — e mandar o link a quem vai usar
-- [ ] 🔥 **Rotina Fenauto: run de teste** (nó Rodar, ou liberar `execute_workflow`), conferir os três
-      arquivos em `Fenauto_202611/` (e se as subpastas nasceram sozinhas), **ativar a agenda** e
-      atualizar README, `crons.md` e mapa
-- [ ] Rotina Fenauto em dezembro: trocar `PASTA_RAIZ` no `_divide.js` se a Fenauto seguir
+- [ ] 🔥 **Rotina Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e conferir a tela
+      com as regras de 12/11 (novos e reativados, vendidos, um veículo só)
+- [ ] Rotina Fenauto em dezembro: trocar `PASTA_RAIZ` no `_divide.js` se a Fenauto seguir. Fenauto 2027:
+      trocar `INICIO_CAMPANHA` e os grupos no `montar-consultas.js` dos três painéis
 - [ ] Estudo IGA: refazer a decomposição pedido × demanda (ficou com o número de 08/10) e mandar o
       HTML atualizado a quem usa
 - [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
@@ -202,7 +208,7 @@
       (`design/monta-kit.js`): ele ainda diz que o claro é o padrão
 - [ ] Conferir a transcrição do `tratar-carteira.js` contra o workflow Carteira
       Comercial — só os 4 nós do Radar têm essa prova
-- [ ] Destino do `WorkBrain.zip` (raiz, de 21/10), solto fora do git. Os `fenauto_*.html` dos três
+- [ ] Destino do `WorkBrain.zip` (raiz, de 21/10) e do `context/banco-de-dados/dicionario_bradesco.zip`, soltos fora do git. Os `fenauto_*.html` dos três
       painéis (cópias do `saida-local`, nome real de loja) entraram no `.gitignore` em 09/11
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto
 - [ ] Levar o **VMV-sentinela da Dealers** (`999000` em 98,1%) a quem cuida daquela operação
@@ -263,6 +269,8 @@
   **Ou, provado em 06/11 (Painel de Eventos Cars2You, 164 KB):** partir o nó em pedaços ≤ 56 KB
   (`_divide.js`, prova de HTML idêntico), criar o esqueleto e mandar cada pedaço num
   `update_workflow` por subagente, depois md5 dos nós (`_confere_n8n.py`). Mudou nó? `publish_workflow`.
+  **Feche a aba do workflow no editor antes**: em 12/11 um salvamento pelo editor desfez 7 nós enviados.
+  Cada nó grande custa de 100 a 150 mil tokens; em 12/11 o limite de gasto da organização foi atingido no meio do envio.
 - 🧮 **O MCP do banco recusa `GROUP BY … WITH ROLLUP`** ("syntax error near 'with'", run 68394):
   um `GROUP BY` por subtotal, unidos por `UNION ALL` (`automations/bancos/README.md`).
   **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único

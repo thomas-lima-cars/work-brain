@@ -226,3 +226,18 @@
 - Os três painéis da Fenauto foram para a **Rotina Fenauto** (`9CNN9FjRohxaRUZq`, projeto
   Cars2You, de hora em hora 9h–18h seg–sáb, `Fenauto_202611/`). Criada e conferida por md5;
   **inativa**, o run de teste e a ativação esperam o Thomas.
+
+## 2026-11-11
+- A **Rotina Fenauto** apareceu **ativa** no n8n (versão `e23de4e9`). No mesmo dia foram publicadas a `07d5ab74` e a `f6dce23d`.
+- A `f6dce23d` trouxe a regra do cliente da Fenauto pela campanha de cada operação ("Fenauto 2026 C6" e "Fenauto 2026 IGA") e o filtro Operação no Cars2You. A campanha do C6 não tinha nenhum perfil.
+
+## 2026-11-12
+- **Novos lojistas pelo grupo** (pedido do Thomas), nos três painéis da Fenauto. Substitui a regra do formulário.
+  - No C6, valem os grupos 69 e 146 ("Parceiros C6 - Geral" e "- Exclusivo SP"). Não existe grupo Fenauto do C6.
+  - Ficam fora os usuários internos, os de teste e os do banco, filtrados pelo e-mail.
+  - Publicado na versão `531eb3d9`.
+- Na mesma tarde, **novos e reativados separados**, cada um com seu cartão, com série própria nos gráficos e com selo e filtro no ranking.
+- **Vendidos passa a contar a venda cuja oferta vencedora não tem loja** (lançada por usuário interno, por exemplo a 516768). Publicado na `9d88057c`.
+- **Um veículo só:** o carro que volta em outro evento conta uma vez e ocupa uma linha só na tabela. Publicado na `1b947c86`, rodada 69115.
+- Em 12/11, o C6 tinha 7 novos e 76 reativados, e 106 veículos para 120 negociações. Fonte: `projetos/mega-evento-fenauto/indicadores.md`.
+- Um salvamento pelo editor do n8n desfez um envio feito pelo MCP. Lição: fechar a aba do workflow antes de enviar.

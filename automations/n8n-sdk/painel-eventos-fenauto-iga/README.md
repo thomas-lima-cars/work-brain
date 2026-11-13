@@ -14,6 +14,82 @@ nome, abertos no mês corrente** (pedido do Thomas). Em novembro/2026: 24377,
 11/11 09:00, 32 veículos. HTML, 289 provas e o `.wf.ts` regerados, local.
 **Workflow ainda não criado no n8n** — espera o ok final do Thomas.
 
+**11/11: cartão Lojistas Fenauto 2026 por região**, entre o funil e os
+acessos únicos por dia (pedido do Thomas: primeiro um mapa, depois "gráfico de
+barras por região com legenda das UFs" e, na mesma tarde, "considere somente
+Fenauto 2026"). Uma barra horizontal por região, do maior para o menor, com o
+total e o % sobre todos; dentro, um pedaço por UF (vão de 2px, sigla quando
+cabe); embaixo, a legenda das UFs com o número; a dica de cada pedaço traz
+quantos acessaram, ofertaram e compraram no recorte.
+
+- **Quem conta:** só as lojas cadastradas pela **campanha do ano**
+  (`register_form_value` com "fenauto <ano>", o ano do mês do recorte; em
+  nov/2026, "Fenauto 2026 IGA"), em qualquer data, menos as apagadas. Com
+  Data, só os cadastros daquele dia; o **Evento não recorta** (a campanha é da
+  feira, não de um evento — escolha minha). A loja nova virou o grupo em
+  12/11. A consulta de lojas traz a coluna `fenauto_ano` e põe toda loja da
+  campanha do ano no universo; `coleta_local.py --prova/--mes` troca o ano junto
+  com o mês.
+- **A UF:** a de `shop_addresses` — o endereço do cadastro da loja, não o do
+  pátio —, com a normalização da Análise de Base (`UF_CASE`). Cada loja tem um
+  endereço só (medido). Sem UF válida: "Não identificada", sempre por último.
+- **Grade:** a linha virou `.g3i` — três colunas na tela larga, funil e regiões
+  lado a lado com os acessos na linha inteira até 1400px, uma coluna até 860px.
+
+305 provas (16 do cartão, a conta refeita sobre UF e cadastro plantados, o
+recorte por Data e o Evento que não recorta). Coleta de 11/11: **18 lojistas
+em 9 UFs**, conferidos loja a loja contra o banco; números em
+[`indicadores.md`](../../../context/banco-de-dados/projetos/mega-evento-fenauto/indicadores.md),
+semântica em `plataforma/dominios.md`. Rotina Fenauto regerada (64 provas, só o
+ramo IGA muda); **nada foi ao n8n**.
+
+**12/11: novos lojistas pelo grupo** (pedido do Thomas; substitui a regra do
+formulário de cadastro, "Fenauto <ano> IGA"). Novos lojistas = **clientes
+novos + antigos sem compra que voltaram**, somados no cartão e no funil que já
+existiam. Cliente = loja com algum usuário **externo** no grupo **148 "VD Itaú -
+Fenauto 2026"** (fora usuário apagado ou com e-mail @cars2you.com.br, @itau,
+@c6bank ou "teste"; fora loja apagada ou com "teste" no nome). A **entrada** da
+loja é o cadastro dela, se é de **10/11** em diante; senão, se ela não comprou
+nada nos **6 meses antes de 10/11** (oferta vencedora de negociação em status 2,
+3 ou 7, com a oferta em [10/05, 10/11)), o **primeiro acesso** à plataforma de
+10/11 em diante; senão nada (comprador dos 6 meses, que aparece só nos acessos,
+ou antigo que não voltou). No painel, a loja é nova em todo evento que
+**termina no dia da entrada ou depois** — sem o piso do início do evento: quem
+entrou em 10/11 conta nos eventos de 11/11, no total, mas em nenhum botão de
+Data; com Data, só quem entrou naquele dia. A consulta de lojas carrega a
+entrada no próprio universo (coluna `fenauto`, uma passada agrupada no
+`access_logs`, 17,7 s na coleta de 12/11); a união dos perfis da campanha desde
+o evento saiu. O cartão de regiões **não muda** (coluna `fenauto_ano`, campanha
+do formulário). `coleta_local.py --prova/--mes` troca junto com o ano o início
+(10/11/2025), a janela sem compra (10/05/2025) e o grupo (133, "VD Itaú - Fenauto
+2025"). Coleta de 12/11: **121 novos lojistas** (84 lojas novas + 37 que
+voltaram; 109 no evento de 11/11, 121 nos de 12 e 13/11); na prova de nov/2025,
+274. **319 provas** (as da regra do formulário trocadas pelas do grupo: SQL
+pedaço a pedaço, entrada refeita da coluna crua no total, evento a evento e com
+Data, entrada plantada antes do evento, no fim e depois dele). Nada foi ao n8n.
+
+**12/11 (tarde): novos e reativados separados; vendidos com a vencedora sem
+loja** (Thomas: "separe clientes novos de reativados, e ajuste o cartão de
+vendidos, consta 3 sendo que existem 4 na tabela").
+- **Novos lojistas** = só as lojas cadastradas de 10/11 em diante. **Reativados**
+  = as antigas que voltaram, num **sexto cartão**, com engajamento, acessaram,
+  ofertaram e compraram. O tipo sai do Montar Painel (`reativada` = tem entrada e
+  a loja é de antes de `inicio_campanha`); o SQL não mudou. O funil continua
+  sendo dos novos cadastros. Os gráficos por dia e por hora ganham a série
+  Reativados (verde #00937F no claro, #3CC7B4 no escuro, conferidos no
+  validador de paleta). O ranking ganha o selo reativada e os botões Todos
+  lojistas / Novos / Reativados, e o CSV ganha a coluna Tipo.
+- **Vendidos**: a venda conta pela própria negociação, com Data pelo dia da
+  oferta vencedora, e não mais pela lista de ofertas. A vencedora da 516768
+  (evento 24377) foi lançada por um usuário interno, sem loja, e o cartão dava 3
+  com 4 na tabela. Ela entra nos vendidos e no valor vendido, mas não nos
+  compradores nem nos lances. Em 2026 já são 93 vencedoras sem loja (medido em
+  12/11).
+- Coleta de 12/11, 12:43: **103 novos + 45 reativados**, 4 vendidos (3
+  compradores), R$ 398.200. **323 provas**.
+
+**12/11 (fim da tarde): um veículo só** (Thomas: "cada veículo deve aparecer somente uma vez, mesmo que esteja em 2 eventos"). O carro que não vendeu num evento volta no seguinte com outra negociação. Nos números de veículos (publicados, com ofertas, VMV atingido, vendidos, acessados, pátios, participações) e na lista, ele conta uma vez: com oferta, VMV atingido, acessado ou vendido se foi em algum evento do recorte. Na lista, uma linha com o status da negociação que vendeu (ou da mais recente), as ofertas somadas, a maior e a última de todas, o melhor % VMV/FIPE e farol, as lojas distintas que abriram os anúncios, e "em N eventos". Filtrando um evento, nada muda. Lances seguem todos. Coleta de 12/11: 39 negociações, 32 carros (7 voltaram do 24377 no 24378). **323 provas** (com o carro plantado em duas negociações).
+
 ```
 Rodar → Montar Consultas → MCP Consultas → Montar Painel → Virar Arquivo → Subir no SharePoint
 ```
@@ -60,7 +136,7 @@ Números das duas coletas (as do IGA na seção própria): [`projetos/mega-event
 | **Recorte** | os eventos do **IGA** com **"fenauto" no nome** (sem caixa) abertos em algum momento do **mês corrente**, do dia 1 00:00 ao último dia 23:59, hora de Brasília. O mês anda sozinho (09/11; até 08/11 era todo evento do IGA da semana, de segunda a domingo; 05/11: os do C6 saíram). Os do C6 com Fenauto no nome (24384, 24368 em nov/26) caem pela trava do 43 |
 | IGA | evento com veículo dos vendedores 594, 598 ou 16036 — o critério do Estudo de Vendas IGA. Os eventos do IGA alvejam os whitelabels 5 e 7, então o canal não acha eles |
 | C6, fora | evento que alveja o whitelabel 43 (o critério do Painel de Eventos C6) não entra, nem se tiver veículo do IGA |
-| **Loja nova** | loja com um usuário cadastrado pela campanha da Fenauto: `user_profiles.register_form_value` contendo "fenauto", **com esse cadastro num dos dias de um evento do filtro**, o dia inteiro. Vale a data do **perfil**, não a da loja |
+| **Loja nova** | desde **12/11**: cliente do grupo 148 da Fenauto do IGA com entrada (cadastro da loja de 10/11 em diante, ou primeiro acesso de 10/11 em diante de quem não comprou nos 6 meses antes), nova em todo evento que termina no dia da entrada ou depois — ver o parágrafo de 12/11 acima. Até 11/11: `user_profiles.register_form_value` com "fenauto", cadastro do perfil num dos dias de um evento do filtro |
 | Filtro de evento | **botões numa linha própria logo acima da Data**: Todos e um por evento, na ordem de início, com o estado. Saiu da gaveta |
 | Título | "Mega evento Fenauto", no centro do topo, entre a logo do IGA e a da Fenauto. Subtítulo: o evento escolhido (período e estado) ou "IGA · N eventos na semana de … a …" e o período, mais "com filtros" — o do painel do C6 |
 
@@ -92,8 +168,8 @@ qualquer semana até dez/2025 o pegaria.
 
 ### Escolhas minhas, para o Thomas confirmar
 
-- **Data do perfil, não da loja.** 11 das 226 lojas da campanha existiam desde 2020–2023; com
-  a data da loja, nenhuma delas seria nova.
+- ~~**Data do perfil, não da loja.**~~ Saiu em 12/11 com a regra do grupo: a
+  loja antiga entra pela data da volta (primeiro acesso), não pela do perfil.
 - **Acesso sem trava de canal.**
 
 ## Ciclo
@@ -103,7 +179,7 @@ python coleta_local.py               # o mês de hoje (VPN) -> dados-local.json
 python coleta_local.py --prova       # novembro/2025, o da Fenauto 2025 (só o 22223) -> dados-prova.json
 node _aplica-modelo.js               # tema.css + Fenauto inline para dentro do Montar Painel
 for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
-node prova-local.js                  # 287 provas
+node prova-local.js                  # 323 provas
 node monta_local.js                  # saida-local.html (a semana de hoje)
 node monta_local.js dados-prova.json saida-prova.html
 python build_wf.py                   # mega-evento-fenauto-iga.wf.ts
@@ -126,7 +202,7 @@ rodar: `python _confere_transcricao.py <dump-do-get_workflow_details>`.
 | `_roda_no.js`, `_enxuga.js` | iguais aos dos irmãos |
 | `coleta_local.py` | roda o SQL do Montar Consultas pela conexão direta (VPN); `--prova` e `--semana` trocam a semana |
 | `monta_local.js` | regera a tela sem n8n e sem banco |
-| `prova-local.js` | 287 provas. Recorte (05/11): só IGA no SQL, os 7 eventos do IGA da medição independente e os 4 do C6 fora, todo vendedor do IGA, todo link no cars2you.com.br, o par no mesmo horário agora 22223 × 22235. As do topo e da identidade foram trocadas em 05/11 (camada do IGA depois do tema, cores dos dois temas, logo do IGA e da Fenauto, ordem IGA → título → Fenauto, título à direita, nenhum botão no cabeçalho, botões de tema e de avisos na linha logo abaixo, à direita, sem posição fixa). Herdadas do irmão: Novas: a semana (segunda, 7 dias, hoje dentro), o recorte C6 + IGA e o teto de 31 dias, a medição independente dos 11 eventos da semana de prova (publicados e operação) e o balde 266 fora, a loja nova pela campanha evento a evento (23:59 do último dia entra, 00:01 do seguinte não; loja antiga com perfil novo entra; cadastro em dia sem evento não), o corte por evento com o C6 e o IGA no mesmo horário, a Data com os dias do evento escolhido, os botões de Evento fora de cartão e acima da Data, a gaveta sem Evento, o topo (Fenauto à esquerda, título e subtítulo no centro), a cor da Fenauto no claro, a identidade sem a camada do C6, toda variável de cor definida, vendedor e link por operação, o lance sem loja como aviso |
+| `prova-local.js` | 323 provas. Novos e reativados separados e a venda com a vencedora sem loja (12/11, tarde). Loja nova (12/11): o SQL do grupo, do usuário externo, da janela sem compra e da volta numa passada só; a entrada refeita da coluna crua no total, evento a evento e com Data; entrada antes do evento conta no total e em nenhum botão de Data. Recorte (05/11): só IGA no SQL, os 7 eventos do IGA da medição independente e os 4 do C6 fora, todo vendedor do IGA, todo link no cars2you.com.br, o par no mesmo horário agora 22223 × 22235. As do topo e da identidade foram trocadas em 05/11 (camada do IGA depois do tema, cores dos dois temas, logo do IGA e da Fenauto, ordem IGA → título → Fenauto, título à direita, nenhum botão no cabeçalho, botões de tema e de avisos na linha logo abaixo, à direita, sem posição fixa). Herdadas do irmão: Novas: a semana (segunda, 7 dias, hoje dentro), o recorte C6 + IGA e o teto de 31 dias, a medição independente dos 11 eventos da semana de prova (publicados e operação) e o balde 266 fora, a loja nova pela campanha evento a evento (23:59 do último dia entra, 00:01 do seguinte não; loja antiga com perfil novo entra; cadastro em dia sem evento não), o corte por evento com o C6 e o IGA no mesmo horário, a Data com os dias do evento escolhido, os botões de Evento fora de cartão e acima da Data, a gaveta sem Evento, o topo (Fenauto à esquerda, título e subtítulo no centro), a cor da Fenauto no claro, a identidade sem a camada do C6, toda variável de cor definida, vendedor e link por operação, o lance sem loja como aviso |
 | `_confere_transcricao.py` | compara o código no n8n com `n8n/*.js` byte a byte, e reprova se aparecer nó de representante ou a cadeia mudar |
 | `build_wf.py` | gera o `.wf.ts` (6 nós, sem tabela de dados, sem cron, sem e-mail) |
 
@@ -147,6 +223,9 @@ rodar: `python _confere_transcricao.py <dump-do-get_workflow_details>`.
 - ❓ As duas escolhas acima (a terceira do irmão, "loja nova vale para o C6 também", saiu com o C6).
 - ❓ A semana de 02 a 08/11/2026 tem, em 05/11, **dois eventos do IGA** (05 e 06/11)
   e **nenhum cadastro da campanha em 2026** (o único valor é "Fenauto 2025 IGA").
-  Se a Fenauto 2026 vier com outro nome no formulário (sem "fenauto"), a loja
-  nova zera calada.
+  Se a Fenauto 2026 vier com outro nome no formulário (sem "fenauto"), o
+  cartão de regiões zera calado (a loja nova saiu do formulário em 12/11).
+- ❓ **A loja nova depende do grupo 148 e do início fixo em 10/11/2026**
+  (`INICIO_CAMPANHA`, `GRUPOS_IGA`): não andam sozinhos com o mês. Na
+  Fenauto 2027, trocar os dois (e o `GRUPOS_DO_ANO` do `coleta_local.py`).
 - 🔵 Sem cron, como os irmãos. Se ganhar, a semana já anda sozinha.

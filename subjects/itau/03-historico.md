@@ -43,3 +43,15 @@
 - **Estudo de Vendas IGA** atualizado até out/26: êxito 12 meses 46,7%, out/26 33%, 53 de 148
   recorrentes pararam (números em `projetos/vendas-iga/indicadores.md`). Bug da janela-base
   ("dia 31" em junho) corrigido; a última janela fixa anda sozinha.
+
+## 2026-11-11
+- **Mega Evento Fenauto (IGA)** ganhou o cartão **Lojistas Fenauto 2026 por região**, pela campanha "Fenauto 2026 IGA" e pela UF do endereço da loja. Publicado na versão `07d5ab74` da Rotina Fenauto.
+
+## 2026-11-12
+- **Novos lojistas pelo grupo 148**, "VD Itaú - Fenauto 2026". Contam a loja cadastrada a partir de 10/11 e a loja antiga sem compra nos 6 meses anteriores que voltou a acessar.
+  - Ficam fora os internos, os testes e as contas do banco.
+  - O grupo tem 15 usuários @cars2you.com.br, que sozinhos levavam a 992 lojas.
+- Os **novos e os reativados passaram a aparecer separados**.
+- O cartão de **vendidos** foi de 3 para 4. A venda 516768 tem a oferta vencedora lançada por um usuário interno, sem loja.
+- **Um veículo só:** 7 carros sem venda no 24377 voltaram no 24378. O IGA tem 39 negociações e 32 veículos.
+- Na rodada 69115, ficaram 152 novos e 57 reativados. Números em `projetos/mega-evento-fenauto/indicadores.md`.

@@ -8,7 +8,10 @@
 --prova roda o MESMO SQL com o mes trocado por novembro/2025, o da
 Fenauto 2025: o evento 22223 "VD IGA exclusivo Fenauto - 21/11/25" e as
 226 lojas da campanha "Fenauto 2025 IGA". Desde 09/11 o recorte e o mes
-(antes, a semana de 17/11/2025) e so evento com Fenauto no nome.
+(antes, a semana de 17/11/2025) e so evento com Fenauto no nome. Desde
+12/11 a loja nova (grupo da Fenauto + entrada) anda junto com o ano: o
+inicio da campanha vira 10/11/2025, a janela sem compra 10/05/2025 e o grupo
+148 ("VD Itau - Fenauto 2026") vira o 133 ("VD Itau - Fenauto 2025").
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com
@@ -44,6 +47,9 @@ ap.add_argument("--prova", action="store_true")
 ap.add_argument("--mes", help="o mes, AAAA-MM")
 args = ap.parse_args()
 MES_PROVA = "2025-11"
+# 12/11: o grupo da Fenauto do IGA de cada ano (o de 2025 tinha 375 usuarios
+# em 12/11/2026). O de 2026 e o do Montar Consultas
+GRUPOS_DO_ANO = {"2025": ([133], "VD Itaú - Fenauto 2025"), "2026": ([148], "VD Itaú - Fenauto 2026")}
 mes = MES_PROVA if args.prova else args.mes
 if mes:
     ini = datetime.strptime(mes + "-01", "%Y-%m-%d")
@@ -56,6 +62,32 @@ if mes:
             assert q["sql"].count("'" + a + "'") > 0, "mes fora do SQL"
             q["sql"] = q["sql"].replace("'" + a + "'", "'" + b + "'")
         q["meta"]["mes"] = novo
+        # 11/11: a campanha do cartao de regioes e a do ANO do mes ("fenauto 2026")
+        camp_velha = q["meta"]["campanha_ano"]
+        camp_nova = camp_velha.replace(" " + velho[0][:4] + " ", " " + novo[0][:4] + " ")
+        if q["queryName"] == "lojas":
+            assert q["sql"].count("'%" + camp_velha + "%'") == 2, "campanha do ano fora do SQL"
+        q["sql"] = q["sql"].replace("'%" + camp_velha + "%'", "'%" + camp_nova + "%'")
+        q["meta"]["campanha_ano"] = camp_nova
+        # 12/11: a loja nova anda com o ANO do mes: o inicio da campanha, a
+        # janela sem compra e o grupo da Fenauto daquele ano
+        ano_velho, ano_novo = q["meta"]["inicio_campanha"][:4], novo[0][:4]
+        if ano_novo != ano_velho:
+            assert ano_novo in GRUPOS_DO_ANO, "sem grupo da Fenauto do IGA para " + ano_novo
+            for chave, n in (("inicio_campanha", 4), ("sem_compra_desde", 1)):
+                v_velho = q["meta"][chave]
+                v_novo = str(int(v_velho[:4]) + int(ano_novo) - int(ano_velho)) + v_velho[4:]
+                if q["queryName"] == "lojas":
+                    assert q["sql"].count("'" + v_velho + "'") == n, chave + " fora do SQL"
+                q["sql"] = q["sql"].replace("'" + v_velho + "'", "'" + v_novo + "'")
+                q["meta"][chave] = v_novo
+            g_velho = "client_group_id IN (" + ", ".join(str(g) for g in q["meta"]["grupos_iga"]) + ")"
+            g_novo = "client_group_id IN (" + ", ".join(str(g) for g in GRUPOS_DO_ANO[ano_novo][0]) + ")"
+            if q["queryName"] == "lojas":
+                assert q["sql"].count(g_velho) == 1, "grupo da Fenauto fora do SQL"
+            q["sql"] = q["sql"].replace(g_velho, g_novo)
+            q["meta"]["grupos_iga"] = GRUPOS_DO_ANO[ano_novo][0]
+            q["meta"]["grupo_iga_nome"] = GRUPOS_DO_ANO[ano_novo][1]
 
 cx = conectar("cars2you")
 respostas = []

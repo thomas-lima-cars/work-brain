@@ -35,13 +35,32 @@
    causa do 266 "Anúncios cancelados" (2021 a 2025, 10 mil negociações do
    IGA), um balde de anúncios, não um evento.
 
-   ─── LOJA NOVA (Thomas, 2026-11-03) ──────────────────────────────────
-   Loja com algum usuário cadastrado pela campanha da Fenauto: perfil com
-   register_form_value contendo "fenauto" (user_profiles; medido em 03/11:
-   só "Fenauto 2025 IGA", 227 usuários de 226 lojas, de 19 a 24/11/2025).
-   A data do cadastro é a do PERFIL, não a da loja: 11 daquelas lojas já
-   existiam desde 2020. A consulta de lojas traz essa data; o corte pelos
-   dias do evento é do Montar Painel.
+   ─── LOJA NOVA (Thomas, 2026-11-12) ──────────────────────────────────
+   "Novos lojistas" = clientes novos + antigos sem compra que voltaram,
+   somados num número só. Cliente do IGA = loja com algum usuário EXTERNO
+   no grupo 148 "VD Itaú - Fenauto 2026" (user_clients_group; o grupo mora
+   no usuário). Externo: não apagado e sem e-mail @cars2you.com.br, @itau,
+   @c6bank ou com "teste" (em 12/11, no grupo 148: 15 usuários da Cars2You,
+   três deles em 198, 305 e 331 lojas, e 6 do Itaú). Loja apagada ou com
+   "teste" no nome fica fora. A data de ENTRADA da loja:
+     nova      o cadastro da loja, se é de INICIO_CAMPANHA (10/11) em diante;
+     voltou    senão, se a loja NÃO comprou nos 6 meses antes de 10/11
+               (oferta vencedora de negociação vendida, status 2, 3 ou 7,
+               com a oferta em [SEM_COMPRA_DESDE, INICIO_CAMPANHA)), o
+               primeiro acesso (qualquer linha de access_logs) de 10/11 em
+               diante;
+     nula      comprador dos 6 meses (aparece só nos acessos) ou antigo que
+               não voltou.
+   A janela de compra é a de ANTES da campanha: quem voltou e comprou no
+   evento continua contando. Substitui a regra do formulário de cadastro
+   (register_form_value "Fenauto <ano> IGA", 03/11 a 11/11); o cartão de
+   regiões continua com ela (coluna fenauto_ano).
+   access_logs não tem índice por data: a volta é UMA passada agrupada por
+   loja, como derivada, e a consulta de lojas carrega a entrada no próprio
+   universo, para não varrer o access_logs duas vezes (medido em 12/11:
+   18 s numa passada; correlacionada por loja, 3 min para 163 lojas). A
+   consulta traz a entrada; o corte pelos eventos e pela Data é do Montar
+   Painel.
 
    ─── FUSO ────────────────────────────────────────────────────────────
    O banco responde NOW() em UTC, mas grava as datas de evento E de oferta
@@ -55,8 +74,15 @@
 
 const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
-/* loja nova (03/11): o valor do formulário de cadastro, sem caixa */
-const CAMPANHA_NOVAS = 'fenauto';
+/* o formulário de cadastro da campanha, sem caixa: só o cartão de regiões
+   (11/11) o usa desde 12/11 */
+const CAMPANHA_FORM = 'fenauto';
+/* loja nova (Thomas, 12/11): "a partir de 10/11", sem compra nos 6 meses
+   antes disso, no grupo da Fenauto do IGA */
+const INICIO_CAMPANHA = '2026-11-10 00:00:00';
+const MESES_SEM_COMPRA = 6;
+const GRUPOS_IGA = [148];       /* "VD Itaú - Fenauto 2026" */
+const GRUPO_IGA_NOME = 'VD Itaú - Fenauto 2026';
 /* o recorte (09/11): só evento com isto no nome, sem caixa */
 const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
@@ -71,6 +97,10 @@ const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agor
    do dia 1 ao dia 1 do mês seguinte, 00:00 */
 const MES_INI = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
 const MES_FIM = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
+/* o começo da janela sem compra: INICIO_CAMPANHA menos MESES_SEM_COMPRA
+   meses, no mesmo dia (12/11: '2026-05-10 00:00:00') */
+const SEM_COMPRA_DESDE = dataDe(new Date(Date.UTC(Number(INICIO_CAMPANHA.slice(0, 4)),
+  Number(INICIO_CAMPANHA.slice(5, 7)) - 1 - MESES_SEM_COMPRA, Number(INICIO_CAMPANHA.slice(8, 10))))) + ' 00:00:00';
 
 const EH_C6 = "EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
@@ -103,13 +133,60 @@ const ACESSOS_DO_EVENTO =
   " AND al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event" +
   " WHERE" + EVENTO;
 
-/* a data do cadastro pela campanha: o primeiro perfil da Fenauto da loja */
-const CADASTRO_FENAUTO = (loja) => "(SELECT MIN(upf.created_at) FROM user_shops usf" +
-  " INNER JOIN user_profiles upf ON upf.user_id = usf.user_id AND upf.deleted_at IS NULL" +
-  " AND upf.register_form_value LIKE '%" + CAMPANHA_NOVAS + "%'" +
-  " WHERE usf.shop_id = " + loja + ")";
-
 const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
+
+/* ── a entrada do cliente (Thomas, 12/11) ─────────────────────────────
+   Ver "LOJA NOVA" no cabeçalho. Três derivadas, cada uma uma passada só:
+     VOLTA     o primeiro acesso de cada loja de INICIO_CAMPANHA em diante;
+     COMPRAS   as lojas que compraram em [SEM_COMPRA_DESDE, INICIO_CAMPANHA);
+     CLIENTES  as lojas do grupo, com a entrada (nunca nula: quem não tem
+               entrada não sai daqui).
+   Sem CTE (WITH) e sem função de janela: o MCP do n8n rejeita. */
+const EXTERNO = "uc.deleted_at IS NULL AND uc.email NOT LIKE '%@cars2you.com.br' AND uc.email NOT LIKE '%@itau%'" +
+  " AND uc.email NOT LIKE '%@c6bank%' AND uc.email NOT LIKE '%teste%'";
+const VOLTA = "SELECT alv.shop_id, MIN(alv.created_at) AS volta FROM access_logs alv" +
+  " WHERE alv.created_at >= '" + INICIO_CAMPANHA + "' AND alv.shop_id IS NOT NULL GROUP BY alv.shop_id";
+const COMPRAS = "SELECT DISTINCT oc.buyer_shop_id AS shop_id FROM offers oc" +
+  " INNER JOIN advertisement_negotiations anc ON anc.offer_actual_id = oc.id AND anc.deleted_at IS NULL AND anc.status IN (2, 3, 7)" +
+  " WHERE oc.deleted_at IS NULL AND oc.buyer_shop_id IS NOT NULL" +
+  " AND oc.created_at >= '" + SEM_COMPRA_DESDE + "' AND oc.created_at < '" + INICIO_CAMPANHA + "'";
+const CLIENTES = "SELECT cs.id, DATE_FORMAT(IF(cs.created_at >= '" + INICIO_CAMPANHA + "', cs.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada" +
+  " FROM (SELECT DISTINCT usc.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users uc ON uc.id = ucg.user_id AND " + EXTERNO +
+  " INNER JOIN user_shops usc ON usc.user_id = uc.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_IGA.join(', ') + ")) cg" +
+  " INNER JOIN shops cs ON cs.id = cg.shop_id AND cs.deleted_at IS NULL AND cs.name NOT LIKE '%teste%'" +
+  " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = cs.id" +
+  " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = cs.id" +
+  " WHERE cs.created_at >= '" + INICIO_CAMPANHA + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)";
+
+/* a campanha DO ANO e DO IGA (Thomas, 11/11: "considere somente Fenauto
+   2026" no cartão de regiões; à tarde, "somente IGA quando filtrar Itaú").
+   O valor do formulário é "Fenauto <ano> <operação>" (medido em 11/11:
+   "Fenauto 2025 IGA", 226 lojas; "Fenauto 2026 IGA", 41 lojas no 1º dia; a
+   do C6, "Fenauto 2026 C6", ainda sem perfil). O ano é o do mês do recorte,
+   então anda sozinho. Desde 12/11 vale SÓ para o cartão de regiões (a
+   loja nova virou o grupo): cliente da campanha do C6 não entra nele. */
+const ANO_RECORTE = MES_INI.slice(0, 4);
+const CAMPANHA_ANO = CAMPANHA_FORM + ' ' + ANO_RECORTE + ' iga';
+const CADASTRO_CAMPANHA_ANO = (loja) => "(SELECT MIN(upa.created_at) FROM user_shops usa" +
+  " INNER JOIN user_profiles upa ON upa.user_id = usa.user_id AND upa.deleted_at IS NULL" +
+  " AND upa.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" +
+  " WHERE usa.shop_id = " + loja + ")";
+
+/* a UF do endereço da loja (Thomas, 11/11: lojistas por região e UF do
+   CNPJ). shop_addresses é o endereço do cadastro da loja — o do CNPJ, não o
+   do pátio (dominios.md: a UF do veículo é a do pátio). A normalização é a
+   da Análise de Base (analise-base-geral/montar-queries.js, em produção
+   desde 16/10): sigla limpa ou as quatro grafias por extenso que apareceram;
+   o resto vira nulo e o painel mostra "Não identificada". Loja com mais de
+   um endereço fica com a menor sigla (MIN), como lá. */
+const UF_CASE = "CASE WHEN UPPER(TRIM(sa.state)) IN ('SP','MG','PR','SC','RJ','GO','RS','BA','MT','DF','CE','MS','ES','PE','PA','SE','AM','MA','RN','PB','AL','PI','RO','TO','AP','AC','RR')" +
+  " THEN UPPER(TRIM(sa.state)) WHEN UPPER(TRIM(sa.state)) = 'S.P' THEN 'SP'" +
+  " WHEN UPPER(TRIM(sa.state)) = 'RIO DE JANEIRO' THEN 'RJ' WHEN UPPER(TRIM(sa.state)) = 'MATO GROSSO DO SUL' THEN 'MS'" +
+  " WHEN UPPER(TRIM(sa.state)) LIKE 'ESPIRITO%SANTO%' THEN 'ES' ELSE NULL END";
+const UF_DA_LOJA = (loja) => "(SELECT MIN(" + UF_CASE + ") FROM shop_addresses sa" +
+  " WHERE sa.shop_id = " + loja + " AND sa.deleted_at IS NULL)";
 
 /* ── as tabelas ─────────────────────────────────────────────────
    "cols" é a fonte única da ordem: dela saem o JSON_ARRAY daqui e o
@@ -191,17 +268,21 @@ const TABELAS = [
   },
   {
     /* as lojas que o painel cita: quem ofertou no recorte MAIS quem acessou
-       um evento do recorte MAIS as lojas com cadastro pela Fenauto feito
-       desde o início do evento mais antigo do recorte. O UNION deduplica.
-       "fenauto" = a data do primeiro perfil da campanha (nulo sem ele). */
+       um evento do recorte MAIS as lojas da campanha do ano (cartão de
+       regiões) MAIS os clientes com entrada (12/11; até 11/11 eram os
+       perfis da campanha desde o início do evento). O UNION deduplica e o
+       GROUP BY junta a entrada, que só a última parte traz, numa linha por
+       loja. "fenauto" = a entrada (nula sem ela). */
     nome: 'lojas',
-    de: " FROM (SELECT o.buyer_shop_id AS id" + OFERTAS_DO_RECORTE +
+    de: " FROM (SELECT u0.id, MAX(u0.fen) AS fen FROM (SELECT o.buyer_shop_id AS id, NULL AS fen" + OFERTAS_DO_RECORTE +
         " AND o.buyer_shop_id IS NOT NULL" +
-        " UNION SELECT al.shop_id AS id" + ACESSOS_DO_EVENTO +
-        " UNION SELECT us3.shop_id AS id FROM user_shops us3" +
-        " INNER JOIN user_profiles up3 ON up3.user_id = us3.user_id AND up3.deleted_at IS NULL" +
-        " AND up3.register_form_value LIKE '%" + CAMPANHA_NOVAS + "%'" +
-        " AND up3.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")) ids" +
+        " UNION SELECT al.shop_id AS id, NULL AS fen" + ACESSOS_DO_EVENTO +
+        /* 11/11: toda loja da campanha do ano, em qualquer data — o cartão
+           de regiões conta a campanha inteira, não só os dias do evento */
+        " UNION SELECT us4.shop_id AS id, NULL AS fen FROM user_shops us4" +
+        " INNER JOIN user_profiles up4 ON up4.user_id = us4.user_id AND up4.deleted_at IS NULL" +
+        " AND up4.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" +
+        " UNION SELECT f.id, f.entrada AS fen FROM (" + CLIENTES + ") f) u0 GROUP BY u0.id) ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [
       ['id', 's.id'],
@@ -210,7 +291,13 @@ const TABELAS = [
       ['situacao', 's.situation'],
       ['cadastro', DATA('s.created_at')],
       ['apagada', 's.deleted_at IS NOT NULL'],
-      ['fenauto', "DATE_FORMAT(" + CADASTRO_FENAUTO('s.id') + ", '%Y-%m-%d %H:%i')"]
+      /* 12/11: a entrada do cliente (cadastro da loja nova ou o primeiro
+         acesso de quem voltou), já em "AAAA-MM-DD HH:MM"; nula sem ela */
+      ['fenauto', 'ids.fen'],
+      /* 11/11: a sigla da UF do endereço da loja, nula sem endereço válido */
+      ['uf', UF_DA_LOJA('s.id')],
+      /* 11/11: o primeiro cadastro pela campanha do ano; nulo sem ele */
+      ['fenauto_ano', "DATE_FORMAT(" + CADASTRO_CAMPANHA_ANO('s.id') + ", '%Y-%m-%d %H:%i')"]
     ]
   },
   /* ── os acessos (2026-09-28/29) ───────────────────────────────────────
@@ -295,7 +382,10 @@ const itens = TABELAS.map((t, i) => {
       idx: i,
       meta: {
         mes: [MES_INI, MES_FIM], agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS, nome_evento: NOME_EVENTO
+        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, nome_evento: NOME_EVENTO,
+        campanha_ano: CAMPANHA_ANO,
+        inicio_campanha: INICIO_CAMPANHA, sem_compra_desde: SEM_COMPRA_DESDE, meses_sem_compra: MESES_SEM_COMPRA,
+        grupos_iga: GRUPOS_IGA, grupo_iga_nome: GRUPO_IGA_NOME
       }
     }
   };

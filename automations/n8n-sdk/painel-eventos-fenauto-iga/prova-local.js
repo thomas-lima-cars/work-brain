@@ -58,9 +58,13 @@ const NOMES = ['eventos', 'veiculos', 'ofertas', 'lojas', 'acessos_anuncio'].con
 prova('as consultas, nesta ordem (' + NOMES.length + ')', JSON.stringify(itens.map((i) => i.json.queryName)) === JSON.stringify(NOMES),
   itens.map((i) => i.json.queryName));
 prova('acesso ao canal em pelo menos duas partes', PARTES >= 2, PARTES);
+/* o filtro de usuário externo da loja nova (12/11): o único lugar onde o
+   e-mail pode aparecer, e só como filtro — nunca como coluna */
+const EXTERNO_ESPERADO = "uc.deleted_at IS NULL AND uc.email NOT LIKE '%@cars2you.com.br' AND uc.email NOT LIKE '%@itau%'" +
+  " AND uc.email NOT LIKE '%@c6bank%' AND uc.email NOT LIKE '%teste%'";
 itens.forEach((it) => {
   const q = it.json;
-  const low = q.sql.toLowerCase();
+  const low = q.sql.split(EXTERNO_ESPERADO).join('').toLowerCase();
   prova(q.queryName + ': uma linha só (COUNT + JSON_ARRAYAGG)',
     q.sql.indexOf('SELECT COUNT(*) AS total, JSON_ARRAYAGG(JSON_ARRAY(') === 0);
   prova(q.queryName + ': sem função de janela', q.sql.toUpperCase().indexOf('OVER(') < 0 &&
@@ -99,9 +103,41 @@ prova('eventos: a operação sai do mesmo critério do recorte (C6 = alveja o 43
 prova('acesso ao evento por evento (03/11): cada parte agrupa pelo evento e traz a coluna',
   PARTES_NOMES.every((n) => sqlDe(n).indexOf('GROUP BY e.id, al.shop_id,') > 0 &&
     itens.find((i) => i.json.queryName === n).json.cols.join() === 'loja,dia,hora,n,evento'));
-prova('loja nova pela campanha (03/11): register_form_value com fenauto, sem grupo de cliente',
-  sqlDe('lojas').indexOf("register_form_value LIKE '%fenauto%'") > 0 && sqlDe('lojas').indexOf('client_group') < 0 &&
-  itens[0].json.meta.campanha_novas === 'fenauto');
+/* loja nova (Thomas, 12/11): cliente do grupo da Fenauto do IGA com
+   entrada. O SQL conferido pedaço a pedaço contra a regra */
+(() => {
+  const mL = itens.find((i) => i.json.queryName === 'lojas').json;
+  const sqlL = mL.sql;
+  const INI = mL.meta.inicio_campanha;
+  const DESDE = mL.meta.sem_compra_desde;
+  const conta = (s, t) => s.split(t).length - 1;
+  prova('loja nova: início em 10/11/2026 e janela sem compra desde 6 meses antes (10/05/2026), grupo 148, no meta de toda consulta',
+    itens.every((i) => i.json.meta.inicio_campanha === '2026-11-10 00:00:00' && i.json.meta.sem_compra_desde === '2026-05-10 00:00:00' &&
+      i.json.meta.meses_sem_compra === 6 && JSON.stringify(i.json.meta.grupos_iga) === '[148]' &&
+      i.json.meta.grupo_iga_nome === 'VD Itaú - Fenauto 2026' && i.json.meta.campanha_novas === undefined), mL.meta);
+  prova('loja nova: o grupo 148, uma vez, só na consulta de lojas', conta(sqlL, 'ucg.client_group_id IN (148))') === 1 &&
+    itens.every((i) => i.json.queryName === 'lojas' || i.json.sql.indexOf('client_group') < 0));
+  prova('loja nova: só usuário externo (não apagado; sem @cars2you.com.br, @itau, @c6bank nem "teste" no e-mail)',
+    conta(sqlL, 'INNER JOIN users uc ON uc.id = ucg.user_id AND ' + EXTERNO_ESPERADO + ' INNER JOIN user_shops usc ON usc.user_id = uc.id') === 1 &&
+    itens.every((i) => i.json.queryName === 'lojas' || i.json.sql.indexOf('email') < 0));
+  prova('loja nova: loja apagada ou com "teste" no nome fica fora',
+    sqlL.indexOf("INNER JOIN shops cs ON cs.id = cg.shop_id AND cs.deleted_at IS NULL AND cs.name NOT LIKE '%teste%'") > 0);
+  prova('loja nova: compra = oferta vencedora de negociação vendida (2, 3, 7), em [10/05, 10/11)',
+    conta(sqlL, 'FROM offers oc INNER JOIN advertisement_negotiations anc ON anc.offer_actual_id = oc.id AND anc.deleted_at IS NULL AND anc.status IN (2, 3, 7)' +
+      " WHERE oc.deleted_at IS NULL AND oc.buyer_shop_id IS NOT NULL AND oc.created_at >= '" + DESDE + "' AND oc.created_at < '" + INI + "') cp ON cp.shop_id = cs.id") === 1);
+  prova('loja nova: a volta é UMA passada agrupada no access_logs, de 10/11 em diante, sem correlacionar por loja',
+    conta(sqlL, "FROM access_logs alv WHERE alv.created_at >= '" + INI + "' AND alv.shop_id IS NOT NULL GROUP BY alv.shop_id) va ON va.shop_id = cs.id") === 1 &&
+    conta(sqlL, 'access_logs') === 2 && sqlL.indexOf('alv.shop_id = s') < 0 && sqlL.indexOf('alv.shop_id = cs') < 0);
+  prova('loja nova: entrada = cadastro da loja de 10/11 em diante, senão a volta; sai só quem é nova ou voltou sem compra',
+    sqlL.indexOf("DATE_FORMAT(IF(cs.created_at >= '" + INI + "', cs.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada") > 0 &&
+    sqlL.indexOf("WHERE cs.created_at >= '" + INI + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)) f) u0 GROUP BY u0.id) ids") > 0);
+  prova('loja nova: a entrada viaja no universo (coluna fenauto = ids.fen), os clientes uma vez só, sem CTE',
+    mL.cols.indexOf('fenauto') > 0 && sqlL.indexOf('ids.fen') > 0 && sqlL.indexOf('SELECT u0.id, MAX(u0.fen) AS fen FROM (') > 0 &&
+    conta(sqlL, 'FROM user_clients_group') === 1 && sqlL.toUpperCase().indexOf('WITH ') < 0);
+  prova('loja nova: a regra do formulário saiu (sem up3, sem "fenauto" solto, sem C6; a campanha do ano só no cartão de regiões)',
+    sqlL.indexOf('up3') < 0 && sqlL.indexOf("register_form_value LIKE '%fenauto%'") < 0 && sqlL.indexOf(" c6%'") < 0 &&
+    conta(sqlL, 'register_form_value') === 2);
+})();
 prova('acesso ao evento (08/10): por igualdade no event_id, cortado no horário do próprio evento, no minuto',
   PARTES_NOMES.concat(['lojas']).every((n) => sqlDe(n).indexOf('INNER JOIN access_logs al ON al.event_id = e.id') > 0 &&
     sqlDe(n).indexOf('al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event') > 0));
@@ -157,16 +193,51 @@ prova('um veículo por negociação da coleta', R.veiculos === cru.veiculos.leng
 /* lance sem loja compradora fica fora das contas e vira aviso (03/11) */
 const semLoja = cru.ofertas.filter((o) => o.loja === null).length;
 prova('todo lance com loja entra na conta; o sem loja vira aviso', R.kpi.lances === cru.ofertas.length - semLoja &&
-  (semLoja === 0 || R.avisos.indexOf(semLoja + ' lance(s) sem loja compradora — fora das contas') >= 0), [R.kpi.lances, cru.ofertas.length, semLoja]);
+  (semLoja === 0 || R.avisos.indexOf(semLoja + ' lance(s) sem loja compradora (lançado por usuário interno) — fora dos lances e dos rankings; se venceu, a venda conta nos vendidos') >= 0), [R.kpi.lances, cru.ofertas.length, semLoja]);
 /* as contas de lance da tela usam só os com loja; o score e o farol do
    veículo, todos (o lance existe, só não tem de quem) */
 const ofCom = cru.ofertas.filter((o) => o.loja !== null);
 prova('com + sem oferta = publicados', R.kpi.com_oferta + R.kpi.sem_oferta === R.kpi.publicados);
 const somaEv = (f) => R.por_evento.reduce((t, e) => t + e.kpi[f], 0);
 ['publicados', 'vendidos', 'lances', 'com_oferta', 'vmv_atingido'].forEach((f) =>
-  prova('soma dos eventos = total: ' + f, somaEv(f) === R.kpi[f], [somaEv(f), R.kpi[f]]));
-const vendCru = cru.veiculos.filter((v) => [2, 3, 7].indexOf(Number(v.status)) >= 0).length;
+  prova('soma dos eventos = total: ' + f + (f === 'lances' ? '' : ' (12/11: o carro em dois eventos conta uma vez no total, então ≥)'),
+    f === 'lances' ? somaEv(f) === R.kpi[f] : somaEv(f) >= R.kpi[f], [somaEv(f), R.kpi[f]]));
+/* um veículo só (12/11): o carro, não a negociação */
+const veicDaNeg = {};
+cru.veiculos.forEach((v) => { veicDaNeg[v.neg] = v.veiculo; });
+prova('publicados = carros distintos da coleta (o mesmo carro em dois eventos conta uma vez)',
+  R.kpi.publicados === new Set(cru.veiculos.map((v) => v.veiculo)).size, [R.kpi.publicados, new Set(cru.veiculos.map((v) => v.veiculo)).size, cru.veiculos.length]);
+const vendCru = new Set(cru.veiculos.filter((v) => [2, 3, 7].indexOf(Number(v.status)) >= 0).map((v) => v.veiculo)).size;
 prova('vendidos = status 2, 3 e 7 na coleta', R.kpi.vendidos === vendCru, [R.kpi.vendidos, vendCru]);
+/* 12/11: venda cuja oferta vencedora não tem loja (lançada por usuário
+   interno, 516768 em 11/11) conta nos vendidos e no valor, não nos
+   compradores nem nos lances — planta tirando a loja da vencedora de uma
+   venda; com Data, a venda segue no dia da oferta vencedora */
+(() => {
+  const ofP = {};
+  cru.ofertas.forEach((o) => { ofP[o.id] = o; });
+  const vend = cru.veiculos.find((v) => [2, 3, 7].indexOf(Number(v.status)) >= 0 && v.vencedora !== null &&
+    ofP[v.vencedora] && ofP[v.vencedora].loja !== null);
+  const sint = JSON.parse(JSON.stringify(d));
+  const iO = NOMES.indexOf('ofertas');
+  const cols = sint.consultas[iO].json.cols;
+  const row = sint.mcp[iO].json.structuredContent.rows[0];
+  const linhas = JSON.parse(row[1]);
+  const alvo = linhas.find((a) => Number(a[cols.indexOf('id')]) === Number(vend.vencedora));
+  alvo[cols.indexOf('loja')] = null;
+  row[1] = JSON.stringify(linhas);
+  const o = roda('montar-painel.js', Object.assign({}, nos, { 'MCP Consultas': sint.mcp }))[0].json;
+  const Ds = dadosDe(o.html);
+  const q = String(ofP[vend.vencedora].quando);
+  const cod = q.slice(2, 4) + q.slice(5, 7) + q.slice(8, 10);
+  const D0v = dadosDe(out.html);
+  prova('venda com a oferta vencedora sem loja: conta nos vendidos e no valor, fora dos lances; com Data, no dia da vencedora',
+    o.resumo.kpi.vendidos === R.kpi.vendidos && o.resumo.kpi.volume === R.kpi.volume && o.resumo.kpi.lances === R.kpi.lances - 1 &&
+    o.resumo.kpi.compradores <= R.kpi.compradores && Ds.veiculos.some((v) => v.neg === Number(vend.neg) && v.arrematante === null) &&
+    calculaDaPagina(Ds, 'todos', { dia: cod }).kpi.vendidos === calculaDaPagina(D0v, 'todos', { dia: cod }).kpi.vendidos &&
+    calculaDaPagina(Ds, 'todos', { dia: cod }).kpi.vendidos > 0,
+    [o.resumo.kpi.vendidos, R.kpi.vendidos, o.resumo.kpi.lances, R.kpi.lances, cod]);
+})();
 const lojasCru = new Set(cru.ofertas.map((o) => o.loja).filter((x) => x !== null)).size;
 prova('ofertantes = lojas distintas nas ofertas', R.kpi.ofertantes === lojasCru, [R.kpi.ofertantes, lojasCru]);
 const ofPorId = {};
@@ -179,8 +250,8 @@ cru.veiculos.forEach((v) => {
 });
 prova('compradores = lojas distintas das ofertas vencedoras', R.kpi.compradores === Object.keys(arrematantes).length,
   [R.kpi.compradores, Object.keys(arrematantes).length]);
-const partCru = new Set(ofCom.map((o) => o.loja + '|' + o.neg)).size;
-prova('participações = pares (loja, negociação) distintos', R.kpi.participacoes === partCru, [R.kpi.participacoes, partCru]);
+const partCru = new Set(ofCom.map((o) => o.loja + '|' + veicDaNeg[o.neg])).size;
+prova('participações = pares (loja, veículo) distintos', R.kpi.participacoes === partCru, [R.kpi.participacoes, partCru]);
 prova('lances/lojista e participações/lojista dividem pelos ofertantes',
   Math.abs(R.kpi.lances_por_lojista - ofCom.length / lojasCru) < 1e-9 &&
   Math.abs(R.kpi.part_por_lojista - partCru / lojasCru) < 1e-9);
@@ -243,62 +314,101 @@ const perTodos = periodoDe(eventosCru);
 const diasTodos = diasNoPeriodo(perTodos);
 const lojaCru = {};
 cru.lojas.forEach((l) => { lojaCru[l.id] = l; });
-/* loja nova (Thomas, 03/11): cadastro pela campanha da Fenauto (a data do
-   PERFIL, coluna "fenauto") num dia de algum evento do filtro, o dia
-   inteiro. Aqui a conta é por evento: o dia do cadastro entre o dia do
-   início e o dia do fim de cada um, e (com Data) igual àquele dia. No nó é
-   o mesmo corte, escrito de outro jeito */
+/* loja nova (Thomas, 12/11): a ENTRADA do cliente do grupo (coluna crua
+   "fenauto": cadastro da loja nova ou primeiro acesso de quem voltou) até
+   o dia do fim do evento, o dia inteiro, sem piso no início do evento; com
+   Data, igual àquele dia. Aqui a conta é evento a evento, sobre a coluna
+   crua; no nó é o mesmo corte, escrito de outro jeito */
 const novaCru = (evs, soDia) => cru.lojas.filter((l) => l.fenauto && !Number(l.apagada) &&
-  evs.some((e) => l.fenauto.slice(0, 10) >= e.ini.slice(0, 10) && l.fenauto.slice(0, 10) <= e.fim.slice(0, 10)) &&
-  (!soDia || l.fenauto.slice(0, 10) === soDia));
+  (soDia ? l.fenauto.slice(0, 10) === soDia : evs.some((e) => l.fenauto.slice(0, 10) <= e.fim.slice(0, 10))));
+/* 12/11 (tarde): separadas — nova = loja cadastrada desde o início da
+   campanha; reativada = loja anterior a ele (a entrada é a volta) */
+const INI_CAMP = d.consultas.find((c) => c.json.queryName === 'lojas').json.meta.inicio_campanha.slice(0, 16);
+const ehReat = (l) => String(l.cadastro || '') < INI_CAMP;
+const novaCruN = (evs, soDia) => novaCru(evs, soDia).filter((l) => !ehReat(l));
+const novaCruR = (evs, soDia) => novaCru(evs, soDia).filter(ehReat);
 const novasTodos = novaCru(eventosCru);
+const cadTodos = novasTodos.filter((l) => !ehReat(l));
+const reatTodos = novasTodos.filter(ehReat);
 const ehNovaT = {};
-novasTodos.forEach((l) => { ehNovaT[l.id] = 1; });
-prova('lojas novas = cadastro pela Fenauto num dia de evento', R.kpi.novas === novasTodos.length && novasTodos.length > 0,
-  [R.kpi.novas, novasTodos.length]);
-prova('loja nova evento a evento: cada um com os cadastros dos dias dele', R.por_evento.every((e) =>
-  e.kpi.novas === novaCru(eventosCru.filter((x) => x.id === e.id)).length), R.por_evento.map((e) => [e.id, e.kpi.novas]));
+novasTodos.forEach((l) => { ehNovaT[l.id] = ehReat(l) ? 'R' : 'N'; });
+const nTot = (k) => k.novas + k.reativadas;
+prova('lojas novas = entrada até o dia do fim de algum evento, refeito da coluna crua; separadas em novas e reativadas',
+  R.kpi.novas === cadTodos.length && R.kpi.reativadas === reatTodos.length && cadTodos.length > 0 && reatTodos.length > 0,
+  [R.kpi.novas, cadTodos.length, R.kpi.reativadas, reatTodos.length]);
+prova('loja nova evento a evento: cada um com as entradas até o dia do fim dele', R.por_evento.every((e) =>
+  e.kpi.novas === novaCruN(eventosCru.filter((x) => x.id === e.id)).length &&
+  e.kpi.reativadas === novaCruR(eventosCru.filter((x) => x.id === e.id)).length), R.por_evento.map((e) => [e.id, e.kpi.novas, e.kpi.reativadas]));
+prova('reativada: tem entrada, loja anterior ao início da campanha e entrada depois do cadastro', D0.lojas.filter((l) => l.reativada).length ===
+  cru.lojas.filter((l) => l.fenauto && ehReat(l)).length && D0.lojas.every((l) => !l.reativada || (l.fenauto && l.fenauto > l.cadastro)));
+/* a coleta de prova (12/11): o grupo da Fenauto 2025 (133) com a campanha
+   em 10/11/2025, e o 22223 de 19 a 21/11/2025 */
+(() => {
+  const mP = d.consultas.find((c) => c.json.queryName === 'lojas').json.meta;
+  const ini = mP.inicio_campanha.slice(0, 16);
+  const priDia = eventosCru.map((e) => e.ini.slice(0, 10)).sort()[0];
+  const ultDia = eventosCru.map((e) => e.fim.slice(0, 10)).sort().pop();
+  const comEntrada = cru.lojas.filter((l) => l.fenauto);
+  prova('coleta: toda entrada é do início da campanha em diante', comEntrada.length > 0 && comEntrada.every((l) => l.fenauto >= ini), ini);
+  prova('coleta: loja cadastrada desde o início da campanha entra pelo cadastro', comEntrada.filter((l) => l.cadastro >= ini).length > 0 &&
+    comEntrada.filter((l) => l.cadastro >= ini).every((l) => l.fenauto === l.cadastro));
+  prova('coleta: loja antiga que voltou é nova pela data do primeiro acesso, não a do cadastro',
+    novasTodos.some((l) => l.cadastro < ini && l.fenauto >= ini), novasTodos.filter((l) => l.cadastro < ini).length);
+  const depois = comEntrada.filter((l) => !Number(l.apagada) && !ehNovaT[l.id]);
+  prova('coleta: entrada depois do fim de todos os eventos não é nova', depois.length > 0 &&
+    depois.every((l) => l.fenauto.slice(0, 10) > ultDia), depois.length);
+  const antes = novasTodos.filter((l) => l.fenauto.slice(0, 10) < priDia);
+  const todosD = calculaDaPagina(D0, 'todos', {});
+  const somaBotoes = todosD.dias_periodo.reduce((t, c) => t + nTot(calculaDaPagina(D0, 'todos', { dia: c }).kpi), 0);
+  prova('coleta: quem entrou antes do 1º dia do evento conta no total, mas em nenhum botão de Data', antes.length > 0 &&
+    antes.every((l) => !!todosD.nova[l.id]) && somaBotoes === novasTodos.length - antes.length &&
+    todosD.dias_periodo.every((c) => antes.every((l) => !calculaDaPagina(D0, 'todos', { dia: c }).nova[l.id])),
+    [antes.length, somaBotoes, novasTodos.length]);
+})();
 prova('coleta: todo evento toca o mês dela, dura no máximo 31 dias e tem Fenauto no nome', cru.eventos.every((e) =>
   e.ini < d.consultas[0].json.meta.mes[1].slice(0, 16) && e.fim >= d.consultas[0].json.meta.mes[0].slice(0, 16) &&
   (new Date(e.fim.slice(0, 10)) - new Date(e.ini.slice(0, 10))) / 86400000 <= 31 &&
   String(e.nome).toLowerCase().indexOf('fenauto') >= 0));
 prova('coleta: só eventos do IGA, nenhum que alveje o 43', cru.eventos.length > 0 &&
   cru.eventos.every((e) => e.op === 'IGA' && String(e.wls).split(',').indexOf('43') < 0));
-prova('coleta: cadastro da Fenauto fora dos dias de evento não é novo (23 e 24/11/2025)', (() => {
-  const fora = cru.lojas.filter((l) => l.fenauto && !ehNovaT[l.id]);
-  return fora.length > 0 && fora.every((l) => eventosCru.every((e) => l.fenauto.slice(0, 10) > e.fim.slice(0, 10) ||
-    l.fenauto.slice(0, 10) < e.ini.slice(0, 10)));
-})());
-prova('coleta: loja antiga com usuário novo da Fenauto é nova (vale a data do perfil)',
-  novasTodos.some((l) => l.cadastro.slice(0, 10) < '2025-01-01'), novasTodos.filter((l) => l.cadastro < '2025-01-01').length);
-prova('coleta: loja sem cadastro pela Fenauto nunca é nova', cru.lojas.some((l) => !l.fenauto) &&
+prova('coleta: loja sem entrada nunca é nova', cru.lojas.some((l) => !l.fenauto) &&
   calculaDaPagina(D0, 'todos', {}).lojas.filter((r) => r.nova).every((r) => cru.lojas.find((l) => Number(l.id) === r.loja).fenauto));
 
-/* os dias do evento valem INTEIROS: planta o cadastro da Fenauto em duas
-   lojas que não o têm, uma às 23:59 do último dia (depois de o evento
-   fechar, que é ao meio-dia) e outra às 00:01 do dia seguinte. A primeira
-   é nova, a segunda não */
+/* o dia do fim vale INTEIRO e não há piso no início do evento (12/11):
+   planta a entrada em três lojas que não a têm — às 23:59 do último dia
+   (depois de o evento fechar, às 16h), às 00:01 do dia seguinte e no dia
+   do início da campanha, antes do primeiro dia do evento. A primeira é
+   nova, a segunda não, a terceira é nova no total e em nenhum botão de
+   Data */
 (() => {
   const sint = JSON.parse(JSON.stringify(d));
   const iL = NOMES.indexOf('lojas');
   const cols = sint.consultas[iL].json.cols;
   const row = sint.mcp[iL].json.structuredContent.rows[0];
   const linhas = JSON.parse(row[1]);
-  const fora = linhas.filter((a) => !a[cols.indexOf('fenauto')] && !Number(a[cols.indexOf('apagada')])).slice(0, 2);
+  const fora = linhas.filter((a) => !a[cols.indexOf('fenauto')] && !Number(a[cols.indexOf('apagada')])).slice(0, 3);
   const ultimo = perTodos[1].slice(0, 10);
   const seguinte = new Date(Date.UTC(Number(ultimo.slice(0, 4)), Number(ultimo.slice(5, 7)) - 1, Number(ultimo.slice(8, 10)) + 1)).toISOString().slice(0, 10);
+  const diaCampanha = sint.consultas[iL].json.meta.inicio_campanha.slice(0, 10);
   fora[0][cols.indexOf('fenauto')] = ultimo + ' 23:59';
   fora[1][cols.indexOf('fenauto')] = seguinte + ' 00:01';
+  fora[2][cols.indexOf('fenauto')] = diaCampanha + ' 08:00';
   row[1] = JSON.stringify(linhas);
   const o = roda('montar-painel.js', Object.assign({}, nos, { 'MCP Consultas': sint.mcp }))[0].json;
   const Ds = dadosDe(o.html);
   const r = calculaDaPagina(Ds, 'todos', {});
   const id0 = Number(fora[0][cols.indexOf('id')]);
   const id1 = Number(fora[1][cols.indexOf('id')]);
-  prova('cadastro às 23:59 do último dia do evento é novo; às 00:01 do dia seguinte, não',
+  const id2 = Number(fora[2][cols.indexOf('id')]);
+  prova('entrada às 23:59 do último dia do evento é nova; às 00:01 do dia seguinte, não',
     perTodos[1].slice(11, 16) < '23:59' && eventosCru.every((e) => e.ini.slice(0, 10) > seguinte || e.fim.slice(0, 10) < seguinte) &&
-    r.nova[id0] === 1 && !r.nova[id1] && o.resumo.kpi.novas === R.kpi.novas + 1,
-    [perTodos[1], !!r.nova[id0], !!r.nova[id1], o.resumo.kpi.novas, R.kpi.novas]);
+    !!r.nova[id0] && !r.nova[id1] && nTot(o.resumo.kpi) === nTot(R.kpi) + 2,
+    [perTodos[1], !!r.nova[id0], !!r.nova[id1], nTot(o.resumo.kpi), nTot(R.kpi)]);
+  prova('entrada no dia do início da campanha, antes do evento: nova no total e no evento, em nenhum botão de Data',
+    diaCampanha < perTodos[0].slice(0, 10) && !!r.nova[id2] && !!calculaDaPagina(Ds, eventosCru[0].id, {}).nova[id2] &&
+    r.dias_periodo.length > 0 && r.dias_periodo.every((c) => !calculaDaPagina(Ds, 'todos', { dia: c }).nova[id2]) &&
+    !!calculaDaPagina(Ds, 'todos', { dia: r.dias_periodo[r.dias_periodo.length - 1] }).nova[id0],
+    [diaCampanha, perTodos[0], !!r.nova[id2]]);
 })();
 
 /* sem pontuação (Thomas, 26/10): recuperações, ofertas e acessos ordenam */
@@ -343,7 +453,7 @@ prova('evento ' + evCru.id + ': período = início → fim dele', ev1.periodo[0]
     Object.keys(so(c6)).length));
   prova('evento: veículos, lances e novos só dele', rc.veiculos.every((v) => v.ev === c6.id) &&
     rc.kpi.lances === ofCom.filter((o) => cru.veiculos.some((v) => v.neg === o.neg && Number(v.evento) === c6.id)).length &&
-    rc.kpi.novas === novaCru([c6]).length);
+    rc.kpi.novas === novaCruN([c6]).length && rc.kpi.reativadas === novaCruR([c6]).length);
   prova('evento: a Data mostra só os dias dele', JSON.stringify(rc.dias_periodo) === JSON.stringify(['251119', '251120', '251121']), rc.dias_periodo);
 })();
 
@@ -370,7 +480,8 @@ prova('acesso fora do período, ou de evento fora do recorte, não muda os dias'
 const porHoraCru = (per, soDia, ok) => {
   const t = [];
   const nv = [];
-  for (let x = 0; x < 24; x++) { t.push(0); nv.push(0); }
+  const rv = [];
+  for (let x = 0; x < 24; x++) { t.push(0); nv.push(0); rv.push(0); }
   const naLista = new Set(todosPag.lojas.map((r) => String(r.loja)));
   const visto = new Set();
   acessosCru.forEach((a) => {
@@ -379,9 +490,10 @@ const porHoraCru = (per, soDia, ok) => {
     if (visto.has(k)) return;
     visto.add(k);
     t[Number(a.hora)]++;
-    if (ehNovaT[a.loja]) nv[Number(a.hora)]++;
+    if (ehNovaT[a.loja] === 'N') nv[Number(a.hora)]++;
+    if (ehNovaT[a.loja] === 'R') rv[Number(a.hora)]++;
   });
-  return { t: t, nv: nv };
+  return { t: t, nv: nv, rv: rv };
 };
 const hc = porHoraCru(perTodos);
 const primeira = hc.t.findIndex((n) => n > 0);
@@ -389,7 +501,8 @@ const ultima = 23 - hc.t.slice().reverse().findIndex((n) => n > 0);
 prova('por hora: do primeiro ao último horário com acesso', todosPag.por_hora.length === ultima - primeira + 1 &&
   todosPag.por_hora[0].h === primeira && todosPag.por_hora[todosPag.por_hora.length - 1].h === ultima,
   [todosPag.por_hora.length, primeira, ultima]);
-prova('por hora: total e novos recalculados do cru', todosPag.por_hora.every((x) => x.total === hc.t[x.h] && x.novas === hc.nv[x.h]));
+prova('por hora: total e novos recalculados do cru', todosPag.por_hora.every((x) => x.total === hc.t[x.h] && x.novas === hc.nv[x.h] && x.reativadas === hc.rv[x.h]) &&
+  hc.rv.some((n) => n > 0));
 prova('por hora: novas ≤ total, toda hora, e algum novo acessou', todosPag.por_hora.every((x) => x.novas <= x.total) &&
   R.kpi.acessos_novas > 0);
 const brutoHora = acessosCru.reduce((t, a) => t + Number(a.n), 0);
@@ -403,18 +516,19 @@ prova('soma por hora ≤ acessos brutos da coleta', R.kpi.acessos <= brutoHora &
 const umDia = todosPag.por_dia.filter((x) => x.total > 0).slice(-3)[0].dia;
 const soDia = calculaDaPagina(D0, 'todos', { dia_hora: umDia });
 const hcDia = porHoraCru(perTodos, umDia);
-prova('clique no dia: por hora só daquele dia', soDia.por_hora.every((x) => x.total === hcDia.t[x.h] && x.novas === hcDia.nv[x.h]) &&
+prova('clique no dia: por hora só daquele dia', soDia.por_hora.every((x) => x.total === hcDia.t[x.h] && x.novas === hcDia.nv[x.h] && x.reativadas === hcDia.rv[x.h]) &&
   soDia.kpi.acessos === hcDia.t.reduce((a, b) => a + b, 0));
-prova('clique no dia: o resto do painel não muda', JSON.stringify(Object.assign({}, soDia.kpi, { acessos: 0, acessos_novas: 0 })) ===
-  JSON.stringify(Object.assign({}, todosPag.kpi, { acessos: 0, acessos_novas: 0 })));
-prova('anúncios acessados = veículos com alguma loja no anúncio', R.kpi.acessados === D0.veiculos.filter((v) => v.acessos > 0).length &&
+prova('clique no dia: o resto do painel não muda', JSON.stringify(Object.assign({}, soDia.kpi, { acessos: 0, acessos_novas: 0, acessos_reativadas: 0 })) ===
+  JSON.stringify(Object.assign({}, todosPag.kpi, { acessos: 0, acessos_novas: 0, acessos_reativadas: 0 })));
+prova('anúncios acessados = veículos com alguma loja no anúncio', R.kpi.acessados === new Set(D0.veiculos.filter((v) => v.acessos > 0).map((v) => v.veic)).size &&
   R.kpi.acessados > 0 && R.kpi.acessados <= R.kpi.publicados);
 prova('acessos únicos por dia: novas ≤ total, todo dia', todosPag.por_dia.length > 0 &&
   todosPag.por_dia.every((x) => x.novas <= x.total));
 /* o mesmo indicador da coluna Acessos do ranking (Thomas, 02/10) */
 prova('acessos únicos por dia somam a coluna Acessos do ranking de lojas',
   todosPag.por_dia.reduce((t, x) => t + x.total, 0) === todosPag.lojas.reduce((t, r) => t + r.acessos, 0) &&
-  todosPag.por_dia.reduce((t, x) => t + x.novas, 0) === todosPag.lojas.filter((r) => r.nova).reduce((t, r) => t + r.acessos, 0) &&
+  todosPag.por_dia.reduce((t, x) => t + x.novas, 0) === todosPag.lojas.filter((r) => r.nova === 'N').reduce((t, r) => t + r.acessos, 0) &&
+  todosPag.por_dia.reduce((t, x) => t + x.reativadas, 0) === todosPag.lojas.filter((r) => r.nova === 'R').reduce((t, r) => t + r.acessos, 0) &&
   todosPag.por_dia.some((x) => x.total > 0),
   [todosPag.por_dia.reduce((t, x) => t + x.total, 0), todosPag.lojas.reduce((t, r) => t + r.acessos, 0)]);
 (() => {
@@ -470,7 +584,14 @@ prova('% FIPE = maior oferta ÷ FIPE', D0.veiculos.every((v) =>
 const vendCruL = cru.veiculos.filter((v) => [2, 3, 7].indexOf(Number(v.status)) >= 0 && v.vencedora !== null && ofPorId[v.vencedora]);
 const somaC = (arr, f) => arr.reduce((t, x) => t + (f(x) || 0), 0);
 const volCru = somaC(vendCruL, (v) => Number(ofPorId[v.vencedora].valor));
-const vmvPubCru = somaC(cru.veiculos, (v) => (v.vmv === null ? 0 : Number(v.vmv)));
+/* o VMV de cada CARRO uma vez: o da negociação que vendeu, senão o da mais recente */
+const repCru = {};
+const vendeuCru = (x) => [2, 3, 7].indexOf(Number(x.status)) >= 0;
+cru.veiculos.forEach((v) => {
+  const r = repCru[v.veiculo];
+  if (!r || (vendeuCru(v) && !vendeuCru(r)) || (vendeuCru(v) === vendeuCru(r) && Number(v.neg) > Number(r.neg))) repCru[v.veiculo] = v;
+});
+const vmvPubCru = somaC(Object.keys(repCru).map((k) => repCru[k]), (v) => (v.vmv === null ? 0 : Number(v.vmv)));
 const comFipe = vendCruL.filter((v) => Number(v.fipe));
 const comVmv = vendCruL.filter((v) => v.vmv !== null && Number(v.vmv));
 const perto = (a, b) => a !== null && Math.abs(a - b) < 1e-9;
@@ -493,8 +614,9 @@ if (semAcessoMasOferta) {
 const F = R.funil.map((f) => f[1]);
 prova('funil tem as cinco etapas (06/10: Logaram e Acessaram viraram uma)', JSON.stringify(R.funil.map((f) => f[0])) ===
   JSON.stringify(['Cadastrados', 'Aprovados', 'Acessaram', 'Ofertaram', 'Compraram']));
-prova('aprovados = cadastros novos em situation 3', F[1] === novasTodos.filter((l) => Number(l.situacao) === 3).length);
-prova('acessaram = novos com dia de acesso no período', F[2] === novasTodos.filter((l) => diasTodos[l.id]).length);
+prova('aprovados = cadastros novos em situation 3', F[0] === cadTodos.length && F[1] === cadTodos.filter((l) => Number(l.situacao) === 3).length);
+prova('acessaram = novos com dia de acesso no período', F[2] === cadTodos.filter((l) => diasTodos[l.id]).length &&
+  R.kpi.reativadas_acessaram === reatTodos.filter((l) => diasTodos[l.id]).length);
 prova('compraram ≤ ofertaram ≤ cadastrados, e toda etapa ≤ cadastrados',
   F[4] <= F[3] && F.every((x) => x <= F[0]), F);
 
@@ -512,14 +634,14 @@ D0.veiculos.forEach((v) => { negDe[v.neg] = v; });
 const umPatio = todosPag.patios[0].patio;
 const fp = calculaDaPagina(D0, 'todos', { patio: umPatio });
 const negsP = D0.veiculos.filter((v) => v.patio === umPatio).map((v) => v.neg);
-prova('Pátio: publicados = veículos do pátio', fp.kpi.publicados === negsP.length && fp.veiculos.every((v) => v.patio === umPatio));
+prova('Pátio: publicados = veículos do pátio', fp.kpi.publicados === new Set(D0.veiculos.filter((v) => v.patio === umPatio).map((v) => v.veic)).size && fp.veiculos.every((v) => v.patio === umPatio));
 prova('Pátio: lances = lances nesses veículos', fp.kpi.lances === ofCom.filter((o) => negsP.indexOf(Number(o.neg)) >= 0).length);
 prova('Pátio: a tabela de pátios só tem ele', fp.patios.length === 1 && fp.patios[0].patio === umPatio);
 prova('Pátio: acesso ao evento não muda', fp.kpi.lojas_acessaram === todosPag.kpi.lojas_acessaram && fp.kpi.novas === todosPag.kpi.novas);
 /* status do veículo: o farol intrínseco */
 ['sem', 'abaixo', 'atingiu'].forEach((fa) => {
   const r = calculaDaPagina(D0, 'todos', { farol: fa });
-  prova('Status ' + fa + ': publicados = veículos com esse farol', r.kpi.publicados === D0.veiculos.filter((v) => v.farol === fa).length &&
+  prova('Status ' + fa + ': publicados = veículos com esse farol', r.kpi.publicados === new Set(D0.veiculos.filter((v) => v.farol === fa).map((v) => v.veic)).size &&
     r.veiculos.every((v) => v.farol === fa));
 });
 prova('Status sem oferta: nenhum lance', calculaDaPagina(D0, 'todos', { farol: 'sem' }).kpi.lances === 0);
@@ -550,14 +672,15 @@ prova('Data ' + dataF + ': lances = lances daquele dia', fd.kpi.lances === ofCom
 prova('Data ' + dataF + ': cada loja com no máximo 1 dia de acesso', fd.lojas.every((x) => x.acessos <= 1) &&
   fd.por_dia.length === 1 && fd.por_dia[0].dia === diaF);
 const perDia = [dataF + ' 00:00' > perTodos[0] ? dataF + ' 00:00' : perTodos[0], dataF + ' 23:59' < perTodos[1] ? dataF + ' 23:59' : perTodos[1]];
-prova('Data ' + dataF + ': novos = cadastrados naquele dia', fd.kpi.novas === novaCru(eventosCru, dataF).length, [fd.kpi.novas, novaCru(eventosCru, dataF).length]);
+prova('Data ' + dataF + ': novos = entraram naquele dia', fd.kpi.novas === novaCruN(eventosCru, dataF).length &&
+  fd.kpi.reativadas === novaCruR(eventosCru, dataF).length, [fd.kpi.novas, novaCruN(eventosCru, dataF).length]);
 prova('Data ' + dataF + ': vendas pela data da oferta vencedora', fd.kpi.vendidos === cru.veiculos.filter((v) =>
   [2, 3, 7].indexOf(Number(v.status)) >= 0 && ofPorId[v.vencedora] && ofPorId[v.vencedora].quando.slice(0, 10) === dataF).length);
 prova('Data ' + dataF + ': a lista de veículos continua inteira', fd.veiculos.length === todosPag.veiculos.length);
 /* a Data virou os botões acima do funil (Thomas, 26/10): cadastros, acessos e
    negociações daquele dia — e o funil acompanha */
-prova('Data ' + dataF + ': o funil só com os cadastrados naquele dia, refeito do cru', fd.funil[0][1] === novaCru(eventosCru, dataF).length &&
-  fd.funil[2][1] === novaCru(eventosCru, dataF).filter((l) => diasNoPeriodo([dataF + ' 00:00' > perTodos[0] ? dataF + ' 00:00' : perTodos[0],
+prova('Data ' + dataF + ': o funil só com os cadastrados naquele dia, refeito do cru', fd.funil[0][1] === novaCruN(eventosCru, dataF).length &&
+  fd.funil[2][1] === novaCruN(eventosCru, dataF).filter((l) => diasNoPeriodo([dataF + ' 00:00' > perTodos[0] ? dataF + ' 00:00' : perTodos[0],
     dataF + ' 23:59' < perTodos[1] ? dataF + ' 23:59' : perTodos[1]])[l.id]).length && fd.kpi.novas_acessaram === fd.funil[2][1], fd.funil);
 prova('Data ' + dataF + ': os botões continuam todos (o período não encolhe com o dia)',
   JSON.stringify(fd.dias_periodo) === JSON.stringify(todosPag.dias_periodo) && todosPag.dias_periodo.length > 1);
@@ -569,7 +692,48 @@ const fj = calculaDaPagina(D0, 'todos', { patio: umPatio, farol: 'abaixo' });
 /* filtro de representante que chegasse por engano (link velho, cópia do C6)
    não recorta nada: a calcula não conhece gp nem gn */
 prova('gp/gn no filtro são ignorados', JSON.stringify(calculaDaPagina(D0, 'todos', { gp: 'X', gn: 'Y' }).kpi) === JSON.stringify(todosPag.kpi));
-prova('Pátio + Status: interseção', fj.kpi.publicados === D0.veiculos.filter((v) => v.patio === umPatio && v.farol === 'abaixo').length);
+prova('Pátio + Status: interseção', fj.kpi.publicados === new Set(D0.veiculos.filter((v) => v.patio === umPatio && v.farol === 'abaixo').map((v) => v.veic)).size);
+
+/* um veículo só (Thomas, 12/11): planta o mesmo carro numa segunda
+   negociação, sem oferta, em outro evento da coleta (ou no mesmo, se ela
+   só tem um). O total de carros e de linhas da tabela não muda, o evento
+   dele ganha um, e a linha diz em quantos eventos ele esteve, com as
+   ofertas dele e o resultado da negociação mais recente */
+(() => {
+  const sint = JSON.parse(JSON.stringify(d));
+  const iV = NOMES.indexOf('veiculos');
+  const cols = sint.consultas[iV].json.cols.map((c) => (Array.isArray(c) ? c[0] : c));
+  const row = sint.mcp[iV].json.structuredContent.rows[0];
+  const linhas = JSON.parse(row[1]);
+  const C = (k) => cols.indexOf(k);
+  const qtdDe = {};
+  D0.veiculos.forEach((v) => { qtdDe[v.neg] = v.qtd; });
+  const orig = linhas.find((a) => qtdDe[Number(a[C('neg')])] > 0 && [2, 3, 7].indexOf(Number(a[C('status')])) < 0 &&
+    linhas.filter((b) => Number(b[C('veiculo')]) === Number(a[C('veiculo')])).length === 1);
+  const evs = [];
+  linhas.forEach((a) => { if (evs.indexOf(Number(a[C('evento')])) < 0) evs.push(Number(a[C('evento')])); });
+  const evB = evs.find((e) => e !== Number(orig[C('evento')])) || Number(orig[C('evento')]);
+  const nova = orig.slice();
+  nova[C('neg')] = Math.max.apply(null, linhas.map((a) => Number(a[C('neg')]))) + 1;
+  nova[C('anuncio')] = Math.max.apply(null, linhas.map((a) => Number(a[C('anuncio')]))) + 1;
+  nova[C('evento')] = evB;
+  nova[C('status')] = 11;
+  nova[C('vencedora')] = null;
+  linhas.push(nova);
+  const scV = sint.mcp[iV].json.structuredContent;
+  row[scV.columns.indexOf('linhas')] = JSON.stringify(linhas);
+  row[scV.columns.indexOf('total')] = linhas.length;
+  const o = roda('montar-painel.js', Object.assign({}, nos, { 'MCP Consultas': sint.mcp }))[0].json;
+  const Ds = dadosDe(o.html);
+  const t = calculaDaPagina(Ds, 'todos', {});
+  const linha = t.veiculos.filter((v) => v.veic === Number(orig[C('veiculo')]));
+  prova('um veículo só: o carro em duas negociações conta uma vez e tem uma linha só, com as ofertas dele e o status da mais recente',
+    o.resumo.veiculos === R.veiculos + 1 && o.resumo.kpi.publicados === R.kpi.publicados && t.veiculos.length === todosPag.veiculos.length &&
+    linha.length === 1 && linha[0].n_ev === 2 && linha[0].qtd === qtdDe[Number(orig[C('neg')])] && linha[0].status === 11 &&
+    linha[0].neg === nova[C('neg')] && o.resumo.kpi.com_oferta === R.kpi.com_oferta &&
+    (evB === Number(orig[C('evento')]) || calculaDaPagina(Ds, evB, {}).kpi.publicados === calculaDaPagina(D0, evB, {}).kpi.publicados + 1),
+    [o.resumo.veiculos, R.veiculos, o.resumo.kpi.publicados, R.kpi.publicados, linha.length && linha[0].n_ev, evB]);
+})();
 prova('sem filtro = filtro vazio', JSON.stringify(calculaDaPagina(D0, 'todos', { dia: '', patio: '', farol: '' }).kpi) ===
   JSON.stringify(todosPag.kpi));
 
@@ -732,7 +896,7 @@ prova('botão de evento troca o recorte e refaz a Data', scr.indexOf("sel = v ==
 prova('botões de Data fora de cartão, entre os KPIs e o funil', (() => {
   const b = semScript.indexOf('id="f-dias"');
   const fimKpi = semScript.indexOf('</section>', semScript.indexOf('id="k-nv"'));
-  const linha = semScript.indexOf('<section class="g2i">', fimKpi);
+  const linha = semScript.indexOf('<section class="g3i">', fimKpi);
   const antes = semScript.slice(fimKpi, b);
   return fimKpi < b && b < linha && linha < semScript.indexOf('id="funil"') && antes.indexOf('cartao') < 0 &&
     semScript.indexOf('<div class="barra-dias"><span class="rot-dias" id="f-dias-rot">Data</span>') > 0 &&
@@ -748,13 +912,14 @@ prova('a aba de Filtros não conta a data nem o evento (eles não moram na gavet
   scr.indexOf("const n = FILTROS.filter((k) => k !== 'dia' && F[k]).length;") > 0 && scr.indexOf("(sel === 'todos' ? 0 : 1)") < 0);
 prova('ranking de lojas na linha inteira', (() => {
   const i = semScript.indexOf('id="th-lojas"');
-  const g = semScript.lastIndexOf('<section class="g2i">', i);
+  const g = semScript.lastIndexOf('<section class="g3i">', i);
   return i > 0 && semScript.lastIndexOf('</section>', i) > g;
 })());
 prova('ranking de lojas com primeiro e último acesso, sem GP nem GN', ["t: 'Primeiro acesso'", "t: 'Último acesso'"]
   .every((t) => scr.indexOf(t) > 0) && ["t: 'Usuário GP'", "t: 'Usuário GN'", "k: 'gp'", "k: 'gn'"].every((t) => h.indexOf(t) < 0));
-prova('cinco cartões: Performance financeira logo depois de Vendidos', (semScript.match(/class="kpi-val num"/g) || []).length === 5 &&
+prova('seis cartões: Performance financeira logo depois de Vendidos; Reativados depois de Novos lojistas', (semScript.match(/class="kpi-val num"/g) || []).length === 6 &&
   semScript.indexOf('id="k-vd"') < semScript.indexOf('id="k-pf"') && semScript.indexOf('id="k-pf"') < semScript.indexOf('id="k-nv"') &&
+  semScript.indexOf('id="k-nv"') < semScript.indexOf('id="k-rt"') && h.indexOf('repeat(6,minmax(0,1fr))') > 0 &&
   ['id="k-pf-pc"', 'id="k-pf-fipe"', 'id="k-pf-vmv"'].every((t) => semScript.indexOf(t) > 0));
 prova('Vendidos sem o valor; valor na Performance financeira', scr.indexOf("$('#k-vd').textContent = nf(k.vendidos);") > 0 &&
   scr.indexOf("$('#k-pf').textContent = rs(k.volume);") > 0 && h.indexOf('kpi-val-2') < 0);
@@ -771,7 +936,7 @@ prova('farol abaixo do VMV com a cor do tema, nos dois temas', h.indexOf('.farol
 prova('sem degradê amarelo no escuro', h.indexOf('rgba(255,192,0,.07)') < 0);
 prova('pátios fora da grade de duas colunas (linha inteira)', (() => {
   const i = semScript.indexOf('id="th-patios"');
-  const g = semScript.lastIndexOf('<section class="g2i">', i);
+  const g = semScript.lastIndexOf('<section class="g3i">', i);
   return i > 0 && semScript.lastIndexOf('</section>', i) > g;
 })());
 prova('gaveta de filtros com Pátio e Status, sem Evento, Data nem Usuário GP/GN', ['id="gaveta"', 'id="f-patio"', 'id="f-farol"', 'id="limpar"']
@@ -783,7 +948,8 @@ prova('funil: mínimo de 3 dígitos somado em todas as etapas + parte proporcion
   scr.indexOf('const MIN_F = 3 * 7.4 + 16;') > 0 && scr.indexOf('MIN_F + (FW - MIN_F) * (v0 ? f[1] / v0 : 0)') > 0);
 prova('funil à esquerda das lojas por dia; por hora abaixo', semScript.indexOf('id="funil"') < semScript.indexOf('id="g-dia"') &&
   semScript.indexOf('id="g-dia"') < semScript.indexOf('id="g-hora"'));
-prova('botões Todos lojistas/Somente novos; sem o botão GN/GP', ['Todos lojistas', 'Somente novos'].every((t) => semScript.indexOf(t) > 0) &&
+prova('botões Todos lojistas/Novos/Reativados; sem o botão GN/GP', ['>Todos lojistas<', '>Novos<', '>Reativados<'].every((t) => semScript.indexOf(t) > 0) &&
+  semScript.indexOf('Somente novos') < 0 &&
   h.indexOf('seg-reps') < 0 && h.indexOf('f-rep') < 0);
 /* ordem pedida em 29/09, sem os filtros de usuário; nada disso no topo */
 const gav = semScript.slice(semScript.indexOf('id="gaveta"'), semScript.indexOf('</aside>'));
@@ -850,7 +1016,7 @@ prova('resumo sem representantes', R.representantes === undefined);
 prova('calcula não devolve representantes', todosPag.representantes === undefined);
 prova('nenhum texto de representante no HTML', ['Representante', 'representante', 'Usuário GP', 'Usuário GN', 'GP_Usuario', 'GN_Usuario', 'carteira de', 'Carteira C6']
   .every((t) => h.indexOf(t) < 0), ['Representante', 'representante', 'Usuário GP', 'Usuário GN', 'carteira de'].filter((t) => h.indexOf(t) >= 0));
-prova('CSV de novos lojistas sem GP e GN, com nome próprio', scr.indexOf("const cab = ['Loja', 'Primeiro acesso',") > 0 &&
+prova('CSV de novos lojistas sem GP e GN, com nome próprio', scr.indexOf("const cab = ['Loja', 'Tipo', 'Primeiro acesso',") > 0 &&
   scr.indexOf("'novos-lojistas-mega-evento-fenauto-'") > 0 && scr.indexOf('r.gp') < 0 && scr.indexOf('r.gn') < 0);
 prova('sem pontuação nenhuma no nó nem na página', painelFonte.indexOf('pontos') < 0 && painelFonte.indexOf('PONTOS') < 0 && h.indexOf('Pontuação') < 0);
 prova('rodapé sem a data da carteira', scr.indexOf('base_reps') < 0);
@@ -888,6 +1054,115 @@ prova('rodapé e glossário falam do mês, da Fenauto e só do IGA', scr.indexOf
   h.indexOf('Evento do IGA (tem veículo do Itaú Unibanco') > 0 && h.indexOf('Os eventos do C6 (os que alvejam o Canal de vendas C6 Auto) ficam fora.') > 0 &&
   h.indexOf('Abre o anúncio no cars2you.com.br, a vitrine dos eventos do IGA.') > 0 &&
   h.indexOf('campanha da Fenauto') > 0 && h.indexOf('grupo de clientes') < 0);
+/* 12/11: o glossário de Novos lojistas com a regra do grupo, e a do
+   formulário fora */
+prova('glossário: Novos lojistas pelo grupo da Fenauto, antigos sem compra que voltaram, quem fica fora e o total sem botão de Data', (() => {
+  const mG = d.consultas[0].json.meta;
+  const dia = mG.inicio_campanha.slice(8, 10) + '/' + mG.inicio_campanha.slice(5, 7);
+  return h.indexOf('["Novos lojistas","Lojas cadastradas a partir de ' + dia + ' com um usuário no grupo ' + mG.grupo_iga_nome +
+      '. Ficam fora os usuários internos, os cadastros de teste e as contas do banco.') > 0 &&
+    h.indexOf('["Reativados","Lojas antigas do grupo ' + mG.grupo_iga_nome + ' que não compraram nada nos 6 meses antes de ' + dia +
+      ' e acessaram a plataforma a partir de ' + dia + '. Os compradores desses 6 meses ficam fora (aparecem só nos acessos)') > 0 &&
+    h.indexOf('entra no total, mas em nenhum botão de Data') > 0 &&
+    h.indexOf('com um usuário cadastrado pela campanha da Fenauto do IGA do ano') < 0 && h.indexOf('Acesso e cadastro fora dele') < 0;
+})());
+
+/* ── 9. lojistas por região e UF (Thomas, 11/11) ────────────────────────
+   Só a campanha da Fenauto do ano ("considere somente Fenauto 2026"). */
+const consNovas = roda('montar-consultas.js', {});
+const sqlLojas = consNovas.find((c) => c.json.queryName === 'lojas').json;
+const anoHoje = sqlLojas.meta.mes[0].slice(0, 4);
+const ufCaseBase = ler('../analise-base-geral/montar-queries.js').split('const UF_CASE = "')[1].split('";')[0];
+prova('consulta de lojas traz a UF do endereço da loja, com a normalização da Análise de Base',
+  sqlLojas.cols.indexOf('uf') > 0 && sqlLojas.sql.indexOf('FROM shop_addresses sa WHERE sa.shop_id = s.id AND sa.deleted_at IS NULL') > 0 &&
+  sqlLojas.sql.indexOf('(SELECT MIN(' + ufCaseBase + ')') > 0 && sqlLojas.sql.indexOf('shop_stocks') < 0);
+prova('consulta de lojas: a campanha do ANO do recorte, na coluna e no universo (em qualquer data)',
+  sqlLojas.meta.campanha_ano === 'fenauto ' + anoHoje + ' iga' && sqlLojas.cols[sqlLojas.cols.length - 1] === 'fenauto_ano' &&
+  sqlLojas.sql.split("register_form_value LIKE '%fenauto " + anoHoje + " iga%'").length === 3 &&
+  sqlLojas.sql.indexOf("up4.register_form_value LIKE '%fenauto " + anoHoje + " iga%' UNION SELECT f.id, f.entrada AS fen FROM (") > 0);
+const consProva = d.consultas.find((c) => c.json.queryName === 'lojas').json;
+const anoProva = consProva.meta.mes[0].slice(0, 4);
+prova('coleta de prova: o ano da campanha acompanha o mês trocado', consProva.meta.campanha_ano === 'fenauto ' + anoProva + ' iga' &&
+  consProva.sql.split("'%fenauto " + anoProva + " iga%'").length === 3 && consProva.sql.indexOf("'%fenauto " + anoHoje + " iga%'") < 0 || anoProva === anoHoje);
+/* 12/11: a loja nova também anda com o ano — na prova (2025), a campanha
+   em 10/11/2025, a janela sem compra desde 10/05/2025 e o grupo 133, "VD
+   Itaú - Fenauto 2025", no lugar do 148 */
+prova('coleta de prova: início da campanha, janela sem compra e grupo da Fenauto do ano trocados', anoProva === anoHoje || (
+  consProva.meta.inicio_campanha === anoProva + '-11-10 00:00:00' && consProva.meta.sem_compra_desde === anoProva + '-05-10 00:00:00' &&
+  JSON.stringify(consProva.meta.grupos_iga) === '[133]' && consProva.meta.grupo_iga_nome === 'VD Itaú - Fenauto ' + anoProva &&
+  consProva.sql.split("'" + anoProva + "-11-10 00:00:00'").length === 5 && consProva.sql.split("'" + anoProva + "-05-10 00:00:00'").length === 2 &&
+  consProva.sql.indexOf('ucg.client_group_id IN (133))') > 0 && consProva.sql.indexOf('(148)') < 0 &&
+  consProva.sql.indexOf("'" + anoHoje + "-11-10") < 0 && consProva.sql.indexOf("'" + anoHoje + "-05-10") < 0), consProva.meta);
+/* a conta refeita por outro caminho, com UF e cadastro da campanha plantados:
+   quatro regiões, uma sigla inválida, uma loja sem UF, cadastros em dois dias
+   do evento e um fora deles, uma loja apagada e lojas sem a campanha */
+const REG_IND = { Sudeste: ['SP', 'RJ', 'MG', 'ES'], Nordeste: ['BA', 'PE', 'CE', 'AL', 'SE', 'PB', 'RN', 'PI', 'MA'],
+  Sul: ['PR', 'SC', 'RS'], 'Centro-Oeste': ['DF', 'GO', 'MT', 'MS'], Norte: ['AM', 'PA', 'AC', 'AP', 'RO', 'RR', 'TO'] };
+const regDe = (uf) => Object.keys(REG_IND).find((k) => REG_IND[k].indexOf(uf) >= 0) || 'Não identificada';
+const PLANTA = ['SP', 'SP', 'RJ', 'BA', 'PR', 'XX', null, 'DF', 'SP', 'MG'];
+const D9 = JSON.parse(JSON.stringify(D0));
+const ev9 = D9.eventos.slice().sort((a, b) => (a.ini < b.ini ? -1 : 1))[0];
+const dia9a = ev9.ini.slice(0, 10);
+const DATAS9 = [dia9a + ' 10:00', dia9a + ' 15:30', null, '2000-01-05 10:00', ev9.fim.slice(0, 10) + ' 09:00', null];
+D9.lojas.forEach((l, i) => { l.uf = PLANTA[i % PLANTA.length]; l.fenauto_ano = DATAS9[i % DATAS9.length]; });
+const apagada9 = D9.lojas.find((l) => l.fenauto_ano);
+apagada9.apagada = true;
+const R9 = calculaDaPagina(D9, 'todos', {});
+const camp9 = D9.lojas.filter((l) => l.fenauto_ano && !l.apagada);
+const rank9 = {};
+R9.lojas.forEach((r) => { rank9[r.loja] = r; });
+const esperado9 = {};
+camp9.forEach((l) => { const g = regDe(l.uf); esperado9[g] = (esperado9[g] || 0) + 1; });
+prova('regiões: a soma é o número de lojas da campanha do ano (apagada fora, data fora do evento dentro)', camp9.length > 0 &&
+  R9.regioes.reduce((t, r) => t + r.total, 0) === camp9.length && camp9.some((l) => l.fenauto_ano.indexOf('2000-') === 0), [camp9.length]);
+prova('regiões: cada região conta o que a UF dela diz, refeito do cru', Object.keys(esperado9).length === R9.regioes.length &&
+  R9.regioes.every((r) => esperado9[r.regiao] === r.total && r.ufs.reduce((t, u) => t + u.total, 0) === r.total), [esperado9, R9.regioes.map((r) => [r.regiao, r.total])]);
+prova('regiões: sigla inválida e loja sem UF caem em Não identificada, por último', (() => {
+  const ni = R9.regioes.find((r) => r.regiao === 'Não identificada');
+  return !!ni && R9.regioes[R9.regioes.length - 1] === ni && ni.ufs.length === 1 && ni.ufs[0].uf === null &&
+    R9.regioes.every((r) => r.ufs.every((u) => u.uf !== 'XX'));
+})());
+prova('regiões e UFs do maior para o menor', R9.regioes.slice(0, -1).every((r, i, a) => i === 0 || a[i - 1].total >= r.total) &&
+  R9.regioes.every((r) => r.ufs.every((u, i, a) => i === 0 || a[i - 1].total >= u.total)));
+prova('regiões: acessaram, ofertaram e compraram por UF, pelo ranking de lojas', R9.regioes.every((r) => r.ufs.every((u) => {
+  const ls = camp9.filter((l) => regDe(l.uf) === r.regiao && (regDe(l.uf) === 'Não identificada' ? null : l.uf) === u.uf);
+  const de = (l) => rank9[l.id] || { acessos: 0, lances: 0, arrem: 0 };
+  return ls.length === u.total && ls.filter((l) => de(l).acessos > 0).length === u.acessaram &&
+    ls.filter((l) => de(l).lances > 0).length === u.ofertaram && ls.filter((l) => de(l).arrem > 0).length === u.compraram;
+})));
+prova('regiões: com Data, só os cadastros daquele dia', (() => {
+  const cod = dia9a.slice(2, 4) + dia9a.slice(5, 7) + dia9a.slice(8, 10);
+  const Rd = calculaDaPagina(D9, 'todos', { dia: cod });
+  const esp = camp9.filter((l) => l.fenauto_ano.slice(0, 10) === dia9a).length;
+  return esp > 0 && esp < camp9.length && Rd.regioes.reduce((t, r) => t + r.total, 0) === esp;
+})());
+prova('regiões: o Evento não recorta a campanha', D9.eventos.every((e) => {
+  const Re = calculaDaPagina(D9, e.id, {});
+  return Re.regioes.reduce((t, r) => t + r.total, 0) === camp9.length;
+}));
+prova('regiões: o filtro Lojistas não entra (a calcula não o conhece)', scr.indexOf('soNovas', scr.indexOf('function calcula(')) < 0 ||
+  scr.indexOf('soNovas', scr.indexOf('function calcula(')) > scr.indexOf('function APP('));
+prova('regiões na coleta de prova: as lojas da campanha do ano, nem mais nem menos', (() => {
+  const esp = cru.lojas.filter((l) => l.fenauto_ano && Number(l.apagada) !== 1).length;
+  return R.regioes.reduce((t, r) => t + r.total, 0) === esp;
+})());
+prova('regiões: o resumo traz o mesmo que a página calcula', semBytes(R.regioes) ===
+  semBytes(calculaDaPagina(D0, 'todos', {}).regioes.map((r) => ({ regiao: r.regiao, total: r.total, acessaram: r.acessaram, ufs: r.ufs.map((u) => [u.uf, u.total]) }))));
+prova('cartão de regiões entre o funil e os acessos únicos por dia, na mesma linha', (() => {
+  const f = semScript.indexOf('id="funil"');
+  const g = semScript.indexOf('id="g-regiao"');
+  const dd = semScript.indexOf('id="g-dia"');
+  const sec = semScript.lastIndexOf('<section class="g3i">', f);
+  return f < g && g < dd && sec > 0 && semScript.indexOf('</section>', sec) > dd &&
+    semScript.indexOf('<h2>Lojistas Fenauto ' + anoProva + ' por região</h2>') > 0 && semScript.indexOf('class="cartao c-flex c-dia"') > 0;
+})());
+prova('grade de três colunas, duas no meio (acessos na linha inteira) e uma no telefone',
+  h.indexOf('.g3i{display:grid;gap:var(--gap);grid-template-columns:repeat(3,minmax(0,1fr))}') > 0 &&
+  h.indexOf('@media (max-width:1400px){.g3i{grid-template-columns:1fr 1fr}.g3i > .c-dia{grid-column:1 / -1}}') > 0 &&
+  h.indexOf('@media (max-width:860px){.g3i{grid-template-columns:1fr}}') > 0);
+prova('barras por região: pedaço por UF com vão de 2px, cor da série Total, legenda das UFs embaixo',
+  h.indexOf('.reg-barra{display:flex;gap:2px;') > 0 && h.indexOf('background:var(--serie-2)') > 0 &&
+  scr.indexOf('<span class="reg-leg">') > 0 && scr.indexOf('data-dica="') > 0 && h.indexOf('["Lojistas Fenauto ' + anoProva + ' por região","Só as lojas cadastradas pela campanha da Fenauto ' + anoProva) > 0);
 
 console.log((falhas ? '✗' : '✓') + ' %d provas, %d falha(s)', ok + falhas, falhas);
 if (falhas) process.exit(1);

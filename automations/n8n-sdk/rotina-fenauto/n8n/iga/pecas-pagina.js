@@ -29,7 +29,7 @@ function APP(D) {
   const trilho = (x) => '<span class="trilho" aria-hidden="true"><i style="width:' +
     (x === null ? 0 : Math.max(0, Math.min(100, 100 * x))).toFixed(1) + '%"></i></span>';
   let sel = 'todos';
-  let soNovas = false;
+  let filtroLojas = 'todas';
   let lojasNovasExp = [];
   const F = { dia: '', patio: '', farol: '', dia_hora: '' };
   const FILTROS = ['dia', 'patio', 'farol'];
@@ -220,6 +220,40 @@ function APP(D) {
     });
     alvo.innerHTML = s + '</svg>';
   }
+  const UF_NOME = {
+    AC: 'Acre', AL: 'Alagoas', AM: 'Amazonas', AP: 'Amapá', BA: 'Bahia', CE: 'Ceará',
+    DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás', MA: 'Maranhão', MG: 'Minas Gerais',
+    MS: 'Mato Grosso do Sul', MT: 'Mato Grosso', PA: 'Pará', PB: 'Paraíba', PE: 'Pernambuco',
+    PI: 'Piauí', PR: 'Paraná', RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RO: 'Rondônia',
+    RR: 'Roraima', RS: 'Rio Grande do Sul', SC: 'Santa Catarina', SE: 'Sergipe', SP: 'São Paulo',
+    TO: 'Tocantins'
+  };
+  const SIGLA_CABE = 0.12;
+  function regioes(alvo, lista) {
+    const total = lista.reduce((t, r) => t + r.total, 0);
+    if (!total) { alvo.innerHTML = '<p class="dim">Nenhum cadastro da campanha no período.</p>'; return; }
+    const maior = Math.max.apply(null, lista.map((r) => r.total));
+    const plural = (n, um, varios) => nf(n) + ' ' + (n === 1 ? um : varios);
+    alvo.innerHTML = lista.map((r) => {
+      const segs = r.ufs.map((u) => {
+        const nome = u.uf ? u.uf + ' · ' + (UF_NOME[u.uf] || u.uf) : 'Sem UF válida no endereço';
+        const txt = '<b>' + esc(nome) + '</b><br>' + plural(u.total, 'lojista', 'lojistas') + ' · ' +
+          pc(u.total / total) + ' do total' +
+          '<br>Acessaram: ' + nf(u.acessaram) + ' · Ofertaram: ' + nf(u.ofertaram) + ' · Compraram: ' + nf(u.compraram);
+        const cabe = u.uf && u.total / maior >= SIGLA_CABE;
+        return '<span class="reg-seg" style="flex-grow:' + u.total + '" tabindex="0" data-dica="' + esc(txt) + '">' +
+          (cabe ? esc(u.uf) : '') + '</span>';
+      }).join('');
+      const leg = r.ufs.map((u) => '<span class="reg-uf"><span class="amostra serie-b"></span>' +
+        (u.uf ? esc(u.uf) : 'sem UF') + ' <b class="num">' + nf(u.total) + '</b></span>').join('');
+      return '<div class="reg-linha">' +
+        '<span class="reg-nome">' + esc(r.regiao) + '</span>' +
+        '<span class="reg-trilho"><span class="reg-barra" style="width:' + (100 * r.total / maior).toFixed(2) + '%">' + segs + '</span></span>' +
+        '<span class="reg-val num"><b>' + nf(r.total) + '</b> <span class="dim">' + pc0(r.total / total) + '</span></span>' +
+        '<span class="reg-leg">' + leg + '</span>' +
+        '</div>';
+    }).join('');
+  }
   function opcoes(id, lista, rotTodos, atual) {
     const el = $('#' + id);
     el.innerHTML = '<option value="">' + esc(rotTodos) + '</option>' + lista.map((o) =>
@@ -259,7 +293,7 @@ function APP(D) {
     FILTROS.forEach((k) => { F[k] = ''; });
     F.dia_hora = '';
     sel = 'todos';
-    alterna('seg-lojas', 'todas', (v) => { soNovas = v === 'novas'; });
+    alterna('seg-lojas', 'todas', (v) => { filtroLojas = v; });
     montaFiltros();
     render();
   });
@@ -302,11 +336,19 @@ function APP(D) {
     $('#k-nv-ac').textContent = nf(k.novas_acessaram);
     $('#k-nv-of').textContent = nf(k.novas_ofertaram);
     $('#k-nv-cp').textContent = nf(k.novas_compraram);
-    const lojasVis = R.lojas.filter((r) => (r.nova || r.acessos > 0) && (!soNovas || r.nova));
-    $('#n-lojas').textContent = lojasVis.length + (lojasVis.length === 1 ? (soNovas ? ' loja nova' : ' loja') : (soNovas ? ' lojas novas' : ' lojas'));
+    $('#k-rt').textContent = nf(k.reativadas);
+    pcBar('#k-rt-pc', '#k-rt-bar', k.engaj_reativadas, 'de engajamento');
+    $('#k-rt-ac').textContent = nf(k.reativadas_acessaram);
+    $('#k-rt-of').textContent = nf(k.reativadas_ofertaram);
+    $('#k-rt-cp').textContent = nf(k.reativadas_compraram);
+    const tipoVis = filtroLojas === 'novas' ? 'N' : filtroLojas === 'reativadas' ? 'R' : '';
+    const lojasVis = R.lojas.filter((r) => (r.nova || r.acessos > 0) && (!tipoVis || r.nova === tipoVis));
+    const um = lojasVis.length === 1;
+    $('#n-lojas').textContent = lojasVis.length + (tipoVis === 'N' ? (um ? ' loja nova' : ' lojas novas')
+      : tipoVis === 'R' ? (um ? ' loja reativada' : ' lojas reativadas') : (um ? ' loja' : ' lojas'));
     lojasNovasExp = R.lojas.filter((r) => r.nova);
     tabela('lojas', [
-      { k: 'nome', t: 'Loja', h: (r) => esc(r.nome) + (r.nova && !soNovas ? ' <span class="tag ok">nova</span>' : '') },
+      { k: 'nome', t: 'Loja', h: (r) => esc(r.nome) + (r.nova && !tipoVis ? ' ' + seloTipo(r.nova, 'a') : '') },
       { k: 'pri', t: 'Primeiro acesso', n: true, h: (r) => esc(quandoCod(r.pri) || '—') },
       { k: 'ult', t: 'Último acesso', n: true, h: (r) => esc(quandoCod(r.ult) || '—') },
       { k: 'acessos', t: 'Acessos', n: true, h: (r) => nf(r.acessos) },
@@ -318,10 +360,16 @@ function APP(D) {
     $('#f-dias').innerHTML = [['', 'Todos']].concat(R.dias_periodo.map((c) => [c, diaCod(c)]))
       .map((o) => '<button type="button" data-d="' + o[0] + '" aria-pressed="' + (F.dia === o[0]) + '">' + esc(o[1]) + '</button>').join('');
     funil($('#funil'), R.funil);
+    const nReg = R.regioes.reduce((t, r) => t + r.total, 0);
+    const nUf = R.regioes.reduce((t, r) => t + r.ufs.filter((u) => u.uf).length, 0);
+    $('#n-regiao').textContent = nf(nReg) + (nReg === 1 ? ' lojista' : ' lojistas') +
+      ' · ' + nUf + (nUf === 1 ? ' UF' : ' UFs');
+    regioes($('#g-regiao'), R.regioes);
     $('#n-dia').textContent = nf(k.lojas_ranking_acessaram) + (k.lojas_ranking_acessaram === 1 ? ' loja' : ' lojas');
     colunas($('#g-dia'), R.por_dia, [
       { k: 'total', nome: 'Total', cls: 'serie-b' },
-      { k: 'novas', nome: 'Novos', cls: 'serie-a' }
+      { k: 'novas', nome: 'Novos', cls: 'serie-a' },
+      { k: 'reativadas', nome: 'Reativados', cls: 'serie-c' }
     ], (g) => diaCod(g.dia), { preenche: true, chave: (g) => g.dia, marcado: F.dia_hora });
     $('#n-hora').textContent = nf(k.acessos) + ' acessos';
     $('#hora-dia').innerHTML = F.dia_hora
@@ -329,7 +377,8 @@ function APP(D) {
       : '';
     colunas($('#g-hora'), R.por_hora, [
       { k: 'total', nome: 'Total', cls: 'serie-b' },
-      { k: 'novas', nome: 'Novos', cls: 'serie-a' }
+      { k: 'novas', nome: 'Novos', cls: 'serie-a' },
+      { k: 'reativadas', nome: 'Reativados', cls: 'serie-c' }
     ], (g) => g.h + 'h', { largura: 1280 });
     $('#n-patios').textContent = R.patios.length + ' pátios';
     tabela('patios', [
@@ -345,7 +394,7 @@ function APP(D) {
     tabela('veic', [
       { k: 'nome', t: 'Veículo', h: (v) => '<span class="farol ' + v.farol + '" title="' + FAROL[v.farol] + '"></span>' +
         (v.link ? '<a href="' + esc(v.link) + '" target="_blank" rel="noopener">' + esc(v.nome) + ' ↗</a>' : esc(v.nome)) +
-        '<span class="dim sub">' + esc(v.ano) + ' · ' + esc(v.patio) + '</span>' },
+        '<span class="dim sub">' + esc(v.ano) + ' · ' + esc(v.patio) + (v.n_ev > 1 ? ' · em ' + v.n_ev + ' eventos' : '') + '</span>' },
       { k: 'acessos', t: 'Acessos', n: true, h: (v) => nf(v.acessos) },
       { k: 'qtd', t: 'Ofertas', n: true, h: (v) => nf(v.qtd) },
       { k: 'ult', t: 'Última oferta', n: true, h: (v) => rs(v.ult) + (v.ult_quando ? '<span class="dim sub">' + dt(v.ult_quando) + '</span>' : '') },
@@ -359,9 +408,12 @@ function APP(D) {
         if (v.arrematante === null) return tagStatus(v);
         const l = lojaPorId[v.arrematante] || {};
         return tagStatus(v) + '<span class="dim sub">' + esc(l.nome || ('loja ' + v.arrematante)) +
-          (R.nova[v.arrematante] ? ' <span class="tag ok">novo</span>' : '') + '</span>';
+          (R.nova[v.arrematante] ? ' ' + seloTipo(R.nova[v.arrematante], 'o') : '') + '</span>';
       } }
     ], R.veiculos);
+  }
+  function seloTipo(t, g) {
+    return t === 'R' ? '<span class="tag reat">reativad' + g + '</span>' : '<span class="tag ok">nov' + g + '</span>';
   }
   function alterna(id, valor, aplica) {
     document.querySelectorAll('#' + id + ' button').forEach((b) =>
@@ -371,7 +423,7 @@ function APP(D) {
   $('#seg-lojas').addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-v]');
     if (!b) return;
-    alterna('seg-lojas', b.getAttribute('data-v'), (v) => { soNovas = v === 'novas'; });
+    alterna('seg-lojas', b.getAttribute('data-v'), (v) => { filtroLojas = v; });
     render();
   });
   $('#f-dias').addEventListener('click', (ev) => {
@@ -405,8 +457,8 @@ function APP(D) {
     if (!ev.target.closest('#exporta-novas')) return;
     const asp = String.fromCharCode(34);
     const cel = (v) => (typeof v === 'number' ? String(v) : asp + String(v === null || v === undefined ? '' : v).split(asp).join(asp + asp) + asp);
-    const cab = ['Loja', 'Primeiro acesso', 'Último acesso', 'Acessos', 'Ofertas', 'Veículos', 'Recuperações'];
-    const linhas = lojasNovasExp.map((r) => [r.nome, quandoCod(r.pri), quandoCod(r.ult), r.acessos, r.lances, r.veic, r.arrem]);
+    const cab = ['Loja', 'Tipo', 'Primeiro acesso', 'Último acesso', 'Acessos', 'Ofertas', 'Veículos', 'Recuperações'];
+    const linhas = lojasNovasExp.map((r) => [r.nome, r.nova === 'R' ? 'Reativado' : 'Novo', quandoCod(r.pri), quandoCod(r.ult), r.acessos, r.lances, r.veic, r.arrem]);
     const nl = String.fromCharCode(13, 10);
     const txt = String.fromCharCode(65279) + [cab].concat(linhas).map((l) => l.map(cel).join(';')).join(nl) + nl;
     const url = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' }));

@@ -24,12 +24,33 @@
    Fenauto do IGA da mesma semana (24377 a 24379) não alvejam o 43.
    Antes: só o 24052 (05/10) e fim desde 01/10/2026 (02/10).
 
-   ─── LOJA NOVA (Thomas, 2026-10-02) ──────────────────────────────────
-   Cadastrada a partir de 01/10/2026 E no grupo de cliente 146 ("Parceiros
-   C6 - Exclusivo SP"). O grupo mora no USUÁRIO (user_shops ->
-   user_clients_group), não na loja: a loja está no grupo quando algum
-   usuário dela está. A consulta de lojas traz esse sinal; o corte é do
-   Montar Painel.
+   ─── LOJA NOVA (Thomas, 2026-11-12) ──────────────────────────────────
+   "Clientes novos: quem se cadastrou a partir de 10/11 e está no grupo ...
+   (ou equivalente no C6)" e "antigos sem compra que voltaram: já
+   cadastrados, sem compra nos últimos 6 meses, que acessaram a partir de
+   10/11" — somados num número só. Fora: compradores dos últimos 6 meses
+   (aparecem só nos acessos), internos, teste e contas do banco.
+   Loja cliente do C6 = algum usuário EXTERNO da loja está nos grupos 69
+   ("Parceiros C6 - Geral") ou 146 ("Parceiros C6 - Exclusivo SP"), os que
+   os eventos C6 da Fenauto (24368, 24384) alvejam. Usuário externo: não
+   apagado, e-mail fora de @cars2you.com.br, @itau*, @c6bank* e "teste";
+   loja não apagada e sem "teste" no nome. A ENTRADA da loja é:
+     - o cadastro da loja, se é de INICIO_CAMPANHA em diante (nova);
+     - senão, se a loja não comprou em [SEM_COMPRA_DESDE, INICIO_CAMPANHA)
+       (oferta vencedora de negociação em 2, 3 ou 7, pela data da oferta),
+       o primeiro access_logs dela de INICIO_CAMPANHA em diante (voltou);
+     - senão nula (compradora antiga, ou antiga que não voltou).
+   A janela sem compra é a de ANTES da campanha: quem voltou e comprou no
+   evento continua contando. A consulta de lojas traz a entrada na coluna
+   "fenauto" e a loja no universo; o corte pelo fim do evento (e pelo dia,
+   com Data) é do Montar Painel.
+   Custo (12/11): access_logs não tem índice por data — a volta é UMA
+   passada agrupada, como derivada; subconsulta correlacionada por loja
+   levou 3 min para 163 lojas. Medido em 12/11 ~15h nos grupos 69 e 146:
+   7 novas + 69 que voltaram = 76; 121 compradoras fora.
+   Em 11/11 (um dia): campanha do formulário "Fenauto <ano> C6"
+   (user_profiles.register_form_value), que não chegou a ter perfil. Até
+   10/11: grupo 146, loja cadastrada desde 01/10/2026 (02/10).
 
    Por WHITELABEL, a pedido. O relatório de produção trava por loja
    vendedora (104754); aqui a loja vendedora viaja como coluna e o painel
@@ -49,10 +70,21 @@ const WL_C6 = 43;
 /* o recorte (09/11): só evento com isto no nome, sem caixa (a collation
    do banco não diferencia maiúscula) */
 const NOME_EVENTO = 'fenauto';
-/* loja nova (02/10): cadastro a partir daqui E no grupo de cliente */
-const NOVAS_DESDE = '2026-10-01 00:00';
-const GRUPO_NOVAS = 146;
-const GRUPO_NOVAS_NOME = 'Parceiros C6 - Exclusivo SP';
+/* loja nova (Thomas, 12/11): "a partir de 10/11", e sem compra nos 6
+   meses ANTES disso. As datas viajam como literal, em hora de Brasília,
+   como o banco grava (ver FUSO) */
+const INICIO_CAMPANHA = '2026-11-10 00:00:00';
+const MESES_SEM_COMPRA = 6;
+/* INICIO_CAMPANHA menos os meses, mesmo dia e hora: '2026-05-10 00:00:00' */
+const SEM_COMPRA_DESDE = (() => {
+  let ano = Number(INICIO_CAMPANHA.slice(0, 4));
+  let mes = Number(INICIO_CAMPANHA.slice(5, 7)) - MESES_SEM_COMPRA;
+  while (mes < 1) { mes += 12; ano--; }
+  return ano + '-' + String(mes).padStart(2, '0') + INICIO_CAMPANHA.slice(7);
+})();
+/* os grupos de cliente que os eventos C6 da Fenauto alvejam (Thomas, 12/11:
+   "usa os 2"): 69 "Parceiros C6 - Geral", 146 "Parceiros C6 - Exclusivo SP" */
+const GRUPOS_C6 = [69, 146];
 const FUSO_MIN = -180;          /* America/Sao_Paulo, sem horário de verão */
 const DB = 'cars2you_production';
 
@@ -92,6 +124,34 @@ const ACESSOS_DO_EVENTO =
   " WHERE" + EVENTO;
 
 const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
+
+/* ── os clientes da campanha (Thomas, 12/11) ─────────────────────────────
+   Uma linha por loja cliente do C6 com ENTRADA (ver o cabeçalho): "id" e
+   "entrada" (AAAA-MM-DD HH:MM). Quem não tem entrada nem aparece.
+   VOLTA é UMA passada agrupada no access_logs (sem índice por data):
+   correlacionada por loja, levou 3 min. Sem WITH e sem função de janela:
+   o MCP do n8n rejeita. Roda uma vez só, dentro da consulta de lojas. */
+const USUARIO_EXTERNO =
+  " u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%'" +
+  " AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'";
+const VOLTA =
+  "SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al" +
+  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id";
+const COMPRAS =
+  "SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o" +
+  " INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)" +
+  " WHERE o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL" +
+  " AND o.created_at >= '" + SEM_COMPRA_DESDE + "' AND o.created_at < '" + INICIO_CAMPANHA + "'";
+const CLIENTES =
+  "SELECT sc.id, " + DATA("IF(sc.created_at >= '" + INICIO_CAMPANHA + "', sc.created_at, va.volta)") + " AS entrada" +
+  " FROM (SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users u ON u.id = ucg.user_id AND" + USUARIO_EXTERNO +
+  " INNER JOIN user_shops us ON us.user_id = u.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_C6.join(', ') + ")) cg" +
+  " INNER JOIN shops sc ON sc.id = cg.shop_id AND sc.deleted_at IS NULL AND sc.name NOT LIKE '%teste%'" +
+  " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = sc.id" +
+  " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = sc.id" +
+  " WHERE sc.created_at >= '" + INICIO_CAMPANHA + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)";
 
 /* ── as sete tabelas ─────────────────────────────────────────────────
    "cols" é a fonte única da ordem: dela saem o JSON_ARRAY daqui e o
@@ -168,25 +228,27 @@ const TABELAS = [
     ]
   },
   {
-    /* as lojas que o painel cita: quem ofertou no recorte MAIS as lojas do
-       canal cadastradas desde o início do evento mais antigo da janela MAIS
-       as do grupo das novas cadastradas desde a data das novas (02/10). O
-       UNION deduplica. "grupo" = 1 quando algum usuário da loja está no
-       grupo de cliente das novas.
+    /* as lojas que o painel cita: quem ofertou no recorte MAIS quem acessou
+       um evento do recorte MAIS as lojas do canal cadastradas desde o início
+       do evento mais antigo da janela MAIS os clientes da campanha (12/11),
+       que já trazem a ENTRADA junto. O universo e a coluna saem da MESMA
+       derivada: CLIENTES numa subconsulta da coluna rodaria a passada no
+       access_logs duas vezes. O UNION deduplica; as outras uniões levam
+       entrada nula e o MAX por loja fica com a do cliente. "fenauto" = a
+       entrada (nula para quem não é cliente da campanha).
        Sem CNPJ (26/10): no painel do C6 ele era a chave da carteira de
        representantes; aqui não há representante, e o que não vai para a tela
        não precisa vir do banco. */
     nome: 'lojas',
-    de: " FROM (SELECT o.buyer_shop_id AS id" + OFERTAS_DO_RECORTE +
+    de: " FROM (SELECT u0.id, MAX(u0.fen) AS fen FROM (" +
+        "SELECT o.buyer_shop_id AS id, NULL AS fen" + OFERTAS_DO_RECORTE +
         " AND o.buyer_shop_id IS NOT NULL" +
-        " UNION SELECT al.shop_id AS id" + ACESSOS_DO_EVENTO +
-        " UNION SELECT s2.id AS id FROM shops s2" +
+        " UNION SELECT al.shop_id AS id, NULL AS fen" + ACESSOS_DO_EVENTO +
+        " UNION SELECT s2.id AS id, NULL AS fen FROM shops s2" +
         " WHERE s2.whitelabel_id = " + WL_C6 + " AND s2.deleted_at IS NULL" +
         " AND s2.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")" +
-        " UNION SELECT us3.shop_id AS id FROM user_shops us3" +
-        " INNER JOIN user_clients_group ucg3 ON ucg3.user_id = us3.user_id AND ucg3.client_group_id = " + GRUPO_NOVAS +
-        " INNER JOIN shops s3 ON s3.id = us3.shop_id AND s3.deleted_at IS NULL" +
-        " AND s3.created_at >= '" + NOVAS_DESDE + "') ids" +
+        " UNION SELECT f.id AS id, f.entrada AS fen FROM (" + CLIENTES + ") f" +
+        ") u0 GROUP BY u0.id) ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [
       ['id', 's.id'],
@@ -195,8 +257,8 @@ const TABELAS = [
       ['situacao', 's.situation'],
       ['cadastro', DATA('s.created_at')],
       ['apagada', 's.deleted_at IS NOT NULL'],
-      ['grupo', "EXISTS (SELECT 1 FROM user_shops us INNER JOIN user_clients_group ucg ON ucg.user_id = us.user_id" +
-        " AND ucg.client_group_id = " + GRUPO_NOVAS + " WHERE us.shop_id = s.id)"]
+      /* 12/11: a entrada na campanha (cadastro novo ou volta); nula sem ela */
+      ['fenauto', 'ids.fen']
     ]
   },
   /* ── os acessos (2026-09-28/29) ───────────────────────────────────────
@@ -278,7 +340,8 @@ const itens = TABELAS.map((t, i) => {
       idx: i,
       meta: {
         wl: WL_C6, semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        novas: { desde: NOVAS_DESDE, grupo: GRUPO_NOVAS, grupo_nome: GRUPO_NOVAS_NOME }
+        inicio_campanha: INICIO_CAMPANHA, sem_compra_desde: SEM_COMPRA_DESDE,
+        meses_sem_compra: MESES_SEM_COMPRA, grupos_c6: GRUPOS_C6
       }
     }
   };

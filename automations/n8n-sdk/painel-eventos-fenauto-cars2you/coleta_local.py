@@ -10,6 +10,12 @@ Fenauto 2025: com a trava do nome (09/11), o 22231 do C6 e o 22223 do IGA
 ao mesmo tempo (19 a 21/11/2025) e as lojas da campanha "Fenauto 2025
 IGA". A semana corrente (09/11/2026) tem 5 eventos da Fenauto e nenhum
 lance ainda: as provas precisam de dado variado para refazer as contas.
+Desde 12/11 os novos lojistas sao pelos grupos de clientes da campanha
+(montar-consultas.js): --prova troca tambem o inicio da campanha e a janela
+sem compra para o ano da prova (10/11/2025 e 10/05/2025) e o grupo do IGA
+148 "VD Itau - Fenauto 2026" pelo 133 "VD Itau - Fenauto 2025" (375
+usuarios); os grupos do C6 (69 e 146) ficam. Cada troca confere quantas
+vezes o literal aparece no SQL.
 
 Executa o SQL EXATO que o no "Montar Consultas" gera (roda o proprio no com
 node) e grava a resposta no formato do MCP: um item por consulta, com
@@ -57,8 +63,43 @@ if segunda:
             assert q["sql"].count("'" + a + "'") > 0 or q["queryName"] == "nenhuma", "semana fora do SQL"
             q["sql"] = q["sql"].replace("'" + a + "'", "'" + b + "'")
         q["meta"]["semana"] = novo
+    # 12/11: novos lojistas pelos grupos. Na prova (2025), o inicio da campanha e
+    # a janela sem compra no ano dela, e o grupo do IGA daquele ano
+    TROCA_CAMPANHA = {"inicio_campanha": "2025-11-10 00:00:00", "sem_compra_desde": "2025-05-10 00:00:00"}
+    GRUPOS_IGA_PROVA = [133]   # "VD Itau - Fenauto 2025", 375 usuarios (medido em 12/11)
+    if args.prova:
+        for it in itens:
+            q = it["json"]
+            m = q["meta"]
+            eh_lojas = q["queryName"] == "lojas"
+            # o inicio: o cadastro (IF e WHERE), a volta e o teto das compras = 4;
+            # o comeco da janela sem compra = 1. So na consulta de lojas
+            for chave, vezes in (("inicio_campanha", 4), ("sem_compra_desde", 1)):
+                a, b = "'" + m[chave] + "'", "'" + TROCA_CAMPANHA[chave] + "'"
+                assert q["sql"].count(a) == (vezes if eh_lojas else 0), chave + " fora do SQL"
+                q["sql"] = q["sql"].replace(a, b)
+                m[chave] = TROCA_CAMPANHA[chave]
+            iga = ",".join(str(g) for g in m["grupos_iga"])
+            todos = ",".join(str(g) for g in m["grupos_iga"] + m["grupos_c6"])
+            iga_p = ",".join(str(g) for g in GRUPOS_IGA_PROVA)
+            todos_p = ",".join(str(g) for g in GRUPOS_IGA_PROVA + m["grupos_c6"])
+            # o CASE da operacao e o filtro dos grupos, uma vez cada
+            for a, b in (("client_group_id IN (" + iga + ") THEN", "client_group_id IN (" + iga_p + ") THEN"),
+                         ("client_group_id IN (" + todos + "))", "client_group_id IN (" + todos_p + "))")):
+                assert q["sql"].count(a) == (1 if eh_lojas else 0), "grupo fora do SQL: " + a
+                q["sql"] = q["sql"].replace(a, b)
+            m["grupos_iga"] = GRUPOS_IGA_PROVA
 
 cx = conectar("cars2you")
+if args.prova:
+    # o grupo trocado tem que ser o da Fenauto do ano da prova
+    cur = cx.cursor()
+    cur.execute(validar("SELECT cg.id, cg.name, (SELECT COUNT(*) FROM user_clients_group ucg WHERE ucg.client_group_id = cg.id)"
+                        " FROM client_groups cg WHERE cg.id IN (" + ",".join(str(g) for g in GRUPOS_IGA_PROVA) + ")"))
+    grupos = cur.fetchall()
+    cur.close()
+    assert len(grupos) == len(GRUPOS_IGA_PROVA) and all("fenauto 2025" in str(g[1]).lower() for g in grupos), grupos
+    print("grupo do IGA na prova:", ", ".join("%s %s (%s usuarios)" % tuple(g) for g in grupos))
 respostas = []
 for it in itens:
     q = it["json"]

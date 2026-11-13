@@ -199,6 +199,9 @@ pedidos.forEach((p, i) => {
 const META = pedidos[0].meta;
 const PARTES = Number(META.partes_acesso);
 if (!(PARTES >= 1)) throw new Error('meta.partes_acesso ausente no Montar Consultas');
+if (!META.inicio_campanha || !META.meses_sem_compra || !(META.grupos_c6 || []).length) {
+  throw new Error('meta da regra das novas ausente no Montar Consultas (inicio_campanha, meses_sem_compra, grupos_c6)');
+}
 const nomesAcesso = [];
 for (let p = 0; p < PARTES; p++) nomesAcesso.push('acessos_p' + p);
 ['eventos', 'veiculos', 'ofertas', 'lojas', 'acessos_anuncio'].concat(nomesAcesso).forEach((k) => {
@@ -225,7 +228,9 @@ T.ofertas.forEach((o) => {
 });
 const lojas = T.lojas.map((l) => ({
   id: num(l.id), nome: l.nome, wl: num(l.wl), situacao: num(l.situacao), cadastro: l.cadastro,
-  apagada: num(l.apagada) === 1, grupo: num(l.grupo) === 1
+  apagada: num(l.apagada) === 1,
+  fenauto: l.fenauto || null,
+  reativada: !!l.fenauto && String(l.cadastro || '') < String(META.inicio_campanha || '').slice(0, 16)
 }));
 const lojaPorId = {};
 lojas.forEach((l) => { lojaPorId[l.id] = l; });
@@ -274,7 +279,7 @@ T.veiculos.forEach((r) => {
   if (!patio) marca('sem_patio');
   const nomeVeic = [r.marca, r.modelo, r.versao].filter((x) => x).join(' ');
   veiculos.push({
-    ev: ev.id, neg: num(r.neg), anuncio: num(r.anuncio),
+    ev: ev.id, neg: num(r.neg), anuncio: num(r.anuncio), veic: num(r.veiculo),
     nome: nomeVeic || '(sem modelo)',
     ano: [r.ano_fab, r.ano_mod].filter((x) => x).join('/'),
     patio: patio || '(sem pátio)',
@@ -288,6 +293,7 @@ T.veiculos.forEach((r) => {
       (farol === 'atingiu' ? PESO_SCORE.vmv : 0),
     status: status, vendido: vendido,
     venc: venc ? venc.id : null,
+    vq: venc ? String(venc.quando || '') : null,
     venda: venc ? venc.valor : null,
     arrematante: venc ? venc.loja : null,
     pfipe: maior && num(r.fipe) ? maior.valor / num(r.fipe) : null,
@@ -298,6 +304,7 @@ const maiorBruto = veiculos.reduce((m, v) => Math.max(m, v.bruto), 0);
 veiculos.forEach((v) => { v.score = maiorBruto ? Math.round(1000 * v.bruto / maiorBruto) / 10 : 0; });
 const negConhecida = {};
 veiculos.forEach((v) => { negConhecida[v.neg] = 1; });
+T.ofertas.forEach((o) => { if (num(o.loja) === null) marca('lance_sem_loja'); });
 const ofertas = T.ofertas.filter((o) => negConhecida[num(o.neg)] && num(o.loja) !== null)
   .map((o) => [num(o.id), num(o.neg), num(o.loja), num(o.valor), o.quando]);
 ofertas.forEach((o) => {
@@ -322,12 +329,12 @@ const TEXTO_AVISO = {
   sem_patio: 'veículo(s) sem pátio no anúncio',
   loja_sem_cadastro: 'lance(s) de loja sem cadastro na tabela de lojas',
   loja_outro_canal: 'lance(s) de loja de outro canal',
-  loja_apagada: 'lance(s) de loja apagada'
+  loja_apagada: 'lance(s) de loja apagada',
+  lance_sem_loja: 'lance(s) sem loja compradora (lançado por usuário interno) — fora dos lances e dos rankings; se venceu, a venda conta nos vendidos'
 };
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
 const DADOS = {
   agora: AGORA, semana: META.semana, wl: META.wl,
-  novas_regra: META.novas,
   peso: PESO_SCORE, aprovada: SITUACAO_APROVADA,
   status_nome: STATUS_NOME,
   eventos: eventos, veiculos: veiculos, lojas: lojas, ofertas: ofertas,
@@ -383,19 +390,21 @@ function calcula(D, sel, F) {
     if (d === dFim && h > hFim) return false;
     return true;
   };
-  const diaIniJ = semJanela ? null : wIni.slice(0, 10);
   const diaFimJ = semJanela ? null : wFim.slice(0, 10);
-  const novas = semJanela ? [] : D.lojas.filter((l) => l.grupo && !l.apagada && l.cadastro >= D.novas_regra.desde &&
-    l.cadastro.slice(0, 10) >= diaIniJ && l.cadastro.slice(0, 10) <= diaFimJ);
+  const novas = semJanela ? [] : D.lojas.filter((l) => l.fenauto && !l.apagada &&
+    (diaData ? l.fenauto.slice(0, 10) === diaData : l.fenauto.slice(0, 10) <= diaFimJ));
   const ehNova = {};
-  novas.forEach((l) => { ehNova[l.id] = 1; });
+  novas.forEach((l) => { ehNova[l.id] = l.reativada ? 'R' : 'N'; });
+  const cadastradas = novas.filter((l) => !l.reativada);
+  const reativadas = novas.filter((l) => l.reativada);
   const diasDaLoja = {};
   const lojasDoDia = {};
   const acIni = {};
   const acFim = {};
   const porHoraT = [];
   const porHoraN = [];
-  for (let h = 0; h < 24; h++) { porHoraT.push(0); porHoraN.push(0); }
+  const porHoraR = [];
+  for (let h = 0; h < 24; h++) { porHoraT.push(0); porHoraN.push(0); porHoraR.push(0); }
   D.ac.forEach((a) => {
     if (!horaOk(a[1], a[2])) return;
     (diasDaLoja[a[0]] || (diasDaLoja[a[0]] = {}))[a[1]] = 1;
@@ -414,28 +423,58 @@ function calcula(D, sel, F) {
     a.n++;
     if (a.maior === null || o[3] > a.maior) a.maior = o[3];
   });
-  const vendidos = Vf.filter((v) => v.vendido && v.venc !== null && ofPorId[v.venc]);
-  const comOferta = Vf.filter((v) => ofVeic[v.neg]);
-  const vmvAt = Vf.filter((v) => ofVeic[v.neg] && v.vmv !== null && ofVeic[v.neg].maior >= v.vmv);
+  const vendidos = Vf.filter((v) => v.vendido && v.venc !== null && (!diaData || String(v.vq).slice(0, 10) === diaData));
   const porLoja = {};
   const pl = (id) => porLoja[id] || (porLoja[id] = { negs: {}, lances: 0, arrem: 0 });
-  Of.forEach((o) => { const a = pl(o[2]); a.lances++; a.negs[o[1]] = 1; });
-  vendidos.forEach((v) => { pl(ofPorId[v.venc][2]).arrem++; });
+  Of.forEach((o) => { const a = pl(o[2]); a.lances++; a.negs[vPorNeg[o[1]].veic] = 1; });
+  vendidos.forEach((v) => { if (v.arrematante !== null) pl(v.arrematante).arrem++; });
   const diasEntre = (a, b) => Math.round((Date.UTC(Number(b.slice(0, 4)), Number(b.slice(5, 7)) - 1, Number(b.slice(8, 10))) -
     Date.UTC(Number(a.slice(0, 4)), Number(a.slice(5, 7)) - 1, Number(a.slice(8, 10)))) / 86400000);
   const acessoVeic = {};
+  const lojasDoVeic = {};
   const abriu = {};
   D.aa.forEach((a) => {
     const e = noRecorte[a[0]];
     if (!e) return;
     const v = vPorAnuncio[a[0] + '|' + a[1]];
     if (!v) return;
+    (lojasDoVeic[v.veic] || (lojasDoVeic[v.veic] = {}))[a[2]] = 1;
     if (diaData) {
       const k = diasEntre(e.ini.slice(0, 10), diaData);
       if (k < 0 || k > 30 || !(a[3] & (1 << k))) return;
     }
     acessoVeic[v.neg] = (acessoVeic[v.neg] || 0) + 1;
     abriu[a[2]] = 1;
+  });
+  const vendNeg = {};
+  vendidos.forEach((v) => { vendNeg[v.neg] = 1; });
+  const negsDoVeic = {};
+  Vf.forEach((v) => { (negsDoVeic[v.veic] || (negsDoVeic[v.veic] = [])).push(v); });
+  const Vu = Object.keys(negsDoVeic).map((k) => {
+    const ls = negsDoVeic[k];
+    const base = ls.filter((v) => v.vendido)[0] || ls.slice().sort((x, y) => y.neg - x.neg)[0];
+    const u = Object.assign({}, base);
+    u.n_ev = ls.length;
+    u.tem_oferta = ls.some((v) => ofVeic[v.neg]);
+    u.atingiu = ls.some((v) => ofVeic[v.neg] && v.vmv !== null && ofVeic[v.neg].maior >= v.vmv);
+    u.tem_acesso = ls.some((v) => acessoVeic[v.neg]);
+    u.vendeu = ls.some((v) => vendNeg[v.neg]);
+    if (ls.length > 1) {
+      u.qtd = ls.reduce((t, v) => t + v.qtd, 0);
+      u.acessos = Object.keys(lojasDoVeic[k] || {}).length;
+      const mx = ls.filter((v) => v.maior !== null).map((v) => v.maior);
+      u.maior = mx.length ? Math.max.apply(null, mx) : null;
+      const ul = ls.filter((v) => v.ult_quando).sort((x, y) => (x.ult_quando < y.ult_quando ? 1 : -1))[0];
+      u.ult = ul ? ul.ult : null;
+      u.ult_quando = ul ? ul.ult_quando : null;
+      const pv = ls.filter((v) => v.pvmv !== null).map((v) => v.pvmv);
+      const pf = ls.filter((v) => v.pfipe !== null).map((v) => v.pfipe);
+      u.pvmv = pv.length ? Math.max.apply(null, pv) : null;
+      u.pfipe = pf.length ? Math.max.apply(null, pf) : null;
+      u.farol = ls.some((v) => v.farol === 'atingiu') ? 'atingiu' : ls.some((v) => v.farol === 'abaixo') ? 'abaixo' : 'sem';
+      u.score = Math.max.apply(null, ls.map((v) => v.score));
+    }
+    return u;
   });
   const universo = {};
   Object.keys(porLoja).forEach((k) => { universo[k] = 1; });
@@ -445,7 +484,7 @@ function calcula(D, sel, F) {
     const id = Number(k);
     const a = porLoja[k] || { negs: {}, lances: 0, arrem: 0 };
     const l = lojaPorId[id] || {};
-    const nova = !!ehNova[id];
+    const nova = ehNova[id] || '';
     const dias = nDias(id);
     return {
       loja: id, nome: l.nome || ('loja ' + id), nova: nova,
@@ -455,12 +494,12 @@ function calcula(D, sel, F) {
   }).sort((x, y) => y.arrem - x.arrem || y.lances - x.lances ||
     y.acessos - x.acessos || String(x.nome).localeCompare(String(y.nome)));
   const porPatio = {};
-  Vf.forEach((v) => {
+  Vu.forEach((v) => {
     const a = porPatio[v.patio] || (porPatio[v.patio] = { patio: v.patio, veiculos: 0, acesso: 0, oferta: 0, vmv: 0 });
     a.veiculos++;
-    if (acessoVeic[v.neg]) a.acesso++;
-    if (ofVeic[v.neg]) a.oferta++;
-    if (ofVeic[v.neg] && v.vmv !== null && ofVeic[v.neg].maior >= v.vmv) a.vmv++;
+    if (v.tem_acesso) a.acesso++;
+    if (v.tem_oferta) a.oferta++;
+    if (v.atingiu) a.vmv++;
   });
   const patios = Object.keys(porPatio).map((k) => {
     const a = porPatio[k];
@@ -487,7 +526,8 @@ function calcula(D, sel, F) {
   rankLojas.forEach((r) => { noRanking[r.loja] = 1; });
   const porDia = listaDias(dIni, dFim).map((c) => {
     const ls = Object.keys(lojasDoDia[c] || {}).filter((id) => noRanking[id]);
-    return { dia: c, total: ls.length, novas: ls.filter((id) => ehNova[id]).length };
+    return { dia: c, total: ls.length, novas: ls.filter((id) => ehNova[id] === 'N').length,
+      reativadas: ls.filter((id) => ehNova[id] === 'R').length };
   });
   const lojaHora = {};
   D.ac.forEach((a) => {
@@ -497,14 +537,15 @@ function calcula(D, sel, F) {
     if (lojaHora[k]) return;
     lojaHora[k] = 1;
     porHoraT[a[2]]++;
-    if (ehNova[a[0]]) porHoraN[a[2]]++;
+    if (ehNova[a[0]] === 'N') porHoraN[a[2]]++;
+    if (ehNova[a[0]] === 'R') porHoraR[a[2]]++;
   });
   let h0 = 0;
   let h1 = 23;
   while (h0 <= 23 && porHoraT[h0] === 0) h0++;
   while (h1 >= 0 && porHoraT[h1] === 0) h1--;
   const porHora = [];
-  for (let h = h0; h <= h1; h++) porHora.push({ h: h, total: porHoraT[h], novas: porHoraN[h] });
+  for (let h = h0; h <= h1; h++) porHora.push({ h: h, total: porHoraT[h], novas: porHoraN[h], reativadas: porHoraR[h] });
   const soma = (arr, f) => arr.reduce((t, x) => t + (f(x) || 0), 0);
   const ofertantes = rankLojas.filter((r) => r.lances > 0);
   const participacoes = soma(ofertantes, (r) => r.veic);
@@ -515,43 +556,50 @@ function calcula(D, sel, F) {
     ['Ofertaram', lista.filter((l) => porLoja[l.id] && porLoja[l.id].lances > 0).length],
     ['Compraram', lista.filter((l) => porLoja[l.id] && porLoja[l.id].arrem > 0).length]
   ];
-  const funil = funilDe(novas);
+  const funil = funilDe(cadastradas);
+  const funilR = funilDe(reativadas);
   const kpi = {
-    publicados: Vf.length,
-    vendidos: vendidos.length,
+    publicados: Vu.length,
+    vendidos: Vu.filter((v) => v.vendeu).length,
     volume: soma(vendidos, (v) => v.venda),
-    vmv_publicados: soma(Vf, (v) => v.vmv),
-    pc_vendido_vmv: soma(Vf, (v) => v.vmv) ? soma(vendidos, (v) => v.venda) / soma(Vf, (v) => v.vmv) : null,
+    vmv_publicados: soma(Vu, (v) => v.vmv),
+    pc_vendido_vmv: soma(Vu, (v) => v.vmv) ? soma(vendidos, (v) => v.venda) / soma(Vu, (v) => v.vmv) : null,
     pc_arrem_fipe: soma(vendidos.filter((v) => v.fipe), (v) => v.fipe)
       ? soma(vendidos.filter((v) => v.fipe), (v) => v.venda) / soma(vendidos.filter((v) => v.fipe), (v) => v.fipe) : null,
     pc_arrem_vmv: soma(vendidos.filter((v) => v.vmv), (v) => v.vmv)
       ? soma(vendidos.filter((v) => v.vmv), (v) => v.venda) / soma(vendidos.filter((v) => v.vmv), (v) => v.vmv) : null,
-    vmv_atingido: vmvAt.length,
-    acessados: Vf.filter((v) => acessoVeic[v.neg]).length,
-    com_oferta: comOferta.length,
-    sem_oferta: Vf.length - comOferta.length,
+    vmv_atingido: Vu.filter((v) => v.atingiu).length,
+    acessados: Vu.filter((v) => v.tem_acesso).length,
+    com_oferta: Vu.filter((v) => v.tem_oferta).length,
+    sem_oferta: Vu.length - Vu.filter((v) => v.tem_oferta).length,
     lances: Of.length,
     ofertantes: ofertantes.length,
     lances_por_lojista: ofertantes.length ? Of.length / ofertantes.length : null,
     compradores: rankLojas.filter((r) => r.arrem > 0).length,
     participacoes: participacoes,
     part_por_lojista: ofertantes.length ? participacoes / ofertantes.length : null,
-    novas: novas.length,
-    engajamento: novas.length ? funil[2][1] / novas.length : null,
+    novas: cadastradas.length,
+    engajamento: cadastradas.length ? funil[2][1] / cadastradas.length : null,
     novas_acessaram: funil[2][1],
     novas_ofertaram: funil[3][1],
     novas_compraram: funil[4][1],
+    reativadas: reativadas.length,
+    engaj_reativadas: reativadas.length ? funilR[2][1] / reativadas.length : null,
+    reativadas_acessaram: funilR[2][1],
+    reativadas_ofertaram: funilR[3][1],
+    reativadas_compraram: funilR[4][1],
     lojas_acessaram: Object.keys(diasDaLoja).length,
     lojas_ranking_acessaram: rankLojas.filter((r) => r.acessos > 0).length,
     acessos: soma(porHoraT, (n) => n),
-    acessos_novas: soma(porHoraN, (n) => n)
+    acessos_novas: soma(porHoraN, (n) => n),
+    acessos_reativadas: soma(porHoraR, (n) => n)
   };
   return {
     sel: sel, eventos: evs.map((e) => ({ id: e.id, nome: e.nome, ini: e.ini, fim: e.fim, estado: estado(e) })),
     periodo: [pIni, pFim], janela: [wIni, wFim],
     dias_periodo: listaDias(pIni === null ? null : codDia(pIni), pFim === null ? null : codDia(pFim)),
     patios_evento: Object.keys(veicsEv.reduce((o, v) => { o[v.patio] = 1; return o; }, {})).sort(),
-    kpi: kpi, veiculos: Vf, lojas: rankLojas, nova: ehNova,
+    kpi: kpi, veiculos: Vu, lojas: rankLojas, nova: ehNova,
     patios: patios, por_dia: porDia, por_hora: porHora, funil: funil
   };
 }
@@ -586,7 +634,7 @@ function APP(D) {
   const trilho = (x) => '<span class="trilho" aria-hidden="true"><i style="width:' +
     (x === null ? 0 : Math.max(0, Math.min(100, 100 * x))).toFixed(1) + '%"></i></span>';
   let sel = 'todos';
-  let soNovas = false;
+  let filtroLojas = 'todas';
   let lojasNovasExp = [];
   const F = { dia: '', patio: '', farol: '', dia_hora: '' };
   const FILTROS = ['dia', 'patio', 'farol'];
@@ -817,7 +865,7 @@ function APP(D) {
     F.dia_hora = '';
     sel = 'todos';
     $('#f-evento').value = 'todos';
-    alterna('seg-lojas', 'todas', (v) => { soNovas = v === 'novas'; });
+    alterna('seg-lojas', 'todas', (v) => { filtroLojas = v; });
     montaFiltros();
     render();
   });
@@ -858,11 +906,19 @@ function APP(D) {
     $('#k-nv-ac').textContent = nf(k.novas_acessaram);
     $('#k-nv-of').textContent = nf(k.novas_ofertaram);
     $('#k-nv-cp').textContent = nf(k.novas_compraram);
-    const lojasVis = R.lojas.filter((r) => (r.nova || r.acessos > 0) && (!soNovas || r.nova));
-    $('#n-lojas').textContent = lojasVis.length + (lojasVis.length === 1 ? (soNovas ? ' loja nova' : ' loja') : (soNovas ? ' lojas novas' : ' lojas'));
+    $('#k-rt').textContent = nf(k.reativadas);
+    pcBar('#k-rt-pc', '#k-rt-bar', k.engaj_reativadas, 'de engajamento');
+    $('#k-rt-ac').textContent = nf(k.reativadas_acessaram);
+    $('#k-rt-of').textContent = nf(k.reativadas_ofertaram);
+    $('#k-rt-cp').textContent = nf(k.reativadas_compraram);
+    const tipoVis = filtroLojas === 'novas' ? 'N' : filtroLojas === 'reativadas' ? 'R' : '';
+    const lojasVis = R.lojas.filter((r) => (r.nova || r.acessos > 0) && (!tipoVis || r.nova === tipoVis));
+    const um = lojasVis.length === 1;
+    $('#n-lojas').textContent = lojasVis.length + (tipoVis === 'N' ? (um ? ' loja nova' : ' lojas novas')
+      : tipoVis === 'R' ? (um ? ' loja reativada' : ' lojas reativadas') : (um ? ' loja' : ' lojas'));
     lojasNovasExp = R.lojas.filter((r) => r.nova);
     tabela('lojas', [
-      { k: 'nome', t: 'Loja', h: (r) => esc(r.nome) + (r.nova && !soNovas ? ' <span class="tag ok">nova</span>' : '') },
+      { k: 'nome', t: 'Loja', h: (r) => esc(r.nome) + (r.nova && !tipoVis ? ' ' + seloTipo(r.nova, 'a') : '') },
       { k: 'pri', t: 'Primeiro acesso', n: true, h: (r) => esc(quandoCod(r.pri) || '—') },
       { k: 'ult', t: 'Último acesso', n: true, h: (r) => esc(quandoCod(r.ult) || '—') },
       { k: 'acessos', t: 'Acessos', n: true, h: (r) => nf(r.acessos) },
@@ -877,7 +933,8 @@ function APP(D) {
     $('#n-dia').textContent = nf(k.lojas_ranking_acessaram) + (k.lojas_ranking_acessaram === 1 ? ' loja' : ' lojas');
     colunas($('#g-dia'), R.por_dia, [
       { k: 'total', nome: 'Total', cls: 'serie-b' },
-      { k: 'novas', nome: 'Novos', cls: 'serie-a' }
+      { k: 'novas', nome: 'Novos', cls: 'serie-a' },
+      { k: 'reativadas', nome: 'Reativados', cls: 'serie-c' }
     ], (g) => diaCod(g.dia), { preenche: true, chave: (g) => g.dia, marcado: F.dia_hora });
     $('#n-hora').textContent = nf(k.acessos) + ' acessos';
     $('#hora-dia').innerHTML = F.dia_hora
@@ -885,7 +942,8 @@ function APP(D) {
       : '';
     colunas($('#g-hora'), R.por_hora, [
       { k: 'total', nome: 'Total', cls: 'serie-b' },
-      { k: 'novas', nome: 'Novos', cls: 'serie-a' }
+      { k: 'novas', nome: 'Novos', cls: 'serie-a' },
+      { k: 'reativadas', nome: 'Reativados', cls: 'serie-c' }
     ], (g) => g.h + 'h', { largura: 1280 });
     $('#n-patios').textContent = R.patios.length + ' pátios';
     tabela('patios', [
@@ -901,7 +959,7 @@ function APP(D) {
     tabela('veic', [
       { k: 'nome', t: 'Veículo', h: (v) => '<span class="farol ' + v.farol + '" title="' + FAROL[v.farol] + '"></span>' +
         (v.link ? '<a href="' + esc(v.link) + '" target="_blank" rel="noopener">' + esc(v.nome) + ' ↗</a>' : esc(v.nome)) +
-        '<span class="dim sub">' + esc(v.ano) + ' · ' + esc(v.patio) + '</span>' },
+        '<span class="dim sub">' + esc(v.ano) + ' · ' + esc(v.patio) + (v.n_ev > 1 ? ' · em ' + v.n_ev + ' eventos' : '') + '</span>' },
       { k: 'acessos', t: 'Acessos', n: true, h: (v) => nf(v.acessos) },
       { k: 'qtd', t: 'Ofertas', n: true, h: (v) => nf(v.qtd) },
       { k: 'ult', t: 'Última oferta', n: true, h: (v) => rs(v.ult) + (v.ult_quando ? '<span class="dim sub">' + dt(v.ult_quando) + '</span>' : '') },
@@ -915,9 +973,12 @@ function APP(D) {
         if (v.arrematante === null) return tagStatus(v);
         const l = lojaPorId[v.arrematante] || {};
         return tagStatus(v) + '<span class="dim sub">' + esc(l.nome || ('loja ' + v.arrematante)) +
-          (R.nova[v.arrematante] ? ' <span class="tag ok">novo</span>' : '') + '</span>';
+          (R.nova[v.arrematante] ? ' ' + seloTipo(R.nova[v.arrematante], 'o') : '') + '</span>';
       } }
     ], R.veiculos);
+  }
+  function seloTipo(t, g) {
+    return t === 'R' ? '<span class="tag reat">reativad' + g + '</span>' : '<span class="tag ok">nov' + g + '</span>';
   }
   function alterna(id, valor, aplica) {
     document.querySelectorAll('#' + id + ' button').forEach((b) =>
@@ -927,7 +988,7 @@ function APP(D) {
   $('#seg-lojas').addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-v]');
     if (!b) return;
-    alterna('seg-lojas', b.getAttribute('data-v'), (v) => { soNovas = v === 'novas'; });
+    alterna('seg-lojas', b.getAttribute('data-v'), (v) => { filtroLojas = v; });
     render();
   });
   $('#f-dias').addEventListener('click', (ev) => {
@@ -961,8 +1022,8 @@ function APP(D) {
     if (!ev.target.closest('#exporta-novas')) return;
     const asp = String.fromCharCode(34);
     const cel = (v) => (typeof v === 'number' ? String(v) : asp + String(v === null || v === undefined ? '' : v).split(asp).join(asp + asp) + asp);
-    const cab = ['Loja', 'Primeiro acesso', 'Último acesso', 'Acessos', 'Ofertas', 'Veículos', 'Recuperações'];
-    const linhas = lojasNovasExp.map((r) => [r.nome, quandoCod(r.pri), quandoCod(r.ult), r.acessos, r.lances, r.veic, r.arrem]);
+    const cab = ['Loja', 'Tipo', 'Primeiro acesso', 'Último acesso', 'Acessos', 'Ofertas', 'Veículos', 'Recuperações'];
+    const linhas = lojasNovasExp.map((r) => [r.nome, r.nova === 'R' ? 'Reativado' : 'Novo', quandoCod(r.pri), quandoCod(r.ult), r.acessos, r.lances, r.veic, r.arrem]);
     const nl = String.fromCharCode(13, 10);
     const txt = String.fromCharCode(65279) + [cab].concat(linhas).map((l) => l.map(cel).join(';')).join(nl) + nl;
     const url = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' }));
@@ -1056,25 +1117,35 @@ function APP(D) {
   montaFiltros();
   render();
 }
+const NOME_GRUPO = { 69: 'Parceiros C6 - Geral', 146: 'Parceiros C6 - Exclusivo SP' };
+const diaTela = (s) => s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4);
+const INICIO_TELA = diaTela(String(META.inicio_campanha || ''));
+const INICIO_CURTO = INICIO_TELA.slice(0, 5);
+const GRUPOS_TELA = (META.grupos_c6 || []).map((g) => NOME_GRUPO[g] || ('grupo ' + g)).join(' ou ');
 DADOS.glossario = [
   ['Evento no painel', 'Evento que alveja o Canal de vendas C6 Auto (whitelabel 43), com "Fenauto" no nome, aberto em algum momento da semana, de segunda a domingo: os em andamento, os agendados e os já encerrados.'],
-  ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso e cadastro fora dele não contam.'],
+  ['Período', 'Da menor data de início à maior data de encerramento dos eventos filtrados. Acesso fora dele não conta. Os novos lojistas têm regra própria (veja Novos lojistas).'],
+  ['Um veículo só', 'O mesmo carro que não vendeu num evento pode voltar no seguinte, com uma negociação nova. Nos números de veículos (publicados, com ofertas, VMV atingido, vendidos, anúncios acessados, pátios) e na lista, ele conta uma vez: com oferta, VMV atingido, acessado ou vendido se foi em algum dos eventos do recorte. Na lista, uma linha com o resultado da negociação que vendeu (ou da mais recente), as ofertas dos eventos somadas, a maior e a última de todas, e as lojas distintas que abriram os anúncios dele; embaixo, em quantos eventos ele esteve. Os lances continuam todos.'],
   ['Filtros', 'Na aba lateral. Pátio e status do veículo recortam os veículos, e tudo que nasce deles acompanha: lances, ofertantes, compradores, rankings, pátios e os degraus do funil que dependem de anúncio. A data fica nos botões acima do funil.'],
   ['Estado do evento', 'Agendado: as ofertas ainda não abriram. Em andamento: dentro do horário. Encerrando: passou do horário de fim e ainda há veículo ativo — os lances da prorrogação caem depois do fim oficial. Encerrado: nenhum veículo ativo.'],
   ['Veículo publicado', 'Cada negociação do evento. O mesmo carro em dois eventos conta uma vez em cada um.'],
   ['Anúncios acessados', 'Veículos que pelo menos uma loja abriu dentro do horário do evento, sobre os publicados.'],
   ['Com ofertas', 'Veículo que recebeu pelo menos um lance naquele evento. O percentual é sobre os publicados.'],
   ['Com VMV atingido', 'Veículo em que alguma oferta alcançou o valor mínimo de venda (VMV) que o vendedor aceita.'],
-  ['Vendido / recuperação', 'Negociação em aguardando pagamento, aguardando confirmação de pagamento ou vendido. A loja compradora é a da oferta vencedora; o valor da recuperação, o dessa oferta. Veículo em análise do vendedor ainda não conta.'],
+  ['Vendido / recuperação', 'Negociação em aguardando pagamento, aguardando confirmação de pagamento ou vendido. A loja compradora é a da oferta vencedora; o valor da recuperação, o dessa oferta. Veículo em análise do vendedor ainda não conta. A venda cuja oferta vencedora foi lançada por um usuário interno, sem loja, conta nos vendidos e no valor vendido, mas não nos compradores.'],
   ['Ofertantes', 'Lojas distintas que deram pelo menos um lance.'],
   ['Compradores', 'Lojas distintas que compraram pelo menos um veículo.'],
   ['Lances/lojista', 'Lances do recorte divididos pelos ofertantes.'],
   ['Participações/lojista', 'Participação é cada veículo em que a loja deu lance (vários lances no mesmo carro contam uma vez). Soma das participações dividida pelos ofertantes.'],
-  ['Novos lojistas', 'Lojas do grupo de clientes ' + META.novas.grupo + ' (' + META.novas.grupo_nome + ') cadastradas num dos dias do evento — do dia do início ao dia do fim, o dia inteiro — e a partir de ' +
-    META.novas.desde.slice(8, 10) + '/' + META.novas.desde.slice(5, 7) + '/' + META.novas.desde.slice(0, 4) + '. A loja está no grupo quando algum usuário dela está. Com o filtro de Data, só as cadastradas naquele dia. Embaixo, quantas delas acessaram o evento, ofertaram e compraram no recorte.'],
-  ['Data', 'Os botões acima do funil: Todos e um por dia do período. Escolher um dia encolhe o painel inteiro para aquele dia: cadastros (novos lojistas e funil), acessos (gráficos e ranking) e negociações (lances, vendas pela data da oferta vencedora, compradores). A lista de veículos não muda, e o score, as ofertas e o farol de cada veículo continuam os dele.'],
+  ['Novos lojistas', 'Lojas cadastradas a partir de ' + INICIO_TELA + ' com um usuário no grupo ' + GRUPOS_TELA +
+    '. Ficam fora os usuários internos, os cadastros de teste e as contas do banco. Vale o dia do cadastro: a loja conta em todo evento que termina nesse dia ou depois, então quem se cadastrou antes do primeiro dia do evento entra no total, mas em nenhum botão de Data. Com o filtro de Data, só quem se cadastrou naquele dia. A barra é o engajamento (quantas acessaram o evento); embaixo, quantas acessaram, ofertaram e compraram no recorte.'],
+  ['Reativados', 'Lojas antigas do grupo ' + GRUPOS_TELA + ' que não compraram nada nos ' + META.meses_sem_compra + ' meses antes de ' + INICIO_CURTO +
+    ' e acessaram a plataforma a partir de ' + INICIO_CURTO + '. Os compradores desses ' + META.meses_sem_compra +
+    ' meses ficam fora (aparecem só nos acessos), como os internos, os testes e as contas do banco. Vale o dia do primeiro acesso a partir de ' +
+    INICIO_CURTO + ', com a mesma regra dos novos lojistas para evento e Data. A barra e o pé, como no cartão de novos lojistas.'],
+  ['Data', 'Os botões acima do funil: Todos e um por dia do período. Escolher um dia encolhe o painel inteiro para aquele dia: novos lojistas e reativados (os que entraram naquele dia) e funil, acessos (gráficos e ranking) e negociações (lances, vendas pela data da oferta vencedora, compradores). A lista de veículos não muda, e o score, as ofertas e o farol de cada veículo continuam os dele.'],
   ['Performance financeira', 'O valor total vendido no recorte. Logo abaixo, esse valor dividido pela soma dos VMV de todos os veículos publicados, vendidos ou não. No pé, a soma das recuperações dividida pela soma da FIPE (só dos vendidos com FIPE) e pela soma dos VMV (só dos vendidos com VMV).'],
-  ['Exportar novos lojistas', 'Botão do ranking de lojas: baixa um CSV com as lojas novas do recorte (com ou sem acesso), nas mesmas colunas da tabela. Respeita os filtros da gaveta e o de Data; o botão Todos lojistas / Somente novos não muda o arquivo.'],
+  ['Exportar novos lojistas', 'Botão do ranking de lojas: baixa um CSV com as lojas novas e as reativadas do recorte (com ou sem acesso), nas mesmas colunas da tabela e com a coluna Tipo. Respeita os filtros da gaveta e o de Data; o botão Todos lojistas / Novos / Reativados não muda o arquivo.'],
   ['Engajamento', 'Novos lojistas que acessaram o evento no período divididos pelos cadastrados.'],
   ['Acessos da loja', 'Dias em que a loja acessou o EVENTO (acesso registrado com o evento) dentro do período; entrar no canal sem abrir o evento não conta. O corte do período é por hora cheia: num evento que começa às 17:13, o acesso das 17:05 entra. O ranking de lojas mostra só quem acessou.'],
   ['Acessos do veículo', 'Lojas distintas que abriram o anúncio dentro do horário do evento. Uma loja que abriu dez vezes conta uma.'],
@@ -1082,12 +1153,12 @@ DADOS.glossario = [
     ' se alguma oferta atingiu o VMV, levado para uma escala de 0 a 100: 100 é o veículo de maior score da coleta inteira. A tabela abre pelo menor score: os veículos que menos engajaram. Score, ofertas e farol são do veículo inteiro: os filtros escolhem quais veículos aparecem, não os recalculam.'],
   ['% VMV', 'A maior oferta do veículo dividida pelo VMV. 100% ou mais = VMV atingido.'],
   ['% FIPE', 'A maior oferta do veículo dividida pela FIPE dele. Só para quem recebeu oferta e tem FIPE; os demais ficam com "—".'],
-  ['Resultado', 'O status da negociação e, quando vendeu, a loja compradora — com o selo "novo" se é loja nova do período.'],
+  ['Resultado', 'O status da negociação e, quando vendeu, a loja compradora — com o selo "novo" ou "reativado" se é loja nova ou reativada do período.'],
   ['Primeiro e último acesso', 'O primeiro e o último acesso da loja ao evento dentro do período, na hora cheia (a coleta guarda o acesso por hora).'],
   ['Pátio', 'Onde o veículo está (o estoque do anúncio). C/ acesso: veículos que alguma loja abriu. % conversão: veículos com oferta sobre os veículos do pátio. % C/ VMV atingido: veículos com VMV atingido sobre os veículos do pátio.'],
-  ['Acessos únicos por dia', 'O mesmo indicador da coluna Acessos do ranking de lojas, dia a dia: quantas lojas do ranking (as que ofertaram e as novas) acessaram o evento em cada dia do período — total e só as novas. Somando as colunas dá a soma da coluna Acessos. Clicar num dia mostra as horas daquele dia no gráfico por hora; clicar de novo volta a todos os dias.'],
-  ['Acessos por hora', 'A mesma medida dos acessos únicos por dia, contada por hora: quantas lojas do ranking (as que ofertaram e as novas) acessaram o evento em cada hora do dia — cada loja conta uma vez por hora em cada dia. Total e só as novas, do primeiro ao último horário com acesso. Clicando num dia do gráfico por dia, só aquele dia.'],
-  ['Funil de ativação', 'Os novos lojistas do período, etapa por etapa: o título à esquerda, o percentual sobre os cadastrados à direita, e a largura da faixa seguindo esse percentual: uma largura mínima (para o número caber dentro) somada em todas as etapas, mais a parte proporcional. Entre as faixas, a passagem de uma etapa para a seguinte. Aprovado: cadastro na situação 3, a de loja operante. Acessaram: acessaram o evento dentro do período — é o mesmo número do engajamento do cartão de novos lojistas. Ofertaram e compraram: no recorte.'],
+  ['Acessos únicos por dia', 'O mesmo indicador da coluna Acessos do ranking de lojas, dia a dia: quantas lojas do ranking (as que ofertaram, as novas e as reativadas) acessaram o evento em cada dia do período — total, novas e reativadas. Somando as colunas dá a soma da coluna Acessos. Clicar num dia mostra as horas daquele dia no gráfico por hora; clicar de novo volta a todos os dias.'],
+  ['Acessos por hora', 'A mesma medida dos acessos únicos por dia, contada por hora: quantas lojas do ranking (as que ofertaram, as novas e as reativadas) acessaram o evento em cada hora do dia — cada loja conta uma vez por hora em cada dia. Total, novas e reativadas, do primeiro ao último horário com acesso. Clicando num dia do gráfico por dia, só aquele dia.'],
+  ['Funil de ativação', 'Os novos lojistas do período (sem os reativados, que têm o cartão próprio), etapa por etapa: o título à esquerda, o percentual sobre os cadastrados à direita, e a largura da faixa seguindo esse percentual: uma largura mínima (para o número caber dentro) somada em todas as etapas, mais a parte proporcional. Entre as faixas, a passagem de uma etapa para a seguinte. Aprovado: cadastro na situação 3, a de loja operante. Acessaram: acessaram o evento dentro do período — é o mesmo número do engajamento do cartão de novos lojistas. Ofertaram e compraram: no recorte.'],
   ['Farol', 'A bolinha antes do veículo. Vermelho: sem oferta. Amarelo: há oferta, mas nenhuma chegou ao VMV (ou o VMV não foi informado). Verde: alguma oferta alcançou o VMV.'],
   ['Link do anúncio', 'Abre o anúncio na vitrine do C6 (compraveiculos.cars2you.com.br).']
 ];
@@ -1120,7 +1191,7 @@ const CSS_PAINEL = [
   '.trilho{display:block;height:6px;border-radius:3px;background:var(--acento-veu);overflow:hidden;min-width:40px}',
   '.trilho i{display:block;height:100%;border-radius:3px;background:var(--acento-cheio)}',
   '.kpi-pe .trilho{height:4px;margin-top:5px;min-width:0}',
-  '.g4.g5{grid-template-columns:repeat(5,minmax(0,1fr))}',
+  '.g4.g5{grid-template-columns:repeat(6,minmax(0,1fr))}',
   '@media (max-width:1400px){.g4.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}',
   '@media (max-width:900px){.g4.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}',
   '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
@@ -1150,6 +1221,9 @@ const CSS_PAINEL = [
   '.amostra{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}',
   '.graf .serie-a,.amostra.serie-a{fill:var(--acento-cheio);background:var(--acento-cheio)}',
   '.graf .serie-b,.amostra.serie-b{fill:var(--serie-2);background:var(--serie-2)}',
+  ':root{--serie-3:#2563EB}[data-tema="escuro"]{--serie-3:#4C8DFF}',
+  '.graf .serie-c,.amostra.serie-c{fill:var(--serie-3);background:var(--serie-3)}',
+  '.tag.reat{background:color-mix(in srgb, var(--serie-3) 16%, transparent);color:var(--serie-3)}',
   '.graf .alvo{fill:transparent;cursor:default}.graf .alvo:hover,.graf .alvo:focus{fill:var(--acento-veu);outline:none}',
   '.graf .alvo.clicavel{cursor:pointer}.graf .marca-col{fill:var(--acento-veu)}.graf .eixo.forte{fill:var(--texto);font-weight:700}',
   '.c-flex{display:flex;flex-direction:column}',
@@ -1200,6 +1274,7 @@ const ICONE = {
   vendido: '<path d="M20 6L9 17l-5-5"/>',
   financeiro: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
   nova: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  reativado: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
   rank: '<path d="M4 6h16"/><path d="M4 12h11"/><path d="M4 18h6"/>',
   pessoa: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>',
   grafico: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
@@ -1223,7 +1298,8 @@ const cartaoOrdenavel = (ic, titulo, idN, id, rolo, extra) =>
   '<div class="rolo ' + rolo + '"><table class="dens"><thead><tr id="th-' + id + '"></tr></thead>' +
   '<tbody id="tb-' + id + '"></tbody></table></div></section>';
 const LEGENDA = '<div class="legenda"><span><span class="amostra serie-b"></span>Total</span>' +
-  '<span><span class="amostra serie-a"></span>Novos</span></div>';
+  '<span><span class="amostra serie-a"></span>Novos</span>' +
+  '<span><span class="amostra serie-c"></span>Reativados</span></div>';
 const seg = (id, rot, opcoes, ativo) => '<span class="seg" id="' + id + '" role="group" aria-label="' + rot + '">' +
   opcoes.map((o) => '<button type="button" data-v="' + o[0] + '" aria-pressed="' + (o[0] === ativo) + '">' + o[1] + '</button>').join('') +
   '</span>';
@@ -1254,7 +1330,7 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<div class="filtros">' +
   filtro('f-evento', 'Evento') +
   '<div class="fg"><span class="rot-fg" id="seg-lojas-rot">Lojistas</span>' +
-  seg('seg-lojas', 'Lojistas', [['todas', 'Todos lojistas'], ['novas', 'Somente novos']], 'todas') + '</div>' +
+  seg('seg-lojas', 'Lojistas', [['todas', 'Todos lojistas'], ['novas', 'Novos'], ['reativadas', 'Reativados']], 'todas') + '</div>' +
   filtro('f-patio', 'Pátio') +
   filtro('f-farol', 'Status do veículo') +
   '<div class="fg"><button class="ctrl" id="limpar" type="button">Limpar filtros</button></div>' +
@@ -1275,6 +1351,8 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
     [['Recuperação / FIPE', 'k-pf-fipe'], ['Recuperação / VMV', 'k-pf-vmv']]) +
   kpiCard('nova', 'Novos lojistas', 'k-nv', meioPc('k-nv-pc', 'k-nv-bar'),
     [['Acessaram', 'k-nv-ac'], ['Ofertaram', 'k-nv-of'], ['Compraram', 'k-nv-cp']]) +
+  kpiCard('reativado', 'Reativados', 'k-rt', meioPc('k-rt-pc', 'k-rt-bar'),
+    [['Acessaram', 'k-rt-ac'], ['Ofertaram', 'k-rt-of'], ['Compraram', 'k-rt-cp']]) +
   '</section>' +
   '<div class="barra-dias"><span class="rot-dias" id="f-dias-rot">Data</span>' +
   '<div class="seg dias" id="f-dias" role="group" aria-labelledby="f-dias-rot"></div></div>' +

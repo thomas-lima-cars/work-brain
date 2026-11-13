@@ -1,6 +1,9 @@
 const WL_C6 = 43;
 const VENDEDORES_IGA = [594, 598, 16036];
-const CAMPANHA_NOVAS = 'fenauto';
+const INICIO_CAMPANHA = '2026-11-10 00:00:00';
+const MESES_SEM_COMPRA = 6;
+const GRUPOS_IGA = [148];
+const GRUPOS_C6 = [69, 146];
 const NOME_EVENTO = 'fenauto';
 const DURACAO_MAX_DIAS = 31;
 const FUSO_MIN = -180;
@@ -12,6 +15,9 @@ const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agor
 const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
 const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
 const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const SEM_COMPRA_DESDE = dataDe(new Date(Date.UTC(Number(INICIO_CAMPANHA.slice(0, 4)),
+  Number(INICIO_CAMPANHA.slice(5, 7)) - 1 - MESES_SEM_COMPRA, Number(INICIO_CAMPANHA.slice(8, 10))))) +
+  INICIO_CAMPANHA.slice(10);
 const EH_C6 = "EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
 const EH_IGA = "EXISTS (SELECT 1 FROM advertisement_negotiations ani" +
   " INNER JOIN advertisements ai ON ai.id = ani.advertisement_id" +
@@ -31,10 +37,23 @@ const ACESSOS_DO_EVENTO =
   " AND al.shop_id IS NOT NULL" +
   " AND al.created_at >= e.start_date_offer AND al.created_at <= e.finish_date_event" +
   " WHERE" + EVENTO;
-const CADASTRO_FENAUTO = (loja) => "(SELECT MIN(upf.created_at) FROM user_shops usf" +
-  " INNER JOIN user_profiles upf ON upf.user_id = usf.user_id AND upf.deleted_at IS NULL" +
-  " AND upf.register_form_value LIKE '%" + CAMPANHA_NOVAS + "%'" +
-  " WHERE usf.shop_id = " + loja + ")";
+const EXTERNO = "u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%'" +
+  " AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'";
+const VOLTA = "SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al" +
+  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id";
+const COMPRAS = "SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o" +
+  " INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)" +
+  " WHERE o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL" +
+  " AND o.created_at >= '" + SEM_COMPRA_DESDE + "' AND o.created_at < '" + INICIO_CAMPANHA + "'";
+const CLIENTES = "SELECT cg.op, s.id, DATE_FORMAT(IF(s.created_at >= '" + INICIO_CAMPANHA + "', s.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada" +
+  " FROM (SELECT DISTINCT CASE WHEN ucg.client_group_id IN (" + GRUPOS_IGA.join(',') + ") THEN 'IGA' ELSE 'C6' END AS op, us.shop_id" +
+  " FROM user_clients_group ucg INNER JOIN users u ON u.id = ucg.user_id AND " + EXTERNO +
+  " INNER JOIN user_shops us ON us.user_id = u.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_IGA.concat(GRUPOS_C6).join(',') + ")) cg" +
+  " INNER JOIN shops s ON s.id = cg.shop_id AND s.deleted_at IS NULL AND s.name NOT LIKE '%teste%'" +
+  " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = s.id" +
+  " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = s.id" +
+  " WHERE s.created_at >= '" + INICIO_CAMPANHA + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)";
 const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
 const TABELAS = [
   {
@@ -98,13 +117,13 @@ const TABELAS = [
   },
   {
     nome: 'lojas',
-    de: " FROM (SELECT o.buyer_shop_id AS id" + OFERTAS_DO_RECORTE +
+    de: " FROM (SELECT u0.id, MAX(u0.c6) AS c6, MAX(u0.iga) AS iga FROM (" +
+        "SELECT DISTINCT o.buyer_shop_id AS id, NULL AS c6, NULL AS iga" + OFERTAS_DO_RECORTE +
         " AND o.buyer_shop_id IS NOT NULL" +
-        " UNION SELECT al.shop_id AS id" + ACESSOS_DO_EVENTO +
-        " UNION SELECT us3.shop_id AS id FROM user_shops us3" +
-        " INNER JOIN user_profiles up3 ON up3.user_id = us3.user_id AND up3.deleted_at IS NULL" +
-        " AND up3.register_form_value LIKE '%" + CAMPANHA_NOVAS + "%'" +
-        " AND up3.created_at >= (SELECT MIN(e.start_date_offer) FROM events e WHERE" + EVENTO + ")) ids" +
+        " UNION ALL SELECT DISTINCT al.shop_id AS id, NULL AS c6, NULL AS iga" + ACESSOS_DO_EVENTO +
+        " UNION ALL SELECT f.id, IF(f.op = 'C6', f.entrada, NULL), IF(f.op = 'IGA', f.entrada, NULL)" +
+        " FROM (" + CLIENTES + ") f" +
+        ") u0 GROUP BY u0.id) ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [
       ['id', 's.id'],
@@ -113,7 +132,8 @@ const TABELAS = [
       ['situacao', 's.situation'],
       ['cadastro', DATA('s.created_at')],
       ['apagada', 's.deleted_at IS NOT NULL'],
-      ['fenauto', "DATE_FORMAT(" + CADASTRO_FENAUTO('s.id') + ", '%Y-%m-%d %H:%i')"]
+      ['fenauto_c6', 'ids.c6'],
+      ['fenauto_iga', 'ids.iga']
     ]
   },
   {
@@ -166,7 +186,9 @@ const itens = TABELAS.map((t, i) => {
       idx: i,
       meta: {
         semana: [SEMANA_INI, SEMANA_FIM], nome_evento: NOME_EVENTO, agora_br: AGORA_BR, partes_acesso: PARTES_ACESSO,
-        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA, campanha_novas: CAMPANHA_NOVAS
+        wl_c6: WL_C6, vendedores_iga: VENDEDORES_IGA,
+        inicio_campanha: INICIO_CAMPANHA, sem_compra_desde: SEM_COMPRA_DESDE, meses_sem_compra: MESES_SEM_COMPRA,
+        grupos_iga: GRUPOS_IGA, grupos_c6: GRUPOS_C6
       }
     }
   };
