@@ -124,11 +124,13 @@ prova('acesso ao evento por evento (03/11): cada parte agrupa pelo evento e traz
     it.json.sql.indexOf('register_form_value') < 0 && it.json.sql.indexOf('user_profiles') < 0));
   prova('clientes: a operação pelo grupo do IGA e o filtro pelos três grupos, uma vez cada',
     vezes("CASE WHEN ucg.client_group_id IN (148) THEN 'IGA' ELSE 'C6' END AS op") === 1 &&
-    vezes('WHERE ucg.client_group_id IN (148,69,146)) cg') === 1 && vezes('client_group_id') === 2 &&
+    /* 13/11: os três grupos também na volta (gv) */
+    vezes('WHERE ucg.client_group_id IN (148,69,146)) cg') === 1 && vezes('WHERE ucg.client_group_id IN (148,69,146)) gv') === 1 &&
+    vezes('client_group_id') === 3 &&
     itens.every((it) => it.json.queryName === 'lojas' || it.json.sql.indexOf('client_group') < 0));
   prova('clientes: só usuário externo (sem interno, banco nem teste)', vezes("INNER JOIN users u ON u.id = ucg.user_id AND u.deleted_at IS NULL" +
     " AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%' AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'" +
-    ' INNER JOIN user_shops us ON us.user_id = u.id') === 1);
+    ' INNER JOIN user_shops us ON us.user_id = u.id') === 2 && vezes('INNER JOIN users u ON') === 2);
   prova('clientes: loja não apagada e sem teste no nome', vezes("INNER JOIN shops s ON s.id = cg.shop_id AND s.deleted_at IS NULL AND s.name NOT LIKE '%teste%'") === 1);
   prova('clientes: compra = oferta vencedora de negociação vendida, nos 6 meses ANTES do início',
     vezes('SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id' +
@@ -137,9 +139,13 @@ prova('acesso ao evento por evento (03/11): cada parte agrupa pelo evento e traz
   prova('clientes: entrada = o cadastro a partir do início, senão a volta de quem não comprou',
     vezes("DATE_FORMAT(IF(s.created_at >= '2026-11-10 00:00:00', s.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada") === 1 &&
     vezes("WHERE s.created_at >= '2026-11-10 00:00:00' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)") === 1);
-  prova('access_logs: UMA passada agrupada para a volta, sem subconsulta por loja',
-    vezes("(SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al WHERE al.created_at >= '2026-11-10 00:00:00'" +
-      ' AND al.shop_id IS NOT NULL GROUP BY al.shop_id) va ON va.shop_id = s.id') === 1 &&
+  /* 13/11: só nas lojas dos grupos (índice de shop_id), não no access_logs
+     inteiro desde o início — esse passou do prazo do MCP */
+  prova('access_logs: UMA passada agrupada para a volta, só nas lojas dos grupos, sem subconsulta por loja',
+    vezes("gv INNER JOIN access_logs al ON al.shop_id = gv.shop_id WHERE al.created_at >= '2026-11-10 00:00:00'" +
+      ' GROUP BY al.shop_id) va ON va.shop_id = s.id') === 1 &&
+    vezes('(SELECT al.shop_id, MIN(al.created_at) AS volta FROM (SELECT DISTINCT us.shop_id FROM user_clients_group ucg') === 1 &&
+    vezes('FROM user_clients_group ucg') === 2 &&
     vezes('access_logs') === 2 && vezes('MIN(al.created_at)') === 1 && sl.indexOf('= s.id)') < 0 &&
     itens.every((it) => it.json.queryName === 'lojas' || it.json.sql.indexOf('MIN(al.created_at)') < 0));
   prova('lojas: o universo carrega as duas entradas (CLIENTES uma vez só), sem CTE',

@@ -877,9 +877,15 @@ const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
 const USUARIO_EXTERNO =
   " u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%'" +
   " AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'";
+const LOJAS_DO_GRUPO =
+  "SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users u ON u.id = ucg.user_id AND" + USUARIO_EXTERNO +
+  " INNER JOIN user_shops us ON us.user_id = u.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_C6.join(', ') + ")";
 const VOLTA =
-  "SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al" +
-  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id";
+  "SELECT al.shop_id, MIN(al.created_at) AS volta FROM (" + LOJAS_DO_GRUPO + ") gv" +
+  " INNER JOIN access_logs al ON al.shop_id = gv.shop_id" +
+  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' GROUP BY al.shop_id";
 const COMPRAS =
   "SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o" +
   " INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)" +
@@ -887,10 +893,7 @@ const COMPRAS =
   " AND o.created_at >= '" + SEM_COMPRA_DESDE + "' AND o.created_at < '" + INICIO_CAMPANHA + "'";
 const CLIENTES =
   "SELECT sc.id, " + DATA("IF(sc.created_at >= '" + INICIO_CAMPANHA + "', sc.created_at, va.volta)") + " AS entrada" +
-  " FROM (SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
-  " INNER JOIN users u ON u.id = ucg.user_id AND" + USUARIO_EXTERNO +
-  " INNER JOIN user_shops us ON us.user_id = u.id" +
-  " WHERE ucg.client_group_id IN (" + GRUPOS_C6.join(', ') + ")) cg" +
+  " FROM (" + LOJAS_DO_GRUPO + ") cg" +
   " INNER JOIN shops sc ON sc.id = cg.shop_id AND sc.deleted_at IS NULL AND sc.name NOT LIKE '%teste%'" +
   " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = sc.id" +
   " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = sc.id" +
@@ -2677,17 +2680,19 @@ const ACESSOS_DO_EVENTO =
 const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
 const EXTERNO = "uc.deleted_at IS NULL AND uc.email NOT LIKE '%@cars2you.com.br' AND uc.email NOT LIKE '%@itau%'" +
   " AND uc.email NOT LIKE '%@c6bank%' AND uc.email NOT LIKE '%teste%'";
-const VOLTA = "SELECT alv.shop_id, MIN(alv.created_at) AS volta FROM access_logs alv" +
-  " WHERE alv.created_at >= '" + INICIO_CAMPANHA + "' AND alv.shop_id IS NOT NULL GROUP BY alv.shop_id";
+const LOJAS_DO_GRUPO = "SELECT DISTINCT usc.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users uc ON uc.id = ucg.user_id AND " + EXTERNO +
+  " INNER JOIN user_shops usc ON usc.user_id = uc.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_IGA.join(', ') + ")";
+const VOLTA = "SELECT alv.shop_id, MIN(alv.created_at) AS volta FROM (" + LOJAS_DO_GRUPO + ") gv" +
+  " INNER JOIN access_logs alv ON alv.shop_id = gv.shop_id" +
+  " WHERE alv.created_at >= '" + INICIO_CAMPANHA + "' GROUP BY alv.shop_id";
 const COMPRAS = "SELECT DISTINCT oc.buyer_shop_id AS shop_id FROM offers oc" +
   " INNER JOIN advertisement_negotiations anc ON anc.offer_actual_id = oc.id AND anc.deleted_at IS NULL AND anc.status IN (2, 3, 7)" +
   " WHERE oc.deleted_at IS NULL AND oc.buyer_shop_id IS NOT NULL" +
   " AND oc.created_at >= '" + SEM_COMPRA_DESDE + "' AND oc.created_at < '" + INICIO_CAMPANHA + "'";
 const CLIENTES = "SELECT cs.id, DATE_FORMAT(IF(cs.created_at >= '" + INICIO_CAMPANHA + "', cs.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada" +
-  " FROM (SELECT DISTINCT usc.shop_id FROM user_clients_group ucg" +
-  " INNER JOIN users uc ON uc.id = ucg.user_id AND " + EXTERNO +
-  " INNER JOIN user_shops usc ON usc.user_id = uc.id" +
-  " WHERE ucg.client_group_id IN (" + GRUPOS_IGA.join(', ') + ")) cg" +
+  " FROM (" + LOJAS_DO_GRUPO + ") cg" +
   " INNER JOIN shops cs ON cs.id = cg.shop_id AND cs.deleted_at IS NULL AND cs.name NOT LIKE '%teste%'" +
   " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = cs.id" +
   " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = cs.id" +
@@ -4469,8 +4474,13 @@ const ACESSOS_DO_EVENTO =
   " WHERE" + EVENTO;
 const EXTERNO = "u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%'" +
   " AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'";
-const VOLTA = "SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al" +
-  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id";
+const LOJAS_DOS_GRUPOS = "SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users u ON u.id = ucg.user_id AND " + EXTERNO +
+  " INNER JOIN user_shops us ON us.user_id = u.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_IGA.concat(GRUPOS_C6).join(',') + ")";
+const VOLTA = "SELECT al.shop_id, MIN(al.created_at) AS volta FROM (" + LOJAS_DOS_GRUPOS + ") gv" +
+  " INNER JOIN access_logs al ON al.shop_id = gv.shop_id" +
+  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' GROUP BY al.shop_id";
 const COMPRAS = "SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o" +
   " INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)" +
   " WHERE o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL" +

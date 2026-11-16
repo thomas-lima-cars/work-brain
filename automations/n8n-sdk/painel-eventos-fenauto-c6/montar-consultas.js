@@ -134,9 +134,21 @@ const DATA = (col) =>"DATE_FORMAT(" + col + ", '%Y-%m-%d %H:%i')";
 const USUARIO_EXTERNO =
   " u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br' AND u.email NOT LIKE '%@itau%'" +
   " AND u.email NOT LIKE '%@c6bank%' AND u.email NOT LIKE '%teste%'";
+const LOJAS_DO_GRUPO =
+  "SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
+  " INNER JOIN users u ON u.id = ucg.user_id AND" + USUARIO_EXTERNO +
+  " INNER JOIN user_shops us ON us.user_id = u.id" +
+  " WHERE ucg.client_group_id IN (" + GRUPOS_C6.join(', ') + ")";
+/* 13/11: a volta só das lojas do grupo, pelo índice de shop_id do
+   access_logs. A passada sobre todo o access_logs desde o início crescia a
+   cada dia: em 13/11 levava 14 s, e a consulta de lojas inteira 23 s, além
+   do prazo do MCP ("context deadline exceeded" aos ~16 s, todas as rodadas
+   de 13/11). Só pelo grupo: 4,8 s e 5,5 s, com o mesmo resultado (210
+   lojas, linha a linha). */
 const VOLTA =
-  "SELECT al.shop_id, MIN(al.created_at) AS volta FROM access_logs al" +
-  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id";
+  "SELECT al.shop_id, MIN(al.created_at) AS volta FROM (" + LOJAS_DO_GRUPO + ") gv" +
+  " INNER JOIN access_logs al ON al.shop_id = gv.shop_id" +
+  " WHERE al.created_at >= '" + INICIO_CAMPANHA + "' GROUP BY al.shop_id";
 const COMPRAS =
   "SELECT DISTINCT o.buyer_shop_id AS shop_id FROM offers o" +
   " INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)" +
@@ -144,10 +156,7 @@ const COMPRAS =
   " AND o.created_at >= '" + SEM_COMPRA_DESDE + "' AND o.created_at < '" + INICIO_CAMPANHA + "'";
 const CLIENTES =
   "SELECT sc.id, " + DATA("IF(sc.created_at >= '" + INICIO_CAMPANHA + "', sc.created_at, va.volta)") + " AS entrada" +
-  " FROM (SELECT DISTINCT us.shop_id FROM user_clients_group ucg" +
-  " INNER JOIN users u ON u.id = ucg.user_id AND" + USUARIO_EXTERNO +
-  " INNER JOIN user_shops us ON us.user_id = u.id" +
-  " WHERE ucg.client_group_id IN (" + GRUPOS_C6.join(', ') + ")) cg" +
+  " FROM (" + LOJAS_DO_GRUPO + ") cg" +
   " INNER JOIN shops sc ON sc.id = cg.shop_id AND sc.deleted_at IS NULL AND sc.name NOT LIKE '%teste%'" +
   " LEFT JOIN (" + VOLTA + ") va ON va.shop_id = sc.id" +
   " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = sc.id" +

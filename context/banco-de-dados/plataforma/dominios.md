@@ -653,6 +653,13 @@ eventos dos seis canais com fim nos últimos 30 dias (números em
   veículo).
 - Contar anúncio ou negociação como "veículo" multiplica a LM por ~8 em 30
   dias.
+- **Republicar é abrir uma negociação nova no evento seguinte**, com
+  `event_id` dele. A negociação do evento anterior fica como está (status 11,
+  sem apagar). Visto em **2026-11-13** no IGA da Fenauto: o 24378 fechou em
+  12/11 às 16h, e as 10 negociações dos carros que voltaram no 24379 foram
+  criadas no mesmo dia às 18h09. Assim, quem conta as negociações de um evento
+  já pega os republicados, mas só depois que eles são gravados. Números em
+  [`projetos/mega-evento-fenauto/indicadores.md`](../projetos/mega-evento-fenauto/indicadores.md).
 
 ## Oferta vencedora sem loja existe fora do C6
 

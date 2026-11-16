@@ -55,3 +55,7 @@
 - O cartão de **vendidos** foi de 3 para 4. A venda 516768 tem a oferta vencedora lançada por um usuário interno, sem loja.
 - **Um veículo só:** 7 carros sem venda no 24377 voltaram no 24378. O IGA tem 39 negociações e 32 veículos.
 - Na rodada 69115, ficaram 152 novos e 57 reativados. Números em `projetos/mega-evento-fenauto/indicadores.md`.
+
+## 2026-11-13
+- O Thomas viu o evento de 13/11 (24379) com 10 veículos. No banco ele tem **20**: os 10 dele e 10 republicados do 24378, gravados em 12/11 às 18h09. O painel já conta os republicados por evento; o arquivo publicado era anterior à republicação, e as rodadas de 13/11 caíram até as 13h. Números em `projetos/mega-evento-fenauto/indicadores.md`.
+- As rodadas caíram por tempo no MCP (consulta de lojas acima de ~16 s). A correção vale para os três painéis: a volta dos reativados só nas lojas do grupo 148, e a consulta de lojas do IGA caiu de 24,9 s para 4,5 s. Publicado na `2bc7c481`, rodada 69211 sem erro.

@@ -70,7 +70,8 @@ itens.forEach((it) => {
   const semFiltro = low.split(' and u.email not like ').join(' ');
   prova(q.queryName + ': sem documento de pessoa',
     ['document', 'email', 'phone', 'renavam'].every((p) => colsSql.indexOf(p) < 0 && semFiltro.indexOf(p) < 0) &&
-    low.split('u.email not like').length - 1 === (q.queryName === 'lojas' ? 4 : 0));
+    /* 13/11: o filtro de e-mail sai duas vezes, no universo e na volta */
+    low.split('u.email not like').length - 1 === (q.queryName === 'lojas' ? 8 : 0));
   /* placa e chassi saíram em 28/09: nem na consulta */
   prova(q.queryName + ': sem placa nem chassi', low.indexOf('plate') < 0 && low.indexOf('chassi') < 0);
   /* sem representante, sem CNPJ (26/10): no C6 ele era a chave da carteira */
@@ -100,8 +101,10 @@ prova('loja nova: nada da regra do formulário (campanha_novas, register_form_va
     i.json.sql.indexOf('register_form_value') < 0 && i.json.sql.indexOf('user_profiles') < 0) &&
   ['CAMPANHA_NOVAS', 'CADASTRO_CAMPANHA', 'campanha_novas'].every((t) => ler('montar-consultas.js').indexOf(t) < 0 &&
     painelFonte.indexOf(t) < 0));
-prova('loja nova: grupos 69 e 146, uma vez, só na consulta de lojas (sem o 148 do IGA)',
-  conta(sqlL, 'ucg.client_group_id IN (69, 146)') === 1 && conta(sqlL, 'client_group_id') === 1 &&
+/* 13/11: o grupo sai duas vezes, no universo (cg) e na volta (gv) */
+prova('loja nova: grupos 69 e 146, no universo e na volta, só na consulta de lojas (sem o 148 do IGA)',
+  conta(sqlL, 'ucg.client_group_id IN (69, 146)) cg') === 1 && conta(sqlL, 'ucg.client_group_id IN (69, 146)) gv') === 1 &&
+  conta(sqlL, 'client_group_id') === 2 &&
   sqlL.indexOf('148') < 0 && itens.filter((i) => i.json.queryName !== 'lojas').every((i) => i.json.sql.indexOf('client_group') < 0));
 prova('loja nova: usuário externo (não apagado, sem @cars2you.com.br, @itau, @c6bank e teste), no join do grupo',
   sqlL.indexOf("INNER JOIN users u ON u.id = ucg.user_id AND u.deleted_at IS NULL AND u.email NOT LIKE '%@cars2you.com.br'" +
@@ -113,15 +116,19 @@ prova('loja nova: compra = oferta vencedora de negociação 2, 3 ou 7, em [6 mes
   sqlL.indexOf('FROM offers o INNER JOIN advertisement_negotiations an ON an.offer_actual_id = o.id AND an.deleted_at IS NULL AND an.status IN (2, 3, 7)' +
     " WHERE o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL AND o.created_at >= '" + SEM_COMPRA + "' AND o.created_at < '" + INICIO + "') cp") > 0 &&
   conta(sqlL, "'" + SEM_COMPRA + "'") === 1);
-prova('loja nova: a volta é UMA passada agrupada no access_logs desde o início, sem correlação por loja',
-  conta(sqlL, "FROM access_logs al WHERE al.created_at >= '" + INICIO + "' AND al.shop_id IS NOT NULL GROUP BY al.shop_id) va ON va.shop_id = sc.id") === 1 &&
+/* 13/11: a passada é só nas lojas do grupo (pelo índice de shop_id), não no
+   access_logs inteiro desde o início — esse passou do prazo do MCP */
+prova('loja nova: a volta é UMA passada agrupada, só nas lojas do grupo, sem correlação por loja',
+  conta(sqlL, "gv INNER JOIN access_logs al ON al.shop_id = gv.shop_id WHERE al.created_at >= '" + INICIO + "' GROUP BY al.shop_id) va ON va.shop_id = sc.id") === 1 &&
+  conta(sqlL, 'MIN(al.created_at) AS volta FROM (SELECT DISTINCT us.shop_id FROM user_clients_group ucg') === 1 &&
+  conta(sqlL, 'FROM user_clients_group ucg') === 2 &&
   conta(sqlL, 'access_logs') === 2 && sqlL.indexOf('al.shop_id = sc.id') < 0 && sqlL.indexOf('al.shop_id = s.id') < 0);
 prova('loja nova: entrada = cadastro se desde o início, senão a volta; só quem é novo ou voltou sem compra',
   sqlL.indexOf("DATE_FORMAT(IF(sc.created_at >= '" + INICIO + "', sc.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada") > 0 &&
   sqlL.indexOf("WHERE sc.created_at >= '" + INICIO + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)) f") > 0 &&
   conta(sqlL, "'" + INICIO + "'") === 4);
 prova('loja nova: CLIENTES roda uma vez — universo e coluna "fenauto" da mesma derivada (MAX por loja)',
-  conta(sqlL, 'FROM user_clients_group') === 1 && sqlL.indexOf('UNION SELECT f.id AS id, f.entrada AS fen FROM (SELECT sc.id,') > 0 &&
+  conta(sqlL, 'FROM user_clients_group') === 2 && conta(sqlL, 'UNION SELECT f.id AS id, f.entrada AS fen FROM (SELECT sc.id,') === 1 &&
   sqlL.indexOf('FROM (SELECT u0.id, MAX(u0.fen) AS fen FROM (SELECT o.buyer_shop_id AS id, NULL AS fen FROM offers o') > 0 &&
   sqlL.indexOf(') u0 GROUP BY u0.id) ids INNER JOIN shops s ON s.id = ids.id') > 0 &&
   itens[NOMES.indexOf('lojas')].json.cols.slice(-1)[0] === 'fenauto' && sqlL.indexOf(', ids.fen)) AS linhas') > 0);

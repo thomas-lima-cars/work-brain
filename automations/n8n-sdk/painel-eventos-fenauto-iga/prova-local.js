@@ -115,25 +115,34 @@ prova('acesso ao evento por evento (03/11): cada parte agrupa pelo evento e traz
     itens.every((i) => i.json.meta.inicio_campanha === '2026-11-10 00:00:00' && i.json.meta.sem_compra_desde === '2026-05-10 00:00:00' &&
       i.json.meta.meses_sem_compra === 6 && JSON.stringify(i.json.meta.grupos_iga) === '[148]' &&
       i.json.meta.grupo_iga_nome === 'VD Itaú - Fenauto 2026' && i.json.meta.campanha_novas === undefined), mL.meta);
-  prova('loja nova: o grupo 148, uma vez, só na consulta de lojas', conta(sqlL, 'ucg.client_group_id IN (148))') === 1 &&
+  /* 13/11: o grupo sai duas vezes, no universo (cg) e na volta (gv) */
+  prova('loja nova: o grupo 148, no universo e na volta, só na consulta de lojas',
+    conta(sqlL, 'ucg.client_group_id IN (148)) cg') === 1 && conta(sqlL, 'ucg.client_group_id IN (148)) gv') === 1 &&
+    conta(sqlL, 'client_group_id') === 2 &&
     itens.every((i) => i.json.queryName === 'lojas' || i.json.sql.indexOf('client_group') < 0));
   prova('loja nova: só usuário externo (não apagado; sem @cars2you.com.br, @itau, @c6bank nem "teste" no e-mail)',
-    conta(sqlL, 'INNER JOIN users uc ON uc.id = ucg.user_id AND ' + EXTERNO_ESPERADO + ' INNER JOIN user_shops usc ON usc.user_id = uc.id') === 1 &&
+    conta(sqlL, 'INNER JOIN users uc ON uc.id = ucg.user_id AND ' + EXTERNO_ESPERADO + ' INNER JOIN user_shops usc ON usc.user_id = uc.id') === 2 &&
+    conta(sqlL, 'INNER JOIN users uc ON') === 2 &&
     itens.every((i) => i.json.queryName === 'lojas' || i.json.sql.indexOf('email') < 0));
   prova('loja nova: loja apagada ou com "teste" no nome fica fora',
     sqlL.indexOf("INNER JOIN shops cs ON cs.id = cg.shop_id AND cs.deleted_at IS NULL AND cs.name NOT LIKE '%teste%'") > 0);
   prova('loja nova: compra = oferta vencedora de negociação vendida (2, 3, 7), em [10/05, 10/11)',
     conta(sqlL, 'FROM offers oc INNER JOIN advertisement_negotiations anc ON anc.offer_actual_id = oc.id AND anc.deleted_at IS NULL AND anc.status IN (2, 3, 7)' +
       " WHERE oc.deleted_at IS NULL AND oc.buyer_shop_id IS NOT NULL AND oc.created_at >= '" + DESDE + "' AND oc.created_at < '" + INI + "') cp ON cp.shop_id = cs.id") === 1);
-  prova('loja nova: a volta é UMA passada agrupada no access_logs, de 10/11 em diante, sem correlacionar por loja',
-    conta(sqlL, "FROM access_logs alv WHERE alv.created_at >= '" + INI + "' AND alv.shop_id IS NOT NULL GROUP BY alv.shop_id) va ON va.shop_id = cs.id") === 1 &&
+  /* 13/11: só nas lojas do grupo (índice de shop_id), não no access_logs
+     inteiro desde o início — esse passou do prazo do MCP */
+  prova('loja nova: a volta é UMA passada agrupada, só nas lojas do grupo, de 10/11 em diante, sem correlacionar por loja',
+    conta(sqlL, "gv INNER JOIN access_logs alv ON alv.shop_id = gv.shop_id WHERE alv.created_at >= '" + INI + "' GROUP BY alv.shop_id) va ON va.shop_id = cs.id") === 1 &&
+    conta(sqlL, 'MIN(alv.created_at) AS volta FROM (SELECT DISTINCT usc.shop_id FROM user_clients_group ucg') === 1 &&
+    conta(sqlL, 'FROM user_clients_group ucg') === 2 &&
     conta(sqlL, 'access_logs') === 2 && sqlL.indexOf('alv.shop_id = s') < 0 && sqlL.indexOf('alv.shop_id = cs') < 0);
   prova('loja nova: entrada = cadastro da loja de 10/11 em diante, senão a volta; sai só quem é nova ou voltou sem compra',
     sqlL.indexOf("DATE_FORMAT(IF(cs.created_at >= '" + INI + "', cs.created_at, va.volta), '%Y-%m-%d %H:%i') AS entrada") > 0 &&
     sqlL.indexOf("WHERE cs.created_at >= '" + INI + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)) f) u0 GROUP BY u0.id) ids") > 0);
   prova('loja nova: a entrada viaja no universo (coluna fenauto = ids.fen), os clientes uma vez só, sem CTE',
     mL.cols.indexOf('fenauto') > 0 && sqlL.indexOf('ids.fen') > 0 && sqlL.indexOf('SELECT u0.id, MAX(u0.fen) AS fen FROM (') > 0 &&
-    conta(sqlL, 'FROM user_clients_group') === 1 && sqlL.toUpperCase().indexOf('WITH ') < 0);
+    conta(sqlL, 'FROM user_clients_group') === 2 && conta(sqlL, 'LEFT JOIN (SELECT alv.shop_id, MIN(alv.created_at) AS volta') === 1 &&
+    sqlL.toUpperCase().indexOf('WITH ') < 0);
   prova('loja nova: a regra do formulário saiu (sem up3, sem "fenauto" solto, sem C6; a campanha do ano só no cartão de regiões)',
     sqlL.indexOf('up3') < 0 && sqlL.indexOf("register_form_value LIKE '%fenauto%'") < 0 && sqlL.indexOf(" c6%'") < 0 &&
     conta(sqlL, 'register_form_value') === 2);

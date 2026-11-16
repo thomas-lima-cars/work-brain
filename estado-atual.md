@@ -1,11 +1,12 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
-> ⚠️ **2 commit(s) local(is) não enviado(s)** desde 2026-11-13. Rodar `git push`: o modo automático barrou o push.
-
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-12 (salvo na madrugada de 13/11). A **Rotina Fenauto**
-> (`9CNN9FjRohxaRUZq`) está **ativa** de hora em hora, e a versão publicada é a `1b947c86`. Os três
-> painéis da Fenauto mudaram em 12/11:
+> **Última atualização:** 2026-11-13 (salvo em 16/11). A **Rotina Fenauto**
+> (`9CNN9FjRohxaRUZq`) está **ativa** de hora em hora, e a versão publicada é a **`2bc7c481`**.
+> Em 13/11 todas as rodadas até as 13h caíram por tempo no MCP (consulta de lojas acima de ~16 s).
+> Agora a volta dos reativados só olha as lojas do grupo, e a rodada 69211 levou 24 s, sem erro.
+> No mesmo dia ficou conferido que cada evento já conta os carros republicados: o 24379 tem 20.
+> Os três painéis da Fenauto mudaram em 12/11:
 > - **novos lojistas pelo grupo**: 148 no IGA; 69 e 146 no C6;
 > - **novos e reativados separados**;
 > - **vendidos** contam a venda cuja oferta vencedora não tem loja;
@@ -51,7 +52,8 @@
 - **Rotina Fenauto** — 🔥 **ativa**: wf **`9CNN9FjRohxaRUZq`** (projeto Cars2You), pasta
   `automations/n8n-sdk/rotina-fenauto/`.
   - Os três painéis rodam em série (C6 → IGA → Cars2You), de hora em hora das 9h às 18h, de segunda a sábado. Publicam em `Fenauto_202611/`.
-  - Versão publicada: **`1b947c86`** (12/11), com o md5 dos 15 nós conferido. A rodada 69115 levou 60 s, sem erro. O histórico de versões está em `crons.md`.
+  - Versão publicada: **`2bc7c481`** (13/11), que mudou só os três Montar Consultas: a volta dos reativados olha só as lojas do grupo, pelo índice de `shop_id`. Os nós foram conferidos por md5 no diff de versões, e a rodada 69211 levou 24 s, sem erro. O histórico de versões está em `crons.md`.
+  - A consulta de lojas leva de 5 a 9 s no C6, ~5 s no IGA e ~6 s no Cars2You. O MCP corta em ~16 s.
   - O maior nó, `iga/pecas-tema`, tem 55.793 bytes, para um teto de 57.344.
   - **Antes de enviar pelo MCP, fechar a aba do editor**: em 12/11 um salvamento numa aba antiga desfez 7 nós.
   - A pasta de novembro está fixa no `_divide.js`.
@@ -135,7 +137,7 @@
   base pequena das metas (3 meses/30 veículos; 30 dias/100 veículos-dia). E: as fontes mais claras e
   a paleta sem rosa sobem para o `tema.css`?
 - 🔵 **Fenauto: os internos saem também dos acessos e dos rankings?** Hoje saem só da contagem de novos, por escolha minha (12/11), e a pergunta ficou sem resposta. E o cartão de regiões do IGA segue contando pelo formulário: deve seguir a regra do grupo?
-- 🔵 **Rotina Fenauto:** guarda as execuções (três HTML de ~200 KB por run)? Ganha alerta de falha?
+- 🔴 **Rotina Fenauto: ganha alerta de falha?** Em 13/11 as rodadas caíram das 9h às 13h, e só se soube porque o Thomas abriu o painel. E: guarda as execuções (três HTML de ~200 KB por run)?
   E, escolhas minhas no Mega Evento IGA: barra Total no laranja do IGA, botão de avisos junto do de tema.
 - 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
   quem comprou nos últimos 12 meses; nos meses antigos o gráfico conta menos que o total do IGA.
@@ -176,7 +178,8 @@
 - [ ] 🔥 **Painel de Eventos Cars2You:** conferir a 1ª rodada agendada (07/11 9h) no SharePoint — o
       histórico do n8n só guarda erro — e mandar o link a quem vai usar
 - [ ] 🔥 **Rotina Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e conferir a tela
-      com as regras de 12/11 (novos e reativados, vendidos, um veículo só)
+      com as regras de 12/11 (novos e reativados, vendidos, um veículo só) e o 24379 com 20 veículos.
+      Ver se as rodadas de 14/11 em diante saíram sem erro
 - [ ] Rotina Fenauto em dezembro: trocar `PASTA_RAIZ` no `_divide.js` se a Fenauto seguir. Fenauto 2027:
       trocar `INICIO_CAMPANHA` e os grupos no `montar-consultas.js` dos três painéis
 - [ ] Estudo IGA: refazer a decomposição pedido × demanda (ficou com o número de 08/10) e mandar o
@@ -273,6 +276,9 @@
   `update_workflow` por subagente, depois md5 dos nós (`_confere_n8n.py`). Mudou nó? `publish_workflow`.
   **Feche a aba do workflow no editor antes**: em 12/11 um salvamento pelo editor desfez 7 nós enviados.
   Cada nó grande custa de 100 a 150 mil tokens; em 12/11 o limite de gasto da organização foi atingido no meio do envio.
+- ⏱️ **O MCP do banco corta a consulta em ~16 s** ("context deadline exceeded"), mesmo com `timeout` de 60 s
+  no nó (Rotina Fenauto, 13/11). O `access_logs` não tem índice por data: filtre por `event_id`, `shop_id` ou
+  `user_id`. Passada "desde a data X" cresce a cada dia. `automations/bancos/README.md`.
 - 🧮 **O MCP do banco recusa `GROUP BY … WITH ROLLUP`** ("syntax error near 'with'", run 68394):
   um `GROUP BY` por subtotal, unidos por `UNION ALL` (`automations/bancos/README.md`).
   **Não consigo empurrar o `montar-html.js` pelo MCP.** São 236 KB num único

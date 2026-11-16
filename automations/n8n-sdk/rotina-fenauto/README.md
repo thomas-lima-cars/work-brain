@@ -117,6 +117,24 @@ Nos três painéis, o carro que volta em outro evento conta uma vez e ocupa uma 
 | IGA | 39 | 32 | 15 | 12 |
 | Cars2You | 159 | 138 | 37 | 27 |
 
+## 13/11: as rodadas caíram por tempo no MCP
+
+Desde a manhã de 13/11, todas as rodadas falharam no **MCP Consultas C6**, no item 3, a consulta `lojas`, com `query failed: context deadline exceeded` aos ~16 s (execuções 69187 a 69209). O C6 roda primeiro, então o IGA e o Cars2You nem chegaram a rodar. Os nós no n8n eram iguais aos do repo (md5 dos 15 conferido no export, `workflow-n8n-2026-11-13-1306.json`).
+
+- **Causa:** a volta dos reativados (`MIN(created_at)` por loja desde 10/11) passava pelo `access_logs` inteiro desde o início da campanha. Essa tabela não tem índice por data, e a passada cresce a cada dia: em 13/11 ela levava 14 s sozinha, e a consulta de lojas inteira 19 a 23 s.
+- **Correção:** a volta passou a olhar só as lojas do grupo da operação, pelo índice de `shop_id` (`access_logs_shop_id_foreign`).
+
+| painel | lojas antes | lojas depois | linhas |
+|---|---:|---:|---|
+| C6 | 19,0 s | 5 a 9 s | 210, iguais linha a linha |
+| IGA | 24,9 s | 4,5 s | 282, iguais |
+| Cars2You | 21,0 s | 6,3 s | 489, iguais |
+
+Os tempos foram medidos em 13/11 pela conexão direta e incluem ~2,3 s de conexão. Mudaram só os três nós Montar Consultas. Provas: 295, 323, 341 e 64.
+
+- **Envio:** os três nós, um `update_workflow` cada, com o ok do Thomas. Entre a `1b947c86` e o rascunho não houve salvamento pelo editor. O `get_workflow_versions_diff` mostrou só o `jsCode` dos três mudando: o antigo bate por md5 com o commit, e o novo com o local.
+- **Publicação:** versão **`2bc7c481`**. A rodada 69211 levou 24 s (antes, ~60 s), sem erro, e os três HTML subiram às 13h21.
+
 ## Ciclo
 
 ```bash

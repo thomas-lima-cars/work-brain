@@ -189,5 +189,19 @@ Desde esta rodada, o carro que volta em outro evento conta uma vez. Cada evento 
 | IGA | 39 | 32 |
 | Cars2You | 159 | 138 |
 
-No IGA, 7 carros sem venda no 24377 voltaram no 24378; um deles vendeu lá. Por evento, nada muda: 24377 tem 11 veículos, 24378 tem 18 e 24379 tem 10.
+No IGA, 7 carros sem venda no 24377 voltaram no 24378; um deles vendeu lá. Por evento, nada muda: 24377 tem 11 veículos, 24378 tem 18 e 24379 tem 10 (até a republicação de 12/11 às 18h09; depois, 20, ver abaixo).
 
+
+### Republicados por evento — banco direto e coleta local, 2026-11-13 ~12h
+
+O painel conta, em cada evento, as negociações dele, e por isso já inclui os carros republicados de eventos anteriores. O "um veículo só" de 12/11 vale só quando vários eventos estão no recorte (o Todos).
+
+| evento | veículos | vindos de evento anterior |
+|---|---:|---|
+| 24368 (Esquenta C6, 10/11) | 27 | — |
+| 24377 (IGA, 11/11) | 11 | — |
+| 24378 (IGA, 12/11) | 18 | 7 do 24377 |
+| 24379 (IGA, 13/11) | 20 | 10 republicados em 12/11 às 18h09: 4 só do 24378, 6 do 24377 e do 24378 |
+| 24384 (C6, 13/11) | 93 | 14 do 24368 |
+
+O 24379 aparecia com 10 veículos porque o último arquivo publicado era anterior às 18h09 de 12/11, e as rodadas de 13/11 caíram até as 13h (prazo do MCP, ver `automations/n8n-sdk/rotina-fenauto/README.md`). Pelo cálculo da página sobre a coleta de 13/11, o Mega Evento IGA e o Mega Evento Cars2You mostram 20 no 24379.

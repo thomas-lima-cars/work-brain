@@ -11,6 +11,7 @@
 | Teto de linhas | 50, silencioso | `--limite`, com aviso quando estoura |
 | Janelas / CTE | ⚠️ `ROW_NUMBER()` é rejeitada pelo validador | permitido |
 | `GROUP BY ... WITH ROLLUP` | ⚠️ rejeitado pelo validador ("syntax error near 'with'", run 68394 do Painel de Eventos Cars2You, 06/11): escrever cada subtotal num `GROUP BY` e unir com `UNION ALL` | permitido |
+| Prazo por consulta | ⚠️ ~16 s, e a consulta cai com "query failed: context deadline exceeded", mesmo com `timeout` de 60 s no nó (Rotina Fenauto, 13/11). Uma consulta que chega perto disso pela conexão direta não serve. O `access_logs` só tem índice por `event_id`, `shop_id` e `user_id`, nunca por data: filtre por um deles | sem prazo |
 
 O nó MCP só aceita `{sql, database}` — **não tem campo de host**
 ([n8n-ambiente:120](../n8n-ambiente-cars2you.md)). Por isso a Dealers não cabia
