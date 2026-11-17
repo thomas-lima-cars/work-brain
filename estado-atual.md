@@ -1,6 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
+> ⚠️ **2 commit(s) local(is) não enviado(s)** desde 17/11 (o push foi barrado pelo modo automático). Rodar `git push`.
 > **Última atualização:** 2026-11-16 (tarde; salvo em 17/11).
 > - **Fenauto encerrada.** Os três painéis foram congelados em **segunda 09/11 a sexta 13/11** (`JANELA_FIXA`) e publicados pela rodada 69497 às 15h16. A **Rotina Fenauto (`9CNN9FjRohxaRUZq`) está desligada**, sem versão ativa.
 > - **Painel de Eventos Cars2You:** os visuais ganharam 16 px de respiro nas duas abas (versão `a3751072` publicada).
