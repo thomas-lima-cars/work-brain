@@ -43,6 +43,9 @@
 const WLS = [4, 7, 43, 48, 62, 65];
 const DIAS = 30;
 const STATUS_VENDA = [2, 3, 7];
+/* o domínio de advertisement_negotiations.status (dominios.md, 09/09): o
+   mensal conta cada um, e o Montar Painel agrupa (17/11) */
+const STATUS_SISTEMA = [1, 2, 3, 7, 8, 9, 10, 11, 13, 14, 15, 18];
 const FUSO_MIN = -180;          /* America/Sao_Paulo, sem horário de verão */
 const DB = 'cars2you_production';
 if (DIAS > 30) throw new Error('DIAS acima de 30 estoura a mascara de dias (bit 31 e o sinal)');
@@ -246,8 +249,8 @@ const TABELAS = [
    então o mês sai JÁ AGREGADO no banco, uma consulta por mês:
 
      mes_veic   por (comitente, máscara de canais, categoria): veículos ativos no mês,
-                novos, com acesso / oferta / venda no mês (e dos novos), os
-                cinco status e o valor vendido. Cada veículo cai num grupo só
+                novos, com acesso / oferta / venda no mês (e dos novos), a
+                contagem de cada status do sistema (17/11) e o valor vendido. Cada veículo cai num grupo só
                 — o do comitente da negociação mais recente no mês, com a
                 máscara de TODOS os canais em que esteve no mês —, então a
                 soma dos grupos é a contagem distinta, com qualquer filtro
@@ -290,9 +293,8 @@ const deMesVeic = (m) => {
   const evs = "SELECT e.id, e.finish_date_event AS fim, BIT_OR(" + BIT_WL + ") AS wm FROM events e" +
     " INNER JOIN event_whitelabels ew ON ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + ")" +
     " WHERE" + EVENTO_MES(m) + " GROUP BY e.id";
-  const neg = "SELECT an.id AS nid, a.vehicle_id AS v, a.shop_id AS c, an.status AS st, NULLIF(an.min_sale_price, 0) AS vmv," +
+  const neg = "SELECT an.id AS nid, a.vehicle_id AS v, a.shop_id AS c, an.status AS st," +
     " ev.fim, ev.wm, " + CATEGORIA('vc', 'cg') + " AS cat," +
-    " (SELECT MAX(o.price) FROM offers o WHERE o.advs_negotiation_id = an.id AND " + LANCE + ") AS maior," +
     " EXISTS (SELECT 1 FROM offers o WHERE o.advs_negotiation_id = an.id AND " + LANCE + ") AS tem_lance," +
     " (SELECT o.price FROM offers o WHERE o.id = an.offer_actual_id AND an.status IN (" + STATUS_VENDA.join(',') + ")) AS pv," +
     " EXISTS (SELECT 1 FROM access_logs al WHERE al.advertisement_id = an.advertisement_id AND al.event_id = ev.id" +
@@ -302,25 +304,29 @@ const deMesVeic = (m) => {
     " INNER JOIN vehicles vc ON vc.id = a.vehicle_id LEFT JOIN categories cg ON cg.id = vc.category_id";
   /* novo no mês = estreou no mês: nenhuma negociação num evento (de qualquer
      canal) que abriu antes do mês — a mesma "estreia" do diário */
-  const veic = "SELECT n.v, " + ULT('n.c') + " AS c, " + ULT('n.st') + " AS st, " + ULT('n.vmv') + " AS vmv, " +
-    ULT('n.maior') + " AS maior, " + ULT('n.tem_lance') + " AS tl, " + ULT('n.pv') + " AS pv, " + ULT('n.ac') + " AS ac," +
+  const veic = "SELECT n.v, " + ULT('n.c') + " AS c, " + ULT('n.st') + " AS st, " + ULT('n.tem_lance') + " AS tl, " + ULT('n.pv') + " AS pv, " + ULT('n.ac') + " AS ac," +
     " BIT_OR(n.wm) AS wm, MAX(n.cat) AS cat," +
     " NOT EXISTS (SELECT 1 FROM advertisements a2 INNER JOIN advertisement_negotiations an2 ON an2.advertisement_id = a2.id" +
     " AND an2.deleted_at IS NULL INNER JOIN events e2 ON e2.id = an2.event_id AND e2.deleted_at IS NULL" +
     " WHERE a2.vehicle_id = n.v AND e2.start_date_offer < '" + m.ini + "') AS novo" +
     " FROM (" + neg + ") n GROUP BY n.v";
-  /* o funil do diário (Thomas, 06/11), sobre a negociação mais recente do
-     mês: com oferta = teve lance ou vendeu; VMV atingido = o maior lance
-     chegou ao VMV ou vendeu; removido (8, 10) à parte. O % do gráfico é o
-     mesmo acumulado no evento: com acesso = alguma loja abriu o anúncio
-     nele, com oferta = o status, vendido = o status. Sem oferta = o resto */
+  /* Os status do mês são os do SISTEMA (Thomas, 17/11: "volte os status
+     para os status do veículo do sistema, incluindo o que está em análise"),
+     sobre a negociação mais recente do mês: uma contagem por status de
+     advertisement_negotiations.status (dominios.md), e a página agrupa em
+     Ativos, Em análise, Vendidos, Não vendidos e Removidos. "sx" = status
+     fora do domínio conhecido: entra em Não vendidos e vira aviso. O funil
+     de 06/11 (com oferta, VMV atingido) saiu do mensal; com oferta continua
+     no cartão dele e no gráfico, acumulado no evento: com acesso = alguma
+     loja abriu o anúncio nele, com oferta = teve lance ou vendeu */
   const vend = "(x.st IN (" + STATUS_VENDA.join(',') + "))";
   const co = "(" + vend + " OR x.tl = '1')";
-  const vm = "(" + vend + " OR (x.vmv <> '' AND x.maior <> '' AND x.maior + 0 >= x.vmv + 0))";
   const ac = "(x.ac = '1')";
+  const porStatus = STATUS_SISTEMA.map((s) => " SUM(x.st = " + s + ") AS s" + s).join(',') +
+    ", SUM(x.st NOT IN (" + STATUS_SISTEMA.join(',') + ")) AS sx";
   return " FROM (SELECT x.c, x.wm, x.cat, COUNT(*) AS veic, SUM(x.novo) AS novos, SUM(" + ac + ") AS ac, SUM(" + co + ") AS ofe, SUM(" + vend + ") AS ve," +
     " SUM(x.novo AND " + ac + ") AS ac_n, SUM(x.novo AND " + co + ") AS of_n, SUM(x.novo AND " + vend + ") AS ve_n," +
-    " SUM(NOT " + co + ") AS so, SUM(" + co + ") AS co, SUM(" + vm + ") AS vm, SUM(" + vend + ") AS vd, SUM(x.st IN (8, 10)) AS rm," +
+    porStatus + "," +
     " SUM(IF(" + vend + " AND x.pv <> '', x.pv + 0, 0)) AS valor" +
     " FROM (" + veic + ") x GROUP BY x.c, x.wm, x.cat) g";
 };
@@ -360,8 +366,8 @@ TABELAS.push(
     meses: true,
     deMes: deMesVeic,
     cols: [['c', 'g.c'], ['wm', 'g.wm'], ['veic', 'g.veic'], ['novos', 'g.novos'], ['ac', 'g.ac'], ['of', 'g.ofe'], ['ve', 'g.ve'],
-      ['ac_n', 'g.ac_n'], ['of_n', 'g.of_n'], ['ve_n', 'g.ve_n'], ['so', 'g.so'], ['co', 'g.co'], ['vm', 'g.vm'], ['vd', 'g.vd'],
-      ['rm', 'g.rm'], ['valor', 'g.valor'], ['cat', 'g.cat']]
+      ['ac_n', 'g.ac_n'], ['of_n', 'g.of_n'], ['ve_n', 'g.ve_n']]
+      .concat(STATUS_SISTEMA.map((s) => ['s' + s, 'g.s' + s]), [['sx', 'g.sx'], ['valor', 'g.valor'], ['cat', 'g.cat']])
   },
   {
     nome: 'mes_loj',

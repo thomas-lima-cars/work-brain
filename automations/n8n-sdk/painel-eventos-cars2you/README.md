@@ -9,6 +9,8 @@ Pedido do Thomas em **28/10/2026**. Nasceu do Painel de Eventos C6: mesmo jeito
 de empacotar consulta, mesma gaveta, mesma tabela ordenável. O recorte e a tela
 são outros.
 
+**Estado em 2026-11-17:** versão **`f5f2c1c8`** publicada (Mensal com os status do sistema; metas com uma aba por mês, só Leves e Pesados — ver as seções de 17/11), 13 nós; run manual **69721** ✅ (3 min 49 s). Planilha nova subida pelo Thomas em `Comitente - Metas/`. Antes, a `a3751072` (16/11).
+
 **Estado em 2026-11-06 (noite):** **no ar no n8n** — workflow
 **`cRChMwAnLYGRMesM`** no projeto **Cars2You**, raiz, **ativo**: **de hora em
 hora, das 9h às 18h, todo dia** (`0 9-18 * * *`, fuso America/Sao_Paulo; pedido
@@ -44,7 +46,7 @@ site N8N. Gatilho manual (cron só com o ok).
 | pedido | na tela |
 |---|---|
 | Cartões dos eventos ativos no dia, com veículos por status; **em 06/11 os status viraram com oferta, VMV atingido, vendidos e removidos, em funil, e o cartão de sem oferta saiu** | cinco cartões: **Eventos ativos** (veículos e comitentes), **Com oferta** e **VMV atingido** (abertos, em análise, encerrados), **Vendidos** (aguardando pagamento, vendido, valor), **Removidos** (cancelados, suspensos). Vendidos ⊂ VMV atingido ⊂ Com oferta; sem oferta (o resto) não tem cartão |
-| **Aba com o painel mensal, 12 meses** (06/11) | abas **Diário · Mensal** no canto direito do cabeçalho (06/11: no lugar do botão de tema, que desceu para o canto direito da barra do indicador, com Indicador e Veículos à esquerda; o ícone de avisos saiu da página, e os avisos seguem só no resumo do run). O Mensal é o espelho do diário em meses: cinco cartões do mês escolhido (com o mês anterior no pé), cartões por comitente (rosca do mês, área dos 12 meses, Δ contra o mês anterior, clique filtra), **Veículos ativos por mês** (já em evento antes + novos no mês, linha do indicador) e **Lojistas por mês**. Sem lista de eventos e sem tabela de veículos. Filtros próprios na gaveta: whitelabel, comitente e mês |
+| **Aba com o painel mensal, 12 meses** (06/11) | abas **Diário · Mensal** no canto direito do cabeçalho (06/11: no lugar do botão de tema, que desceu para o canto direito da barra do indicador, com Indicador e Veículos à esquerda; o ícone de avisos saiu da página, e os avisos seguem só no resumo do run). O Mensal é o espelho do diário em meses: **sete cartões** do mês escolhido (desde 17/11: Eventos, Com oferta e os cinco status do sistema — Ativos, Em análise, Vendidos, Não vendidos, Removidos —, com as partes e o mês anterior no pé), cartões por comitente (rosca do mês, área dos 12 meses, Δ contra o mês anterior, clique filtra), **Veículos ativos por mês** (já em evento antes + novos no mês, linha do indicador) e **Lojistas por mês**. Sem lista de eventos e sem tabela de veículos. Filtros próprios na gaveta: whitelabel, comitente e mês |
 | Cartões de infográfico por comitente, com os indicadores do dia, abaixo dos big numbers, servindo de filtro (03/11) | **um cartão por comitente com evento ativo no dia**, **três por linha**, do maior para o menor: nome e eventos em cima; **parte dos gráficos (60% da largura)**: o nome do indicador centralizado em cima, sem rótulo embaixo de cada gráfico; uma **rosca com o % do indicador** no centro e, ao lado, **um gráfico de área dos últimos 7 dias**, um ponto por dia, com a **meta tracejada** como referência (06/11), e centralizados embaixo o "x de y" e a **diferença em p.p. para o dia anterior** (▲ ▼, sem cor desde 06/11); **parte da tabela (40%)**: a tabela de status (veículos, ativos, em análise, vendidos, removidos); no pé, o valor vendido. **A luz do cartão** (o véu do canto, o `--brilho` do tema) fica **verde na meta ou acima e vermelha abaixo** (06/11; antes, pela diferença para ontem), e **a rosca e a área ganham a mesma cor**; sem meta, a luz normal e os gráficos em azul. **Clique filtra** o painel inteiro pelo comitente (o mesmo filtro da gaveta), clique de novo solta; o escolhido fica com contorno e os outros apagados. No telefone viram uma fileira que corre de lado |
 | Lista por evento abaixo (03/11) | **Retrátil** (o `<details>` é o cartão, como o glossário): **nasce fechada**, abre ao escolher um comitente e fecha ao soltá-lo, ou abre e fecha no clique do título — quem abriu ou fechou com a mão manda até o comitente mudar de novo. **Eventos ativos hoje**: uma linha por evento ativo no dia — nome, comitente e fim; os mesmos status; termômetro do indicador com o Δ p.p., **coluna de largura fixa** (barra, % e diferença alinhados em toda linha; o "vs ontem" mora só no cabeçalho) e **a mesma luz dos cartões por linha** (verde subiu, vermelha caiu), com **o termômetro na mesma cor**. **Clique filtra pelo evento.** Segue o comitente escolhido (com a LM marcada, só os 14 eventos dela). Evento aberto sem veículo aparece com zeros, para bater com o big number |
 | Barras de veículos ativos por dia, separando os novos, com a linha do % com acesso, oferta e venda | **Veículos ativos por dia**: barra empilhada (já em evento + novos do dia), linha do indicador com eixo próprio à direita |
@@ -69,7 +71,7 @@ As marcadas **(minha)** são escolhas minhas, a confirmar com o Thomas.
 | **Rosca, termômetro e Δ p.p.** (03/11) | O indicador do topo no dia, para os veículos do comitente ou do evento **ativos no dia** (a base pode ser maior que a coluna Ativos, que é o status agora): é a conta do gráfico com o comitente ou o evento filtrado, no dia e no dia anterior — a prova confere campo a campo em quatro recortes. Δ = % do dia − % do dia anterior, em pontos percentuais; sem veículo ativo num dos dois dias, "—". O modelo em lista no lugar dos cartões foi feito e descartado no mesmo dia: ficaram os cartões |
 | **Cartões num dia passado** | Com Até antes de hoje, os cartões mostram os eventos ativos naquele dia com o status **de hoje** — o banco não guarda o status de cada dia |
 | **Mensal: recorte** (06/11) | O mês corrente (até agora) e os 11 anteriores. Evento dos seis canais, já aberto, **ativo em algum dia do mês**. **Evento com mais de 31 dias de ofertas fica fora (minha)**: é depósito, não evento — "Anúncios cancelados" (id 266, de 2021 a 16/12/2025, 10.127 negociações) sozinho levava dezembro de 2,2 mil para 11,7 mil veículos |
-| **Mensal: veículo, novo e status** | Veículo distinto com negociação num evento ativo no mês. Novo no mês = estreou no mês (nenhuma negociação em evento aberto antes do mês, de qualquer canal). Status e comitente: os da negociação no evento mais recente do mês, no funil do diário — nos meses fechados, é o desfecho |
+| **Mensal: veículo, novo e status** | Veículo distinto com negociação num evento ativo no mês. Novo no mês = estreou no mês (nenhuma negociação em evento aberto antes do mês, de qualquer canal). Status e comitente: os da negociação no evento mais recente do mês — nos meses fechados, é o desfecho. **Desde 17/11 os status do mês são os do sistema** (Thomas: "volte os status para os status do veículo do sistema, incluindo o que está em análise"), em cinco grupos que não se cruzam e somam os veículos: **Ativos** (1), **Em análise** (9 comprador, 13 vendedor), **Vendidos** (2 e 3 aguardando pagamento, 7 vendido, valor), **Não vendidos** (11 sem ofertas, 14 e 15 rejeitados, 18 venda cancelada, e status fora do domínio como "outros", com aviso), **Removidos** (8 suspenso, 10 cancelado). **Com oferta** (teve lance ou vendeu) fica num cartão ao lado, com a meta (escolha do Thomas, 17/11). O VMV atingido saiu do mensal. O diário segue no funil de 06/11 |
 | **Mensal: % e lojistas** | % com acesso / oferta / venda: dos veículos ativos no mês, **acumulado no evento** como no diário — a negociação mais recente do mês teve anúncio aberto, lance ou venda; com oferta e vendidos são os do cartão (06/11; antes era só o que aconteceu dentro do mês). Lojistas: lojas distintas no mês |
 | **Mensal: filtros** | Whitelabel e comitente recortam veículos e lojas; Mês escolhe o mês dos cartões (os gráficos mostram sempre os 12). Canal: um veículo entra no canal se esteve num evento dele no mês, e conta pela negociação mais recente dele no mês, mesmo que seja de outro canal **(minha)**. Não há filtro de evento, responsável nem data |
 | **% com acesso / oferta / venda** | Dos veículos ativos no dia, quantos tiveram o anúncio aberto por alguma loja, receberam lance ou venderam **naquele dia**. Venda pela data da oferta vencedora |
@@ -143,6 +145,26 @@ meses fora da planilha**.
 | **No n8n** | O Extract From File lê **uma aba** e não devolve o arquivo: a planilha é baixada duas vezes (`Ler Metas Mensais`, `Ler Metas Diárias`), em série antes das consultas, como a carteira. `executeOnce` no segundo download; `onError` + `alwaysOutputData` nos quatro, para a cadeia seguir sem a planilha |
 | **Conferência** (06/11; a planilha larga foi convertida da longa sem VPN — mesmas metas, conferidas no painel: hoje 11,8% / 4,8%, nov/26 45,0% / 28,0% — e o `gera_metas.py` novo testado com dado de mentira; **rodar de novo com VPN antes de subir**) | O gerador refaz o painel: os totais de 11 meses (dez/25 a out/26) e dos dias 15/10 e 29/10 batem com o painel, exceto 1 vendido a mais no painel em out/26 (coleta das 14:27, o banco andou) |
 
+### 17/11 — uma aba por mês, só Leves e Pesados
+
+Pedido do Thomas: "Mantenha somente as categorias leves e pesados; inclua a
+meta mensal e diária nas mesmas abas, inclua uma aba por mês com ano e mês;
+no painel a meta deve refletir a meta do mês de referência". Escolhas dele,
+na mesma conversa: as abas nascem com **a mesma média** (a dos 12 meses
+fechados); **mês sem aba usa a mais recente anterior**, com aviso;
+Equipamentos e Não informada **só ficam sem meta** (seguem no filtro e nos
+números); a aba se chama **`2026-11`**. Vale por cima do que a tabela acima
+diz das abas e das categorias.
+
+| | |
+|---|---|
+| **A planilha** | Uma aba por mês dos 12 do Mensal (`2025-12` a `2026-11` em 17/11). Linha 2: **Meta mensal** e **Meta diária** mesclados; linha 3: % Com Oferta e % Vendido mesclados; linha 4: ID comitente, Comitente e Leves, Pesados quatro vezes; dados da 5. Divisa entre o mensal e o diário; o resto do desenho (trava, 100 linhas novas, validação, cores) é o de 06/11. **Mês novo**: copiar a última aba e renomear (Mover ou copiar), ou rodar o `gera_metas.py` de novo |
+| **Mês de referência** | No Mensal, cada mês usa a aba dele (cartões, linha do gráfico, rosca e área dos comitentes). No Diário, **cada dia usa a aba do mês do dia** — a janela de 31 dias pega dois meses. `D.metas.mes[m]` e `D.metas.dia[m]` são um mapa por mês; `D.metas.abas[m]` diz de que aba veio |
+| **No n8n** | `Ler Metas` (um download) → **`Abas das Metas`** (Code, `abas-metas.js`: um item por mês, com o arquivo e `json.aba`) → **`Metas`** (Extract From File, a aba pela expressão `{{ $json.aba }}`, uma vez por item). O Montar Painel sabe de que aba veio cada linha pelo **`pairedItem`**; aba que não existe vira item de erro (onError continua) e conta como mês sem aba. ✅ **Provado no run 69721** (17/11): toda linha do Metas veio com `pairedItem`, cada mês com a sua aba, nenhum aviso de metas (números em `indicadores.md`) |
+| **Só Leves e Pesados** | O leitor só aceita essas duas colunas. A referência de base pequena pelo comitente passou a somar só os veículos leves e pesados dele **(minha)**. Quantos ficam sem meta: `indicadores.md`, "As metas por aba de mês" |
+| **O envio** | `python monta_envio.py` grava em `n8n/_envio/` as operações de quatro `update_workflow`: `ops-1-estrutura.json` (renomeia Ler Metas Mensais → Ler Metas e Metas Mensais → Metas, a aba pela expressão, tira os dois nós diários, põe o Abas das Metas, religa, troca o Montar Consultas; 18,5 KB), `ops-2` Peças do Tema (51,6 KB), `ops-3` Peças da Página (47,4 KB), `ops-4` Montar Painel (48,2 KB). Renomear mantém a credencial do SharePoint e o `executeOnce` do download. Em 17/11 a simulação das quatro sobre a cópia do workflow no ar (versão `a3751072`, igual ao commit) deu 13 nós, a cadeia nova e o md5 dos 6 nós Code igual a `n8n/*.js`. O n8n grava no rascunho; a versão ativa roda até o `publish_workflow`. Ordem: os quatro envios → `_confere_n8n.py` → o Thomas sobe a planilha nova → publicar. Voltar atrás: `restore_workflow_version` para a `a3751072` |
+| **O glossário** | Virou texto com marcas (`{canais}`, `{dias}`, `{dias_max}`) e vai na **Peças do Tema**: sem isso o Montar Painel passava dos 56 KB da API (58,5 KB). Nós: Peças do Tema 52 KB, Peças da Página 47 KB, Montar Painel 48 KB |
+
 ⚠️ **O mês corrente fica abaixo da meta mensal até fechar**: a meta é do mês
 inteiro e o mês corrente é parcial (o mesmo vale para o Δ contra o mês
 anterior).
@@ -165,7 +187,7 @@ derruba o run.
 | `acessos` | 12 | (negociação, loja) com a máscara dos dias em que abriu o anúncio |
 | `logins` | 1 | (loja, canal) com a máscara dos dias com acesso ao canal |
 | `lojas` | 2 | nome, canal e **CNPJ** — o CNPJ vira responsável no nó e não chega ao HTML |
-| `mes_veic` | 12, **uma por mês** | o mês já agregado por (comitente, máscara de canais): veículos, novos, com acesso / oferta / venda acumulados no evento (e dos novos), o funil dos status, valor. Cada veículo num grupo só: a soma é a contagem distinta com qualquer filtro de canal ou comitente |
+| `mes_veic` | 12, **uma por mês** | o mês já agregado por (comitente, máscara de canais, categoria): veículos, novos, com acesso / oferta / venda acumulados no evento (e dos novos), **uma contagem por status do sistema** (`s1` a `s18` e `sx`, fora do domínio; 17/11), valor. Cada veículo num grupo só: a soma é a contagem distinta com qualquer filtro de canal ou comitente |
 | `mes_loj` | 12, uma por mês | lojas distintas que acessaram, ofertaram e compraram, por (canal, comitente) com o `ROLLUP`, mais um bloco por comitente sem canal: cada recorte da tela vem contado pronto |
 | `mes_eventos` | 1 | os eventos dos 12 meses: abre, fecha, canais e comitentes (82 KB) |
 | `mes_dias_acesso` | 1 | dias com registro no `access_logs` por mês — o buraco de 06/02 a 11/03/2026 vira aviso |
@@ -240,7 +262,7 @@ python coleta_local.py               # coleta real (VPN) + carteira local → da
 python gera_metas.py                 # a planilha de metas (VPN) → metas-painel-eventos.xlsx
 python le_metas.py                   # a planilha como o n8n lê → metas-local.json
 node _aplica-modelo.js               # tema + logos para dentro do Montar Painel
-for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
+for f in montar-consultas.js abas-metas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
 node _divide.js                      # o Montar Painel em 3 nós para o n8n
 node prova-local.js                  # 89 provas
 python _confere_banco.py 22          # o dia 22 da janela contra SQL escrito de novo (VPN)
@@ -257,7 +279,7 @@ Para ver: `previa-radar` em `.claude/launch.json`, em
 
 | arquivo | o que é |
 |---|---|
-| `montar-consultas.js`, `montar-painel.js`, `virar-arquivo.js` | os três nós Code, **com** comentário — a fonte |
+| `montar-consultas.js`, `abas-metas.js`, `montar-painel.js`, `virar-arquivo.js` | os nós Code, **com** comentário — a fonte (o `abas-metas.js` desde 17/11) |
 | `n8n/*.js` | os mesmos sem comentário de bloco (`_enxuga.js`). Derivado: não editar |
 | `_aplica-modelo.js` | injeta `tema.css` e as quatro logos da Cars2You |
 | `_roda_no.js`, `_enxuga.js` | iguais aos do Painel C6 |

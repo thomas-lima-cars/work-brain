@@ -59,12 +59,12 @@ const carteira = node({
   }
 });
 
-/* as metas, em serie: uma aba por download (ver build_wf.py) */
-const lerMetasMes = node({
+/* as metas, em serie: um download, um item por aba de mes, um Extract por item (ver build_wf.py) */
+const lerMetas = node({
   type: 'n8n-nodes-base.httpRequest',
   version: 4.5,
   config: {
-    name: 'Ler Metas Mensais',
+    name: 'Ler Metas',
     position: [896, 0],
     onError: 'continueRegularOutput',
     executeOnce: true,
@@ -79,46 +79,38 @@ const lerMetasMes = node({
   }
 });
 
-const metasMes = node({
-  type: 'n8n-nodes-base.extractFromFile',
-  version: 1.2,
+const abasMetas = node({
+  type: 'n8n-nodes-base.code',
+  version: 2,
   config: {
-    name: 'Metas Mensais',
+    name: 'Abas das Metas',
     position: [1120, 0],
-    onError: 'continueRegularOutput',
-    alwaysOutputData: true,
-    parameters: { operation: 'xlsx', binaryPropertyName: 'data', options: { headerRow: false, sheetName: 'Média mensal' } }
+    parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: `const FUSO_MIN = -180;
+const MESES = 12;
+const agora = new Date(Date.now() + FUSO_MIN * 60000);
+const pad = (n) => String(n).padStart(2, '0');
+const arq = $input.first();
+const binario = arq && arq.binary && arq.binary.data ? arq.binary : null;
+const itens = [];
+for (let k = MESES - 1; k >= 0; k--) {
+  const a = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() - k, 1));
+  const aba = a.getUTCFullYear() + '-' + pad(a.getUTCMonth() + 1);
+  itens.push(binario ? { json: { aba: aba }, binary: binario } : { json: { aba: aba, sem_arquivo: true } });
+}
+return itens;
+` }
   }
 });
 
-const lerMetasDia = node({
-  type: 'n8n-nodes-base.httpRequest',
-  version: 4.5,
+const metas = node({
+  type: 'n8n-nodes-base.extractFromFile',
+  version: 1.2,
   config: {
-    name: 'Ler Metas Diárias',
+    name: 'Metas',
     position: [1344, 0],
     onError: 'continueRegularOutput',
-    executeOnce: true,
-    parameters: {
-      method: 'GET',
-      url: 'https://automakers.sharepoint.com/sites/N8N/_api/v2.0/drives/b!WIoPIE-Ra0WlwvYnLSod44VOGNL5_GRNoDqrqsWDT53xop-CS7vvT4Ura4LiRKaM/root:/Comitente%20-%20Metas/metas-painel-eventos.xlsx:/content',
-      authentication: 'predefinedCredentialType',
-      nodeCredentialType: 'microsoftSharePointOAuth2Api',
-      options: { timeout: 60000, response: { response: { responseFormat: 'file' } } }
-    },
-    credentials: { microsoftSharePointOAuth2Api: newCredential('Microsoft SharePoint Conta PowerBI/Automações', 'AOTm9J6pFcF0DS6g') }
-  }
-});
-
-const metasDia = node({
-  type: 'n8n-nodes-base.extractFromFile',
-  version: 1.2,
-  config: {
-    name: 'Metas Diárias',
-    position: [1568, 0],
-    onError: 'continueRegularOutput',
     alwaysOutputData: true,
-    parameters: { operation: 'xlsx', binaryPropertyName: 'data', options: { headerRow: false, sheetName: 'Média diária' } }
+    parameters: { operation: 'xlsx', binaryPropertyName: 'data', options: { headerRow: false, sheetName: expr('{{ $json.aba }}') } }
   }
 });
 
@@ -131,6 +123,7 @@ const consultas = node({
     parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: `const WLS = [4, 7, 43, 48, 62, 65];
 const DIAS = 30;
 const STATUS_VENDA = [2, 3, 7];
+const STATUS_SISTEMA = [1, 2, 3, 7, 8, 9, 10, 11, 13, 14, 15, 18];
 const FUSO_MIN = -180;
 const DB = 'cars2you_production';
 if (DIAS > 30) throw new Error('DIAS acima de 30 estoura a mascara de dias (bit 31 e o sinal)');
@@ -302,9 +295,8 @@ const deMesVeic = (m) => {
   const evs = "SELECT e.id, e.finish_date_event AS fim, BIT_OR(" + BIT_WL + ") AS wm FROM events e" +
     " INNER JOIN event_whitelabels ew ON ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + ")" +
     " WHERE" + EVENTO_MES(m) + " GROUP BY e.id";
-  const neg = "SELECT an.id AS nid, a.vehicle_id AS v, a.shop_id AS c, an.status AS st, NULLIF(an.min_sale_price, 0) AS vmv," +
+  const neg = "SELECT an.id AS nid, a.vehicle_id AS v, a.shop_id AS c, an.status AS st," +
     " ev.fim, ev.wm, " + CATEGORIA('vc', 'cg') + " AS cat," +
-    " (SELECT MAX(o.price) FROM offers o WHERE o.advs_negotiation_id = an.id AND " + LANCE + ") AS maior," +
     " EXISTS (SELECT 1 FROM offers o WHERE o.advs_negotiation_id = an.id AND " + LANCE + ") AS tem_lance," +
     " (SELECT o.price FROM offers o WHERE o.id = an.offer_actual_id AND an.status IN (" + STATUS_VENDA.join(',') + ")) AS pv," +
     " EXISTS (SELECT 1 FROM access_logs al WHERE al.advertisement_id = an.advertisement_id AND al.event_id = ev.id" +
@@ -312,8 +304,7 @@ const deMesVeic = (m) => {
     " FROM (" + evs + ") ev INNER JOIN advertisement_negotiations an ON an.event_id = ev.id AND an.deleted_at IS NULL" +
     " INNER JOIN advertisements a ON a.id = an.advertisement_id" +
     " INNER JOIN vehicles vc ON vc.id = a.vehicle_id LEFT JOIN categories cg ON cg.id = vc.category_id";
-  const veic = "SELECT n.v, " + ULT('n.c') + " AS c, " + ULT('n.st') + " AS st, " + ULT('n.vmv') + " AS vmv, " +
-    ULT('n.maior') + " AS maior, " + ULT('n.tem_lance') + " AS tl, " + ULT('n.pv') + " AS pv, " + ULT('n.ac') + " AS ac," +
+  const veic = "SELECT n.v, " + ULT('n.c') + " AS c, " + ULT('n.st') + " AS st, " + ULT('n.tem_lance') + " AS tl, " + ULT('n.pv') + " AS pv, " + ULT('n.ac') + " AS ac," +
     " BIT_OR(n.wm) AS wm, MAX(n.cat) AS cat," +
     " NOT EXISTS (SELECT 1 FROM advertisements a2 INNER JOIN advertisement_negotiations an2 ON an2.advertisement_id = a2.id" +
     " AND an2.deleted_at IS NULL INNER JOIN events e2 ON e2.id = an2.event_id AND e2.deleted_at IS NULL" +
@@ -321,11 +312,12 @@ const deMesVeic = (m) => {
     " FROM (" + neg + ") n GROUP BY n.v";
   const vend = "(x.st IN (" + STATUS_VENDA.join(',') + "))";
   const co = "(" + vend + " OR x.tl = '1')";
-  const vm = "(" + vend + " OR (x.vmv <> '' AND x.maior <> '' AND x.maior + 0 >= x.vmv + 0))";
   const ac = "(x.ac = '1')";
+  const porStatus = STATUS_SISTEMA.map((s) => " SUM(x.st = " + s + ") AS s" + s).join(',') +
+    ", SUM(x.st NOT IN (" + STATUS_SISTEMA.join(',') + ")) AS sx";
   return " FROM (SELECT x.c, x.wm, x.cat, COUNT(*) AS veic, SUM(x.novo) AS novos, SUM(" + ac + ") AS ac, SUM(" + co + ") AS ofe, SUM(" + vend + ") AS ve," +
     " SUM(x.novo AND " + ac + ") AS ac_n, SUM(x.novo AND " + co + ") AS of_n, SUM(x.novo AND " + vend + ") AS ve_n," +
-    " SUM(NOT " + co + ") AS so, SUM(" + co + ") AS co, SUM(" + vm + ") AS vm, SUM(" + vend + ") AS vd, SUM(x.st IN (8, 10)) AS rm," +
+    porStatus + "," +
     " SUM(IF(" + vend + " AND x.pv <> '', x.pv + 0, 0)) AS valor" +
     " FROM (" + veic + ") x GROUP BY x.c, x.wm, x.cat) g";
 };
@@ -356,8 +348,8 @@ TABELAS.push(
     meses: true,
     deMes: deMesVeic,
     cols: [['c', 'g.c'], ['wm', 'g.wm'], ['veic', 'g.veic'], ['novos', 'g.novos'], ['ac', 'g.ac'], ['of', 'g.ofe'], ['ve', 'g.ve'],
-      ['ac_n', 'g.ac_n'], ['of_n', 'g.of_n'], ['ve_n', 'g.ve_n'], ['so', 'g.so'], ['co', 'g.co'], ['vm', 'g.vm'], ['vd', 'g.vd'],
-      ['rm', 'g.rm'], ['valor', 'g.valor'], ['cat', 'g.cat']]
+      ['ac_n', 'g.ac_n'], ['of_n', 'g.of_n'], ['ve_n', 'g.ve_n']]
+      .concat(STATUS_SISTEMA.map((s) => ['s' + s, 'g.s' + s]), [['sx', 'g.sx'], ['valor', 'g.valor'], ['cat', 'g.cat']])
   },
   {
     nome: 'mes_loj',
@@ -528,10 +520,9 @@ export default workflow('painel-eventos-cars2you', 'Painel de Eventos Cars2You')
   .to(pecasTema)
   .to(pecasPagina)
   .to(carteira)
-  .to(lerMetasMes)
-  .to(metasMes)
-  .to(lerMetasDia)
-  .to(metasDia)
+  .to(lerMetas)
+  .to(abasMetas)
+  .to(metas)
   .to(consultas)
   .to(mcp)
   .to(painel)

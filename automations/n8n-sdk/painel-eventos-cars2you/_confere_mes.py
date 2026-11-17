@@ -5,7 +5,7 @@
 
 O painel recebe o mes JA AGREGADO no SQL (mes_veic, mes_loj). Aqui o mesmo
 mes sai das linhas cruas -- uma por negociacao, com os lances e os acessos
-dela -- e a conta (negociacao mais recente do veiculo, o funil dos status,
+dela -- e a conta (negociacao mais recente do veiculo, os status do sistema,
 novo, o % acumulado no evento) e feita em Python, sem o SQL do Montar Consultas.
 Compara com o calculaMes() da pagina gerada pelo dados-local.json.
 
@@ -95,23 +95,29 @@ for n in negs:
     por_v.setdefault(n[1], []).append(n)
     if n[1] not in ultima or (n[4], n[0]) > (ultima[n[1]][4], ultima[n[1]][0]):
         ultima[n[1]] = n
-c = {"veiculos": len(ultima), "novos": 0, "acesso": 0, "oferta": 0, "venda": 0,
-     "sem_oferta": 0, "com_oferta": 0, "vmv": 0, "vendidos": 0, "removidos": 0}
-# o funil (06/11), na negociacao mais recente do mes: com oferta = teve lance
-# ou vendeu; VMV = maior lance >= VMV ou vendeu; o % do grafico e o mesmo
+# os status do sistema (17/11), na negociacao mais recente do mes, nos
+# cinco grupos da pagina; com oferta = teve lance ou vendeu, o % do grafico
+GRUPO = {"st_ativo": (1,), "an_comprador": (9,), "an_vendedor": (13,), "aguardando": (2, 3), "vendido": (7,),
+         "sem_ofertas": (11,), "rejeitados": (14, 15), "venda_cancelada": (18,), "suspensos": (8,), "cancelados": (10,)}
+CONHECIDOS = {s for t in GRUPO.values() for s in t}
+c = {"veiculos": len(ultima), "novos": 0, "acesso": 0, "oferta": 0, "venda": 0, "com_oferta": 0, "outros": 0}
+c.update({k: 0 for k in GRUPO})
 for v, n in ultima.items():
     c["novos"] += v not in antes
-    st, vmv, mx = n[2], n[3], maior.get(n[0])
+    st = n[2]
     vendeu = st in (2, 3, 7)
     co = vendeu or n[0] in tem_lance
     c["acesso"] += n[0] in ac
     c["oferta"] += co
     c["venda"] += vendeu
-    c["vendidos"] += vendeu
-    c["removidos"] += st in (8, 10)
     c["com_oferta"] += co
-    c["sem_oferta"] += not co
-    c["vmv"] += vendeu or (mx is not None and vmv is not None and mx >= vmv)
+    for k, sts in GRUPO.items():
+        c[k] += st in sts
+    c["outros"] += st not in CONHECIDOS
+c["analise"] = c["an_comprador"] + c["an_vendedor"]
+c["vendidos"] = c["aguardando"] + c["vendido"]
+c["nao_vendidos"] = c["sem_ofertas"] + c["rejeitados"] + c["venda_cancelada"] + c["outros"]
+c["removidos"] = c["suspensos"] + c["cancelados"]
 
 fechado = M < len(meta["meses"]) - 1
 print("%s (%s): %d eventos, %d negociacoes" % (MES, "fechado: tem que bater exato" if fechado else "corrente: anda com o banco",
@@ -120,10 +126,10 @@ falhas = 0
 for k, v in c.items():
     ok = pag[k] == v
     falhas += 0 if ok else 1
-    print("  %s %-11s painel=%-6s banco=%s" % ("✓" if ok else ("✗" if fechado else "≈"), k, pag[k], v))
+    print("  %s %-15s painel=%-6s banco=%s" % ("✓" if ok else ("✗" if fechado else "≈"), k, pag[k], v))
 ok = pag["eventos"] == len(evs)
 falhas += 0 if ok else 1
-print("  %s %-11s painel=%-6s banco=%s" % ("✓" if ok else "✗", "eventos", pag["eventos"], len(evs)))
+print("  %s %-15s painel=%-6s banco=%s" % ("✓" if ok else "✗", "eventos", pag["eventos"], len(evs)))
 if fechado and falhas:
     print("✗ %d divergencia(s)" % falhas)
     sys.exit(1)

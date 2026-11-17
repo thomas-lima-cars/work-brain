@@ -2,12 +2,19 @@
 """Gera a planilha de metas do Painel de Eventos Cars2You.
 
     python gera_metas.py                 -> metas-painel-eventos.xlsx
-    python gera_metas.py --ate 2026-11   -> outros 12 meses (o --ate fica fora)
+    python gera_metas.py --ate 2026-11   -> outros 12 meses (o --ate fica fora da
+                                            media; as abas vao ate ele)
 
 Pedido do Thomas (06/11): meta diaria e mensal do % de veiculos com oferta e
 do % vendidos, por comitente e categoria. A planilha nasce com a MEDIA dos 12
-meses fechados e uma coluna Meta preenchida com ela; quem quiser muda a Meta,
-sobe no SharePoint, e o painel le a coluna Meta.
+meses fechados; quem quiser muda a meta, sobe no SharePoint, e o painel le.
+
+Refeita em 17/11 (Thomas): UMA ABA POR MES, de nome "AAAA-MM", para os 12
+meses do Mensal (o mes corrente e os 11 anteriores), com a meta mensal e a
+diaria na mesma aba; so Leves e Pesados; todas as abas nascem com a MESMA
+media. O painel usa a aba do mes de referencia (no Diario, a do mes de cada
+dia); mes sem aba usa a mais recente anterior. Mes novo: copiar a ultima
+aba e renomear (Mover ou copiar), ou rodar isto de novo.
 
 As duas medias sao as do painel, refeitas aqui das linhas cruas (conexao
 direta, VPN):
@@ -72,7 +79,7 @@ CATEGORIAS = {"L": "Leves", "P": "Pesados", "E": "Equipamentos", "N": "Não info
 MESES_ATIVO = 3
 MIN_MESES, MIN_VEIC_MES = 3, 30
 MIN_DIAS, MIN_VEIC_DIA = 30, 100
-ORDEM_CAT = "LPEN"
+ORDEM_CAT = "LP"   # so Leves e Pesados tem meta (Thomas, 17/11)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ate", help="primeiro mes FORA da media (AAAA-MM); padrao: o mes corrente")
@@ -160,13 +167,15 @@ def conta(lista, ok_of, ok_ve):
 
 
 def referencias(g, soma_cat, soma_com):
-    # as referencias do grupo pequeno: o comitente (todas as categorias dele)
-    # e a categoria (todos os comitentes, sem os de teste), somados no periodo
+    # as referencias do grupo pequeno: o comitente (as categorias dele que
+    # tem meta, Leves e Pesados desde 17/11) e a categoria (todos os
+    # comitentes, sem os de teste), somados no periodo
     cat = defaultdict(lambda: [0, 0, 0])
     com = defaultdict(lambda: [0, 0, 0])
     for (comit, c), x in g.items():
         for i in range(3):
-            com[comit][i] += x[i]
+            if c in ORDEM_CAT:
+                com[comit][i] += x[i]
             if comit not in teste:
                 cat[c][i] += x[i]
     for c, (v, o, s) in cat.items():
@@ -216,22 +225,29 @@ from openpyxl import Workbook  # noqa: E402
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Protection, Side  # noqa: E402
 from openpyxl.worksheet.datavalidation import DataValidation  # noqa: E402
 
-# o desenho (Thomas, 06/11): uma linha por comitente com as metas de cada
-# categoria lado a lado ("categoria vira coluna"); a linha 1 e a coluna A sao
-# MARGEM; a linha 2 leva "% Com Oferta" e "% Vendido" mesclados sobre as
-# categorias; a linha 3, ID comitente, Comitente e as categorias; os dados
-# da linha 4 em diante. Celula vazia = o comitente nao teve veiculo da
-# categoria nos 12 meses: sem meta.
-# O nome da categoria se repete na linha 3, e a Tabela do Excel nao aceita
+# o desenho (Thomas, 06/11; refeito em 17/11): UMA ABA POR MES, de nome
+# "AAAA-MM", com a meta mensal e a diaria lado a lado ("inclua a meta mensal
+# e diaria nas mesmas abas, uma aba por mes com ano e mes"); so Leves e
+# Pesados (17/11). Uma linha por comitente, a categoria vira coluna; a linha
+# 1 e a coluna A sao MARGEM; a linha 2 leva "Meta mensal" e "Meta diaria"
+# mesclados sobre as suas colunas; a linha 3, "% Com Oferta" e "% Vendido"
+# mesclados sobre as categorias; a linha 4, ID comitente, Comitente e as
+# categorias; os dados da linha 5 em diante. Celula vazia = o comitente nao
+# teve veiculo da categoria nos 12 meses: sem meta.
+# Todas as abas nascem com a MESMA media, a dos 12 meses fechados (Thomas,
+# 17/11: "a mesma em todas"); a diferenca entre os meses e o que se editar.
+# O nome da categoria se repete na linha 4, e a Tabela do Excel nao aceita
 # nome de coluna repetido: e um intervalo formatado com filtro. Pelo mesmo
 # motivo o n8n le a aba SEM cabecalho (linhas de celulas), e o Montar Painel
-# acha a linha do "ID comitente" e a medida na linha de cima.
+# acha a linha do "ID comitente", a medida na linha de cima e o periodo na
+# de cima dela.
+PERIODOS = (("Meta mensal", "mes"), ("Meta diária", "dia"))
 MEDIDAS = (("% Com Oferta", 0), ("% Vendido", 1))
-LIN_MEDIDA, LIN_CAB, COL0 = 2, 3, 2      # linha 2, linha 3, coluna B
-VERDE, AZUL, CINZA = "E2F0D9", "DDEBF7", "F2F2F2"
+LIN_PERIODO, LIN_MEDIDA, LIN_CAB, COL0 = 2, 3, 4, 2      # linhas 2, 3 e 4, coluna B
+VERDE, AZUL, CINZA, GRAFITE = "E2F0D9", "DDEBF7", "F2F2F2", "D9D9D9"
 # as celulas das metas pintadas (Thomas, 06/11), no tom claro da medida: o
 # cabecalho fica no tom cheio e se distingue dos dados. Sem linhas internas:
-# so o contorno do bloco
+# so o contorno do bloco e a divisa entre o mensal e o diario
 VERDE_CLARO, AZUL_CLARO = "F1F8EC", "EEF5FB"
 # a TRAVA (Thomas, 06/11: so inserir linha nova ou alterar o valor das
 # metas): a aba e protegida, sem senha (Revisar > Desproteger abre); fica
@@ -239,80 +255,100 @@ VERDE_CLARO, AZUL_CLARO = "F1F8EC", "EEF5FB"
 # linhas vazias ja formatadas no fim (ID, nome e metas). Inserir linha e
 # filtrar seguem permitidos. Meta so aceita numero de 0 a 100%, ID so inteiro
 LINHAS_NOVAS = 100
+# as colunas de meta: (periodo, medida, categoria), na ordem da planilha
+COLUNAS = [(q, k, c) for _, q in PERIODOS for _, k in MEDIDAS for c in ORDEM_CAT]
+
+
+def letra(c):
+    return chr(64 + c)
 
 
 def escreve_aba(wb, titulo, linhas):
-    """linhas: [(id, nome, {categoria: (meta com oferta, meta vendidos)})]"""
+    """linhas: [(id, nome, {"mes": {categoria: (oferta, vendidos)}, "dia": {...}})]"""
     ws = wb.create_sheet(titulo)
     fino = Side(style="thin", color="A6A6A6")
     nc = len(ORDEM_CAT)
+    bloco = len(MEDIDAS) * nc                     # colunas de um periodo
     cor = lambda k: VERDE if k == 0 else AZUL  # noqa: E731
     cor_dado = lambda k: VERDE_CLARO if k == 0 else AZUL_CLARO  # noqa: E731
-    # linha 2: as medidas, mescladas sobre as categorias
-    for k, (rot, _) in enumerate(MEDIDAS):
-        c0 = COL0 + 2 + k * nc
-        ws.cell(LIN_MEDIDA, c0, rot)
-        ws.merge_cells(start_row=LIN_MEDIDA, start_column=c0, end_row=LIN_MEDIDA, end_column=c0 + nc - 1)
-        for c in range(c0, c0 + nc):
-            x = ws.cell(LIN_MEDIDA, c)
-            x.fill = PatternFill("solid", fgColor=cor(k))
-        x = ws.cell(LIN_MEDIDA, c0)
+    c_meta = COL0 + 2                             # a primeira coluna de meta
+    # linha 2: os periodos, mesclados sobre as suas colunas
+    for p, (rot, _) in enumerate(PERIODOS):
+        c0 = c_meta + p * bloco
+        ws.cell(LIN_PERIODO, c0, rot)
+        ws.merge_cells(start_row=LIN_PERIODO, start_column=c0, end_row=LIN_PERIODO, end_column=c0 + bloco - 1)
+        for c in range(c0, c0 + bloco):
+            ws.cell(LIN_PERIODO, c).fill = PatternFill("solid", fgColor=GRAFITE)
+        x = ws.cell(LIN_PERIODO, c0)
         x.font = Font(bold=True)
         x.alignment = Alignment(horizontal="center", vertical="center")
-    # linha 3: o cabeçalho
-    cab = ["ID comitente", "Comitente"] + [CATEGORIAS[c] for _ in MEDIDAS for c in ORDEM_CAT]
+    # linha 3: as medidas, mescladas sobre as categorias
+    for p in range(len(PERIODOS)):
+        for k, (rot, _) in enumerate(MEDIDAS):
+            c0 = c_meta + p * bloco + k * nc
+            ws.cell(LIN_MEDIDA, c0, rot)
+            if nc > 1:
+                ws.merge_cells(start_row=LIN_MEDIDA, start_column=c0, end_row=LIN_MEDIDA, end_column=c0 + nc - 1)
+            for c in range(c0, c0 + nc):
+                ws.cell(LIN_MEDIDA, c).fill = PatternFill("solid", fgColor=cor(k))
+            x = ws.cell(LIN_MEDIDA, c0)
+            x.font = Font(bold=True)
+            x.alignment = Alignment(horizontal="center", vertical="center")
+    # linha 4: o cabecalho
+    cab = ["ID comitente", "Comitente"] + [CATEGORIAS[c] for _, _, c in COLUNAS]
     for j, v in enumerate(cab):
         x = ws.cell(LIN_CAB, COL0 + j, v)
         x.font = Font(bold=True)
         x.alignment = Alignment(horizontal="center" if j >= 2 else "left", vertical="center", wrap_text=True)
-        x.fill = PatternFill("solid", fgColor=CINZA if j < 2 else cor((j - 2) // nc))
+        x.fill = PatternFill("solid", fgColor=CINZA if j < 2 else cor(COLUNAS[j - 2][1]))
     # os dados, e as linhas vazias para comitente novo
     livre = Protection(locked=False)
     for i in range(len(linhas) + LINHAS_NOVAS):
         r = LIN_CAB + 1 + i
         nova = i >= len(linhas)
         if nova:
-            vals = [None] * (2 + 2 * nc)
+            vals = [None] * (2 + len(COLUNAS))
         else:
             comit, nome, m = linhas[i]
-            vals = [comit, nome] + [m[c][k] if c in m else None for _, k in MEDIDAS for c in ORDEM_CAT]
+            vals = [comit, nome] + [m[q][c][k] if c in m[q] else None for q, k, c in COLUNAS]
         for j, v in enumerate(vals):
             x = ws.cell(r, COL0 + j, v)
             if j >= 2:
                 x.number_format = "0.0%"
                 x.alignment = Alignment(horizontal="center")
-                x.fill = PatternFill("solid", fgColor=cor_dado((j - 2) // nc))
+                x.fill = PatternFill("solid", fgColor=cor_dado(COLUNAS[j - 2][1]))
             if j >= 2 or nova:
                 x.protection = livre
     fim = LIN_CAB + len(linhas) + LINHAS_NOVAS
-    # o contorno: ID e Comitente da linha 3 ao fim, as metas da linha 2 ao fim
-    c_ini, c_fim = COL0, COL0 + 1 + 2 * nc
-    for r in range(LIN_MEDIDA, fim + 1):
+    # o contorno: ID e Comitente da linha 4 ao fim, as metas da linha 2 ao
+    # fim, e a divisa entre o mensal e o diario
+    c_ini, c_fim = COL0, COL0 + 1 + len(COLUNAS)
+    divisa = c_meta + bloco
+    for r in range(LIN_PERIODO, fim + 1):
         for c in range(c_ini, c_fim + 1):
-            if r == LIN_MEDIDA and c < COL0 + 2:
+            if r < LIN_CAB and c < c_meta:
                 continue
-            topo = r == LIN_MEDIDA or (r == LIN_CAB and c < COL0 + 2)
-            esq = c == c_ini or (r == LIN_MEDIDA and c == COL0 + 2)
+            topo = r == LIN_PERIODO or (r == LIN_CAB and c < c_meta)
+            esq = c == c_ini or (r < LIN_CAB and c == c_meta) or c == divisa
             ws.cell(r, c).border = Border(left=fino if esq else None, right=fino if c == c_fim else None,
                                           top=fino if topo else None, bottom=fino if r == fim else None)
     pc = DataValidation(type="decimal", operator="between", formula1="0", formula2="1", allow_blank=True,
                         showErrorMessage=True, errorTitle="Meta", error="A meta é um percentual de 0% a 100%.")
-    pc.add("%s%d:%s%d" % (chr(64 + COL0 + 2), LIN_CAB + 1, chr(64 + COL0 + 1 + 2 * nc), fim))
+    pc.add("%s%d:%s%d" % (letra(c_meta), LIN_CAB + 1, letra(c_fim), fim))
     ident = DataValidation(type="whole", operator="greaterThan", formula1="0", allow_blank=True,
                            showErrorMessage=True, errorTitle="ID comitente", error="O ID do comitente é um número inteiro.")
-    ident.add("%s%d:%s%d" % (chr(64 + COL0), LIN_CAB + 1, chr(64 + COL0), fim))
+    ident.add("%s%d:%s%d" % (letra(COL0), LIN_CAB + 1, letra(COL0), fim))
     ws.add_data_validation(pc)
     ws.add_data_validation(ident)
     # margens e larguras
     ws.column_dimensions["A"].width = 3
     ws.row_dimensions[1].height = 12
-    larg = [13, 38] + [14] * (2 * nc)
+    larg = [13, 38] + [12] * len(COLUNAS)
     for j, w in enumerate(larg):
-        ws.column_dimensions[chr(64 + COL0 + j)].width = w
+        ws.column_dimensions[letra(COL0 + j)].width = w
     ws.row_dimensions[LIN_CAB].height = 30
-    ultima = chr(64 + COL0 + len(cab) - 1)
-    ws.auto_filter.ref = "%s%d:%s%d" % (chr(64 + COL0), LIN_CAB, ultima, fim)
-    ws.freeze_panes = ws.cell(LIN_CAB + 1, COL0 + 2)
+    ws.auto_filter.ref = "%s%d:%s%d" % (letra(COL0), LIN_CAB, letra(c_fim), fim)
+    ws.freeze_panes = ws.cell(LIN_CAB + 1, c_meta)
     ws.sheet_view.showGridLines = False
     # a trava: no openpyxl, True = proibido. Libera inserir linha, filtrar e
     # selecionar; o resto (formatar, apagar coluna, mexer no travado) fica proibido
@@ -323,16 +359,17 @@ def escreve_aba(wb, titulo, linhas):
     ws.protection.selectUnlockedCells = False
 
 
-def aba(wb, titulo, soma, soma_cat, soma_com, unidade, plural, min_n, min_veic):
+def metas_de(titulo, soma, soma_cat, soma_com, min_n, min_veic):
+    """{comitente: {categoria: (oferta, vendidos)}} de um periodo, com a revisao de 06/11"""
     media = lambda s: (round(s["of"] / s["n"], 4), round(s["ve"] / s["n"], 4))  # noqa: E731
     pequena = lambda s: s["n"] < min_n or s["veic"] < min_veic  # noqa: E731
     pequenas = {"comitente": 0, "categoria": 0}
     metas = defaultdict(dict)
     for (comit, cat), s in soma.items():
-        if comit in teste or comit not in ativos:
+        if comit in teste or comit not in ativos or cat not in ORDEM_CAT:
             continue
         # a meta revisada: a media do grupo; base pequena, a do comitente
-        # (todas as categorias) e, se ele tambem tem pouca base, a da categoria
+        # (as categorias dele com meta) e, se ele tambem tem pouca base, a da categoria
         if not pequena(s):
             metas[comit][cat] = media(s)
         elif not pequena(soma_com[comit]):
@@ -341,20 +378,25 @@ def aba(wb, titulo, soma, soma_cat, soma_com, unidade, plural, min_n, min_veic):
         else:
             pequenas["categoria"] += 1
             metas[comit][cat] = media(soma_cat[cat])
-    comits = sorted(metas, key=lambda c: str(nomes.get(c) or "").strip().lower())
-    escreve_aba(wb, titulo, [(c, str(nomes.get(c) or "loja %s" % c).strip(), metas[c]) for c in comits])
     print("  %s: %d comitentes, %d metas; base pequena: %d com a meta do comitente, %d com a da categoria; categorias: %s" % (
-        titulo, len(comits), sum(len(m) for m in metas.values()), pequenas["comitente"], pequenas["categoria"],
+        titulo, len(metas), sum(len(m) for m in metas.values()), pequenas["comitente"], pequenas["categoria"],
         " · ".join("%s %.1f%% / %.1f%%" % (CATEGORIAS[c], 100 * media(soma_cat[c])[0], 100 * media(soma_cat[c])[1])
                    for c in ORDEM_CAT if c in soma_cat)))
-    return len(comits)
+    return metas
 
 
 fora = sorted({str(nomes.get(c) or c).strip() for c, cat in mensal if c not in ativos and c not in teste})
 print("inativos nos ultimos %d meses, fora: %s" % (MESES_ATIVO, ", ".join(fora) or "nenhum"))
+mm = metas_de("mensal", mensal, mensal_cat, mensal_com, MIN_MESES, MIN_VEIC_MES)
+md = metas_de("diaria", diaria, diaria_cat, diaria_com, MIN_DIAS, MIN_VEIC_DIA)
+comits = sorted(set(mm) | set(md), key=lambda c: str(nomes.get(c) or "").strip().lower())
+linhas = [(c, str(nomes.get(c) or "loja %s" % c).strip(), {"mes": mm.get(c, {}), "dia": md.get(c, {})}) for c in comits]
+# as abas: os 12 meses do Mensal, o mes corrente (o --ate) e os 11 anteriores
+abas = [m.strftime("%Y-%m") for m in meses[1:]] + [fim_mes.strftime("%Y-%m")]
 wb = Workbook()
 wb.remove(wb.active)
-nm = aba(wb, "Média mensal", mensal, mensal_cat, mensal_com, "mês", "Meses", MIN_MESES, MIN_VEIC_MES)
-nd = aba(wb, "Média diária", diaria, diaria_cat, diaria_com, "dia", "Dias", MIN_DIAS, MIN_VEIC_DIA)
+for a in abas:
+    escreve_aba(wb, a, linhas)
 wb.save(args.saida)
-print("✓ %s · %d comitentes no mensal, %d no diario" % (args.saida, nm, nd))
+print("✓ %s · %d abas (%s a %s) · %d comitentes (%d com meta mensal, %d com diaria)" % (
+    args.saida, len(abas), abas[0], abas[-1], len(comits), len(mm), len(md)))

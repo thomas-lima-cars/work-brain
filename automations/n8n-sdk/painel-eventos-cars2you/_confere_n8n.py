@@ -21,7 +21,8 @@ except Exception:
 
 PASTA = Path(__file__).resolve().parent / "n8n"
 NOS = {"Peças do Tema": "pecas-tema.js", "Peças da Página": "pecas-pagina.js", "Montar Consultas": "montar-consultas.js",
-       "Montar Painel": "montar-painel-n8n.js", "Virar Arquivo": "virar-arquivo.js"}
+       "Montar Painel": "montar-painel-n8n.js", "Virar Arquivo": "virar-arquivo.js",
+       "Abas das Metas": "abas-metas.js"}
 
 
 def acha(o):

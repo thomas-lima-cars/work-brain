@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Gera o SDK do Painel de Eventos Cars2You.
 
-    Rodar -> Pecas do Tema -> Pecas da Pagina -> Ler Carteira -> Ler Metas Mensais
-          -> Metas Mensais -> Ler Metas Diarias -> Metas Diarias -> Montar Consultas
+    Rodar -> Pecas do Tema -> Pecas da Pagina -> Ler Carteira -> Ler Metas
+          -> Abas das Metas -> Metas -> Montar Consultas
           -> MCP Consultas -> Montar Painel -> Virar Arquivo -> Subir no SharePoint
 
 O Montar Painel vai DIVIDIDO em tres nos Code (06/11, _divide.js): o
@@ -13,7 +13,7 @@ HTML e o mesmo resumo do no inteiro. Alem do .wf.ts completo, sai o
 ESQUELETO (os tres nos grandes com um marcador, para criar o workflow) e, em
 n8n/_envio/, o jsCode de cada um em JSON, para preencher com update_workflow.
 
-    node _aplica-modelo.js && for f in montar-consultas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
+    node _aplica-modelo.js && for f in montar-consultas.js abas-metas.js montar-painel.js virar-arquivo.js; do node _enxuga.js $f; done
     node prova-local.js
     python build_wf.py
 
@@ -25,15 +25,17 @@ em ramo paralelo ainda nao existe quando o Montar Painel o procura (Radar,
 run 52930). onError continueRegularOutput: sem a carteira o painel sai sem o
 filtro de responsavel e com o aviso, em vez de nao sair.
 
-As metas (06/11): a planilha metas-painel-eventos.xlsx (gera_metas.py) mora em
-METAS no SharePoint, com duas abas. Lidas SEM cabecalho (headerRow false: um
-item { row: [...] } por linha): a aba tem margem, medidas mescladas e o nome
-da categoria repetido -- o Montar Painel acha a linha do ID comitente. O Extract From File le UMA aba e nao
-devolve o arquivo, entao a planilha e baixada duas vezes, uma por aba, tudo em
-serie pelo mesmo motivo da carteira. executeOnce no segundo download: ele
-recebe uma linha por grupo da primeira aba e baixaria uma vez por linha.
-onError + alwaysOutputData: sem a planilha (ou sem a aba) a cadeia segue, e o
-Montar Painel sai sem meta e avisa.
+As metas (06/11; refeitas em 17/11): a planilha metas-painel-eventos.xlsx
+(gera_metas.py) mora em METAS no SharePoint, com UMA ABA POR MES ("2026-11"),
+a meta mensal e a diaria na mesma aba. O Extract From File le UMA aba por
+item, entao: Ler Metas baixa o arquivo uma vez; Abas das Metas (Code) faz um
+item por mes dos 12 do Mensal, cada um com o arquivo e o nome da aba; Metas
+(o Extract) le a aba pela expressao {{ $json.aba }}, uma vez por item, SEM
+cabecalho (headerRow false: um item { row: [...] } por linha). O Montar
+Painel sabe de que aba veio cada linha pelo pairedItem. Tudo em serie, pelo
+mesmo motivo da carteira. onError + alwaysOutputData: sem a planilha (ou sem
+uma aba) a cadeia segue, e o Montar Painel usa a aba anterior ou sai sem
+meta, e avisa.
 
 O codigo dos nos sai de n8n/*.js (a versao enxuta, sem comentario de bloco) e
 entra como LITERAL DE TEMPLATE, cru e legivel. Cru, so tres coisas quebrariam
@@ -57,6 +59,7 @@ def js(nome):
 
 
 CONSULTAS = js("montar-consultas.js")
+ABAS_METAS = js("abas-metas.js")
 PECAS_TEMA = js("pecas-tema.js")
 PECAS_PAGINA = js("pecas-pagina.js")
 PAINEL = js("montar-painel-n8n.js")
@@ -93,7 +96,8 @@ def ler_metas(var, nome, x):
 }});"""
 
 
-def aba_metas(var, nome, aba, x):
+def aba_metas(var, nome, x):
+    # a aba de cada item (17/11): o nome vem do Abas das Metas, em json.aba
     return f"""const {var} = node({{
   type: 'n8n-nodes-base.extractFromFile',
   version: 1.2,
@@ -102,7 +106,7 @@ def aba_metas(var, nome, aba, x):
     position: [{x}, 0],
     onError: 'continueRegularOutput',
     alwaysOutputData: true,
-    parameters: {{ operation: 'xlsx', binaryPropertyName: 'data', options: {{ headerRow: false, sheetName: '{aba}' }} }}
+    parameters: {{ operation: 'xlsx', binaryPropertyName: 'data', options: {{ headerRow: false, sheetName: expr('{{{{ $json.aba }}}}') }} }}
   }}
 }});"""
 
@@ -164,14 +168,12 @@ const carteira = node({{
   }}
 }});
 
-/* as metas, em serie: uma aba por download (ver build_wf.py) */
-{ler_metas('lerMetasMes', 'Ler Metas Mensais', 896)}
+/* as metas, em serie: um download, um item por aba de mes, um Extract por item (ver build_wf.py) */
+{ler_metas('lerMetas', 'Ler Metas', 896)}
 
-{aba_metas('metasMes', 'Metas Mensais', 'Média mensal', 1120)}
+{no_code('abasMetas', 'Abas das Metas', 1120, ABAS_METAS)}
 
-{ler_metas('lerMetasDia', 'Ler Metas Diárias', 1344)}
-
-{aba_metas('metasDia', 'Metas Diárias', 'Média diária', 1568)}
+{aba_metas('metas', 'Metas', 1344)}
 
 {no_code('consultas', 'Montar Consultas', 1792, CONSULTAS)}
 
@@ -223,10 +225,9 @@ export default workflow('painel-eventos-cars2you', 'Painel de Eventos Cars2You')
   .to(pecasTema)
   .to(pecasPagina)
   .to(carteira)
-  .to(lerMetasMes)
-  .to(metasMes)
-  .to(lerMetasDia)
-  .to(metasDia)
+  .to(lerMetas)
+  .to(abasMetas)
+  .to(metas)
   .to(consultas)
   .to(mcp)
   .to(painel)
@@ -242,14 +243,15 @@ with open(destino, "w", encoding="utf-8", newline=chr(10)) as f:
 
 print("gerado:", destino, "·", len(code), "bytes")
 assert code.count("mcpClient") == 1, "esperado 1 no MCP"
-assert code.count("n8n-nodes-base.code") == 5, "esperados 5 nos Code (o Montar Painel em tres)"
-assert code.count("httpRequest") == 4, "esperados 4 HTTP: Ler Carteira, as duas Ler Metas e Subir"
-assert code.count("extractFromFile") == 2, "esperados 2 Extract: uma aba de metas cada"
-assert code.index("'Metas Diárias'") < code.index("'Montar Consultas'"), "metas antes das consultas"
+assert code.count("n8n-nodes-base.code") == 6, "esperados 6 nos Code (Abas das Metas e o Montar Painel em tres)"
+assert code.count("httpRequest") == 3, "esperados 3 HTTP: Ler Carteira, Ler Metas e Subir"
+assert code.count("extractFromFile") == 1, "esperado 1 Extract: o Metas, uma aba por item"
+assert "sheetName: expr('{{ $json.aba }}')" in code, "a aba do Metas vem do item"
+assert code.index("'Ler Metas'") < code.index("'Abas das Metas'") < code.index("name: 'Metas'") < code.index("'Montar Consultas'"), "metas em serie, antes das consultas"
 assert code.count("scheduleTrigger") == 1 and "'0 9-18 * * *'" in code, "a agenda: de hora em hora, 9h as 18h (ok do Thomas, 06/11)"
 assert "gmail" not in code.lower() and "microsoftOutlook" not in code, "sem e-mail"
 assert code.index("'Peças da Página'") < code.index("'Ler Carteira'"), "pecas antes de tudo"
-print("checagens: 14 nos, 1 MCP, pecas, carteira e metas em serie, agenda 9h-18h de hora em hora, sem e-mail")
+print("checagens: 13 nos, 1 MCP, pecas, carteira e metas em serie, agenda 9h-18h de hora em hora, sem e-mail")
 
 # o esqueleto (para create_workflow_from_code) e o envio de cada no grande
 MARCA = "`return [{ json: { marcador: true } }];`"

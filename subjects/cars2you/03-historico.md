@@ -325,3 +325,12 @@ precificar.
 
 ## 2026-11-16
 - **Painel de Eventos Cars2You:** respiro de 16 px entre os visuais nas abas Diário e Mensal (antes colados). Versão `a3751072` publicada.
+
+## 2026-11-17
+- **Painel de Eventos Cars2You, aba Mensal:** os status voltaram a ser os do sistema, incluindo Em análise —
+  Ativos, Em análise, Vendidos, Não vendidos e Removidos, somando os veículos do mês, com o Com oferta ao lado
+  (pedido do Thomas). O VMV atingido saiu do Mensal; o Diário segue no funil de 06/11.
+- **Metas:** a planilha passou a ter uma aba por mês (`2026-11`), com a meta mensal e a diária juntas, só
+  Leves e Pesados; o painel usa a aba do mês de referência (no Diário, a do mês de cada dia) e, sem aba,
+  a anterior. Planilha subida pelo Thomas; versão `f5f2c1c8` publicada; run manual 69721 ✅. Detalhes no
+  README da pasta e em `memory/sessions/2026-11-17.md`.

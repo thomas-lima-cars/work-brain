@@ -11,6 +11,8 @@
                       (texto puro: só entram no HTML)
      Peças da Página  a função APP da página (só entra no HTML pelo texto,
                       APP.toString())
+     (17/11: o texto do glossário, com marcas, vai na Peças do Tema — sem
+     ele o Montar Painel passava dos 56 KB, e na Página não cabia)
      Montar Painel    o resto, que lê as duas pelo nome
 
    A FONTE não muda: montar-painel.js segue um arquivo só, e as provas rodam
@@ -32,19 +34,23 @@ const corta = (ini, fim) => {
 };
 /* as três fatias, pelos marcadores de início de linha */
 const T = corta(NL === s[0] ? NL + 'const CSS_TEMA = [' : 'const CSS_TEMA = [', NL + 'const WL_VITRINE_C6 = ');
-const A = corta(NL + 'function APP(D, LOGO) {', NL + 'const nomesCanais = ');
+const A = corta(NL + 'function APP(D, LOGO) {', NL + 'const GLOSSARIO_TXT = [');
+/* o glossário (17/11): texto com marcas, vai na Peças do Tema — sem ele,
+   o Montar Painel passava dos 56 KB */
+const G = corta(NL + 'const GLOSSARIO_TXT = [', NL + 'const nomesCanais = ');
 const C = corta(NL + 'const CSS_PAINEL = [', NL + 'const chip = ');
-if (!(T[1] < A[0] && A[1] < C[0])) throw new Error('as fatias fora da ordem esperada');
+if (!(T[1] < A[0] && A[1] <= G[0] && G[1] < C[0])) throw new Error('as fatias fora da ordem esperada');
 const fatia = (x) => s.slice(x[0], x[1] + 1).replace(/^\n/, '');
 
-const tema = fatia(T) + fatia(C) +
-  'return [{ json: { CSS_TEMA: CSS_TEMA, LOGO: LOGO, CSS_PAINEL: CSS_PAINEL, ICONE: ICONE } }];' + NL;
+const tema = fatia(T) + fatia(C) + fatia(G) +
+  'return [{ json: { CSS_TEMA: CSS_TEMA, LOGO: LOGO, CSS_PAINEL: CSS_PAINEL, ICONE: ICONE, GLOSSARIO_TXT: GLOSSARIO_TXT } }];' + NL;
 const pagina = fatia(A) + 'return [{ json: { APP: APP.toString() } }];' + NL;
 
 let painel = "const PECAS = $('Peças do Tema').first().json;" + NL +
   'const CSS_TEMA = PECAS.CSS_TEMA;' + NL + 'const LOGO = PECAS.LOGO;' + NL +
   s.slice(T[1] + 1, A[0] + 1) +
-  s.slice(A[1] + 1, C[0] + 1) +
+  'const GLOSSARIO_TXT = PECAS.GLOSSARIO_TXT;' + NL +
+  s.slice(G[1] + 1, C[0] + 1) +
   'const CSS_PAINEL = PECAS.CSS_PAINEL;' + NL + 'const ICONE = PECAS.ICONE;' + NL +
   s.slice(C[1] + 1);
 const USO = 'APP.toString()';

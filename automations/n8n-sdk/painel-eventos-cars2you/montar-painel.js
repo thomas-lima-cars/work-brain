@@ -284,24 +284,38 @@ if (semCarteira) {
   CART = { consultores: [], cnpj: {}, gerado_em: '' };
 }
 
-/* ── 2b. as metas (Thomas, 06/11): % com oferta e % vendidos por
-   comitente e categoria, numa planilha no SharePoint com duas abas — Média
-   mensal e Média diária —, lidas pelos nós Metas Mensais e Metas Diárias.
-   O painel lê a coluna Meta, que nasce igual à média dos 12 meses fechados
-   (gera_metas.py) e pode ser mudada à mão. Aba ausente ou ilegível: o
-   painel sai sem a meta daquele recorte e avisa — meta errada é pior que
-   meta nenhuma. A meta de um recorte com vários grupos é a média das metas
-   dos veículos dele: cada veículo leva a meta do seu comitente e categoria */
+/* ── 2b. as metas (Thomas, 06/11; refeitas em 17/11): % com oferta e %
+   vendidos por comitente e categoria, numa planilha no SharePoint com UMA
+   ABA POR MÊS, de nome "AAAA-MM" (2026-11), e as metas mensal e diária na
+   mesma aba (Thomas, 17/11: "inclua a meta mensal e diária nas mesmas abas,
+   uma aba por mês com ano e mês; no painel a meta deve refletir a meta do
+   mês de referência"). Só Leves e Pesados têm meta (17/11); Equipamentos e
+   Não informada seguem no painel, sem meta.
+
+   O n8n lê as abas dos 12 meses do Mensal: o nó Abas das Metas faz um item
+   por mês (json.aba) com o arquivo, e o Metas (Extract From File, a aba
+   pela expressão) roda uma vez por item. Cada linha que sai dele aponta
+   para o item de entrada pelo pairedItem: é assim que a linha sabe de que
+   aba veio. Aba que não existe sai como item de erro (onError continua).
+
+   O mês de referência: no Mensal, cada mês usa a aba dele; no Diário, cada
+   dia usa a aba do mês do dia. Mês sem aba usa a aba mais recente anterior
+   a ele, e avisa (Thomas, 17/11); sem nenhuma anterior, fica sem meta.
+   Aba ilegível: o mês sai sem a meta daquele recorte e avisa — meta errada
+   é pior que meta nenhuma. A meta de um recorte com vários grupos é a média
+   das metas dos veículos dele: cada veículo leva a meta do seu comitente e
+   categoria */
 const CATS = ['L', 'P', 'E', 'N'];
-/* a planilha (Thomas, 06/11): uma linha por comitente, a categoria vira
-   coluna; margem na linha 1 e na coluna A; na linha 2, "% Com Oferta" e
-   "% Vendido" mesclados sobre as categorias; na 3, ID comitente, Comitente
-   e as categorias (o nome se repete). Por isso o Extract From File lê SEM
+/* a aba (17/11): uma linha por comitente, a categoria vira coluna; margem
+   na linha 1 e na coluna A; na linha 2, "Meta mensal" e "Meta diária"
+   mesclados sobre as suas colunas; na 3, "% Com Oferta" e "% Vendido"
+   mesclados sobre as categorias; na 4, ID comitente, Comitente e as
+   categorias (o nome se repete). Por isso o Extract From File lê SEM
    cabeçalho — cada item é { row: [células da área usada] } — e a leitura
-   acha a linha do "ID comitente", tira a categoria dela e a medida da linha
-   de cima (a mesclada só tem valor na primeira célula: vale até a próxima).
-   Célula vazia = sem meta */
-const CAT_DE = { 'leves': 'L', 'pesados': 'P', 'equipamentos': 'E', 'não informada': 'N', 'nao informada': 'N' };
+   acha a linha do "ID comitente", tira a categoria dela, a medida da linha
+   de cima e o período da de cima dela (a mesclada só tem valor na primeira
+   célula: vale até a próxima). Célula vazia = sem meta */
+const CAT_DE = { 'leves': 'L', 'pesados': 'P' };
 const avisoMeta = [];
 const lerNo = (nome) => { try { return $(nome).all(); } catch (e) { return []; } };
 const pctMeta = (x) => {
@@ -317,53 +331,89 @@ const pctMeta = (x) => {
   if (n > 1) n = n / 100;
   return n >= 0 && n <= 1 ? n : null;
 };
-const lerMetas = (nome, aba) => {
-  const linhas = lerNo(nome).map((i) => (i.json && Array.isArray(i.json.row) ? i.json.row : null)).filter((r) => r);
-  const txt = (x) => String(x === null || x === undefined ? '' : x).trim();
-  const vazia = (x) => txt(x) === '';
-  const qual = aba === 'Média diária' ? 'do diário' : 'do mensal';
-  const out = {};
-  if (!linhas.length) { avisoMeta.push('a aba ' + aba + ' da planilha de metas não veio: sem a meta ' + qual); return out; }
-  const h = linhas.findIndex((r) => r.some((x) => txt(x) === 'ID comitente'));
+const txtM = (x) => String(x === null || x === undefined ? '' : x).trim();
+/* uma aba: { mes: { "id|cat": [oferta, vendidos] }, dia: {...} }, ou null
+   se ela veio fora do formato */
+const lerAba = (aba, linhas) => {
+  const vazia = (x) => txtM(x) === '';
+  const h = linhas.findIndex((r) => r.some((x) => txtM(x) === 'ID comitente'));
   const cab = h >= 0 ? linhas[h] : [];
-  const cId = cab.findIndex((x) => txt(x) === 'ID comitente');
-  /* [coluna, categoria, 0 = com oferta | 1 = vendidos] */
+  const cId = cab.findIndex((x) => txtM(x) === 'ID comitente');
+  /* [coluna, categoria, 0 = com oferta | 1 = vendidos, 'mes' | 'dia'] */
   const cols = [];
   let medida = '';
-  for (let j = cId + 1; h > 0 && j < cab.length; j++) {
-    const m = txt((linhas[h - 1] || [])[j]).toLowerCase();
+  let periodo = '';
+  for (let j = cId + 1; h > 1 && j < cab.length; j++) {
+    const p = txtM((linhas[h - 2] || [])[j]).toLowerCase();
+    if (p) periodo = p;
+    const m = txtM((linhas[h - 1] || [])[j]).toLowerCase();
     if (m) medida = m;
-    const c = CAT_DE[txt(cab[j]).toLowerCase()];
+    const c = CAT_DE[txtM(cab[j]).toLowerCase()];
     const k = medida.indexOf('oferta') >= 0 ? 0 : medida.indexOf('vend') >= 0 ? 1 : -1;
-    if (c && k >= 0) cols.push([j, c, k]);
+    const q = periodo.indexOf('mensal') >= 0 ? 'mes' : periodo.indexOf('diári') >= 0 || periodo.indexOf('diari') >= 0 ? 'dia' : '';
+    if (c && k >= 0 && q) cols.push([j, c, k, q]);
   }
+  const out = { mes: {}, dia: {} };
   if (!cols.length) {
-    avisoMeta.push('a aba ' + aba + ' da planilha de metas veio fora do formato (sem a linha do ID comitente, as categorias e, em cima, % Com Oferta e % Vendido): sem a meta ' + qual);
-    return out;
+    avisoMeta.push('a aba ' + aba + ' da planilha de metas veio fora do formato (sem a linha do ID comitente com Leves e Pesados, em cima % Com Oferta e % Vendido e, acima, Meta mensal e Meta diária): sem meta nesse mês');
+    return null;
   }
+  ['mes', 'dia'].forEach((q) => {
+    if (!cols.some((x) => x[3] === q)) avisoMeta.push('a aba ' + aba + ' da planilha de metas não tem o bloco ' + (q === 'mes' ? 'Meta mensal' : 'Meta diária') + ': sem essa meta nesse mês');
+  });
   let ruins = 0;
   linhas.slice(h + 1).forEach((r) => {
     const id = num(r[cId]);
     const par = {};
     cols.forEach((x) => {
       if (vazia(r[x[0]])) return;
-      if (!par[x[1]]) par[x[1]] = [undefined, undefined];
-      par[x[1]][x[2]] = pctMeta(r[x[0]]);
+      const kk = x[3] + '|' + x[1];
+      if (!par[kk]) par[kk] = [undefined, undefined];
+      par[kk][x[2]] = pctMeta(r[x[0]]);
     });
-    Object.keys(par).forEach((c) => {
-      const of = par[c][0];
-      const ve = par[c][1];
+    Object.keys(par).forEach((kk) => {
+      const of = par[kk][0];
+      const ve = par[kk][1];
+      const q = kk.split('|');
       /* as duas metas da categoria andam juntas: uma sem a outra, ilegível,
          ou sem o ID do comitente, fica sem meta */
       if (id === null || of === null || of === undefined || ve === null || ve === undefined) { ruins++; return; }
-      out[id + '|' + c] = [of, ve];
+      out[q[0]][id + '|' + q[1]] = [of, ve];
     });
   });
   if (ruins) avisoMeta.push(ruins + ' meta(s) da aba ' + aba + ' da planilha sem o ID do comitente, ilegíveis ou só com uma das duas: ficam sem meta');
   return out;
 };
-const metaDiaId = lerMetas('Metas Diárias', 'Média diária');
-const metaMesId = lerMetas('Metas Mensais', 'Média mensal');
+/* as linhas de cada aba, pelo pairedItem (o item de entrada do Metas) */
+const abasPedidas = lerNo('Abas das Metas').map((i) => txtM((i.json || {}).aba));
+const linhasDaAba = {};
+let semPar = 0;
+lerNo('Metas').forEach((i) => {
+  const p = Array.isArray(i.pairedItem) ? i.pairedItem[0] : i.pairedItem;
+  const k = typeof p === 'number' ? p : p && typeof p === 'object' ? p.item : undefined;
+  const aba = abasPedidas[k];
+  const linha = i.json && Array.isArray(i.json.row);
+  if (!aba) { if (linha) semPar++; return; }
+  if (linha) (linhasDaAba[aba] = linhasDaAba[aba] || []).push(i.json.row);
+});
+if (semPar) avisoMeta.push(semPar + ' linha(s) da planilha de metas sem a aba de origem (pairedItem): ficam fora');
+const metaDaAba = {};
+Object.keys(linhasDaAba).forEach((aba) => {
+  const m = lerAba(aba, linhasDaAba[aba]);
+  if (m) metaDaAba[aba] = m;
+});
+/* o mês de referência: a aba do mês, ou a mais recente anterior a ele */
+const abasLidas = Object.keys(metaDaAba).sort();
+const ABA_DO_MES = META.meses.map((r) => (metaDaAba[r] ? r : abasLidas.filter((a) => a < r).pop() || ''));
+if (!abasLidas.length) {
+  avisoMeta.push('a planilha de metas não veio, ou nenhuma aba dos 12 meses (' + META.meses[0] + ' a ' +
+    META.meses[META.meses.length - 1] + ') foi lida: sem meta');
+} else {
+  const emprestadas = META.meses.map((r, m) => (ABA_DO_MES[m] && ABA_DO_MES[m] !== r ? r + ' usa ' + ABA_DO_MES[m] : null)).filter((x) => x);
+  const sem = META.meses.filter((r, m) => !ABA_DO_MES[m]);
+  if (emprestadas.length) avisoMeta.push('planilha de metas sem a aba do mês: ' + emprestadas.join(', ') + ' (a mais recente anterior)');
+  if (sem.length) avisoMeta.push('planilha de metas sem aba para ' + sem.join(', ') + ' nem anterior: sem meta nesse(s) mês(es)');
+}
 /* do id do comitente para o índice da lista de cada aba */
 const reindexa = (m, idx) => {
   const o = {};
@@ -374,6 +424,8 @@ const reindexa = (m, idx) => {
   });
   return o;
 };
+/* por mês do Mensal (o índice de META.meses), o mapa do mensal ou do diário */
+const metasPorMes = (q, idx) => ABA_DO_MES.map((a) => (a ? reindexa(metaDaAba[a][q], idx) : {}));
 
 /* ── 3. os dias: índice 0 = o piso, HOJE = o último ─────────────────── */
 const PISO_DIA = META.piso_dia;
@@ -511,21 +563,31 @@ const comDoMes = (id) => {
   if (i === undefined) { marca('mes_comitente_fora'); return -1; }
   return i;
 };
+/* os status do SISTEMA no mensal (Thomas, 17/11), na ordem das colunas
+   s1..s18 do mes_veic, mais "fora do domínio" no fim. A mesma lista do
+   STATUS_SISTEMA do Montar Consultas (a prova confere) */
+const STATUS_MES = [1, 2, 3, 7, 8, 9, 10, 11, 13, 14, 15, 18];
 /* [mês, comitente, máscara de canais, veículos, novos, com acesso, com
-   oferta, vendidos (acumulados no evento), os três dos novos, sem oferta,
-   com oferta, VMV atingido, vendidos, removidos, valor vendido, categoria] */
+   oferta, vendidos (acumulados no evento), os três dos novos, [veículos
+   por status, na ordem do STATUS_MES, e os fora do domínio], valor
+   vendido, categoria] */
 const mesGrupos = T.mes_veic.map((g) => {
   let cat = String(g.cat || '');
   if (CATS.indexOf(cat) < 0) { marca('mes_sem_categoria'); cat = 'N'; }
+  const st = STATUS_MES.map((s) => num(g['s' + s])).concat([num(g.sx)]);
   const r = [num(g.m), comDoMes(g.c), num(g.wm), num(g.veic), num(g.novos), num(g.ac), num(g.of), num(g.ve),
-    num(g.ac_n), num(g.of_n), num(g.ve_n), num(g.so), num(g.co), num(g.vm), num(g.vd), num(g.rm), Math.round(num(g.valor) || 0), cat];
-  /* o funil fecha: sem oferta + com oferta = veículos, vendidos <= VMV
-     atingido <= com oferta, e o % do gráfico é o status. Se não, a consulta
-     está errada — publicar seria mostrar cartões que não fecham */
-  if (r[11] + r[12] !== r[3] || r[14] > r[13] || r[13] > r[12] || r[15] > r[3] || r[6] !== r[12] || r[7] !== r[14]) {
-    throw new Error('mes_veic: no mes ' + MESES[r[0]] + ' o funil nao fecha (veiculos ' + r[3] + ', sem oferta ' + r[11] +
-      ', com oferta ' + r[12] + ', VMV ' + r[13] + ', vendidos ' + r[14] + ', comitente ' + g.c + ')');
+    num(g.ac_n), num(g.of_n), num(g.ve_n), st, Math.round(num(g.valor) || 0), cat];
+  /* os status fecham: somam os veículos, os vendidos do gráfico são os
+     status 2, 3 e 7, e com oferta fica entre os vendidos e os veículos. Se
+     não, a consulta está errada — publicar seria mostrar cartões que não
+     somam */
+  const soma = st.reduce((t, x) => t + x, 0);
+  const vend = st[STATUS_MES.indexOf(2)] + st[STATUS_MES.indexOf(3)] + st[STATUS_MES.indexOf(7)];
+  if (soma !== r[3] || vend !== r[7] || r[6] < r[7] || r[6] > r[3]) {
+    throw new Error('mes_veic: no mes ' + MESES[r[0]] + ' os status nao fecham (veiculos ' + r[3] + ', soma dos status ' + soma +
+      ', vendidos ' + r[7] + ' x status de venda ' + vend + ', com oferta ' + r[6] + ', comitente ' + g.c + ')');
   }
+  if (st[STATUS_MES.length]) conta.mes_status_fora = (conta.mes_status_fora || 0) + st[STATUS_MES.length];
   if (!r[2]) marca('mes_sem_canal');
   return r;
 });
@@ -577,7 +639,8 @@ const TEXTO_AVISO = {
   mes_comitente_fora: 'linha(s) do mensal com comitente fora da lista de comitentes dos 12 meses',
   mes_sem_canal: 'grupo(s) do mensal sem canal — não aparecem com filtro de canal',
   veiculo_sem_categoria: 'veículo(s) com categoria fora da lista — contam como Não informada',
-  mes_sem_categoria: 'grupo(s) do mensal com categoria fora da lista — contam como Não informada'
+  mes_sem_categoria: 'grupo(s) do mensal com categoria fora da lista — contam como Não informada',
+  mes_status_fora: 'veículo(s)-mês do mensal com status fora do domínio conhecido — contam em Não vendidos, como "outros"'
 };
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
 if (incompletos.length) {
@@ -606,10 +669,12 @@ const DADOS = {
   negs: negs, ofertas: ofertas, acessos: acessos, vendas: vendas, logins: logins,
   lojas: lojas.map((l) => l.linha),
   status_nome: STATUS_NOME, vitrine_c6: WL_VITRINE_C6,
-  mes: { meses: MESES, wls: META.wls, comitentes: comMes.map((c) => c.nome), grupos: mesGrupos, loj: mesLoj, eventos: mesEventos,
+  mes: { meses: MESES, wls: META.wls, comitentes: comMes.map((c) => c.nome), status: STATUS_MES, grupos: mesGrupos, loj: mesLoj, eventos: mesEventos,
     dias_max_evento: META.dias_max_evento, dias_acesso: mesDiasAcesso },
-  /* "índice do comitente|categoria" -> [meta % com oferta, meta % vendidos] */
-  metas: { dia: reindexa(metaDiaId, comIdx), mes: reindexa(metaMesId, comMesIdx) }
+  /* um mapa por mês do Mensal (o índice de mes.meses): "índice do
+     comitente|categoria" -> [meta % com oferta, meta % vendidos]; "abas" diz
+     de que aba veio a meta de cada mês (17/11) */
+  metas: { dia: metasPorMes('dia', comIdx), mes: metasPorMes('mes', comMesIdx), abas: ABA_DO_MES }
 };
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -737,9 +802,17 @@ function calcula(D, F) {
      escolhida no dia e da categoria do veículo. "mt" conta os veículos com
      meta, "mo" e "mv" somam as metas de com oferta e de vendidos: a meta do
      recorte é mo / mt (e mv / mt). Os "_n" são o mesmo só dos novos */
-  const metaDia = D.metas ? D.metas.dia : {};
-  const somaMeta = (g, i, v, nv) => {
-    const mm = metaDia[D.negs[i][2] + '|' + D.veics[v][7]];
+  /* a meta do MÊS DO DIA (17/11): a planilha tem uma aba por mês, e o dia d
+     usa a do mês dele (D.metas.dia, alinhado com D.mes.meses) */
+  const metaDia = D.metas ? D.metas.dia : [];
+  const P0M = Date.UTC(Number(D.piso_dia.slice(0, 4)), Number(D.piso_dia.slice(5, 7)) - 1, Number(D.piso_dia.slice(8, 10)));
+  const mesDoDia = {};
+  const metaNoDia = (d) => {
+    if (mesDoDia[d] === undefined) mesDoDia[d] = D.mes.meses.indexOf(new Date(P0M + d * 86400000).toISOString().slice(0, 7));
+    return metaDia[mesDoDia[d]] || {};
+  };
+  const somaMeta = (g, i, v, nv, d) => {
+    const mm = metaNoDia(d)[D.negs[i][2] + '|' + D.veics[v][7]];
     if (!mm) return;
     g.mt++; g.mo += mm[0]; g.mv += mm[1];
     if (nv) { g.mt_n++; g.mo_n += mm[0]; g.mv_n += mm[1]; }
@@ -762,7 +835,7 @@ function calcula(D, F) {
       const nv = est === d;
       const i = ultimaNoDia(vNegs[v], d);
       const p = acumulado(i, d);
-      somaMeta(g, i, v, nv);
+      somaMeta(g, i, v, nv, d);
       g.ativos++;
       if (nv) g.novos++;
       if (p.ac) { g.acesso++; if (nv) g.acesso_n++; }
@@ -914,7 +987,7 @@ function calcula(D, F) {
       const p = Object.assign(pv[kk], acumulado(i, d));
       const g = out[p.g] || (out[p.g] = vazioDia());
       const nv = D.veics[p.v][5] === d;
-      somaMeta(g, i, p.v, nv);
+      somaMeta(g, i, p.v, nv, d);
       g.ativos++;
       if (nv) g.novos++;
       if (p.ac) { g.acesso++; if (nv) g.acesso_n++; }
@@ -1021,20 +1094,46 @@ function calculaMes(D, F) {
   /* categoria (06/11): recorta os grupos de veículos; eventos e lojistas do
      mês vêm prontos do banco sem categoria e não a seguem (a página avisa) */
   const cat = vazio(F.cat) ? '' : String(F.cat);
-  const zero = (m) => ({ m: m, rot: M.meses[m], veiculos: 0, ativos: 0, novos: 0, acesso: 0, oferta: 0, venda: 0,
-    acesso_n: 0, oferta_n: 0, venda_n: 0, sem_oferta: 0, com_oferta: 0, vmv: 0, vendidos: 0, removidos: 0, valor: 0,
-    eventos: 0, comitentes: 0, mt: 0, mo: 0, mv: 0, mt_n: 0, mo_n: 0, mv_n: 0 });
+  /* os status do SISTEMA (Thomas, 17/11), da negociação mais recente do
+     veículo no mês, em cinco grupos que não se cruzam e somam os veículos:
+     Ativos (1); Em análise (9 do comprador, 13 do vendedor); Vendidos (2 e
+     3 aguardando pagamento, 7 vendido); Não vendidos (11 sem ofertas, 14 e
+     15 rejeitados, 18 venda cancelada, e status fora do domínio); Removidos
+     (8 suspenso, 10 cancelado). "ativos" segue sendo a BASE do indicador
+     (todos os veículos do mês, como no diário); o status 1 é "st_ativo".
+     Com oferta (teve lance ou vendeu) fica num cartão ao lado */
+  const GRUPO_ST = { st_ativo: [1], an_comprador: [9], an_vendedor: [13], aguardando: [2, 3], vendido: [7],
+    sem_ofertas: [11], rejeitados: [14, 15], venda_cancelada: [18], suspensos: [8], cancelados: [10] };
+  const CAMPOS_ST = Object.keys(GRUPO_ST).concat(['outros', 'analise', 'vendidos', 'nao_vendidos', 'removidos']);
+  const POS_ST = {};
+  Object.keys(GRUPO_ST).forEach((k) => { POS_ST[k] = GRUPO_ST[k].map((s) => M.status.indexOf(s)); });
+  const zero = (m) => {
+    const o = { m: m, rot: M.meses[m], veiculos: 0, ativos: 0, novos: 0, acesso: 0, oferta: 0, venda: 0,
+      acesso_n: 0, oferta_n: 0, venda_n: 0, com_oferta: 0, valor: 0,
+      eventos: 0, comitentes: 0, mt: 0, mo: 0, mv: 0, mt_n: 0, mo_n: 0, mv_n: 0 };
+    CAMPOS_ST.forEach((k) => { o[k] = 0; });
+    return o;
+  };
   /* a meta do mês (06/11): cada grupo (comitente, categoria) leva a meta
      mensal dele, pesada pelos veículos (e pelos novos) do grupo */
-  const metaMes = D.metas ? D.metas.mes : {};
+  /* a aba de cada mês (17/11): D.metas.mes[m] é a meta do mês m */
+  const metaMes = D.metas ? D.metas.mes : [];
   const serie = () => M.meses.map((r, m) => zero(m));
   const soma = (o, g) => {
     o.veiculos += g[3]; o.ativos += g[3]; o.novos += g[4];
     o.acesso += g[5]; o.oferta += g[6]; o.venda += g[7];
     o.acesso_n += g[8]; o.oferta_n += g[9]; o.venda_n += g[10];
-    o.sem_oferta += g[11]; o.com_oferta += g[12]; o.vmv += g[13]; o.vendidos += g[14]; o.removidos += g[15];
-    o.valor += g[16];
-    const mm = metaMes[g[1] + '|' + g[17]];
+    o.com_oferta += g[6];
+    const st = g[11];
+    Object.keys(POS_ST).forEach((k) => { POS_ST[k].forEach((p) => { o[k] += st[p]; }); });
+    const fora = st[M.status.length];
+    o.outros += fora;
+    o.analise = o.an_comprador + o.an_vendedor;
+    o.vendidos = o.aguardando + o.vendido;
+    o.nao_vendidos = o.sem_ofertas + o.rejeitados + o.venda_cancelada + o.outros;
+    o.removidos = o.suspensos + o.cancelados;
+    o.valor += g[12];
+    const mm = (metaMes[g[0]] || {})[g[1] + '|' + g[13]];
     if (mm) {
       o.mt += g[3]; o.mo += g[3] * mm[0]; o.mv += g[3] * mm[1];
       o.mt_n += g[4]; o.mo_n += g[4] * mm[0]; o.mv_n += g[4] * mm[1];
@@ -1047,7 +1146,7 @@ function calculaMes(D, F) {
   const comNoMes = meses.map(() => ({}));
   M.grupos.forEach((g) => {
     if (bitWl && !(g[2] & bitWl)) return;
-    if (cat && g[17] !== cat) return;
+    if (cat && g[13] !== cat) return;
     const c = g[1];
     if (c >= 0) soma((porC[c] || (porC[c] = serie()))[g[0]], g);
     if (comit >= 0 && c !== comit) return;
@@ -1533,6 +1632,9 @@ function APP(D, LOGO) {
      apagados */
   const STATUS_C = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'],
     ['vmv', 'VMV atingido'], ['vendidos', 'Vendidos'], ['removidos', 'Removidos']];
+  /* no Mensal, os status do sistema (Thomas, 17/11), com Com oferta ao lado */
+  const STATUS_C_MES = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'], ['st_ativo', 'Ativos'],
+    ['analise', 'Em análise'], ['vendidos', 'Vendidos'], ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
   /* o indicador do topo, e Todos/Novos: com Novos, a base são os veículos
      que estrearam no dia e o acerto é só deles (a mesma regra do gráfico) */
   const baseDe = (g) => (g ? (modo === 'novos' ? g.novos : g.ativos) : 0);
@@ -1677,7 +1779,8 @@ function APP(D, LOGO) {
   /* o cartão de um comitente, nas duas abas: "attr" é o atributo que o
      clique lê (data-c no dia, data-cm no mês), "rotLongo" o nome de cada
      ponto da área (dia ou mês) */
-  function cartaoComit(c, nome, sel, attr, rotLongo) {
+  function cartaoComit(c, nome, sel, attr, rotLongo, stc) {
+      const ST = stc || STATUS_C;
       const marcado = sel === c.comit;
       const x = pctDe(c.dia);
       const m = metaDe(c.dia);
@@ -1697,7 +1800,7 @@ function APP(D, LOGO) {
           '<span class="mini m-sem">' + areaSemana(c.hist, rotLongo, m) + '</span></span>' +
           '<span class="comit-num"><b class="num">' + nf(acertoDe(c.dia)) + ' de ' + nf(baseDe(c.dia)) +
             (modo === 'novos' ? ' novos' : '') + '</b><span class="sep">·</span><span>' + delta(c, true) + '</span></span></span>' +
-        '<span class="comit-st">' + STATUS_C.map((s) => '<span' + (s[0] === 'veiculos' ? ' class="tot"' : '') + '>' + s[1] +
+        '<span class="comit-st">' + ST.map((s) => '<span' + (s[0] === 'veiculos' ? ' class="tot"' : '') + '>' + s[1] +
           '<b class="num">' + nf(c[s[0]]) + '</b></span>').join('') + '</span></span>' +
         (c.valor ? '<span class="comit-rodape">Vendido <b class="num">' + rs(c.valor) + '</b></span>' : '') +
         '</button>';
@@ -1923,7 +2026,7 @@ function APP(D, LOGO) {
     $('#comit-nota-m').textContent = rotIndicador() + ': o mês na rosca, os 12 meses até ele na linha (meta tracejada), e a diferença para ' +
       (RM.ref > 0 ? rotMesLongo(RM.ref - 1) : 'o mês anterior') + ' · verde na meta ou acima, vermelho abaixo';
     $('#g-comit-m').innerHTML = RM.por_comit.length
-      ? RM.por_comit.map((c) => cartaoComit(c, D.mes.comitentes[c.comit], sel, 'data-cm', (g) => rotMesLongo(g.m))).join('')
+      ? RM.por_comit.map((c) => cartaoComit(c, D.mes.comitentes[c.comit], sel, 'data-cm', (g) => rotMesLongo(g.m), STATUS_C_MES)).join('')
       : '<p class="dim">Nenhum comitente com evento neste mês.</p>';
   }
   function renderMes() {
@@ -1937,7 +2040,7 @@ function APP(D, LOGO) {
     $('#km-ev-mes').textContent = rotMesLongo(RM.ref);
     $('#km-ev-veic').textContent = nf(k.veiculos);
     $('#km-ev-com').textContent = nf(k.comitentes);
-    [['co', 'com_oferta'], ['vm', 'vmv'], ['vd', 'vendidos'], ['rm', 'removidos']].forEach((s) => {
+    [['co', 'com_oferta'], ['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
       $('#km-' + s[0]).textContent = nf(k[s[1]]);
       const x = sobre(k[s[1]]);
       $('#km-' + s[0] + '-pc').textContent = x === null ? '—' : pc(x) + ' dos veículos';
@@ -1946,6 +2049,12 @@ function APP(D, LOGO) {
       $('#km-' + s[0] + '-ant').textContent = a ? nf(a[s[1]]) + (a.veiculos ? ' · ' + pc(a[s[1]] / a.veiculos) : '') : '—';
     });
     $('#km-vd-rs').textContent = rs(k.valor);
+    /* as partes de cada status, como no pé dos cartões do diário de 03/11 */
+    [['an-comp', 'an_comprador'], ['an-vend', 'an_vendedor'], ['vd-ag', 'aguardando'], ['vd-vd', 'vendido'],
+      ['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros'],
+      ['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
+    /* "outros" (status fora do domínio) só aparece quando existe */
+    $('#km-nv-out').parentNode.hidden = !k.outros;
     metaCartao('km-co', sobre(k.com_oferta), metaDe(k, 'oferta', true), k);
     metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k);
     desenhaMes();
@@ -2073,10 +2182,11 @@ function APP(D, LOGO) {
 }
 
 /* ── 9. glossário: só a regra vigente ────────────────────────────────── */
-const nomesCanais = DADOS.canais.map((c) => c[1] + ' (' + c[0] + ')').join(', ');
-DADOS.glossario = [
-  ['Evento no painel', 'Evento que alveja algum dos canais ' + nomesCanais + ', que já abriu as ofertas e termina a partir de ' +
-    META.dias + ' dias atrás: os ativos e os encerrados recentes. Agendado, com as ofertas ainda fechadas, não entra.'],
+/* o glossário (17/11: virou texto com marcas — {canais}, {dias}, {dias_max} —,
+   para morar na Peças da Página no n8n e o Montar Painel caber nos 56 KB da
+   API; _divide.js). As marcas são trocadas logo abaixo */
+const GLOSSARIO_TXT = [
+  ['Evento no painel', 'Evento que alveja algum dos canais {canais}, que já abriu as ofertas e termina a partir de {dias} dias atrás: os ativos e os encerrados recentes. Agendado, com as ofertas ainda fechadas, não entra.'],
   ['Filtros', 'Na aba lateral. Canal, comitente, categoria e evento recortam os veículos, e tudo que nasce deles acompanha. Categoria: Leves (motos inclusive), Pesados, Equipamentos ou Não informada, a do cadastro do veículo; no Mensal, os eventos e os lojistas do mês não a seguem (vêm contados do banco sem ela). Responsável recorta as lojas. Data escolhe os dias dos gráficos e da tabela, e o dia dos cartões.'],
   ['Comitente', 'A loja que anuncia o veículo no evento — o banco, a locadora ou a frota que está vendendo.'],
   ['Responsável', 'O consultor comercial dono da loja na carteira comercial, pelo CNPJ. Recorta as lojas: acessos, ofertas e vendas de quem é da carteira dele. Os veículos não têm responsável, então os cartões e as barras de veículos ativos não mudam com ele. Não distribuído: loja fora da carteira.'],
@@ -2090,7 +2200,7 @@ DADOS.glossario = [
   ['VMV atingido', 'O maior lance alcançou o valor mínimo de venda (VMV), ou o veículo foi vendido — em qualquer status. Abertos, em análise e encerrados como em Com oferta.'],
   ['Vendidos', 'Aguardando pagamento, aguardando confirmação de pagamento ou vendido. O valor é a soma das ofertas vencedoras.'],
   ['Removidos', 'Tirados do evento sem chegar à venda: cancelados ou suspensos. Os que tinham lance contam também em Com oferta.'],
-  ['Meta', 'Do % com oferta e do % vendidos, por comitente e categoria (Leves, motos inclusive; Pesados; Equipamentos; Não informada), da planilha de metas no SharePoint: a aba Média diária vale para o Diário e a Média mensal para o Mensal. Cada uma nasce com a média dos 12 meses fechados e pode ser mudada à mão. A meta de um recorte é a média das metas dos veículos dele — cada veículo leva a do seu comitente e categoria —, então muda com o perfil dos veículos do dia. Aparece no cartão (linha e traço no trilho), tracejada no gráfico e como traço na rosca do comitente. Com acesso não tem meta. Veículo de comitente ou categoria fora da planilha fica sem meta, e o balão diz quantos.'],
+  ['Meta', 'Do % com oferta e do % vendidos, por comitente e categoria — só Leves (motos inclusive) e Pesados; Equipamentos e Não informada não têm meta —, da planilha de metas no SharePoint, que tem uma aba por mês (2026-11) com a meta mensal e a diária. Vale a meta do mês de referência: no Mensal, a aba de cada mês; no Diário, a aba do mês de cada dia. Mês sem aba usa a aba mais recente anterior. As abas nascem com a média dos 12 meses fechados e podem ser mudadas à mão. A meta de um recorte é a média das metas dos veículos dele — cada veículo leva a do seu comitente e categoria —, então muda com o perfil dos veículos do dia. Aparece no cartão (linha e traço no trilho), tracejada no gráfico e como traço na rosca do comitente. Com acesso não tem meta. Veículo de comitente ou categoria fora da planilha fica sem meta, e o balão diz quantos.'],
   ['Veículos ativos por dia', 'Veículos distintos com negociação num evento aberto no dia. A barra separa os que já estavam em evento dos novos do dia.'],
   ['Novo', 'Veículo que estreou no dia: o dia de início das ofertas do primeiro evento da vida dele, em qualquer canal. O carro que volta num feirão seguinte não é novo de novo. Na tabela, a data da estreia fica embaixo do veículo.'],
   ['% com acesso, com oferta, vendidos', 'A linha do gráfico, escolhida nos botões do indicador, no topo da página: dos veículos ativos no dia, quantos já tiveram o anúncio aberto por alguma loja, receberam lance ou foram vendidos (pela data da oferta vencedora) no evento, do começo dele até aquele dia — a negociação do evento mais recente ativo no dia, a mesma dos cartões. Vendido conta como com oferta. No dia de hoje, com oferta e vendidos fecham com os cartões. Com Novos, a conta é só dos novos do dia.'],
@@ -2102,13 +2212,17 @@ DADOS.glossario = [
   ['Evento e resultado', 'Na tabela, o evento mais recente do veículo no período e o status da negociação nele. Quando vendeu, a loja compradora e o valor.'],
   ['Farol', 'A bolinha antes do veículo. Vermelho: sem oferta. Amarelo: há oferta, mas nenhuma chegou ao VMV (ou o VMV não foi informado). Verde: alguma oferta alcançou o VMV.'],
   ['Link do anúncio', 'Abre o anúncio mais recente do veículo — na vitrine do C6 quando o evento é só dos canais do C6, no cars2you.com.br nos demais.'],
-  ['Visão Mensal', 'As abas Diário e Mensal, no canto do cabeçalho, trocam para os últimos 12 meses: o mês corrente, até hoje, e os 11 anteriores. Os mesmos cartões, os cartões por comitente e os dois gráficos, em meses. Sem a lista de eventos e sem a tabela de veículos. Indicador e Todos/Novos valem para as duas visões.'],
-  ['Evento no mensal', 'O mesmo recorte de canais, ativo em algum dia do mês. Evento com mais de ' + META.dias_max_evento + ' dias de ofertas fica fora: é depósito de anúncios, não evento (o "Anúncios cancelados", aberto de 2021 a dezembro de 2025, sozinho quintuplicava dezembro).'],
-  ['Veículo no mês', 'Veículo distinto com negociação num evento ativo no mês. Novo no mês: estreou no mês. O status é o da negociação no evento mais recente dele no mês, no mesmo funil do diário (Com oferta e VMV atingido acumulam os de depois); nos meses fechados, é o desfecho. O comitente é o dessa negociação.'],
+  ['Visão Mensal', 'As abas Diário e Mensal, no canto do cabeçalho, trocam para os últimos 12 meses: o mês corrente, até hoje, e os 11 anteriores. Os cartões com os status do sistema, os cartões por comitente e os dois gráficos, em meses. Sem a lista de eventos e sem a tabela de veículos. Indicador e Todos/Novos valem para as duas visões.'],
+  ['Evento no mensal', 'O mesmo recorte de canais, ativo em algum dia do mês. Evento com mais de {dias_max} dias de ofertas fica fora: é depósito de anúncios, não evento (o "Anúncios cancelados", aberto de 2021 a dezembro de 2025, sozinho quintuplicava dezembro).'],
+  ['Veículo no mês', 'Veículo distinto com negociação num evento ativo no mês. Novo no mês: estreou no mês. O status é o da negociação no evento mais recente dele no mês; nos meses fechados, é o desfecho. O comitente é o dessa negociação.'],
+  ['Status no mês', 'Os status do sistema, da negociação mais recente de cada veículo no mês. Os cinco grupos não se cruzam e somam os veículos do mês. Ativos: negociação ativa, ainda recebendo lance. Em análise: a oferta está na mesa, com o comprador ou com o vendedor. Vendidos: aguardando pagamento, aguardando confirmação de pagamento ou vendido; o valor é a soma das ofertas vencedoras. Não vendidos: o evento passou e não vendeu — sem ofertas, vendedor ou comprador rejeitou, ou a venda foi cancelada depois de fechada. Removidos: suspensos ou cancelados. Com oferta fica ao lado e cruza com eles: teve lance de alguma loja no evento, ou vendeu; é o indicador que tem meta. No mês corrente ainda há veículos ativos e em análise; nos meses fechados, quase todos já chegaram ao desfecho.'],
   ['% no mês', 'Dos veículos ativos no mês, quantos já tiveram o anúncio aberto, receberam lance ou foram vendidos no evento — a negociação do evento mais recente dele no mês, como nos cartões. Com oferta e vendidos são os mesmos números dos cartões do mês.'],
   ['Cartões por comitente no mês', 'Como no diário, para o mês escolhido no filtro Mês: a rosca é o indicador no mês, a área mostra os 12 meses até ele e a diferença em p.p. é contra o mês anterior.'],
   ['Lojistas por mês', 'Lojas distintas no mês que abriram anúncio, deram lance ou compraram nos eventos do recorte. Uma loja ativa no mês inteiro conta uma vez. Embaixo, os números do mês escolhido.']
 ];
+const nomesCanais = DADOS.canais.map((c) => c[1] + ' (' + c[0] + ')').join(', ');
+DADOS.glossario = GLOSSARIO_TXT.map((par) => par.map((t) => t.split('{canais}').join(nomesCanais)
+  .split('{dias_max}').join(String(META.dias_max_evento)).split('{dias}').join(String(META.dias))));
 
 /* ── 10. o HTML ──────────────────────────────────────────────────────── */
 const CSS_PAINEL = [
@@ -2147,6 +2261,16 @@ const CSS_PAINEL = [
   '@media (max-width:1400px){.g4.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}',
   '@media (max-width:900px){.g4.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}',
   '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
+  /* sete cartões no Mensal (17/11): 7 na linha, depois 4 (4 + 3), 2 e 1 */
+  '.g4.g7{grid-template-columns:repeat(7,minmax(0,1fr))}',
+  '@media (max-width:1600px){.g4.g7{grid-template-columns:repeat(4,minmax(0,1fr))}}',
+  '@media (max-width:900px){.g4.g7{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+  '@media (max-width:620px){.g4.g7{grid-template-columns:1fr}}',
+  '.kpi-pe div[hidden]{display:none}',
+  /* o pé dos sete cartões leva até quatro números: quebra linha em vez de
+     cortar o rótulo, e o mês anterior fica numa linha própria embaixo */
+  '.g4.g7 .kpi-pe{flex-wrap:wrap;gap:6px 14px}',
+  '.g4.g7 .kpi-pe div:has(dd[id$="-ant"]){flex-basis:100%}',
   /* as abas Diário e Mensal levam o mesmo respiro da página entre os
      visuais (Thomas, 16/11): eram blocos, e os visuais saíam colados */
   '#v-dia,#v-mes{display:flex;flex-direction:column;gap:var(--gap)}',
@@ -2347,6 +2471,7 @@ const ICONE = {
   relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
   vendido: '<path d="M20 6L9 17l-5-5"/>',
   removido: '<circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/>',
+  naovendido: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
   oferta: '<path d="M12 3v18M17 7H9.5a3 3 0 000 6h5a3 3 0 010 6H6"/>',
   alvo: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   grafico: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
@@ -2484,13 +2609,23 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '</div>' +
   /* a aba Mensal (06/11): o mesmo desenho, em meses */
   '<div id="v-mes" hidden>' +
-  '<section class="g4 g5" aria-label="Eventos e status no mês">' +
+  /* os status do sistema (Thomas, 17/11): Ativos, Em análise, Vendidos,
+     Não vendidos e Removidos somam os veículos do mês; Com oferta, ao lado,
+     é o indicador que tem meta. Sete cartões: grade própria (.g7) */
+  '<section class="g4 g7" aria-label="Eventos e status no mês">' +
   kpiCard('evento', 'Eventos no mês', 'km-ev', '<div class="kpi-pc"><span class="txt" id="km-ev-mes">—</span></div>',
     [['Veículos', 'km-ev-veic'], ['Comitentes', 'km-ev-com']], 'km-ev-rot') +
   kpiCard('oferta', 'Com oferta', 'km-co', meioPc('km-co-pc', 'km-co-bar', 'km-co-meta'), [['Mês anterior', 'km-co-ant']]) +
-  kpiCard('alvo', 'VMV atingido', 'km-vm', meioPc('km-vm-pc', 'km-vm-bar'), [['Mês anterior', 'km-vm-ant']]) +
-  kpiCard('vendido', 'Vendidos', 'km-vd', meioPc('km-vd-pc', 'km-vd-bar', 'km-vd-meta'), [['Valor', 'km-vd-rs'], ['Mês anterior', 'km-vd-ant']]) +
-  kpiCard('removido', 'Removidos', 'km-rm', meioPc('km-rm-pc', 'km-rm-bar'), [['Mês anterior', 'km-rm-ant']]) +
+  kpiCard('veiculo', 'Ativos', 'km-at', meioPc('km-at-pc', 'km-at-bar'), [['Mês anterior', 'km-at-ant']]) +
+  kpiCard('relogio', 'Em análise', 'km-an', meioPc('km-an-pc', 'km-an-bar'),
+    [['Comprador', 'km-an-comp'], ['Vendedor', 'km-an-vend'], ['Mês anterior', 'km-an-ant']]) +
+  kpiCard('vendido', 'Vendidos', 'km-vd', meioPc('km-vd-pc', 'km-vd-bar', 'km-vd-meta'),
+    [['Aguardando pgto.', 'km-vd-ag'], ['Vendido', 'km-vd-vd'], ['Valor', 'km-vd-rs'], ['Mês anterior', 'km-vd-ant']]) +
+  kpiCard('naovendido', 'Não vendidos', 'km-nv', meioPc('km-nv-pc', 'km-nv-bar'),
+    [['Sem ofertas', 'km-nv-sem'], ['Rejeitados', 'km-nv-rej'], ['Venda cancelada', 'km-nv-vc'], ['Outros', 'km-nv-out'],
+      ['Mês anterior', 'km-nv-ant']]) +
+  kpiCard('removido', 'Removidos', 'km-rm', meioPc('km-rm-pc', 'km-rm-bar'),
+    [['Suspensos', 'km-rm-sus'], ['Cancelados', 'km-rm-can'], ['Mês anterior', 'km-rm-ant']]) +
   '</section>' +
   '<section class="comitentes" aria-labelledby="comit-rot-m">' +
   '<div class="barra-comit"><span class="rot-comit" id="comit-rot-m">Comitentes com evento no mês</span>' +
@@ -2535,8 +2670,9 @@ const resumo = {
   tot_lojistas: todos.tot_lojistas,
   /* o mensal: um resumo por mês, sem filtro */
   meses: calculaMes(DADOS, {}).meses.map((g) => ({ mes: g.rot, eventos: g.eventos, veiculos: g.veiculos, novos: g.novos,
-    acesso: g.acesso, oferta: g.oferta, venda: g.venda, sem_oferta: g.sem_oferta, com_oferta: g.com_oferta, vmv: g.vmv,
-    vendidos: g.vendidos, removidos: g.removidos, valor: g.valor, comitentes: g.comitentes, lojistas: g.lojistas })),
+    acesso: g.acesso, oferta: g.oferta, venda: g.venda, com_oferta: g.com_oferta, ativos: g.st_ativo, analise: g.analise,
+    vendidos: g.vendidos, nao_vendidos: g.nao_vendidos, removidos: g.removidos, outros: g.outros, valor: g.valor,
+    comitentes: g.comitentes, lojistas: g.lojistas })),
   avisos: avisos,
   bytes_html: html.length
 };

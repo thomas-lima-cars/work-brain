@@ -279,3 +279,49 @@ oferta, 5,9%); a de nov/26, 45,0% e 28,0%, para 2.206 dos 2.264 (os de
 comitente de teste ficam sem meta). Por categoria, hoje: Leves 1.568
 veículos, meta 11,5% com oferta; Pesados 198, 15,0%; Não informada 10, 1,3%;
 Equipamentos 1, sem meta.
+
+## Os status do sistema no Mensal — coleta de 2026-11-17 13:44
+
+Desde 17/11 o Mensal conta o status do sistema da negociação mais recente de
+cada veículo no mês (README da pasta). Coleta local (`coleta_local.py`, 70
+consultas, 207 s no banco). **Out/26 conferido contra o banco pelas linhas
+cruas** (`_confere_mes.py 10`, exato em todo campo); nov/26 bateu em todos os
+status, com 2 ofertas e 2 acessos a mais no banco (chegaram durante a conferência).
+
+| mês | veículos | com oferta | ativos (1) | em análise (9 · 13) | vendidos (2+3 · 7) | não vendidos (11 · 14+15 · 18) | removidos (8 · 10) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| out/26 | 4.967 | 1.870 | 0 | 13 (6 · 7) | 1.301 (398 · 903) | 3.105 (2.541 · 459 · 105) | 548 (3 · 545) |
+| nov/26, até 17/11 13:44 | 3.598 | 949 | 1.712 | 161 (95 · 66) | 505 (180 · 325) | 682 (406 · 265 · 11) | 538 (0 · 538) |
+
+No run 69721 (n8n, 17/11 16:08), nov/26 já estava em 3.667 veículos: 668
+ativos, 215 em análise, 515 vendidos, 1.730 não vendidos, 539 removidos — os
+eventos que fecharam às 16h passaram de ativos para não vendidos.
+
+⚠️ Na mesma coleta, os 14 pacotes `negs` do Diário passaram de 118 KB (06/11)
+para **131 KB**, acima dos ~130 KB já provados no MCP. O run 69721 passou.
+
+## As metas por aba de mês — 2026-11-17
+
+`gera_metas.py` refeito (README da pasta, seção de 17/11): só Leves e
+Pesados, 12 abas (`2025-12` a `2026-11`) com a mesma média dos 12 meses
+fechados (nov/25 a out/26 — a mesma janela de 06/11). **24 comitentes**;
+**34 metas** no mensal e **35** no diário (comitente × categoria); base
+pequena: 3 com a meta do comitente e 14 com a da categoria no mensal, 3 e 15
+no diário. Médias das categorias iguais às de 06/11 (acima), exceto Pesados
+diário vendidos: **5,5%** (era 5,6%).
+
+Contra a planilha de 06/11, a aba de nov/26 mudou em 32 células, quase todas
+no décimo; a maior foi Banco Volkswagen S.A. · Leves, mensal vendidos, 85,1% →
+83,3% (o banco andou e a referência do comitente passou a somar só Leves e
+Pesados).
+
+**Cobertura** (coleta de 13:44): em nov/26, 3.530 dos 3.598 veículos do mês
+têm meta; Equipamentos e Não informada somam 11 veículos (1 e 10), sem meta;
+o único comitente sem nenhuma é o de teste. Hoje, todos os 1.674 leves e 119
+pesados ativos têm meta. Na página: meta de nov/26 em 45,0% com oferta e
+27,8% vendidos; a do dia, 9,7% e 3,3%.
+
+**No n8n** (run 69721, manual, 3 min 49 s): as 12 abas lidas, 1.536 linhas
+do Metas (128 por aba), todas com `pairedItem`; 34 metas mensais e 26
+diárias por mês na página (o diário só leva os comitentes da janela de 30
+dias); nenhum aviso de metas.

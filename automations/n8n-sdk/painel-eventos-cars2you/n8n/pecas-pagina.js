@@ -392,6 +392,8 @@ function APP(D, LOGO) {
   }
   const STATUS_C = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'],
     ['vmv', 'VMV atingido'], ['vendidos', 'Vendidos'], ['removidos', 'Removidos']];
+  const STATUS_C_MES = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'], ['st_ativo', 'Ativos'],
+    ['analise', 'Em análise'], ['vendidos', 'Vendidos'], ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
   const baseDe = (g) => (g ? (modo === 'novos' ? g.novos : g.ativos) : 0);
   const acertoDe = (g) => (g ? (modo === 'novos' ? g[kpi + '_n'] : g[kpi]) : 0);
   const pctDe = (g) => (baseDe(g) ? acertoDe(g) / baseDe(g) : null);
@@ -499,7 +501,8 @@ function APP(D, LOGO) {
     $('#g-comit').innerHTML = lista.length ? lista.map((c) => cartaoComit(c, D.comitentes[c.comit], sel, 'data-c', null))
       .join('') : '<p class="dim">Nenhum comitente com evento ativo neste dia.</p>';
   }
-  function cartaoComit(c, nome, sel, attr, rotLongo) {
+  function cartaoComit(c, nome, sel, attr, rotLongo, stc) {
+      const ST = stc || STATUS_C;
       const marcado = sel === c.comit;
       const x = pctDe(c.dia);
       const m = metaDe(c.dia);
@@ -514,7 +517,7 @@ function APP(D, LOGO) {
           '<span class="mini m-sem">' + areaSemana(c.hist, rotLongo, m) + '</span></span>' +
           '<span class="comit-num"><b class="num">' + nf(acertoDe(c.dia)) + ' de ' + nf(baseDe(c.dia)) +
             (modo === 'novos' ? ' novos' : '') + '</b><span class="sep">·</span><span>' + delta(c, true) + '</span></span></span>' +
-        '<span class="comit-st">' + STATUS_C.map((s) => '<span' + (s[0] === 'veiculos' ? ' class="tot"' : '') + '>' + s[1] +
+        '<span class="comit-st">' + ST.map((s) => '<span' + (s[0] === 'veiculos' ? ' class="tot"' : '') + '>' + s[1] +
           '<b class="num">' + nf(c[s[0]]) + '</b></span>').join('') + '</span></span>' +
         (c.valor ? '<span class="comit-rodape">Vendido <b class="num">' + rs(c.valor) + '</b></span>' : '') +
         '</button>';
@@ -707,7 +710,7 @@ function APP(D, LOGO) {
     $('#comit-nota-m').textContent = rotIndicador() + ': o mês na rosca, os 12 meses até ele na linha (meta tracejada), e a diferença para ' +
       (RM.ref > 0 ? rotMesLongo(RM.ref - 1) : 'o mês anterior') + ' · verde na meta ou acima, vermelho abaixo';
     $('#g-comit-m').innerHTML = RM.por_comit.length
-      ? RM.por_comit.map((c) => cartaoComit(c, D.mes.comitentes[c.comit], sel, 'data-cm', (g) => rotMesLongo(g.m))).join('')
+      ? RM.por_comit.map((c) => cartaoComit(c, D.mes.comitentes[c.comit], sel, 'data-cm', (g) => rotMesLongo(g.m), STATUS_C_MES)).join('')
       : '<p class="dim">Nenhum comitente com evento neste mês.</p>';
   }
   function renderMes() {
@@ -721,7 +724,7 @@ function APP(D, LOGO) {
     $('#km-ev-mes').textContent = rotMesLongo(RM.ref);
     $('#km-ev-veic').textContent = nf(k.veiculos);
     $('#km-ev-com').textContent = nf(k.comitentes);
-    [['co', 'com_oferta'], ['vm', 'vmv'], ['vd', 'vendidos'], ['rm', 'removidos']].forEach((s) => {
+    [['co', 'com_oferta'], ['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
       $('#km-' + s[0]).textContent = nf(k[s[1]]);
       const x = sobre(k[s[1]]);
       $('#km-' + s[0] + '-pc').textContent = x === null ? '—' : pc(x) + ' dos veículos';
@@ -729,6 +732,10 @@ function APP(D, LOGO) {
       $('#km-' + s[0] + '-ant').textContent = a ? nf(a[s[1]]) + (a.veiculos ? ' · ' + pc(a[s[1]] / a.veiculos) : '') : '—';
     });
     $('#km-vd-rs').textContent = rs(k.valor);
+    [['an-comp', 'an_comprador'], ['an-vend', 'an_vendedor'], ['vd-ag', 'aguardando'], ['vd-vd', 'vendido'],
+      ['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros'],
+      ['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
+    $('#km-nv-out').parentNode.hidden = !k.outros;
     metaCartao('km-co', sobre(k.com_oferta), metaDe(k, 'oferta', true), k);
     metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k);
     desenhaMes();

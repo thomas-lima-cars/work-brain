@@ -1,11 +1,10 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-16 (tarde; salvo em 17/11).
-> - **Fenauto encerrada.** Os três painéis foram congelados em **segunda 09/11 a sexta 13/11** (`JANELA_FIXA`) e publicados pela rodada 69497 às 15h16. A **Rotina Fenauto (`9CNN9FjRohxaRUZq`) está desligada**, sem versão ativa.
-> - **Painel de Eventos Cars2You:** os visuais ganharam 16 px de respiro nas duas abas (versão `a3751072` publicada).
+> **Última atualização:** 2026-11-17 (tarde).
+> - **Painel de Eventos Cars2You, versão `f5f2c1c8` publicada** (run manual 69721 ✅). O **Mensal** voltou aos **status do sistema** (Ativos, Em análise, Vendidos, Não vendidos, Removidos, com o Com oferta ao lado). As **metas** têm **uma aba por mês** (`2026-11`), com a mensal e a diária juntas, só Leves e Pesados; o painel usa a aba do mês de referência. Planilha nova subida no SharePoint.
 >
-> Antes: em 13/11 a volta dos reativados passou a olhar só as lojas do grupo (prazo do MCP). Em 12/11 entraram os novos pelo grupo, novos e reativados separados, vendidos com a vencedora sem loja e um veículo só. Em 06/11 o Painel de Eventos Cars2You foi ao ar. Em 29–30/10 a Projeção 2027 ficou pronta, e ainda falta mandar. No Radar, três mudanças de 22–23/10 continuam **sem run**. ⚠️ Vários blocos abaixo são de 30/09.
+> Antes: em 16/11 a Fenauto foi congelada em 09 a 13/11 e a Rotina Fenauto desligada; o Painel de Eventos Cars2You ganhou 16 px de respiro. Em 13/11 a volta dos reativados passou a olhar só as lojas do grupo (prazo do MCP). Em 12/11 entraram os novos pelo grupo, novos e reativados separados, vendidos com a vencedora sem loja e um veículo só. Em 06/11 o Painel de Eventos Cars2You foi ao ar. Em 29–30/10 a Projeção 2027 ficou pronta, e ainda falta mandar. No Radar, três mudanças de 22–23/10 continuam **sem run**. ⚠️ Vários blocos abaixo são de 30/09.
 
 ## 🔹 Frentes quentes agora
 - **Projeção de vendas 2027** — 🔥 nasceu em 29/10, pedido do **Tuunelis** (ata
@@ -39,8 +38,13 @@
   `Comitente - Metas/metas-painel-eventos.xlsx` (`gera_metas.py`; travada, editável só nas metas),
   **filtro de categoria** (Leves com motos, Pesados, Equipamentos, Não informada), cores pela meta,
   indicador nasce em Com oferta. Montar Painel vai **dividido em 3 nós** (`_divide.js`). 91 provas.
-  16/11: 16 px entre os visuais nas abas Diário e Mensal; só mudou o Peças do Tema (versão `a3751072`).
-  Números em `projetos/painel-eventos-cars2you/indicadores.md`.
+  16/11: 16 px entre os visuais nas abas Diário e Mensal.
+  **17/11, versão `f5f2c1c8`:** o **Mensal** conta os **status do sistema** (cinco grupos que somam os veículos,
+  sete cartões com Eventos e Com oferta; VMV atingido saiu; o Diário segue no funil). As **metas** têm **uma aba
+  por mês** (`AAAA-MM`), mensal e diária juntas, **só Leves e Pesados**; no Diário cada dia usa a aba do mês dele;
+  mês sem aba usa a anterior, com aviso. Leitura no n8n: Ler Metas → **Abas das Metas** → Metas (aba pela expressão,
+  `pairedItem` provado no run 69721). O glossário mora na Peças do Tema (o Montar Painel passava dos 56 KB).
+  Envio em partes: `monta_envio.py`. 103 provas. Números em `projetos/painel-eventos-cars2you/indicadores.md`.
 - **Rotina Fenauto** — 🧊 **DESLIGADA em 16/11** (Thomas: "cancele as próximas atualizações"). Wf
   **`9CNN9FjRohxaRUZq`**, pasta `automations/n8n-sdk/rotina-fenauto/`. Antes de desligar, os três painéis
   foram congelados em **09 a 13/11** (`JANELA_FIXA` no Montar Consultas: janela até 14/11 00:00 e "agora"
@@ -124,6 +128,8 @@
   ou aceitar o diário? E: falha do WhatsApp deve marcar o run como erro se o e-mail saiu?
 - 🔵 **Projeção 2027 — mesclas a validar com o Mattera:** "Multifrota - Netcarros" → "Outlet Netcarros"
   e os 5 "Dealers - Venda Direta - Ajuste <mês>" numa linha (aba De-para, oculta).
+- 🔵 **Painel de Eventos Cars2You, 17/11 — duas escolhas minhas:** status fora do domínio conta em Não vendidos
+  ("outros", com aviso); a referência de base pequena pelo comitente nas metas soma só os leves e pesados dele.
 - 🔵 **Painel de Eventos Cars2You — escolhas minhas** (README, marcadas "(minha)"): novo = estreia
   em evento · acessou = abriu anúncio · agendado fora · evento > 31 dias fora do mensal · cortes de
   base pequena das metas (3 meses/30 veículos; 30 dias/100 veículos-dia). E: as fontes mais claras e
@@ -170,6 +176,8 @@
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
 - [ ] 🔥 **Painel de Eventos Cars2You:** abrir no SharePoint (versão `a3751072`, com o respiro de 16/11) — o
       histórico do n8n só guarda erro — e mandar o link a quem vai usar
+- [ ] **Metas do Painel de Eventos Cars2You em dezembro:** criar a aba `2026-12` (copiar a de novembro e renomear)
+      ou rodar `gera_metas.py`; sem ela, dezembro usa a de novembro e avisa
 - [ ] **Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e ver a tela da semana fechada
       (rodada 69497, 16/11 15h16)
 - [ ] Fenauto 2027 (ou outra semana): `JANELA_FIXA`, `INICIO_CAMPANHA`, os grupos e `PASTA_RAIZ` no `_divide.js`
@@ -267,6 +275,10 @@
   `update_workflow` por subagente, depois md5 dos nós (`_confere_n8n.py`). Mudou nó? `publish_workflow`.
   **Feche a aba do workflow no editor antes**: em 12/11 um salvamento pelo editor desfez 7 nós enviados.
   Cada nó grande custa de 100 a 150 mil tokens; em 12/11 o limite de gasto da organização foi atingido no meio do envio.
+- 📦 **Painel de Eventos Cars2You: os 14 pacotes `negs` do Diário estão em 131 KB** (118 KB em 06/11), acima dos ~130 KB
+  provados no MCP; o run 69721 passou. Se o MCP recusar, subir `partes` no Montar Consultas.
+- 🔎 **n8n que só guarda erro:** para ver avisos e números de um run bom, rodar manual (fica no histórico). E
+  `update_workflow` grava no **rascunho** — a versão ativa segue até o `publish_workflow`.
 - ⏱️ **O MCP do banco corta a consulta em ~16 s** ("context deadline exceeded"), mesmo com `timeout` de 60 s
   no nó (Rotina Fenauto, 13/11). O `access_logs` não tem índice por data: filtre por `event_id`, `shop_id` ou
   `user_id`. Passada "desde a data X" cresce a cada dia. `automations/bancos/README.md`.
