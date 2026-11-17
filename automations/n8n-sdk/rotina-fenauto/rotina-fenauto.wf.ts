@@ -853,11 +853,13 @@ const FUSO_MIN = -180;
 const DB = 'cars2you_production';
 const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
-const agora = new Date(Date.now() + FUSO_MIN * 60000);
+const JANELA_FIXA = ['2026-11-09 00:00:00', '2026-11-14 00:00:00'];
+const agora = JANELA_FIXA ? new Date(Date.parse(JANELA_FIXA[1].replace(' ', 'T') + 'Z') - 60000)
+  : new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
 const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const SEMANA_INI = JANELA_FIXA ? JANELA_FIXA[0] : dataDe(segunda) + ' 00:00:00';
+const SEMANA_FIM = JANELA_FIXA ? JANELA_FIXA[1] : dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
 const EVENTO =
   " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
   " AND e.name LIKE '%" + NOME_EVENTO + "%'" +
@@ -2652,10 +2654,12 @@ const FUSO_MIN = -180;
 const DB = 'cars2you_production';
 const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
-const agora = new Date(Date.now() + FUSO_MIN * 60000);
+const JANELA_FIXA = ['2026-11-09 00:00:00', '2026-11-14 00:00:00'];
+const agora = JANELA_FIXA ? new Date(Date.parse(JANELA_FIXA[1].replace(' ', 'T') + 'Z') - 60000)
+  : new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
-const MES_INI = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
-const MES_FIM = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
+const MES_INI = JANELA_FIXA ? JANELA_FIXA[0] : dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
+const MES_FIM = JANELA_FIXA ? JANELA_FIXA[1] : dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
 const SEM_COMPRA_DESDE = dataDe(new Date(Date.UTC(Number(INICIO_CAMPANHA.slice(0, 4)),
   Number(INICIO_CAMPANHA.slice(5, 7)) - 1 - MESES_SEM_COMPRA, Number(INICIO_CAMPANHA.slice(8, 10))))) + ' 00:00:00';
 const EH_C6 = "EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id = " + WL_C6 + ")";
@@ -2698,10 +2702,11 @@ const CLIENTES = "SELECT cs.id, DATE_FORMAT(IF(cs.created_at >= '" + INICIO_CAMP
   " LEFT JOIN (" + COMPRAS + ") cp ON cp.shop_id = cs.id" +
   " WHERE cs.created_at >= '" + INICIO_CAMPANHA + "' OR (va.volta IS NOT NULL AND cp.shop_id IS NULL)";
 const ANO_RECORTE = MES_INI.slice(0, 4);
+const CORTE_FIXO = (col) => (JANELA_FIXA ? " AND " + col + " < '" + JANELA_FIXA[1] + "'" : '');
 const CAMPANHA_ANO = CAMPANHA_FORM + ' ' + ANO_RECORTE + ' iga';
 const CADASTRO_CAMPANHA_ANO = (loja) => "(SELECT MIN(upa.created_at) FROM user_shops usa" +
   " INNER JOIN user_profiles upa ON upa.user_id = usa.user_id AND upa.deleted_at IS NULL" +
-  " AND upa.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" +
+  " AND upa.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" + CORTE_FIXO('upa.created_at') +
   " WHERE usa.shop_id = " + loja + ")";
 const UF_CASE = "CASE WHEN UPPER(TRIM(sa.state)) IN ('SP','MG','PR','SC','RJ','GO','RS','BA','MT','DF','CE','MS','ES','PE','PA','SE','AM','MA','RN','PB','AL','PI','RO','TO','AP','AC','RR')" +
   " THEN UPPER(TRIM(sa.state)) WHEN UPPER(TRIM(sa.state)) = 'S.P' THEN 'SP'" +
@@ -2776,7 +2781,7 @@ const TABELAS = [
         " UNION SELECT al.shop_id AS id, NULL AS fen" + ACESSOS_DO_EVENTO +
         " UNION SELECT us4.shop_id AS id, NULL AS fen FROM user_shops us4" +
         " INNER JOIN user_profiles up4 ON up4.user_id = us4.user_id AND up4.deleted_at IS NULL" +
-        " AND up4.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" +
+        " AND up4.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" + CORTE_FIXO('up4.created_at') +
         " UNION SELECT f.id, f.entrada AS fen FROM (" + CLIENTES + ") f) u0 GROUP BY u0.id) ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [
@@ -4445,11 +4450,13 @@ const FUSO_MIN = -180;
 const DB = 'cars2you_production';
 const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
-const agora = new Date(Date.now() + FUSO_MIN * 60000);
+const JANELA_FIXA = ['2026-11-09 00:00:00', '2026-11-14 00:00:00'];
+const agora = JANELA_FIXA ? new Date(Date.parse(JANELA_FIXA[1].replace(' ', 'T') + 'Z') - 60000)
+  : new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
 const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const SEMANA_INI = JANELA_FIXA ? JANELA_FIXA[0] : dataDe(segunda) + ' 00:00:00';
+const SEMANA_FIM = JANELA_FIXA ? JANELA_FIXA[1] : dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
 const SEM_COMPRA_DESDE = dataDe(new Date(Date.UTC(Number(INICIO_CAMPANHA.slice(0, 4)),
   Number(INICIO_CAMPANHA.slice(5, 7)) - 1 - MESES_SEM_COMPRA, Number(INICIO_CAMPANHA.slice(8, 10))))) +
   INICIO_CAMPANHA.slice(10);

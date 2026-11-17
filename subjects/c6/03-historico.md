@@ -246,3 +246,6 @@
 - **As rodadas da Rotina Fenauto caíram desde a manhã** (69187 a 69209). A consulta de lojas do C6 passou do prazo do MCP, de ~16 s ("context deadline exceeded"). A volta dos reativados lia o `access_logs` inteiro desde 10/11, e essa passada cresce a cada dia.
 - **Correção:** a volta passou a olhar só as lojas do grupo, pelo índice de `shop_id`. Resultado igual linha a linha, e a consulta de lojas caiu de 19 s para 5 a 9 s. Valeu para os três painéis da Fenauto. Publicado na `2bc7c481`; a rodada 69211 levou 24 s, sem erro. Detalhes em `automations/n8n-sdk/rotina-fenauto/README.md`.
 - Republicação conferida: o 24384 tem 93 veículos, 14 vindos do 24368. Fonte: `projetos/mega-evento-fenauto/indicadores.md`.
+
+## 2026-11-16
+- **Fenauto congelada na semana do evento e Rotina Fenauto desligada** (pedido do Thomas). Os três painéis mostram só segunda 09/11 a sexta 13/11 (`JANELA_FIXA`), rodada 69497 publicada às 15h16; não há mais atualização de hora em hora. Números em `projetos/mega-evento-fenauto/indicadores.md`.

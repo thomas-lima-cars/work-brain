@@ -322,3 +322,6 @@ precificar.
   publicou `Painel de Eventos Cars2You/painel-eventos-cars2you.html`; **ativo de hora em hora,
   9h às 18h**, histórico só de erro. Detalhes no README da pasta e em
   `memory/sessions/2026-11-06.md`.
+
+## 2026-11-16
+- **Painel de Eventos Cars2You:** respiro de 16 px entre os visuais nas abas Diário e Mensal (antes colados). Versão `a3751072` publicada.

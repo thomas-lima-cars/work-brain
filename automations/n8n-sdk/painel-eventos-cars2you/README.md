@@ -306,3 +306,9 @@ de loja.
 
 - 🔵 Os canais 48, 62 e 65 não tinham evento em 28/10: aparecem no filtro só
   pelo login.
+
+## 16/11 — respiro entre os visuais
+
+As abas Diário e Mensal (`#v-dia`, `#v-mes`) eram blocos e não repassavam o `gap` da página: os visuais
+saíam colados (0 px). Viraram coluna flex com `gap:var(--gap)` (16 px), medido na tela nas duas abas.
+Mudou só o Peças do Tema; versão **`a3751072`** publicada, md5 dos 5 nós Code conferido. 91 provas.

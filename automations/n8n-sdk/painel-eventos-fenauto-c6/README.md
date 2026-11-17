@@ -203,3 +203,12 @@ pelo filtro de Data a pedido do Thomas.
   [`projetos/c6/indicadores.md`](../../../context/banco-de-dados/projetos/c6/indicadores.md#eventos-fenauto-c6--coleta-de-2026-10-26-2057) — inclusive o aviso de que a
   coleta de prova (25 eventos) passa dos ~130 KB por pacote.
 - 🔵 Sem cron, como o do C6.
+
+## 16/11 — janela fixa na semana da Fenauto
+
+Pedido do Thomas em 16/11: "atualize somente com dados de segunda a sexta da semana passada, e cancele as
+próximas atualizações". O `montar-consultas.js` ganhou `JANELA_FIXA = ['2026-11-09 00:00:00',
+'2026-11-14 00:00:00']`: o recorte de evento usa essa janela e o "agora" vira sexta 13/11 23:59, então
+os dias, o filtro de Data e os novos e reativados param em 13/11. `JANELA_FIXA = null` devolve a janela
+que anda sozinha. A prova da janela aceita os dois modos. Rodada 69497; a Rotina Fenauto está desligada.
+Números em `context/banco-de-dados/projetos/mega-evento-fenauto/indicadores.md`.

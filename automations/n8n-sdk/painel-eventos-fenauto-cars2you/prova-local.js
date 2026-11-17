@@ -99,6 +99,12 @@ const sqlDe = (n) => itens.find((i) => i.json.queryName === n).json.sql;
   const m = itens[0].json.meta;
   const ini = new Date(m.semana[0].slice(0, 10) + 'T00:00:00Z');
   const fim = new Date(m.semana[1].slice(0, 10) + 'T00:00:00Z');
+  if (ler('montar-consultas.js').indexOf('const JANELA_FIXA = null') < 0) {
+  /* 16/11: com a janela fixa (JANELA_FIXA no Montar Consultas), a semana é
+     segunda 09/11 a sábado 14/11 00:00 e o agora é sexta 23:59 */
+  prova('janela fixa (16/11): segunda 09/11 a sexta 13/11, agora sexta 23:59',
+    m.semana[0] === '2026-11-09 00:00:00' && m.semana[1] === '2026-11-14 00:00:00' && m.agora_br === '2026-11-13 23:59', m);
+  } else
   prova('semana: começa numa segunda, dura 7 dias e contém agora', ini.getUTCDay() === 1 && fim - ini === 7 * 86400000 &&
     m.semana[0].slice(11) === '00:00:00' && m.agora_br >= m.semana[0].slice(0, 16) && m.agora_br < m.semana[1].slice(0, 16), m);
 })();

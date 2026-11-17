@@ -147,6 +147,7 @@ const CSS_PAINEL = [
   '@media (max-width:1400px){.g4.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}',
   '@media (max-width:900px){.g4.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}',
   '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
+  '#v-dia,#v-mes{display:flex;flex-direction:column;gap:var(--gap)}',
   '.barra-ind{display:flex;justify-content:flex-start;align-items:center;gap:8px 16px;flex-wrap:wrap}',
   '.barra-ind .canto-tema{margin-left:auto}',
   '.grupo-ind{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap}',

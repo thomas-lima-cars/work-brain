@@ -89,12 +89,19 @@ const DB = 'cars2you_production';
 
 const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
-const agora = new Date(Date.now() + FUSO_MIN * 60000);
+/* 16/11 (Thomas): congelado em segunda 09/11 a sexta 13/11, a semana do
+   Mega Evento Fenauto, e a Rotina Fenauto desligada. JANELA_FIXA = [início,
+   fim exclusivo] em hora de Brasília; o "agora" vira sexta 23:59, então os
+   dias, o filtro de Data e os novos e reativados param em 13/11. Para a
+   janela voltar a andar sozinha: JANELA_FIXA = null. */
+const JANELA_FIXA = ['2026-11-09 00:00:00', '2026-11-14 00:00:00'];
+const agora = JANELA_FIXA ? new Date(Date.parse(JANELA_FIXA[1].replace(' ', 'T') + 'Z') - 60000)
+  : new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
 /* a semana de segunda a domingo que contém hoje (getUTCDay: 0 = domingo) */
 const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const SEMANA_INI = JANELA_FIXA ? JANELA_FIXA[0] : dataDe(segunda) + ' 00:00:00';
+const SEMANA_FIM = JANELA_FIXA ? JANELA_FIXA[1] : dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
 /* 6 meses antes do início, no mesmo dia e hora: 2026-05-10 00:00:00 */
 const SEM_COMPRA_DESDE = dataDe(new Date(Date.UTC(Number(INICIO_CAMPANHA.slice(0, 4)),
   Number(INICIO_CAMPANHA.slice(5, 7)) - 1 - MESES_SEM_COMPRA, Number(INICIO_CAMPANHA.slice(8, 10))))) +

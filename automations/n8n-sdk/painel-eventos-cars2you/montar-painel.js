@@ -2147,6 +2147,9 @@ const CSS_PAINEL = [
   '@media (max-width:1400px){.g4.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}',
   '@media (max-width:900px){.g4.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}',
   '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
+  /* as abas Diário e Mensal levam o mesmo respiro da página entre os
+     visuais (Thomas, 16/11): eram blocos, e os visuais saíam colados */
+  '#v-dia,#v-mes{display:flex;flex-direction:column;gap:var(--gap)}',
   /* o indicador no topo (Thomas, 03/11): rótulo e botões direto no campo,
      --texto-2 e não --texto-3 (regra 10c) */
   '.barra-ind{display:flex;justify-content:flex-start;align-items:center;gap:8px 16px;flex-wrap:wrap}',

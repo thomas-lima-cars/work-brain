@@ -91,12 +91,19 @@ const DB = 'cars2you_production';
 
 const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
-const agora = new Date(Date.now() + FUSO_MIN * 60000);
+/* 16/11 (Thomas): congelado em segunda 09/11 a sexta 13/11, a semana do
+   Mega Evento Fenauto, e a Rotina Fenauto desligada. JANELA_FIXA = [início,
+   fim exclusivo] em hora de Brasília; o "agora" vira sexta 23:59, então os
+   dias, o filtro de Data e os novos e reativados param em 13/11. Para a
+   janela voltar a andar sozinha: JANELA_FIXA = null. */
+const JANELA_FIXA = ['2026-11-09 00:00:00', '2026-11-14 00:00:00'];
+const agora = JANELA_FIXA ? new Date(Date.parse(JANELA_FIXA[1].replace(' ', 'T') + 'Z') - 60000)
+  : new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
 /* o mês que contém hoje (09/11; antes, a semana de segunda a domingo):
    do dia 1 ao dia 1 do mês seguinte, 00:00 */
-const MES_INI = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
-const MES_FIM = dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
+const MES_INI = JANELA_FIXA ? JANELA_FIXA[0] : dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))) + ' 00:00:00';
+const MES_FIM = JANELA_FIXA ? JANELA_FIXA[1] : dataDe(new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + 1, 1))) + ' 00:00:00';
 /* o começo da janela sem compra: INICIO_CAMPANHA menos MESES_SEM_COMPRA
    meses, no mesmo dia (12/11: '2026-05-10 00:00:00') */
 const SEM_COMPRA_DESDE = dataDe(new Date(Date.UTC(Number(INICIO_CAMPANHA.slice(0, 4)),
@@ -174,10 +181,14 @@ const CLIENTES = "SELECT cs.id, DATE_FORMAT(IF(cs.created_at >= '" + INICIO_CAMP
    então anda sozinho. Desde 12/11 vale SÓ para o cartão de regiões (a
    loja nova virou o grupo): cliente da campanha do C6 não entra nele. */
 const ANO_RECORTE = MES_INI.slice(0, 4);
+/* 16/11: com a janela fixa, o cartão de regiões (a campanha inteira, sem
+   corte de dia) também para no fim dela: perfil da campanha criado depois
+   de sexta 13/11 não entra */
+const CORTE_FIXO = (col) => (JANELA_FIXA ? " AND " + col + " < '" + JANELA_FIXA[1] + "'" : '');
 const CAMPANHA_ANO = CAMPANHA_FORM + ' ' + ANO_RECORTE + ' iga';
 const CADASTRO_CAMPANHA_ANO = (loja) => "(SELECT MIN(upa.created_at) FROM user_shops usa" +
   " INNER JOIN user_profiles upa ON upa.user_id = usa.user_id AND upa.deleted_at IS NULL" +
-  " AND upa.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" +
+  " AND upa.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" + CORTE_FIXO('upa.created_at') +
   " WHERE usa.shop_id = " + loja + ")";
 
 /* a UF do endereço da loja (Thomas, 11/11: lojistas por região e UF do
@@ -287,7 +298,7 @@ const TABELAS = [
            de regiões conta a campanha inteira, não só os dias do evento */
         " UNION SELECT us4.shop_id AS id, NULL AS fen FROM user_shops us4" +
         " INNER JOIN user_profiles up4 ON up4.user_id = us4.user_id AND up4.deleted_at IS NULL" +
-        " AND up4.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" +
+        " AND up4.register_form_value LIKE '%" + CAMPANHA_ANO + "%'" + CORTE_FIXO('up4.created_at') +
         " UNION SELECT f.id, f.entrada AS fen FROM (" + CLIENTES + ") f) u0 GROUP BY u0.id) ids" +
         " INNER JOIN shops s ON s.id = ids.id",
     cols: [

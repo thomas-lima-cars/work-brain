@@ -205,3 +205,15 @@ O painel conta, em cada evento, as negociações dele, e por isso já inclui os 
 | 24384 (C6, 13/11) | 93 | 14 do 24368 |
 
 O 24379 aparecia com 10 veículos porque o último arquivo publicado era anterior às 18h09 de 12/11, e as rodadas de 13/11 caíram até as 13h (prazo do MCP, ver `automations/n8n-sdk/rotina-fenauto/README.md`). Pelo cálculo da página sobre a coleta de 13/11, o Mega Evento IGA e o Mega Evento Cars2You mostram 20 no 24379.
+
+## A semana fechada, 09 a 13/11/2026 — rodada 69497 do n8n (16/11, 15h16)
+
+Os três painéis congelados em segunda 09/11 00:00 a sábado 14/11 00:00, com o "agora" em sexta 23:59 (`JANELA_FIXA`, pedido do Thomas em 16/11), regras de 12/11 e 13/11. É o retrato publicado em `Fenauto_202611/`; a Rotina Fenauto foi desligada logo depois. Lido do `resumo` do Montar Painel de cada ramo. Status das negociações e dos eventos são os de 16/11 (o 24384 ainda "Encerrando" no banco).
+
+| painel | eventos | publicados | com oferta | vendidos | volume vendido | ofertantes | compradores | novos | reativados | lojas que acessaram |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Eventos Fenauto C6 | 24368, 24384 | 106 | 48 | 15 | R$ 619.200 | 46 | 12 | 10 | 83 | 179 |
+| Mega Evento Fenauto (IGA) | 24377, 24378, 24379 | 32 | 28 | 27 | R$ 2.927.200 | 52 | 22 | 211 | 84 | 194 |
+| Mega Evento Fenauto (Cars2You) | 24368, 24377, 24378, 24379, 24384 | 138 | 76 | 42 | R$ 3.546.400 | 98 | 34 | 221 | 167 | 372 |
+
+Os avisos do IGA e do Cars2You: 1 venda com a oferta vencedora sem loja e 6 lances de usuário interno (fora dos lances e dos rankings; a venda conta nos vendidos).

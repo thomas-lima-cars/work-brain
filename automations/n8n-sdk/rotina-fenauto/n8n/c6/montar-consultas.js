@@ -13,11 +13,13 @@ const FUSO_MIN = -180;
 const DB = 'cars2you_production';
 const pad = (n) => String(n).padStart(2, '0');
 const dataDe = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
-const agora = new Date(Date.now() + FUSO_MIN * 60000);
+const JANELA_FIXA = ['2026-11-09 00:00:00', '2026-11-14 00:00:00'];
+const agora = JANELA_FIXA ? new Date(Date.parse(JANELA_FIXA[1].replace(' ', 'T') + 'Z') - 60000)
+  : new Date(Date.now() + FUSO_MIN * 60000);
 const AGORA_BR = dataDe(agora) + ' ' + pad(agora.getUTCHours()) + ':' + pad(agora.getUTCMinutes());
 const segunda = new Date(agora.getTime() - ((agora.getUTCDay() + 6) % 7) * 86400000);
-const SEMANA_INI = dataDe(segunda) + ' 00:00:00';
-const SEMANA_FIM = dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
+const SEMANA_INI = JANELA_FIXA ? JANELA_FIXA[0] : dataDe(segunda) + ' 00:00:00';
+const SEMANA_FIM = JANELA_FIXA ? JANELA_FIXA[1] : dataDe(new Date(segunda.getTime() + 7 * 86400000)) + ' 00:00:00';
 const EVENTO =
   " e.deleted_at IS NULL AND e.start_date_offer < '" + SEMANA_FIM + "' AND e.finish_date_event >= '" + SEMANA_INI + "'" +
   " AND e.name LIKE '%" + NOME_EVENTO + "%'" +

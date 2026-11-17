@@ -1,20 +1,11 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-13 (salvo em 16/11). A **Rotina Fenauto**
-> (`9CNN9FjRohxaRUZq`) está **ativa** de hora em hora, e a versão publicada é a **`2bc7c481`**.
-> Em 13/11 todas as rodadas até as 13h caíram por tempo no MCP (consulta de lojas acima de ~16 s).
-> Agora a volta dos reativados só olha as lojas do grupo, e a rodada 69211 levou 24 s, sem erro.
-> No mesmo dia ficou conferido que cada evento já conta os carros republicados: o 24379 tem 20.
-> Os três painéis da Fenauto mudaram em 12/11:
-> - **novos lojistas pelo grupo**: 148 no IGA; 69 e 146 no C6;
-> - **novos e reativados separados**;
-> - **vendidos** contam a venda cuja oferta vencedora não tem loja;
-> - **cada veículo conta uma vez**, mesmo em dois eventos.
+> **Última atualização:** 2026-11-16 (tarde; salvo em 17/11).
+> - **Fenauto encerrada.** Os três painéis foram congelados em **segunda 09/11 a sexta 13/11** (`JANELA_FIXA`) e publicados pela rodada 69497 às 15h16. A **Rotina Fenauto (`9CNN9FjRohxaRUZq`) está desligada**, sem versão ativa.
+> - **Painel de Eventos Cars2You:** os visuais ganharam 16 px de respiro nas duas abas (versão `a3751072` publicada).
 >
-> Em 11/11: cartão de lojistas por região no IGA, e cliente da Fenauto pela campanha de cada operação (essa regra foi substituída em 12/11).
->
-> Em 09/11 os três painéis passaram a mostrar só eventos com "Fenauto" no nome. O Estudo IGA foi até out/26. Em 06/11 o **Painel de Eventos Cars2You foi ao ar** (`cRChMwAnLYGRMesM`, de hora em hora das 9h às 18h, com metas por comitente e categoria). Em 04/11 a Análise de Base do C6 Lojista veio para o repo. Em 29–30/10, a **Projeção de vendas 2027** ficou pronta e falta mandar. Radar: três mudanças de 22–23/10 continuam **sem run**. ⚠️ Vários blocos abaixo são de 30/09.
+> Antes: em 13/11 a volta dos reativados passou a olhar só as lojas do grupo (prazo do MCP). Em 12/11 entraram os novos pelo grupo, novos e reativados separados, vendidos com a vencedora sem loja e um veículo só. Em 06/11 o Painel de Eventos Cars2You foi ao ar. Em 29–30/10 a Projeção 2027 ficou pronta, e ainda falta mandar. No Radar, três mudanças de 22–23/10 continuam **sem run**. ⚠️ Vários blocos abaixo são de 30/09.
 
 ## 🔹 Frentes quentes agora
 - **Projeção de vendas 2027** — 🔥 nasceu em 29/10, pedido do **Tuunelis** (ata
@@ -48,16 +39,17 @@
   `Comitente - Metas/metas-painel-eventos.xlsx` (`gera_metas.py`; travada, editável só nas metas),
   **filtro de categoria** (Leves com motos, Pesados, Equipamentos, Não informada), cores pela meta,
   indicador nasce em Com oferta. Montar Painel vai **dividido em 3 nós** (`_divide.js`). 91 provas.
+  16/11: 16 px entre os visuais nas abas Diário e Mensal; só mudou o Peças do Tema (versão `a3751072`).
   Números em `projetos/painel-eventos-cars2you/indicadores.md`.
-- **Rotina Fenauto** — 🔥 **ativa**: wf **`9CNN9FjRohxaRUZq`** (projeto Cars2You), pasta
-  `automations/n8n-sdk/rotina-fenauto/`.
-  - Os três painéis rodam em série (C6 → IGA → Cars2You), de hora em hora das 9h às 18h, de segunda a sábado. Publicam em `Fenauto_202611/`.
-  - Versão publicada: **`2bc7c481`** (13/11), que mudou só os três Montar Consultas: a volta dos reativados olha só as lojas do grupo, pelo índice de `shop_id`. Os nós foram conferidos por md5 no diff de versões, e a rodada 69211 levou 24 s, sem erro. O histórico de versões está em `crons.md`.
-  - A consulta de lojas leva de 5 a 9 s no C6, ~5 s no IGA e ~6 s no Cars2You. O MCP corta em ~16 s.
-  - O maior nó, `iga/pecas-tema`, tem 55.793 bytes, para um teto de 57.344.
+- **Rotina Fenauto** — 🧊 **DESLIGADA em 16/11** (Thomas: "cancele as próximas atualizações"). Wf
+  **`9CNN9FjRohxaRUZq`**, pasta `automations/n8n-sdk/rotina-fenauto/`. Antes de desligar, os três painéis
+  foram congelados em **09 a 13/11** (`JANELA_FIXA` no Montar Consultas: janela até 14/11 00:00 e "agora"
+  sexta 23:59) e rodados uma vez à mão: **rodada 69497**, 29 s, os três HTML em `Fenauto_202611/` às 15h16.
+  O rascunho é o `5c3ccedb` (md5 dos 15 nós conferido), sem versão ativa. Números da semana fechada em
+  `projetos/mega-evento-fenauto/indicadores.md`. **Religar** só com `JANELA_FIXA = null` (ou a semana nova) e ok.
+  - O maior nó, `iga/pecas-tema`, tem 55.793 bytes, para um teto de 57.344. O MCP do banco corta em ~16 s.
   - **Antes de enviar pelo MCP, fechar a aba do editor**: em 12/11 um salvamento numa aba antiga desfez 7 nós.
-  - A pasta de novembro está fixa no `_divide.js`.
-- **Os três painéis da Fenauto** (fonte da rotina; mudou um, rodar o ciclo dele e o da rotina):
+- **Os três painéis da Fenauto** (fonte da rotina; congelados em 09 a 13/11 desde 16/11; mudou um, rodar o ciclo dele e o da rotina):
   - **Eventos Fenauto C6** (`painel-eventos-fenauto-c6/`, frente `c6`): WL 43, só eventos com
     "Fenauto" no nome, na semana; **logo C6 Auto** (`design/marca/c6-auto/`) à esquerda, título no
     centro, Fenauto à direita, botões abaixo do cabeçalho; sem representante. 295 provas;
@@ -137,7 +129,8 @@
   base pequena das metas (3 meses/30 veículos; 30 dias/100 veículos-dia). E: as fontes mais claras e
   a paleta sem rosa sobem para o `tema.css`?
 - 🔵 **Fenauto: os internos saem também dos acessos e dos rankings?** Hoje saem só da contagem de novos, por escolha minha (12/11), e a pergunta ficou sem resposta. E o cartão de regiões do IGA segue contando pelo formulário: deve seguir a regra do grupo?
-- 🔴 **Rotina Fenauto: ganha alerta de falha?** Em 13/11 as rodadas caíram das 9h às 13h, e só se soube porque o Thomas abriu o painel. E: guarda as execuções (três HTML de ~200 KB por run)?
+- 🔵 **Se a Rotina Fenauto voltar: ganha alerta de falha?** Em 13/11 as rodadas caíram das 9h às 13h, e só se soube porque o Thomas abriu o painel.
+  E, escolha minha de 16/11: na semana congelada, os vendidos seguem pelo status atual da negociação (venda confirmada depois de sexta conta).
   E, escolhas minhas no Mega Evento IGA: barra Total no laranja do IGA, botão de avisos junto do de tema.
 - 🔵 **Estudo IGA: tirar o filtro `n12 > 0`?** Hoje a tabela e o gráfico de compradores só têm
   quem comprou nos últimos 12 meses; nos meses antigos o gráfico conta menos que o total do IGA.
@@ -175,13 +168,11 @@
       — o prazo era sexta 30/10; confirmar se já foi
 - [ ] Projeção 2027: criar o **projeto no Claude** e compartilhar com Tuunelis e Mattera (pedido da reunião)
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
-- [ ] 🔥 **Painel de Eventos Cars2You:** conferir a 1ª rodada agendada (07/11 9h) no SharePoint — o
+- [ ] 🔥 **Painel de Eventos Cars2You:** abrir no SharePoint (versão `a3751072`, com o respiro de 16/11) — o
       histórico do n8n só guarda erro — e mandar o link a quem vai usar
-- [ ] 🔥 **Rotina Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e conferir a tela
-      com as regras de 12/11 (novos e reativados, vendidos, um veículo só) e o 24379 com 20 veículos.
-      Ver se as rodadas de 14/11 em diante saíram sem erro
-- [ ] Rotina Fenauto em dezembro: trocar `PASTA_RAIZ` no `_divide.js` se a Fenauto seguir. Fenauto 2027:
-      trocar `INICIO_CAMPANHA` e os grupos no `montar-consultas.js` dos três painéis
+- [ ] **Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e ver a tela da semana fechada
+      (rodada 69497, 16/11 15h16)
+- [ ] Fenauto 2027 (ou outra semana): `JANELA_FIXA`, `INICIO_CAMPANHA`, os grupos e `PASTA_RAIZ` no `_divide.js`
 - [ ] Estudo IGA: refazer a decomposição pedido × demanda (ficou com o número de 08/10) e mandar o
       HTML atualizado a quem usa
 - [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir

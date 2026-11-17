@@ -4,6 +4,13 @@
 > "inclua os 3 em uma rotina do n8n com a exportação dos arquivos no
 > sharepoint em uma pasta Fenauto_202611 com subpasta para C6 e IGA".
 
+**Estado em 2026-11-16: DESLIGADA** (Thomas: "cancele as próximas atualizações"). Antes, os três painéis
+foram congelados em **segunda 09/11 a sexta 13/11** (`JANELA_FIXA` no Montar Consultas de cada painel:
+a janela vai de 09/11 00:00 a 14/11 00:00 e o "agora" vira sexta 23:59) e rodados uma vez à mão: rodada
+**69497** (29 s, sem erro), os três HTML no SharePoint às 15h16. Rascunho `5c3ccedb`, md5 dos 15 nós
+conferido; sem versão ativa. Números da semana fechada em `context/banco-de-dados/projetos/mega-evento-fenauto/indicadores.md`.
+**Religar:** `JANELA_FIXA = null` nos três `montar-consultas.js`, `_enxuga`, `_divide.js`, enviar, publicar.
+
 **Estado em 2026-11-09:** criado no n8n, os 15 nós Code conferidos por md5
 (iguais); **inativo** — o run de teste e a ativação esperam o Thomas.
 

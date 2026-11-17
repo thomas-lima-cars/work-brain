@@ -94,6 +94,12 @@ const sqlDe = (n) => itens.find((i) => i.json.queryName === n).json.sql;
   const ini = new Date(m.mes[0].slice(0, 10) + 'T00:00:00Z');
   const fim = new Date(m.mes[1].slice(0, 10) + 'T00:00:00Z');
   const proximo = new Date(Date.UTC(ini.getUTCFullYear(), ini.getUTCMonth() + 1, 1));
+  if (ler('montar-consultas.js').indexOf('const JANELA_FIXA = null') < 0) {
+  /* 16/11: com a janela fixa (JANELA_FIXA no Montar Consultas), a semana é
+     segunda 09/11 a sábado 14/11 00:00 e o agora é sexta 23:59 */
+  prova('janela fixa (16/11): segunda 09/11 a sexta 13/11, agora sexta 23:59',
+    m.mes[0] === '2026-11-09 00:00:00' && m.mes[1] === '2026-11-14 00:00:00' && m.agora_br === '2026-11-13 23:59', m);
+  } else
   prova('mês: começa no dia 1, acaba no dia 1 do seguinte e contém agora', ini.getUTCDate() === 1 &&
     fim.getTime() === proximo.getTime() && m.mes[0].slice(11) === '00:00:00' && m.mes[1].slice(11) === '00:00:00' &&
     m.agora_br >= m.mes[0].slice(0, 16) && m.agora_br < m.mes[1].slice(0, 16), m);
@@ -1085,10 +1091,15 @@ const ufCaseBase = ler('../analise-base-geral/montar-queries.js').split('const U
 prova('consulta de lojas traz a UF do endereço da loja, com a normalização da Análise de Base',
   sqlLojas.cols.indexOf('uf') > 0 && sqlLojas.sql.indexOf('FROM shop_addresses sa WHERE sa.shop_id = s.id AND sa.deleted_at IS NULL') > 0 &&
   sqlLojas.sql.indexOf('(SELECT MIN(' + ufCaseBase + ')') > 0 && sqlLojas.sql.indexOf('shop_stocks') < 0);
-prova('consulta de lojas: a campanha do ANO do recorte, na coluna e no universo (em qualquer data)',
+/* 16/11: com a janela fixa, o perfil da campanha só conta até o fim dela */
+const corteLj = sqlLojas.meta.mes[1] === '2026-11-14 00:00:00' && sqlLojas.meta.agora_br === '2026-11-13 23:59'
+  ? " AND upa.created_at < '2026-11-14 00:00:00'" : '';
+const corteU4 = corteLj ? " AND up4.created_at < '2026-11-14 00:00:00'" : '';
+prova('consulta de lojas: a campanha do ANO do recorte, na coluna e no universo (até o fim da janela fixa, se houver)',
   sqlLojas.meta.campanha_ano === 'fenauto ' + anoHoje + ' iga' && sqlLojas.cols[sqlLojas.cols.length - 1] === 'fenauto_ano' &&
   sqlLojas.sql.split("register_form_value LIKE '%fenauto " + anoHoje + " iga%'").length === 3 &&
-  sqlLojas.sql.indexOf("up4.register_form_value LIKE '%fenauto " + anoHoje + " iga%' UNION SELECT f.id, f.entrada AS fen FROM (") > 0);
+  sqlLojas.sql.indexOf("register_form_value LIKE '%fenauto " + anoHoje + " iga%'" + corteLj + " WHERE usa.shop_id = s.id)") > 0 &&
+  sqlLojas.sql.indexOf("up4.register_form_value LIKE '%fenauto " + anoHoje + " iga%'" + corteU4 + " UNION SELECT f.id, f.entrada AS fen FROM (") > 0);
 const consProva = d.consultas.find((c) => c.json.queryName === 'lojas').json;
 const anoProva = consProva.meta.mes[0].slice(0, 4);
 prova('coleta de prova: o ano da campanha acompanha o mês trocado', consProva.meta.campanha_ano === 'fenauto ' + anoProva + ' iga' &&

@@ -229,3 +229,15 @@ rodar: `python _confere_transcricao.py <dump-do-get_workflow_details>`.
   (`INICIO_CAMPANHA`, `GRUPOS_IGA`): não andam sozinhos com o mês. Na
   Fenauto 2027, trocar os dois (e o `GRUPOS_DO_ANO` do `coleta_local.py`).
 - 🔵 Sem cron, como os irmãos. Se ganhar, a semana já anda sozinha.
+
+## 16/11 — janela fixa na semana da Fenauto
+
+Pedido do Thomas em 16/11: "atualize somente com dados de segunda a sexta da semana passada, e cancele as
+próximas atualizações". O `montar-consultas.js` ganhou `JANELA_FIXA = ['2026-11-09 00:00:00',
+'2026-11-14 00:00:00']`: o recorte de evento usa essa janela e o "agora" vira sexta 13/11 23:59, então
+os dias, o filtro de Data e os novos e reativados param em 13/11. `JANELA_FIXA = null` devolve a janela
+que anda sozinha. A prova da janela aceita os dois modos. Rodada 69497; a Rotina Fenauto está desligada.
+Números em `context/banco-de-dados/projetos/mega-evento-fenauto/indicadores.md`.
+
+No IGA a janela substitui o mês corrente, e o cartão de regiões (a campanha inteira, sem corte de dia)
+também para no fim dela: `CORTE_FIXO` corta `user_profiles.created_at` antes de 14/11.
