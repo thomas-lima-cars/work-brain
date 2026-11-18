@@ -724,19 +724,25 @@ function APP(D, LOGO) {
     $('#km-ev-mes').textContent = rotMesLongo(RM.ref);
     $('#km-ev-veic').textContent = nf(k.veiculos);
     $('#km-ev-com').textContent = nf(k.comitentes);
-    [['co', 'com_oferta'], ['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
+    [['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
       $('#km-' + s[0]).textContent = nf(k[s[1]]);
       const x = sobre(k[s[1]]);
       $('#km-' + s[0] + '-pc').textContent = x === null ? '—' : pc(x) + ' dos veículos';
       $('#km-' + s[0] + '-bar').innerHTML = trilho(x);
       $('#km-' + s[0] + '-ant').textContent = a ? nf(a[s[1]]) + (a.veiculos ? ' · ' + pc(a[s[1]] / a.veiculos) : '') : '—';
     });
-    $('#km-vd-rs').textContent = rs(k.valor);
+    $('#km-vr').textContent = rs(k.valor);
+    const dv = a ? k.valor - a.valor : null;
+    const pv = a && a.valor ? dv / a.valor : null;
+    $('#km-vr-pc').innerHTML = pv === null ? (a ? 'sem venda em ' + rotMes(RM.ref - 1) : '—')
+      : '<span class="' + (pv > 0 ? 'sobe' : pv < 0 ? 'desce' : 'dim') + '">' + (pv > 0 ? '▲ +' : pv < 0 ? '▼ ' : '') +
+        pc(pv) + '</span> sobre ' + rotMes(RM.ref - 1);
+    $('#km-vr-dif').textContent = dv === null ? '—' : (dv > 0 ? '+' : dv < 0 ? '−' : '') + rs(Math.abs(dv));
+    $('#km-vr-ant').textContent = a ? rs(a.valor) : '—';
     [['an-comp', 'an_comprador'], ['an-vend', 'an_vendedor'], ['vd-ag', 'aguardando'], ['vd-vd', 'vendido'],
       ['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros'],
       ['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
     $('#km-nv-out').parentNode.hidden = !k.outros;
-    metaCartao('km-co', sobre(k.com_oferta), metaDe(k, 'oferta', true), k);
     metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k);
     desenhaMes();
     $('#n-ativos-m').textContent = '12 meses';

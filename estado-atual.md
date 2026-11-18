@@ -1,8 +1,10 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-17 (tarde).
-> - **Painel de Eventos Cars2You, versão `f5f2c1c8` publicada** (run manual 69721 ✅). O **Mensal** voltou aos **status do sistema** (Ativos, Em análise, Vendidos, Não vendidos, Removidos, com o Com oferta ao lado). As **metas** têm **uma aba por mês** (`2026-11`), com a mensal e a diária juntas, só Leves e Pesados; o painel usa a aba do mês de referência. Planilha nova subida no SharePoint.
+> **Última atualização:** 2026-11-18 (tarde).
+> - **Painel de Eventos Cars2You, versão `01e3c4e9` publicada.** O **Mensal** só conta **evento fechado** (status 0 e fim passado), perdeu o cartão Com oferta e ganhou o **Valor vendido** em cartão próprio, com a variação contra o mês anterior. Run manual 69842 ✅ com o recorte novo (nov/26: 1.712 ativos → 6); o cartão de valor ainda não foi visto no SharePoint.
+>
+> Em 17/11: **versão `f5f2c1c8`** (run manual 69721 ✅). O **Mensal** voltou aos **status do sistema** (Ativos, Em análise, Vendidos, Não vendidos, Removidos, com o Com oferta ao lado). As **metas** têm **uma aba por mês** (`2026-11`), com a mensal e a diária juntas, só Leves e Pesados; o painel usa a aba do mês de referência. Planilha nova subida no SharePoint.
 >
 > Antes: em 16/11 a Fenauto foi congelada em 09 a 13/11 e a Rotina Fenauto desligada; o Painel de Eventos Cars2You ganhou 16 px de respiro. Em 13/11 a volta dos reativados passou a olhar só as lojas do grupo (prazo do MCP). Em 12/11 entraram os novos pelo grupo, novos e reativados separados, vendidos com a vencedora sem loja e um veículo só. Em 06/11 o Painel de Eventos Cars2You foi ao ar. Em 29–30/10 a Projeção 2027 ficou pronta, e ainda falta mandar. No Radar, três mudanças de 22–23/10 continuam **sem run**. ⚠️ Vários blocos abaixo são de 30/09.
 
@@ -45,6 +47,10 @@
   mês sem aba usa a anterior, com aviso. Leitura no n8n: Ler Metas → **Abas das Metas** → Metas (aba pela expressão,
   `pairedItem` provado no run 69721). O glossário mora na Peças do Tema (o Montar Painel passava dos 56 KB).
   Envio em partes: `monta_envio.py`. 103 provas. Números em `projetos/painel-eventos-cars2you/indicadores.md`.
+  **18/11, versão `01e3c4e9`:** o **Mensal só conta evento fechado** (`status = 0` e `finish_date_event` passado,
+  constante `FECHADO` no Montar Consultas), sem o cartão Com oferta, e com o **Valor vendido** num cartão próprio
+  (variação em % e diferença contra o mês anterior; o pé do Vendidos ficou com Aguardando, Vendido e Mês anterior).
+  Sete cartões (`.g7`). 104 provas. Run 69842 (versão `27691b29`) com a tabela dos 12 meses no `indicadores.md`.
 - **Rotina Fenauto** — 🧊 **DESLIGADA em 16/11** (Thomas: "cancele as próximas atualizações"). Wf
   **`9CNN9FjRohxaRUZq`**, pasta `automations/n8n-sdk/rotina-fenauto/`. Antes de desligar, os três painéis
   foram congelados em **09 a 13/11** (`JANELA_FIXA` no Montar Consultas: janela até 14/11 00:00 e "agora"
@@ -128,6 +134,9 @@
   ou aceitar o diário? E: falha do WhatsApp deve marcar o run como erro se o e-mail saiu?
 - 🔵 **Projeção 2027 — mesclas a validar com o Mattera:** "Multifrota - Netcarros" → "Outlet Netcarros"
   e os 5 "Dealers - Venda Direta - Ajuste <mês>" numa linha (aba De-para, oculta).
+- 🔵 **Painel de Eventos Cars2You, 18/11 — Valor vendido:** o mês corrente (incompleto) compara com o mês
+  anterior inteiro (nov/26 marca ▼ -66%), como os outros cartões. Trocar para o mesmo período do mês anterior?
+  E, leitura minha do pedido: o "Mês anterior" (contagem) ficou no Vendidos, como nos outros status.
 - 🔵 **Painel de Eventos Cars2You, 17/11 — duas escolhas minhas:** status fora do domínio conta em Não vendidos
   ("outros", com aviso); a referência de base pequena pelo comitente nas metas soma só os leves e pesados dele.
 - 🔵 **Painel de Eventos Cars2You — escolhas minhas** (README, marcadas "(minha)"): novo = estreia
@@ -174,8 +183,10 @@
       — o prazo era sexta 30/10; confirmar se já foi
 - [ ] Projeção 2027: criar o **projeto no Claude** e compartilhar com Tuunelis e Mattera (pedido da reunião)
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
-- [ ] 🔥 **Painel de Eventos Cars2You:** abrir no SharePoint (versão `a3751072`, com o respiro de 16/11) — o
-      histórico do n8n só guarda erro — e mandar o link a quem vai usar
+- [ ] 🔥 **Painel de Eventos Cars2You:** abrir no SharePoint (versão `01e3c4e9`: Mensal só com eventos fechados e o
+      cartão Valor vendido) — o histórico do n8n só guarda erro — e mandar o link a quem vai usar
+- [ ] Painel de Eventos Cars2You, com VPN: qual evento de ago/26 saiu do Mensal com o filtro de fechado (184 → 183)
+      e se há outros eventos antigos presos em `status = 1`
 - [ ] **Metas do Painel de Eventos Cars2You em dezembro:** criar a aba `2026-12` (copiar a de novembro e renomear)
       ou rodar `gera_metas.py`; sem ela, dezembro usa a de novembro e avisa
 - [ ] **Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e ver a tela da semana fechada

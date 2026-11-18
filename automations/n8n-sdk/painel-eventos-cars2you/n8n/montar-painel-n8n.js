@@ -867,12 +867,13 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<section class="g4 g7" aria-label="Eventos e status no mês">' +
   kpiCard('evento', 'Eventos no mês', 'km-ev', '<div class="kpi-pc"><span class="txt" id="km-ev-mes">—</span></div>',
     [['Veículos', 'km-ev-veic'], ['Comitentes', 'km-ev-com']], 'km-ev-rot') +
-  kpiCard('oferta', 'Com oferta', 'km-co', meioPc('km-co-pc', 'km-co-bar', 'km-co-meta'), [['Mês anterior', 'km-co-ant']]) +
   kpiCard('veiculo', 'Ativos', 'km-at', meioPc('km-at-pc', 'km-at-bar'), [['Mês anterior', 'km-at-ant']]) +
   kpiCard('relogio', 'Em análise', 'km-an', meioPc('km-an-pc', 'km-an-bar'),
     [['Comprador', 'km-an-comp'], ['Vendedor', 'km-an-vend'], ['Mês anterior', 'km-an-ant']]) +
   kpiCard('vendido', 'Vendidos', 'km-vd', meioPc('km-vd-pc', 'km-vd-bar', 'km-vd-meta'),
-    [['Aguardando pgto.', 'km-vd-ag'], ['Vendido', 'km-vd-vd'], ['Valor', 'km-vd-rs'], ['Mês anterior', 'km-vd-ant']]) +
+    [['Aguardando pgto.', 'km-vd-ag'], ['Vendido', 'km-vd-vd'], ['Mês anterior', 'km-vd-ant']]) +
+  kpiCard('oferta', 'Valor vendido', 'km-vr', '<div class="kpi-pc"><span class="txt num" id="km-vr-pc">—</span></div>',
+    [['Diferença', 'km-vr-dif'], ['Mês anterior', 'km-vr-ant']]) +
   kpiCard('naovendido', 'Não vendidos', 'km-nv', meioPc('km-nv-pc', 'km-nv-bar'),
     [['Sem ofertas', 'km-nv-sem'], ['Rejeitados', 'km-nv-rej'], ['Venda cancelada', 'km-nv-vc'], ['Outros', 'km-nv-out'],
       ['Mês anterior', 'km-nv-ant']]) +

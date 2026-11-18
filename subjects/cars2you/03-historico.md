@@ -334,3 +334,12 @@ precificar.
   Leves e Pesados; o painel usa a aba do mês de referência (no Diário, a do mês de cada dia) e, sem aba,
   a anterior. Planilha subida pelo Thomas; versão `f5f2c1c8` publicada; run manual 69721 ✅. Detalhes no
   README da pasta e em `memory/sessions/2026-11-17.md`.
+
+## 2026-11-18
+- **Painel de Eventos Cars2You, aba Mensal** (pedidos do Thomas): o cartão Com oferta saiu (o indicador segue
+  no gráfico e nos comitentes) e o Mensal passou a contar **só evento fechado** — `status = 0` e o fim já passado.
+  Versão `27691b29`; run manual 69842 ✅ (nov/26: 1.712 ativos → 6). Depois, o **valor das vendas** saiu do pé
+  do Vendidos para um cartão próprio, **Valor vendido**, com a variação em % e a diferença contra o mês anterior:
+  versão `01e3c4e9` publicada. O Diário não mudou. Números em
+  `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`; detalhes no README da pasta e em
+  `memory/sessions/2026-11-18.md`.

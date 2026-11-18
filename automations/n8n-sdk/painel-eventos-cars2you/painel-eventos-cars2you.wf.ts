@@ -375,11 +375,12 @@ const GLOSSARIO_TXT = [
   ['Evento e resultado', 'Na tabela, o evento mais recente do veículo no período e o status da negociação nele. Quando vendeu, a loja compradora e o valor.'],
   ['Farol', 'A bolinha antes do veículo. Vermelho: sem oferta. Amarelo: há oferta, mas nenhuma chegou ao VMV (ou o VMV não foi informado). Verde: alguma oferta alcançou o VMV.'],
   ['Link do anúncio', 'Abre o anúncio mais recente do veículo — na vitrine do C6 quando o evento é só dos canais do C6, no cars2you.com.br nos demais.'],
-  ['Visão Mensal', 'As abas Diário e Mensal, no canto do cabeçalho, trocam para os últimos 12 meses: o mês corrente, até hoje, e os 11 anteriores. Os cartões com os status do sistema, os cartões por comitente e os dois gráficos, em meses. Sem a lista de eventos e sem a tabela de veículos. Indicador e Todos/Novos valem para as duas visões.'],
-  ['Evento no mensal', 'O mesmo recorte de canais, ativo em algum dia do mês. Evento com mais de {dias_max} dias de ofertas fica fora: é depósito de anúncios, não evento (o "Anúncios cancelados", aberto de 2021 a dezembro de 2025, sozinho quintuplicava dezembro).'],
+  ['Visão Mensal', 'As abas Diário e Mensal, no canto do cabeçalho, trocam para os últimos 12 meses: o mês corrente, até hoje, e os 11 anteriores, só com os eventos já fechados. Os cartões com os status do sistema, os cartões por comitente e os dois gráficos, em meses. Sem a lista de eventos e sem a tabela de veículos. Indicador e Todos/Novos valem para as duas visões.'],
+  ['Evento no mensal', 'O mesmo recorte de canais, ativo em algum dia do mês e já fechado: o horário de fim passou e o sistema encerrou o evento. Evento ainda aberto, ou em prorrogação, fica fora até fechar — no mês corrente entram só os que já fecharam. Evento com mais de {dias_max} dias de ofertas fica fora: é depósito de anúncios, não evento (o "Anúncios cancelados", aberto de 2021 a dezembro de 2025, sozinho quintuplicava dezembro).'],
   ['Veículo no mês', 'Veículo distinto com negociação num evento ativo no mês. Novo no mês: estreou no mês. O status é o da negociação no evento mais recente dele no mês; nos meses fechados, é o desfecho. O comitente é o dessa negociação.'],
-  ['Status no mês', 'Os status do sistema, da negociação mais recente de cada veículo no mês. Os cinco grupos não se cruzam e somam os veículos do mês. Ativos: negociação ativa, ainda recebendo lance. Em análise: a oferta está na mesa, com o comprador ou com o vendedor. Vendidos: aguardando pagamento, aguardando confirmação de pagamento ou vendido; o valor é a soma das ofertas vencedoras. Não vendidos: o evento passou e não vendeu — sem ofertas, vendedor ou comprador rejeitou, ou a venda foi cancelada depois de fechada. Removidos: suspensos ou cancelados. Com oferta fica ao lado e cruza com eles: teve lance de alguma loja no evento, ou vendeu; é o indicador que tem meta. No mês corrente ainda há veículos ativos e em análise; nos meses fechados, quase todos já chegaram ao desfecho.'],
-  ['% no mês', 'Dos veículos ativos no mês, quantos já tiveram o anúncio aberto, receberam lance ou foram vendidos no evento — a negociação do evento mais recente dele no mês, como nos cartões. Com oferta e vendidos são os mesmos números dos cartões do mês.'],
+  ['Status no mês', 'Os status do sistema, da negociação mais recente de cada veículo no mês. Os cinco grupos não se cruzam e somam os veículos do mês. Ativos: negociação ativa, ainda recebendo lance. Em análise: a oferta está na mesa, com o comprador ou com o vendedor. Vendidos: aguardando pagamento, aguardando confirmação de pagamento ou vendido. Não vendidos: o evento passou e não vendeu — sem ofertas, vendedor ou comprador rejeitou, ou a venda foi cancelada depois de fechada. Removidos: suspensos ou cancelados. Como só entram eventos fechados, quase todos os veículos já chegaram ao desfecho; Ativos e Em análise são os que o sistema ainda não encerrou.'],
+  ['Valor vendido', 'No mensal, cartão próprio ao lado dos Vendidos: a soma das ofertas vencedoras dos veículos vendidos no mês. Embaixo, a variação em % e a diferença em reais contra o mês anterior, e o valor dele.'],
+  ['% no mês', 'Dos veículos ativos no mês, quantos já tiveram o anúncio aberto, receberam lance ou foram vendidos no evento — a negociação do evento mais recente dele no mês, como nos cartões. Vendidos é o mesmo número do cartão do mês.'],
   ['Cartões por comitente no mês', 'Como no diário, para o mês escolhido no filtro Mês: a rosca é o indicador no mês, a área mostra os 12 meses até ele e a diferença em p.p. é contra o mês anterior.'],
   ['Lojistas por mês', 'Lojas distintas no mês que abriram anúncio, deram lance ou compraram nos eventos do recorte. Uma loja ativa no mês inteiro conta uma vez. Embaixo, os números do mês escolhido.']
 ];
@@ -1120,19 +1121,25 @@ const pecasPagina = node({
     $('#km-ev-mes').textContent = rotMesLongo(RM.ref);
     $('#km-ev-veic').textContent = nf(k.veiculos);
     $('#km-ev-com').textContent = nf(k.comitentes);
-    [['co', 'com_oferta'], ['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
+    [['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
       $('#km-' + s[0]).textContent = nf(k[s[1]]);
       const x = sobre(k[s[1]]);
       $('#km-' + s[0] + '-pc').textContent = x === null ? '—' : pc(x) + ' dos veículos';
       $('#km-' + s[0] + '-bar').innerHTML = trilho(x);
       $('#km-' + s[0] + '-ant').textContent = a ? nf(a[s[1]]) + (a.veiculos ? ' · ' + pc(a[s[1]] / a.veiculos) : '') : '—';
     });
-    $('#km-vd-rs').textContent = rs(k.valor);
+    $('#km-vr').textContent = rs(k.valor);
+    const dv = a ? k.valor - a.valor : null;
+    const pv = a && a.valor ? dv / a.valor : null;
+    $('#km-vr-pc').innerHTML = pv === null ? (a ? 'sem venda em ' + rotMes(RM.ref - 1) : '—')
+      : '<span class="' + (pv > 0 ? 'sobe' : pv < 0 ? 'desce' : 'dim') + '">' + (pv > 0 ? '▲ +' : pv < 0 ? '▼ ' : '') +
+        pc(pv) + '</span> sobre ' + rotMes(RM.ref - 1);
+    $('#km-vr-dif').textContent = dv === null ? '—' : (dv > 0 ? '+' : dv < 0 ? '−' : '') + rs(Math.abs(dv));
+    $('#km-vr-ant').textContent = a ? rs(a.valor) : '—';
     [['an-comp', 'an_comprador'], ['an-vend', 'an_vendedor'], ['vd-ag', 'aguardando'], ['vd-vd', 'vendido'],
       ['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros'],
       ['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
     $('#km-nv-out').parentNode.hidden = !k.outros;
-    metaCartao('km-co', sobre(k.com_oferta), metaDe(k, 'oferta', true), k);
     metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k);
     desenhaMes();
     $('#n-ativos-m').textContent = '12 meses';
@@ -1495,9 +1502,10 @@ for (let k = MESES - 1; k >= 0; k--) {
 }
 const MES_PISO = MES[0].ini;
 const BIT_WL = "(1 << (FIELD(ew.whitelabel_id, " + LISTA_WL + ") - 1))";
+const FECHADO = " AND e.status = 0 AND e.finish_date_event < '" + AGORA_BR + "'";
 const EVENTO_MES = (m) =>
   " e.deleted_at IS NULL AND e.start_date_offer < '" + m.fim + "' AND e.finish_date_event >= '" + m.ini + "'" +
-  " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO;
+  " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO;
 const LANCE = "o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL";
 const CHAVE = "CONCAT(DATE_FORMAT(n.fim, '%Y%m%d%H%i'), LPAD(n.nid, 10, '0'))";
 const ULT = (col) => "SUBSTRING_INDEX(MAX(CONCAT(" + CHAVE + ", '|', IFNULL(" + col + ", ''))), '|', -1)";
@@ -1574,7 +1582,7 @@ TABELAS.push(
         " (SELECT GROUP_CONCAT(DISTINCT a.shop_id) FROM advertisement_negotiations an INNER JOIN advertisements a ON a.id = an.advertisement_id" +
         " WHERE an.event_id = e.id AND an.deleted_at IS NULL) AS cs" +
         " FROM events e WHERE e.deleted_at IS NULL AND e.finish_date_event >= '" + MES_PISO + "' AND e.start_date_offer <= '" + AGORA_BR + "'" +
-        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
+        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO +
         " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + "))) g",
     cols: [['ini', 'g.ini'], ['fim', 'g.fim'], ['wm', 'g.wm'], ['cs', 'g.cs']]
   },
@@ -1589,7 +1597,7 @@ TABELAS.push(
     de: " FROM shops s WHERE s.id IN (SELECT a.shop_id FROM events e INNER JOIN advertisement_negotiations an ON an.event_id = e.id" +
         " AND an.deleted_at IS NULL INNER JOIN advertisements a ON a.id = an.advertisement_id" +
         " WHERE e.deleted_at IS NULL AND e.finish_date_event >= '" + MES_PISO + "' AND e.start_date_offer <= '" + AGORA_BR + "'" +
-        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
+        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO +
         " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + ")))",
     cols: [['id', 's.id'], ['nome', 's.name']]
   }
@@ -2524,12 +2532,13 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<section class="g4 g7" aria-label="Eventos e status no mês">' +
   kpiCard('evento', 'Eventos no mês', 'km-ev', '<div class="kpi-pc"><span class="txt" id="km-ev-mes">—</span></div>',
     [['Veículos', 'km-ev-veic'], ['Comitentes', 'km-ev-com']], 'km-ev-rot') +
-  kpiCard('oferta', 'Com oferta', 'km-co', meioPc('km-co-pc', 'km-co-bar', 'km-co-meta'), [['Mês anterior', 'km-co-ant']]) +
   kpiCard('veiculo', 'Ativos', 'km-at', meioPc('km-at-pc', 'km-at-bar'), [['Mês anterior', 'km-at-ant']]) +
   kpiCard('relogio', 'Em análise', 'km-an', meioPc('km-an-pc', 'km-an-bar'),
     [['Comprador', 'km-an-comp'], ['Vendedor', 'km-an-vend'], ['Mês anterior', 'km-an-ant']]) +
   kpiCard('vendido', 'Vendidos', 'km-vd', meioPc('km-vd-pc', 'km-vd-bar', 'km-vd-meta'),
-    [['Aguardando pgto.', 'km-vd-ag'], ['Vendido', 'km-vd-vd'], ['Valor', 'km-vd-rs'], ['Mês anterior', 'km-vd-ant']]) +
+    [['Aguardando pgto.', 'km-vd-ag'], ['Vendido', 'km-vd-vd'], ['Mês anterior', 'km-vd-ant']]) +
+  kpiCard('oferta', 'Valor vendido', 'km-vr', '<div class="kpi-pc"><span class="txt num" id="km-vr-pc">—</span></div>',
+    [['Diferença', 'km-vr-dif'], ['Mês anterior', 'km-vr-ant']]) +
   kpiCard('naovendido', 'Não vendidos', 'km-nv', meioPc('km-nv-pc', 'km-nv-bar'),
     [['Sem ofertas', 'km-nv-sem'], ['Rejeitados', 'km-nv-rej'], ['Venda cancelada', 'km-nv-vc'], ['Outros', 'km-nv-out'],
       ['Mês anterior', 'km-nv-ant']]) +

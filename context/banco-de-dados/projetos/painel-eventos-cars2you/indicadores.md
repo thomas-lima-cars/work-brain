@@ -300,6 +300,43 @@ eventos que fecharam às 16h passaram de ativos para não vendidos.
 ⚠️ Na mesma coleta, os 14 pacotes `negs` do Diário passaram de 118 KB (06/11)
 para **131 KB**, acima dos ~130 KB já provados no MCP. O run 69721 passou.
 
+## Só eventos fechados no Mensal — run 69842 (n8n, 2026-11-18 12:11)
+
+Desde 18/11 o Mensal só conta evento **fechado**: `events.status = 0` **e**
+`finish_date_event` antes de agora (hora de Brasília). Regra no README da pasta.
+
+**Por que as duas condições** (medido na coleta local de 17/11 13:44, 273 eventos
+do Diário): dos 258 com o fim já passado, 257 estavam em `status = 0`; o outro
+tinha fechado às 11h e seguia em 1 (prorrogação). E um evento já em 0 só fecha
+dia 20. Nenhuma das duas sozinha separa os fechados.
+
+Números da rodada manual 69842 (versão `27691b29`, 2min40s, sem erro), tirados
+pelo `calculaMes()` do HTML gerado. O valor vendido é a soma das ofertas
+vencedoras (o cartão Valor vendido, versão `01e3c4e9`).
+
+| mês | eventos | veículos | com oferta | ativos | em análise | vendidos | não vendidos | removidos | valor vendido |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| dez/25 | 159 | 2.199 | 1.118 | 6 | 4 | 852 | 1.324 | 13 | R$ 63.146.380 |
+| jan/26 | 150 | 2.040 | 1.456 | 0 | 0 | 1.067 | 934 | 39 | R$ 78.974.530 |
+| fev/26 | 134 | 1.888 | 1.189 | 6 | 8 | 869 | 1.002 | 3 | R$ 59.701.910 |
+| mar/26 | 167 | 2.094 | 1.131 | 1 | 5 | 845 | 1.218 | 25 | R$ 61.490.961 |
+| abr/26 | 154 | 1.908 | 1.324 | 0 | 3 | 992 | 913 | 0 | R$ 72.842.660 |
+| mai/26 | 173 | 2.197 | 1.204 | 0 | 2 | 905 | 1.270 | 20 | R$ 67.916.270 |
+| jun/26 | 186 | 2.712 | 1.159 | 0 | 0 | 803 | 1.901 | 8 | R$ 66.086.062 |
+| jul/26 | 249 | 3.287 | 1.423 | 20 | 2 | 1.050 | 2.110 | 105 | R$ 74.890.680 |
+| ago/26 | 183 | 2.850 | 1.340 | 0 | 5 | 1.008 | 1.714 | 123 | R$ 73.293.410 |
+| set/26 | 242 | 3.483 | 1.595 | 0 | 3 | 1.058 | 2.311 | 111 | R$ 75.011.140 |
+| out/26 | 268 | 4.967 | 1.869 | 0 | 13 | 1.297 | 3.109 | 548 | R$ 102.852.179 |
+| nov/26, até 18/11 12:11 | 134 | 3.619 | 989 | 6 | 226 | 520 | 2.328 | 539 | R$ 37.345.550 |
+
+- **Contra a coleta de 17/11 (recorte antigo):** nov/26 caiu de 1.712 ativos para 6 — eram veículos de
+  eventos ainda abertos. Os meses fechados ficaram iguais, salvo ago/26 com **um evento a menos** (184 → 183,
+  provavelmente um evento antigo que segue em `status = 1`; não conferido, sem VPN) e out/26 com 4 veículos
+  de vendido para não vendido (o banco andou: venda cancelada é o palpite, não medido).
+- **Ativos em meses fechados** (jul/26 20, dez/25 6, fev/26 6, nov/26 6): negociação que ficou em `status = 1`
+  dentro de evento fechado. Já estavam lá antes do filtro; o filtro não as tira.
+- **Não medido:** se todo evento antigo dos 12 meses está em `status = 0` (só o caso de agosto apareceu).
+
 ## As metas por aba de mês — 2026-11-17
 
 `gera_metas.py` refeito (README da pasta, seção de 17/11): só Leves e

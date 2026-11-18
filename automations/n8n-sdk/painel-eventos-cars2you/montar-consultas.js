@@ -279,9 +279,16 @@ for (let k = MESES - 1; k >= 0; k--) {
 const MES_PISO = MES[0].ini;
 /* posição do canal na lista: bit 0 = 4, bit 1 = 7, ... (FIELD conta de 1) */
 const BIT_WL = "(1 << (FIELD(ew.whitelabel_id, " + LISTA_WL + ") - 1))";
+/* só evento FECHADO no mensal (Thomas, 18/11: "mantenha somente eventos
+   fechados na análise"). Fechado = events.status 0 E o fim já passou, as
+   duas coisas: medido em 17/11 nos 273 eventos do diário, 257 dos 258 com o
+   fim passado estavam em 0 — o que faltava fechou às 11h e seguia em 1 às
+   13h44 (a prorrogação, dominios.md) —, e um evento em 0 só fecha dia 20
+   (dominios.md: status 1 = aberto, 0 = encerrado ou em preparação) */
+const FECHADO = " AND e.status = 0 AND e.finish_date_event < '" + AGORA_BR + "'";
 const EVENTO_MES = (m) =>
   " e.deleted_at IS NULL AND e.start_date_offer < '" + m.fim + "' AND e.finish_date_event >= '" + m.ini + "'" +
-  " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO;
+  " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO;
 /* o lance de loja (o mesmo filtro da tabela de ofertas do diário) */
 const LANCE = "o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL";
 /* a negociação mais recente do veículo no mês (fim do evento, depois id):
@@ -384,7 +391,7 @@ TABELAS.push(
         " (SELECT GROUP_CONCAT(DISTINCT a.shop_id) FROM advertisement_negotiations an INNER JOIN advertisements a ON a.id = an.advertisement_id" +
         " WHERE an.event_id = e.id AND an.deleted_at IS NULL) AS cs" +
         " FROM events e WHERE e.deleted_at IS NULL AND e.finish_date_event >= '" + MES_PISO + "' AND e.start_date_offer <= '" + AGORA_BR + "'" +
-        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
+        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO +
         " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + "))) g",
     cols: [['ini', 'g.ini'], ['fim', 'g.fim'], ['wm', 'g.wm'], ['cs', 'g.cs']]
   },
@@ -404,7 +411,7 @@ TABELAS.push(
     de: " FROM shops s WHERE s.id IN (SELECT a.shop_id FROM events e INNER JOIN advertisement_negotiations an ON an.event_id = e.id" +
         " AND an.deleted_at IS NULL INNER JOIN advertisements a ON a.id = an.advertisement_id" +
         " WHERE e.deleted_at IS NULL AND e.finish_date_event >= '" + MES_PISO + "' AND e.start_date_offer <= '" + AGORA_BR + "'" +
-        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
+        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO +
         " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + ")))",
     cols: [['id', 's.id'], ['nome', 's.name']]
   }

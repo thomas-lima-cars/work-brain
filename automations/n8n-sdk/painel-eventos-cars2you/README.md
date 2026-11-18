@@ -329,6 +329,31 @@ de loja.
 - 🔵 Os canais 48, 62 e 65 não tinham evento em 28/10: aparecem no filtro só
   pelo login.
 
+## 18/11 (tarde) — Valor vendido em cartão próprio no Mensal
+
+Pedido do Thomas: "Transfira o valor das vendas e comparação com o mês
+anterior para outro cartão no painel mensal".
+
+| | |
+|---|---|
+| **Cartões** | Sete: o **Valor vendido** entra depois do Vendidos (grade `.g7`: 7 na linha, depois 4 + 3, 2, 1). O número grande é a soma das ofertas vencedoras do mês; embaixo, a variação em % contra o mês anterior (▲ verde, ▼ vermelho), a diferença em reais e o valor do mês anterior. O pé do Vendidos perdeu o Valor e manteve Aguardando, Vendido e Mês anterior (contagem), como os outros status. O Diário não muda |
+| **Provas** | 104, a dos cartões agora com sete, o `km-vr` e sem o `km-vd-rs`. Tela conferida a 1800 px (sete na linha, nada cortado) e a 1024 px (quatro) |
+| **Envio** | Três nós (Peças do Tema, Peças da Página, Montar Painel); o Montar Consultas não mudou. md5 dos 6 nós Code conferido, versão **`01e3c4e9`** publicada em 18/11. Voltar atrás: `restore_workflow_version` para a `27691b29` |
+
+## 18/11 — Mensal sem o cartão Com oferta e só com eventos fechados
+
+Pedido do Thomas: "Na visão mensal do painel de eventos remova o cartão do
+veículos com ofertas, e mantenha somente eventos fechados na análise".
+Vale por cima do que as seções de 06/11 e 17/11 dizem do Mensal.
+
+| | |
+|---|---|
+| **Cartões** | Seis: Eventos, Ativos, Em análise, Vendidos, Não vendidos, Removidos (grade `.g6`: 6 na linha, depois 3 + 3, 2, 1). O Com oferta saiu do topo; o indicador Com oferta segue no gráfico, na rosca e na linha de status dos cartões por comitente, com a meta |
+| **Evento fechado** | `events.status = 0` **e** `finish_date_event` antes de agora (hora de Brasília), as duas coisas, em toda consulta do Mensal (`mes_veic`, `mes_loj`, `mes_eventos`, `mes_comitentes`; constante `FECHADO` no Montar Consultas). Nenhuma das duas condições sozinha separa os fechados (medição e números do run 69842 em `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`). O mês corrente mostra só os eventos que já fecharam. **O Diário não muda** |
+| **Provas** | 104 (a nova: o recorte em toda consulta do mensal e em nenhuma do diário). `_confere_mes.py` usa o mesmo recorte |
+| **Medido** | Run manual 69842 (18/11 12:11, versão `27691b29`, sem erro): nov/26 caiu de 1.712 ativos para 6; tabela dos 12 meses no `indicadores.md`. Não medido (sem VPN): se todo evento antigo dos 12 meses está em `status = 0` |
+| **Envio** | `python monta_envio.py`: quatro `update_workflow` de um nó cada (Montar Consultas 17 KB, Peças do Tema 52 KB, Peças da Página 47 KB, Montar Painel 48 KB), sem mudar a estrutura. Versão **`27691b29`** publicada (md5 dos 6 nós Code conferido). Voltar atrás: `restore_workflow_version` para a `f5f2c1c8` |
+
 ## 16/11 — respiro entre os visuais
 
 As abas Diário e Mensal (`#v-dia`, `#v-mes`) eram blocos e não repassavam o `gap` da página: os visuais

@@ -526,6 +526,15 @@ prova('mensal: uma consulta por mês em mes_veic e mes_loj, com os limites do m�
 prova('mensal: evento com mais de 31 dias de ofertas fica fora de toda consulta do mensal', () =>
   itens.filter((i) => ['mes_veic', 'mes_loj', 'mes_eventos', 'mes_comitentes'].indexOf(i.json.tabela) >= 0).forEach((i) =>
     verdade(i.json.sql.indexOf('DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31') >= 0, i.json.queryName)));
+/* só evento fechado no mensal (Thomas, 18/11): status 0 e o fim já passou,
+   em toda consulta do mensal; o diário segue com os abertos */
+prova('mensal: só evento fechado (status 0 e fim antes de agora) em toda consulta do mensal, e o diário não muda', () => {
+  const fechado = "e.status = 0 AND e.finish_date_event < '" + meta.agora_br + "'";
+  const mensal = itens.filter((i) => ['mes_veic', 'mes_loj', 'mes_eventos', 'mes_comitentes'].indexOf(i.json.tabela) >= 0);
+  igual(mensal.length, 26, 'consultas do mensal');
+  mensal.forEach((i) => verdade(i.json.sql.indexOf(fechado) >= 0, i.json.queryName));
+  itens.filter((i) => mensal.indexOf(i) < 0).forEach((i) => verdade(i.json.sql.indexOf('e.status = 0') < 0, i.json.queryName + ' (diário)'));
+});
 /* os status do sistema no mensal (Thomas, 17/11): cinco grupos que não se
    cruzam e somam os veículos, cada um a soma das partes do pé do cartão */
 const statusMes = (g, o) => {
@@ -662,12 +671,15 @@ prova('mensal: cada status do mês é a soma do cru do mes_veic', () => {
     igual(g.outros, v('sx'), g.rot + ' outros');
   });
 });
-prova('mensal: os sete cartões do topo, na ordem, sem VMV atingido', () => {
-  const ids = ['km-ev', 'km-co', 'km-at', 'km-an', 'km-vd', 'km-nv', 'km-rm'];
+prova('mensal: os sete cartões do topo, na ordem, sem VMV atingido, sem Com oferta e com o Valor vendido (18/11)', () => {
+  const ids = ['km-ev', 'km-at', 'km-an', 'km-vd', 'km-vr', 'km-nv', 'km-rm'];
   const pos = ids.map((id) => html.indexOf('id="' + id + '"'));
   pos.forEach((p, j) => verdade(p > 0 && (j === 0 || p > pos[j - 1]), 'ordem em ' + ids[j]));
   verdade(html.indexOf('id="km-vm"') < 0, 'VMV atingido no mensal');
-  ['km-an-comp', 'km-an-vend', 'km-vd-ag', 'km-vd-vd', 'km-vd-rs', 'km-nv-sem', 'km-nv-rej', 'km-nv-vc', 'km-nv-out', 'km-rm-sus', 'km-rm-can']
+  verdade(html.indexOf('km-co') < 0, 'cartão Com oferta no mensal');
+  /* o valor saiu do pé do Vendidos para o cartão dele */
+  verdade(html.indexOf('km-vd-rs') < 0, 'valor no pé do Vendidos');
+  ['km-an-comp', 'km-an-vend', 'km-vd-ag', 'km-vd-vd', 'km-vr-pc', 'km-vr-dif', 'km-vr-ant', 'km-nv-sem', 'km-nv-rej', 'km-nv-vc', 'km-nv-out', 'km-rm-sus', 'km-rm-can']
     .forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
   verdade(html.indexOf('class="g4 g7" aria-label="Eventos e status no mês"') > 0, 'grade de sete');
 });
@@ -998,7 +1010,7 @@ prova('metas: linha sem o pairedItem fica fora e avisa', () => {
   igual(dadoPag(o.html).metas.mes.reduce((t, m) => t + Object.keys(m).length, 0), 0, 'nenhuma meta sem saber a aba');
 });
 prova('metas: na página, os cartões de Com oferta e Vendidos têm a linha da meta, e o gráfico a legenda', () => {
-  ['k-co-meta', 'k-vd-meta', 'km-co-meta', 'km-vd-meta', 'leg-meta', 'leg-meta-m'].forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
+  ['k-co-meta', 'k-vd-meta', 'km-vd-meta', 'leg-meta', 'leg-meta-m'].forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
   verdade(html.indexOf('id="k-vm-meta"') < 0 && html.indexOf('id="k-rm-meta"') < 0, 'meta só em Com oferta e Vendidos');
   verdade(D.glossario.some((g) => g[0] === 'Meta'), 'glossário');
 });

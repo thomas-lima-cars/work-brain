@@ -61,7 +61,9 @@ def um(sql):
 
 EV = ("SELECT e.id FROM events e WHERE e.deleted_at IS NULL AND e.start_date_offer < '%s' AND e.finish_date_event >= '%s'"
       " AND e.start_date_offer <= '%s' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31"
-      " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (%s))") % (FIM, INI, AGORA, WL)
+      # só evento fechado (Thomas, 18/11): status 0 e o fim já passou
+      " AND e.status = 0 AND e.finish_date_event < '%s'"
+      " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (%s))") % (FIM, INI, AGORA, AGORA, WL)
 evs = [r[0] for r in um(EV)]
 lista = ",".join(map(str, evs))
 negs = um("SELECT an.id, a.vehicle_id, an.status, NULLIF(an.min_sale_price, 0), e.finish_date_event, an.offer_actual_id"

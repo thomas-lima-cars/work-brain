@@ -285,9 +285,10 @@ for (let k = MESES - 1; k >= 0; k--) {
 }
 const MES_PISO = MES[0].ini;
 const BIT_WL = "(1 << (FIELD(ew.whitelabel_id, " + LISTA_WL + ") - 1))";
+const FECHADO = " AND e.status = 0 AND e.finish_date_event < '" + AGORA_BR + "'";
 const EVENTO_MES = (m) =>
   " e.deleted_at IS NULL AND e.start_date_offer < '" + m.fim + "' AND e.finish_date_event >= '" + m.ini + "'" +
-  " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO;
+  " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO;
 const LANCE = "o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL";
 const CHAVE = "CONCAT(DATE_FORMAT(n.fim, '%Y%m%d%H%i'), LPAD(n.nid, 10, '0'))";
 const ULT = (col) => "SUBSTRING_INDEX(MAX(CONCAT(" + CHAVE + ", '|', IFNULL(" + col + ", ''))), '|', -1)";
@@ -364,7 +365,7 @@ TABELAS.push(
         " (SELECT GROUP_CONCAT(DISTINCT a.shop_id) FROM advertisement_negotiations an INNER JOIN advertisements a ON a.id = an.advertisement_id" +
         " WHERE an.event_id = e.id AND an.deleted_at IS NULL) AS cs" +
         " FROM events e WHERE e.deleted_at IS NULL AND e.finish_date_event >= '" + MES_PISO + "' AND e.start_date_offer <= '" + AGORA_BR + "'" +
-        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
+        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO +
         " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + "))) g",
     cols: [['ini', 'g.ini'], ['fim', 'g.fim'], ['wm', 'g.wm'], ['cs', 'g.cs']]
   },
@@ -379,7 +380,7 @@ TABELAS.push(
     de: " FROM shops s WHERE s.id IN (SELECT a.shop_id FROM events e INNER JOIN advertisement_negotiations an ON an.event_id = e.id" +
         " AND an.deleted_at IS NULL INNER JOIN advertisements a ON a.id = an.advertisement_id" +
         " WHERE e.deleted_at IS NULL AND e.finish_date_event >= '" + MES_PISO + "' AND e.start_date_offer <= '" + AGORA_BR + "'" +
-        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
+        " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO + FECHADO +
         " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + ")))",
     cols: [['id', 's.id'], ['nome', 's.name']]
   }
