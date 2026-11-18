@@ -104,3 +104,40 @@ e "Tutorial Dealers Club - Teste" (Dealers, 19). Razão venda/FIPE média de
 0,56 a 0,76 — não destoa a ponto de saltar no olho. **Filtro por nome**
 (`teste|tutorial` em `shops.name`) no `preditivo/modelo-preco.py`. Não se sabe
 se há conta de teste sem "teste" no nome.
+
+**A conta de teste carrega cópia de carro real (medido em 2026-11-18).** Casando
+as duas bases por chassi, "Teste Cars2you v3 - novo" (Cars2You) tem 61 carros que
+na Dealers são do C6, do Banco Volkswagen, da Finamax e do Bradesco, e "Dealers
+Club - Teste 1" (Dealers) tem 31 da Outlet Netcarros e da LM. Quem cruza as bases
+sem tirar o teste conta esses carros como republicação.
+
+## Chassi e placa: o mesmo carro cadastrado em vários comitentes
+
+Medido em **2026-11-18** (conexão direta, veículos com negociação em 2026).
+Chassi normalizado repetido em mais de 3 veículos: 19 valores na Cars2You, 1 na
+Dealers.
+
+- **18 carros do BANCO GM copiados em cinco comitentes** da Cars2You (Bemol,
+  Apeop, Clube FMP, Omni Financiamento e BBC), um evento por comitente entre
+  06/2026 e 11/2026, mais contas de teste. Cada chassi aparece em 6 veículos. O
+  mesmo lote de carros em vários vendedores parece uma vitrine para cliente novo.
+  Contar veículo distinto por chassi junta os seis em um.
+- Um chassi em **32 veículos**, de Chevrolet Agile a IVECO Daily: lixo de
+  cadastro, e o Agile é o mesmo da seção abaixo.
+
+Para casar carro entre as bases ou dentro de uma, valor de chassi ou placa
+repetido em muitos veículos tem que sair (o Estudo de Republicações usa teto 3).
+
+## Início de oferta no futuro
+
+Há negociação com `start_date_offer` (do evento ou da própria negociação) em
+**2027 e 2028**: 12 carros do Estudo de Republicações tinham a primeira
+publicação "de 2026" nessas datas. Janela por ano precisa de teto, não só de piso.
+
+## A FIPE do anúncio é rala na Dealers
+
+Nas negociações de 2026 dos carros publicados nas duas bases (medido em
+2026-11-18): `advertisements.fipe_price` preenchida em **87,3%** na Cars2You e em
+**38,7%** na Dealers. `molicar_price` (anúncio e veículo): 32,2% na Cars2You, **0%**
+na Dealers. Por carro (1.401), ficam sem FIPE em nenhum anúncio de 2026: 125 na
+Cars2You e 287 na Dealers (4 deles com a FIPE do cadastro do veículo).

@@ -343,3 +343,8 @@ precificar.
   versão `01e3c4e9` publicada. O Diário não mudou. Números em
   `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`; detalhes no README da pasta e em
   `memory/sessions/2026-11-18.md`.
+- **Estudo de Republicações Dealers** (pedido do Thomas, frente nova): o mesmo carro publicado na Cars2You e
+  na Dealers em 2026, casado por chassi (ou placa) embaralhado no SQL. 1.401 carros; a maioria foi da Cars2You
+  para a Dealers e vendeu lá. HTML estático em `automations/estudo-republicacoes-dealers/` com filtros de
+  categoria, ordem, comitente e período; sem as tabelas lado a lado e de status final, tabela de veículos
+  enxuta (pedido da noite). Números em `context/banco-de-dados/projetos/republicacoes-dealers/indicadores.md`.

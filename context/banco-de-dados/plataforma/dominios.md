@@ -743,6 +743,26 @@ Pesados = grupo 2 ou categoria 23; Leves = grupo 10, **motos inclusive**
 (pedido do Thomas, 06/11 — numa primeira versão Motos era à parte);
 Equipamentos = grupo 8; o resto (inclusive sem categoria) = Não informada.
 
+**Na Dealers, a moto tem grupo próprio** (medido em **2026-11-18**, conexão direta):
+categoria 6 Motocicleta → grupo **12 "Motos"**, que a Cars2You não tem. Os ids de
+categoria são os mesmos nas duas bases (a Dealers não tem 1, 2, 3, 23 e 24). Quem
+aplica a regra acima na Dealers precisa pôr o grupo 12 (ou a categoria 6) em Leves.
+
+## Comitente: o mesmo dono tem nome diferente em cada base
+
+Medido em **2026-11-18** nos 1.401 carros publicados nas duas bases em 2026
+(Estudo de Republicações Dealers). `shops.name` do vendedor não bate entre a
+Cars2You e a Dealers: "C6 Bank Lojista" e "C6 Bank" ↔ "BANCO C6 S.A.", "Banco
+Volkswagen" e "Banco Volkswagen S.A." ↔ "BANCO VOLKSWAGEN S.A.", "GMF SERVIÇOS DE
+MOBILIDADE LTDA" ↔ "GMF SERVICOS DE MOBILIDADE LTDA.", "BB Consórcios" ↔ "Banco do
+Brasil". Cruzar por comitente pede um nome unificado (a tabela `DONOS` de
+`automations/estudo-republicacoes-dealers/analisa.py`).
+
+E **a Cars2You publica carro de outros donos por canal de revenda**: o mesmo carro
+que na Dealers é do C6, do Banco Volkswagen ou do Mercado Pago aparece na Cars2You
+como **Outlet Netcarros**; o que na Dealers é do Bradesco, do Banco GM ou do
+Santander aparece como **Multifrota**. O dono é o da Dealers.
+
 ## Ainda sem decodificar
 
 - `situation` e `status` de `advertisements`, `offers`, `vehicles`, `shop_stocks`

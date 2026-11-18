@@ -1,7 +1,10 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-18 (tarde).
+> **Última atualização:** 2026-11-18 (noite).
+> - **Estudo de Republicações Dealers, novo (18/11).** O mesmo carro publicado na Cars2You e na Dealers em 2026, casado por chassi ou placa embaralhados no SQL: **1.401 carros**, 76% foram da Cars2You para a Dealers (mediana de 20 dias) e a maioria vendeu lá. HTML estático com filtros de categoria, ordem, comitente e período. Pronto e conferido no navegador; **as escolhas do README ainda esperam o ok do Thomas**, e o estudo não foi mandado a ninguém.
+>
+> Antes, no mesmo dia:
 > - **Painel de Eventos Cars2You, versão `01e3c4e9` publicada.** O **Mensal** só conta **evento fechado** (status 0 e fim passado), perdeu o cartão Com oferta e ganhou o **Valor vendido** em cartão próprio, com a variação contra o mês anterior. Run manual 69842 ✅ com o recorte novo (nov/26: 1.712 ativos → 6); o cartão de valor ainda não foi visto no SharePoint.
 >
 > Em 17/11: **versão `f5f2c1c8`** (run manual 69721 ✅). O **Mensal** voltou aos **status do sistema** (Ativos, Em análise, Vendidos, Não vendidos, Removidos, com o Com oferta ao lado). As **metas** têm **uma aba por mês** (`2026-11`), com a mensal e a diária juntas, só Leves e Pesados; o painel usa a aba do mês de referência. Planilha nova subida no SharePoint.
@@ -78,9 +81,16 @@
   172 provas. ❓ **A fonte segue em aberto** — `dashboard-teste.html` é o laboratório.
   **26/10: painel novo abre no ESCURO** (regra 7) — o kit ainda diz o contrário, regerar.
   Marca nova: `design/marca/fenauto/` (preta, branca e a **azul guardada**) + `paletas/fenauto.json`.
+- **Estudo de Republicações Dealers** — 🔥 nasceu em 18/11, pasta `automations/estudo-republicacoes-dealers/`
+  (`extrai.py` → `analisa.py` → `monta-estudo.js`; dados e HTML fora do git). Mesmo carro nas duas bases em
+  2026: ordem, intervalo, como saiu da 1ª base e o resultado em cada uma (ofertas, última oferta, status,
+  venda, % FIPE e Molicar). Filtros: categoria, ordem, comitente unificado e **período** (pelo dia da
+  republicação). Números em `context/banco-de-dados/projetos/republicacoes-dealers/indicadores.md`.
+  ❓ **Escolhas minhas a confirmar** (README): ordem pela 1ª publicação de 2026, comitente unificado (revenda
+  vira o dono da Dealers), contas de teste fora, FIPE da outra base como reserva, mesmo dia à parte.
 - **bancos (cars2you + dealers)** — 🔥 acesso direto, só leitura. **Depende de VPN.**
   🔴 **O `schema.md` documenta 149 tabelas e o banco tem 193.** Faltam 44 desde 09/09.
-  ❓ **O objetivo do acesso à Dealers segue sem ser declarado.**
+  ✅ **18/11: a Dealers ganhou um uso declarado** — o Estudo de Republicações cruza as duas bases.
 - **Painel de Precificação** — 🔥 nasceu em 14/10. wf `gzc0zOKMF4vCbXGH` (projeto Cars2You),
   pasta `automations/n8n-sdk/painel-precificacao/`. Não vendidos dos últimos 30 dias: preço do
   **modelo preditivo** (`automations/precificacao/preditivo/`) × VMV do cliente. Execução 61975 ✅
@@ -165,7 +175,6 @@
   controles pedem gaveta, que é o que o Radar faz. Mover ou aceitar?
 - 🔵 **A logo azul entra em uso?** Hoje só branco e preto. Ela traz um TERCEIRO valor de
   azul (`#1D279A`) contra `#1523A0` da paleta e `#1E289B` dos PNG antigos.
-- 🔴 **Para que serve o acesso à Dealers?** Sem objetivo declarado não abro pasta.
 - 🔴 **`REPASSE`/`TRADICIONAL` deve virar coluna?** Hoje vive no texto livre e carrega o
   maior efeito de preço do estudo. Decisão de modelo de dados.
 - 🔴 **O que são as 39 vendas do Agile (004362-1)?** `km NULL`, VMV igual ao preço, até
@@ -241,7 +250,7 @@
 
 ## ⏳ Esperando outros
 - **Tuunelis** — premissas da projeção 2027 por comitente (ele preenche) · **Mattera** — fechamentos de out–dez/26
-- **Thomas** — objetivo do acesso à Dealers? · REPASSE/TRADICIONAL vira coluna? · o que
+- **Thomas** — escolhas do Estudo de Republicações (README) · REPASSE/TRADICIONAL vira coluna? · o que
   são as vendas do Agile? · as 4 lojas do ranking são contas internas? · qual fonte? ·
   a logo azul entra em uso? · o cabeçalho do modelo vai pra gaveta?
 - **Gui** — aprovação pra readicionar `fernando.tuunelis` no e-mail do IGA

@@ -97,6 +97,11 @@ automations/estudo-vendas-iga/compradores-*.json
 automations/estudo-vendas-iga/resultados.json
 automations/estudo-vendas-iga/estudo-vendas-iga.html
 
+# Estudo de Republicacoes Dealers: coleta bruta e HTML tem comitente, evento e veiculo
+automations/estudo-republicacoes-dealers/dados-*.json
+automations/estudo-republicacoes-dealers/resultados.json
+automations/estudo-republicacoes-dealers/estudo-republicacoes-dealers.html
+
 # Laudos cautelares: PDFs de ~17 MB cada. As listas (.csv) tambem ficam fora:
 # trazem placa e o link do laudo de cada carro (regeraveis por baixa-laudos.py)
 automations/precificacao/laudos/**/*.pdf
