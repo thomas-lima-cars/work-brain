@@ -362,3 +362,57 @@ pesados ativos têm meta. Na página: meta de nov/26 em 45,0% com oferta e
 do Metas (128 por aba), todas com `pairedItem`; 34 metas mensais e 26
 diárias por mês na página (o diário só leva os comitentes da janela de 30
 dias); nenhum aviso de metas.
+
+## O Mensal por evento — coleta de 2026-11-19 15:38 (local, não foi ao n8n)
+
+Pedido de 19/11 (README da pasta, seção de 19/11): eventos ativos de volta,
+filtros de evento, situação e datas, tabela de eventos, meta ajustada, dias
+do mês; planilha só com a meta mensal e por whitelabel.
+
+**Volume por mês** (conexão direta, 19/11): out/26, o maior, tem 268 eventos,
+350 linhas de evento × comitente × categoria (`mes_ev`, 59 KB, 2,2 s), 882
+linhas de dia × evento (`mes_dia`, 70 KB, 5,9 s) e 17.135 pares evento × loja
+(`mes_lojd`, três partes de 79 a 93 KB). Nos 12 meses, 139 mil pares evento ×
+loja e 2.157 eventos no `mes_eventos` (três partes de ~76 KB). 108 consultas em
+136 s no banco (111 com as partes novas do Diário). HTML: **5,4 MB** (era 2,6).
+
+**Os 12 meses sem filtro** batem com o `gera_metas.py --confere` (outro
+caminho, das linhas cruas): veículos / com oferta / vendidos.
+
+| mês | eventos | veículos | com oferta | vendidos |
+|---|---:|---:|---:|---:|
+| dez/25 | 159 | 2.199 | 1.118 | 852 |
+| jan/26 | 150 | 2.040 | 1.456 | 1.067 |
+| fev/26 | 134 | 1.888 | 1.189 | 869 |
+| mar/26 | 167 | 2.094 | 1.131 | 845 |
+| abr/26 | 154 | 1.908 | 1.324 | 992 |
+| mai/26 | 173 | 2.197 | 1.204 | 905 |
+| jun/26 | 186 | 2.712 | 1.159 | 803 |
+| jul/26 | 249 | 3.287 | 1.423 | 1.050 |
+| ago/26 | 184 | 2.850 | 1.340 | 1.008 |
+| set/26 | 242 | 3.483 | 1.595 | 1.058 |
+| out/26 | 268 | 4.967 | 1.869 | 1.293 |
+| nov/26 (até 19/11 15:38) | 166 | 4.550 | 1.103 | 575 |
+
+**Nov/26 por situação:** 22 eventos ativos e 144 finalizados; 4.550 veículos
+= 2.526 de eventos ativos + 2.024 de finalizados. Os 2.526 são os veículos
+dos eventos de hoje no cartão do Diário.
+
+**Meta ajustada, nov/26:** meta do mês 44,5% com oferta e 27,4% vendidos,
+realizado 24,2% e 12,6% (o mês corrente é parcial). Meta ajustada dos 22
+eventos ativos: **37,6%** com oferta e **24,2%** vendidos, sobre 2.520
+veículos com meta; 123 veículos (com oferta) e 64 (vendidos) em grupos que
+não chegam mais à meta (limitados a 100%). Exemplos: Evento Relâmpago LM
+(611 veículos) meta 37,0% → ajustada 34,2% com oferta, 17,6% → 20,3%
+vendidos; Feirão de Leves Banco VWFS (86) 73,8% → 51,2% e 63,0% → 38,6%.
+
+**Dias do mês, nov/26:** os 19 dias batem com o Diário dia a dia (veículos,
+novos, com acesso, com oferta, vendidos, meta), sem filtro e com canal 43,
+comitente, Pesados e um evento. Lojistas ficam abaixo do Diário nos primeiros
+dias (01/11: 126 × 138 acessaram) — o Mensal conta só os eventos do mês.
+
+**A planilha de 19/11:** 34 linhas de canal × comitente (24 comitentes), 49
+metas; base pequena: 4 com a meta do comitente no canal, 20 com a da categoria
+no canal, 2 com a da categoria. Leves 53,9% / 39,9%, Pesados 57,6% / 41,8%
+(média dos 12 meses fechados, nov/25 a out/26). Fora por inatividade no canal:
+C6 Bank - CSixer (48), C6 Bank Lojista (7), Repasse Itaú (7).

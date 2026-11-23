@@ -75,3 +75,9 @@ de evento e id de veículo. O HTML abre no navegador interno pelo servidor
   2026", e a tabela de veículos fica enxuta (valores em R$ mil, títulos curtos,
   comitente e modelo cortados com o nome inteiro na dica): de ~25 colunas largas
   para 1.444 px.
+- **2026-11-19** — pedido do Thomas: a tabela de veículos centraliza o conteúdo e
+  quebra linha no comitente e no modelo em vez de cortar, para o texto aparecer
+  inteiro (as linhas ficam mais altas; a dica do modelo segue com os detalhes).
+  No mesmo dia, as tabelas Por ordem e Por comitente (grupo 2) passaram a quebrar o
+  título da coluna quando a tela não comporta a tabela: numa tela de ~1.000 px elas
+  cabem sem rolar de lado (961 e 946 px); no celular ainda rolam dentro da caixa.

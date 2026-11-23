@@ -2,8 +2,10 @@
 """Confere um mes da aba Mensal contra o banco, por outro caminho.
 
     python _confere_mes.py 10        -> o mes de indice 10 (0 = o mais antigo)
+    python _confere_mes.py 11 at     -> so os eventos ativos (fin = finalizados)
 
-O painel recebe o mes JA AGREGADO no SQL (mes_veic, mes_loj). Aqui o mesmo
+O painel recebe o mes JA AGREGADO no SQL, por evento (mes_ev, desde 19/11:
+os eventos ativos voltaram e a situacao virou filtro). Aqui o mesmo
 mes sai das linhas cruas -- uma por negociacao, com os lances e os acessos
 dela -- e a conta (negociacao mais recente do veiculo, os status do sistema,
 novo, o % acumulado no evento) e feita em Python, sem o SQL do Montar Consultas.
@@ -26,6 +28,7 @@ except Exception:
     pass
 
 M = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+SIT = sys.argv[2] if len(sys.argv) > 2 else ""
 dados = json.loads((AQUI / "dados-local.json").read_text(encoding="utf-8"))
 meta = dados["consultas"][0]["json"]["meta"]
 MES = meta["meses"][M]
@@ -43,8 +46,8 @@ const h = require('./_roda_no').roda('montar-painel.js', require('./_roda_no').n
 const ini = h.indexOf('<script>') + 8;
 const D = JSON.parse(h.slice(h.lastIndexOf('APP(') + 4, h.lastIndexOf(',{"claro"')));
 const cm = new Function(h.slice(ini, h.indexOf('function APP(', ini)) + ' return calculaMes;')();
-process.stdout.write(JSON.stringify(cm(D, { mes: String(%d) }).kpi));
-""" % M
+process.stdout.write(JSON.stringify(cm(D, { mes: String(%d), sit: '%s' }).kpi));
+""" % (M, SIT)
 pag = json.loads(subprocess.run(["node", "-e", js], cwd=AQUI, capture_output=True, text=True,
                                 encoding="utf-8", check=True).stdout)
 
@@ -59,14 +62,16 @@ def um(sql):
     return r
 
 
-EV = ("SELECT e.id FROM events e WHERE e.deleted_at IS NULL AND e.start_date_offer < '%s' AND e.finish_date_event >= '%s'"
+EV = ("SELECT e.id, e.status, DATE_FORMAT(e.finish_date_event, '%%Y-%%m-%%d %%H:%%i') FROM events e"
+      " WHERE e.deleted_at IS NULL AND e.start_date_offer < '%s' AND e.finish_date_event >= '%s'"
       " AND e.start_date_offer <= '%s' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31"
-      # só evento fechado (Thomas, 18/11): status 0 e o fim já passou
-      " AND e.status = 0 AND e.finish_date_event < '%s'"
-      " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (%s))") % (FIM, INI, AGORA, AGORA, WL)
-evs = [r[0] for r in um(EV)]
+      " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (%s))") % (FIM, INI, AGORA, WL)
+# finalizado = status 0 e o fim ja passou (o FECHADO de 18/11, filtro desde 19/11)
+fin = {r[0]: r[1] == 0 and r[2] < AGORA for r in um(EV)}
+evs = list(fin)
+passa = lambda e: SIT == "" or (SIT == "fin") == fin[e]  # noqa: E731
 lista = ",".join(map(str, evs))
-negs = um("SELECT an.id, a.vehicle_id, an.status, NULLIF(an.min_sale_price, 0), e.finish_date_event, an.offer_actual_id"
+negs = um("SELECT an.id, a.vehicle_id, an.status, NULLIF(an.min_sale_price, 0), e.finish_date_event, an.offer_actual_id, an.event_id"
           " FROM advertisement_negotiations an JOIN advertisements a ON a.id = an.advertisement_id"
           " JOIN events e ON e.id = an.event_id WHERE an.deleted_at IS NULL AND an.event_id IN (%s)" % lista)
 ids = ",".join(str(n[0]) for n in negs)
@@ -97,6 +102,8 @@ for n in negs:
     por_v.setdefault(n[1], []).append(n)
     if n[1] not in ultima or (n[4], n[0]) > (ultima[n[1]][4], ultima[n[1]][0]):
         ultima[n[1]] = n
+# a situacao: o veiculo conta pelo evento da negociacao mais recente dele no mes
+ultima = {v: n for v, n in ultima.items() if passa(n[6])}
 # os status do sistema (17/11), na negociacao mais recente do mes, nos
 # cinco grupos da pagina; com oferta = teve lance ou vendeu, o % do grafico
 GRUPO = {"st_ativo": (1,), "an_comprador": (9,), "an_vendedor": (13,), "aguardando": (2, 3), "vendido": (7,),
@@ -122,16 +129,17 @@ c["nao_vendidos"] = c["sem_ofertas"] + c["rejeitados"] + c["venda_cancelada"] + 
 c["removidos"] = c["suspensos"] + c["cancelados"]
 
 fechado = M < len(meta["meses"]) - 1
-print("%s (%s): %d eventos, %d negociacoes" % (MES, "fechado: tem que bater exato" if fechado else "corrente: anda com o banco",
-                                              len(evs), len(negs)))
+print("%s%s (%s): %d eventos, %d negociacoes" % (MES, " " + SIT if SIT else "", "fechado: tem que bater exato" if fechado else "corrente: anda com o banco",
+                                                len([e for e in evs if passa(e)]), len(negs)))
 falhas = 0
 for k, v in c.items():
     ok = pag[k] == v
     falhas += 0 if ok else 1
     print("  %s %-15s painel=%-6s banco=%s" % ("✓" if ok else ("✗" if fechado else "≈"), k, pag[k], v))
-ok = pag["eventos"] == len(evs)
+n_ev = len([e for e in evs if passa(e)])
+ok = pag["eventos"] == n_ev
 falhas += 0 if ok else 1
-print("  %s %-15s painel=%-6s banco=%s" % ("✓" if ok else "✗", "eventos", pag["eventos"], len(evs)))
+print("  %s %-15s painel=%-6s banco=%s" % ("✓" if ok else "✗", "eventos", pag["eventos"], n_ev))
 if fechado and falhas:
     print("✗ %d divergencia(s)" % falhas)
     sys.exit(1)

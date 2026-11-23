@@ -43,8 +43,12 @@ function APP(D, LOGO) {
   const CATEGORIAS = [['L', 'Leves (motos inclusive)'], ['P', 'Pesados'], ['E', 'Equipamentos'], ['N', 'Não informada']];
   const EV_CATS = D.eventos.map(() => ({}));
   D.negs.forEach((n) => { EV_CATS[n[0]][D.veics[n[1]][7]] = 1; });
-  const FM = { wl: '', comit: '', cat: '', mes: '' };
-  const FILTROS_M = ['wl', 'comit', 'cat', 'mes'];
+  const FM = { wl: '', comit: '', cat: '', mes: '', ev: '', sit: '', ini_de: '', ini_ate: '', fim_de: '', fim_ate: '' };
+  const FILTROS_M = ['wl', 'comit', 'cat', 'mes', 'ev', 'sit', 'ini_de', 'ini_ate', 'fim_de', 'fim_ate'];
+  const DATAS_M = [['f-m-ini-de', 'ini_de'], ['f-m-ini-ate', 'ini_ate'], ['f-m-fim-de', 'fim_de'], ['f-m-fim-ate', 'fim_ate']];
+  const EV_CATS_M = D.mes.eventos.map(() => ({}));
+  D.mes.ev.forEach((r) => { EV_CATS_M[r[1]][r[3]] = 1; });
+  const VIS_M = { at: 'mes', lj: 'mes' };
   let aba = 'dia';
   let kpi = 'oferta';
   let modo = 'todos';
@@ -327,9 +331,26 @@ function APP(D, LOGO) {
     if (TABELAS.veic) TABELAS.veic.lim = PASSO;
     render();
   });
-  [['f-m-wl', 'wl'], ['f-m-comit', 'comit'], ['f-m-cat', 'cat'], ['f-m-mes', 'mes']].forEach((p) => {
+  [['f-m-wl', 'wl'], ['f-m-comit', 'comit'], ['f-m-cat', 'cat'], ['f-m-mes', 'mes'], ['f-m-ev', 'ev']].concat(DATAS_M).forEach((p) => {
     $('#' + p[0]).addEventListener('change', (ev) => {
       FM[p[1]] = ev.target.value;
+      if (p[1] !== 'ev') montaFiltrosMes();
+      renderMes();
+    });
+  });
+  $('#seg-sit').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-v]');
+    if (!b) return;
+    FM.sit = b.getAttribute('data-v');
+    montaFiltrosMes();
+    renderMes();
+  });
+  [['seg-vis-at', 'at'], ['seg-vis-lj', 'lj']].forEach((p) => {
+    $('#' + p[0]).addEventListener('click', (ev) => {
+      const b = ev.target.closest('button[data-v]');
+      if (!b) return;
+      VIS_M[p[1]] = b.getAttribute('data-v');
+      alterna(p[0], VIS_M[p[1]]);
       renderMes();
     });
   });
@@ -675,36 +696,68 @@ function APP(D, LOGO) {
     FM.cat = opcoes('f-m-cat', CATEGORIAS, 'Todas as categorias', FM.cat);
     const ms = MESES_D.map((r, m) => [String(m), rotMesLongo(m)]).reverse();
     FM.mes = opcoes('f-m-mes', ms.slice(1), 'Mês corrente (' + rotMesLongo(ULT_M) + ')', FM.mes);
+    const ref = FM.mes === '' ? ULT_M : Number(FM.mes);
+    const evs = [];
+    D.mes.eventos.forEach((e, i) => {
+      if (e[3] > ref || e[4] < ref || !evPassaFM(e)) return;
+      if (FM.comit !== '' && e[6].indexOf(Number(FM.comit)) < 0) return;
+      if (FM.cat !== '' && !EV_CATS_M[i][FM.cat]) return;
+      evs.push([String(i), e[0] + ' · ' + (e[7] ? 'finalizado' : 'ativo')]);
+    });
+    FM.ev = opcoes('f-m-ev', evs, 'Todos os eventos (' + nf(evs.length) + ')', FM.ev);
+    DATAS_M.forEach((q) => { $('#' + q[0]).value = FM[q[1]]; });
+    alterna('seg-sit', FM.sit);
+  }
+  const evPassaFM = (e) => {
+    if (FM.wl && e[5].indexOf(Number(FM.wl)) < 0) return false;
+    if ((FM.sit === 'at' && e[7]) || (FM.sit === 'fin' && !e[7])) return false;
+    const di = e[1].slice(0, 10);
+    const df = e[2].slice(0, 10);
+    return !((FM.ini_de && di < FM.ini_de) || (FM.ini_ate && di > FM.ini_ate) || (FM.fim_de && df < FM.fim_de) || (FM.fim_ate && df > FM.fim_ate));
+  };
+  DATAS_M.forEach((q) => { $('#' + q[0]).min = MESES_D[0] + '-01'; $('#' + q[0]).max = D.agora.slice(0, 10); });
+  const dataDiaM = (k) => new Date(Date.UTC(Number(MESES_D[RM.ref].slice(0, 4)), Number(MESES_D[RM.ref].slice(5, 7)) - 1, k + 1));
+  const rotDiaM = (k) => String(k + 1).padStart(2, '0') + '/' + MESES_D[RM.ref].slice(5, 7);
+  const rotDiaMLongo = (k) => SEMANA[dataDiaM(k).getUTCDay()] + ' ' + rotDiaM(k);
+  function barraM(g, rot, longo, nota) {
+    const novos = modo === 'novos';
+    const base = novos ? g.novos : g.ativos;
+    const hit = novos ? g[kpi + '_n'] : g[kpi];
+    const linhaM = (k2, nome) => {
+      const h = novos ? g[k2 + '_n'] : g[k2];
+      return '<br>' + esc(nome) + ': ' + nf(h) + ' (' + (base ? pc(h / base) : '—') + ')';
+    };
+    const mt = metaDe(g);
+    return {
+      rot: rot,
+      a: novos ? 0 : g.ativos - g.novos,
+      b: g.novos,
+      p: base ? hit / base : null,
+      m: mt,
+      dica: '<b>' + esc(longo) + '</b><br>' +
+        (novos ? '' : '<span class="amostra serie-b"></span>Veículos ativos: ' + nf(g.ativos) + '<br>') +
+        '<span class="amostra serie-a"></span>Novos: ' + nf(g.novos) +
+        linhaM('acesso', 'Com acesso') + linhaM('oferta', 'Com oferta') + linhaM('venda', 'Vendidos') +
+        (mt === null ? '' : '<br><span class="amostra traco linha-meta"></span>Meta do ' + esc(KPI[kpi].linha) + ': ' + pc(mt) +
+          (notaCobertura(g) ? '<br><span class="dim">' + esc(notaCobertura(g)) + '</span>' : '')) +
+        (nota ? '<br><span class="aviso-txt">⚠ ' + esc(nota) + ': com acesso a menos</span>' : '')
+    };
   }
   function desenhaMes() {
     const novos = modo === 'novos';
-    const grupos = RM.meses.map((g) => {
-      const base = novos ? g.novos : g.ativos;
-      const hit = novos ? g[kpi + '_n'] : g[kpi];
-      const linhaMes = (k2, nome) => {
-        const h = novos ? g[k2 + '_n'] : g[k2];
-        return '<br>' + esc(nome) + ': ' + nf(h) + ' (' + (base ? pc(h / base) : '—') + ')';
-      };
-      const mt = metaDe(g);
-      return {
-        rot: rotMesEixo(g.m),
-        a: novos ? 0 : g.ativos - g.novos,
-        b: g.novos,
-        p: base ? hit / base : null,
-        m: mt,
-        dica: '<b>' + esc(rotMesLongo(g.m)) + '</b><br>' +
-          (novos ? '' : '<span class="amostra serie-b"></span>Veículos ativos: ' + nf(g.ativos) + '<br>') +
-          '<span class="amostra serie-a"></span>Novos: ' + nf(g.novos) +
-          linhaMes('acesso', 'Com acesso') + linhaMes('oferta', 'Com oferta') + linhaMes('venda', 'Vendidos') +
-          (mt === null ? '' : '<br><span class="amostra traco linha-meta"></span>Meta do ' + esc(KPI[kpi].linha) + ': ' + pc(mt) +
-            (notaCobertura(g) ? '<br><span class="dim">' + esc(notaCobertura(g)) + '</span>' : '')) +
-          (acIncompleto(g.m) ? '<br><span class="aviso-txt">⚠ ' + esc(notaAc(g.m)) + ': com acesso a menos</span>' : '')
-      };
-    });
+    const porDia = VIS_M.at === 'dia';
+    const grupos = porDia
+      ? RM.dias.map((g) => barraM(g, rotDiaM(g.k), rotDiaMLongo(g.k), ''))
+      : RM.meses.map((g) => barraM(g, rotMesEixo(g.m), rotMesLongo(g.m), acIncompleto(g.m) ? notaAc(g.m) : ''));
+    $('#tit-at-m').textContent = porDia ? 'Veículos ativos por dia em ' + rotMes(RM.ref) : 'Veículos ativos por mês';
+    $('#leg-a-m').firstChild.nextSibling.textContent = porDia ? 'Já em evento' : 'Já em evento antes';
+    $('#leg-b-m').lastChild.textContent = porDia ? 'Novos no dia' : 'Novos no mês';
+    $('#n-ativos-m').textContent = porDia ? nf(RM.dias.length) + ' dias' : '12 meses';
     $('#leg-meta-m').hidden = !grupos.some((g) => g.m !== null);
     $('#leg-a-m').hidden = novos;
     $('#leg-linha-m').textContent = KPI[kpi].linha + (novos ? ' dos novos' : '');
     combo($('#g-ativos-m'), grupos);
+    desenhaEventosMes();
     const sel = FM.comit === '' ? null : Number(FM.comit);
     $('#comit-rot-m').textContent = 'Comitentes com evento em ' + rotMesLongo(RM.ref) + ' · clique para filtrar';
     $('#comit-nota-m').textContent = rotIndicador() + ': o mês na rosca, os 12 meses até ele na linha (meta tracejada), e a diferença para ' +
@@ -745,16 +798,19 @@ function APP(D, LOGO) {
     $('#km-nv-out').parentNode.hidden = !k.outros;
     metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k);
     desenhaMes();
-    $('#n-ativos-m').textContent = '12 meses';
     const inc = MESES_D.map((r, m) => (acIncompleto(m) && m !== ULT_M ? rotMes(m) + ' (' + notaAc(m) + ')' : null)).filter((x) => x);
     const txtInc = inc.length ? '⚠ O registro de acessos tem buraco em ' + inc.join(', ') + ': nesses meses, com acesso e lojistas que acessaram saem a menos.' : '';
     $('#nota-ac-m').textContent = txtInc;
     $('#nota-ac-m').hidden = !txtInc;
-    const txtCat = FM.cat ? 'Os lojistas e os eventos do mês não seguem o filtro de categoria: vêm contados do banco por canal e comitente.' : '';
+    const txtCat = FM.cat ? 'Os lojistas não seguem o filtro de categoria: a loja age no evento, não na categoria do veículo.' : '';
     $('#nota-ac-lm').textContent = [txtInc, txtCat].filter((x) => x).join(' ');
     $('#nota-ac-lm').hidden = !txtInc && !txtCat;
-    linhas($('#g-lojistas-m'), RM.meses.map((g) => Object.assign({ rot: rotMesEixo(g.m),
-      longo: rotMesLongo(g.m) + (acIncompleto(g.m) ? ' · ⚠ ' + notaAc(g.m) : '') }, g.lojistas)), [
+    const ljDia = VIS_M.lj === 'dia';
+    $('#tit-lj-m').textContent = ljDia ? 'Lojistas por dia em ' + rotMes(RM.ref) : 'Lojistas por mês';
+    linhas($('#g-lojistas-m'), ljDia
+      ? RM.lojistas_dias.map((g) => Object.assign({ rot: rotDiaM(g.k), longo: rotDiaMLongo(g.k) }, g))
+      : RM.meses.map((g) => Object.assign({ rot: rotMesEixo(g.m),
+        longo: rotMesLongo(g.m) + (acIncompleto(g.m) ? ' · ⚠ ' + notaAc(g.m) : '') }, g.lojistas)), [
       { k: 'acessaram', nome: 'Acessaram', cls: 's-ac' },
       { k: 'ofertaram', nome: 'Ofertaram', cls: 's-of' },
       { k: 'compraram', nome: 'Compraram', cls: 's-co' }
@@ -763,6 +819,55 @@ function APP(D, LOGO) {
     $('#tot-lojistas-m').innerHTML = [['Acessaram', 'acessaram'], ['Ofertaram', 'ofertaram'], ['Compraram', 'compraram']]
       .map((p) => '<span>' + p[0] + ' em ' + esc(rotMes(RM.ref)) + ' <b class="num">' + nf(k.lojistas[p[1]]) + '</b></span>').join('');
   }
+  const STATUS_EV_M = [['veiculos', 'Veículos'], ['st_ativo', 'Ativos'], ['analise', 'Em análise'], ['vendidos', 'Vendidos'],
+    ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
+  const dataCurta = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) : '—');
+  function desenhaEventosMes() {
+    const lista = RM.eventos;
+    const E = D.mes.eventos;
+    const k = CAMPO_META[kpi] ? kpi : null;
+    const sel = FM.ev === '' ? null : Number(FM.ev);
+    $('#ev-rot-m').textContent = (FM.sit === 'at' ? 'Eventos ativos' : FM.sit === 'fin' ? 'Eventos finalizados' : 'Eventos') +
+      ' em ' + rotMesLongo(RM.ref);
+    $('#n-evlista-m').textContent = nf(lista.length) + (lista.length === 1 ? ' evento' : ' eventos');
+    const ma = k ? RM.meta_aj[k] : null;
+    const tagAj = $('#aj-m');
+    tagAj.hidden = ma === null;
+    tagAj.textContent = ma === null ? '' : 'Meta ajustada dos ativos: ' + pc(ma);
+    tagAj.title = ma === null ? '' : 'Média pesada pelos veículos dos eventos ativos da lista' +
+      (RM.meta_aj.fora[k] ? '; ' + nf(RM.meta_aj.fora[k]) + ' veículo(s) em grupos que não chegam mais à meta (limitada a 100%)' : '');
+    $('#cab-ev-m').innerHTML = '<span>Evento</span>' + STATUS_EV_M.map((q) => '<span class="n">' + q[1] + '</span>').join('') +
+      '<span>' + esc(rotIndicador() + ' no mês · meta do mês') + '</span><span class="n">Meta ajustada</span>';
+    $('#g-ev-m').innerHTML = lista.length ? lista.map((c) => {
+      const e = E[c.ev];
+      const marcado = sel === c.ev;
+      const x = pctDe(c);
+      const m = metaDe(c);
+      let aj = '<span class="dim">' + (c.fin ? 'finalizado' : '—') + '</span>';
+      if (!c.fin && k && c.meta_aj[k] !== null) {
+        const lim = c[k === 'oferta' ? 'lim_of' : 'lim_ve'];
+        aj = '<b>' + pc(c.meta_aj[k]) + '</b>' + (lim ? ' <span class="aviso-txt" title="' + esc(nf(lim) + ' veículo(s) em grupos que não chegam mais à meta do mês: a meta ajustada deles ficou em 100%') + '">⚠</span>' : '');
+      }
+      return '<button type="button" class="lin lin-m' + luzMeta(c) + (marcado ? ' marcada' : '') + (sel !== null && !marcado ? ' apagado' : '') +
+        '" data-em="' + c.ev + '" aria-pressed="' + marcado + '" aria-label="' + esc((marcado ? 'Tirar o filtro do evento ' : 'Filtrar pelo evento ') + e[0]) + '">' +
+        '<span class="c-nome"><b title="' + esc(e[0]) + '">' + esc(e[0]) + '</b><span class="dim sub">' +
+          esc(e[6].map((j) => D.mes.comitentes[j]).join(', ') + ' · ' + dataCurta(e[1]) + ' a ' + dataCurta(e[2]) + ' · ' + (e[7] ? 'finalizado' : 'ativo')) +
+        '</span></span>' +
+        STATUS_EV_M.map((q) => '<span class="n num" data-r="' + q[1] + '">' + nf(c[q[0]]) + '</span>').join('') +
+        '<span class="termo">' + trilho(x, m) + '<span class="pc num">' + (x === null ? '—' : pc(x)) + '</span>' +
+          '<span class="de">' + (m === null ? '' : 'meta ' + pc(m)) + '</span></span>' +
+        '<span class="n num aj" data-r="Meta ajustada">' + aj + '</span>' +
+        '</button>';
+    }).join('') : '<p class="dim">Nenhum evento neste mês com estes filtros.</p>';
+  }
+  $('#g-ev-m').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-em]');
+    if (!b) return;
+    const e = b.getAttribute('data-em');
+    FM.ev = FM.ev === e ? '' : e;
+    montaFiltrosMes();
+    renderMes();
+  });
   $('#g-comit-m').addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-cm]');
     if (!b) return;
@@ -855,4 +960,27 @@ function APP(D, LOGO) {
   montaFiltrosMes();
   render();
 }
-return [{ json: { APP: APP.toString() } }];
+const TEXTO_AVISO = {
+  evento_fim_antes: 'evento(s) com fim antes do início das ofertas',
+  veiculo_sem_estreia: 'veículo(s) sem data de estreia — nunca contam como novos',
+  neg_sem_evento: 'negociação(ões) fora dos eventos do recorte',
+  neg_sem_veiculo: 'negociação(ões) sem o veículo na consulta de veículos',
+  neg_sem_comitente: 'negociação(ões) de comitente fora da lista de comitentes',
+  oferta_sem_neg: 'oferta(s) de negociação fora do recorte',
+  oferta_sem_loja: 'oferta(s) de loja fora da tabela de lojas',
+  acesso_sem_neg: 'acesso(s) de negociação fora do recorte',
+  acesso_sem_loja: 'acesso(s) de loja fora da tabela de lojas',
+  venda_sem_neg: 'venda(s) de negociação fora do recorte',
+  venda_sem_loja: 'venda(s) de loja fora da tabela de lojas',
+  venda_sem_loja_compradora: 'venda(s) com a oferta vencedora sem loja — contam como venda do veículo, fora dos lojistas que compraram',
+  venda_fora_da_janela: 'venda(s) com a oferta vencedora fora dos 31 dias — não entram nos gráficos',
+  login_sem_loja: 'loja(s) com acesso ao canal fora da tabela de lojas',
+  mes_comitente_fora: 'linha(s) do mensal com comitente fora da lista de comitentes dos 12 meses',
+  mes_sem_canal: 'evento(s) do mensal sem canal — não aparecem com filtro de canal',
+  mes_ev_fora: 'linha(s) do mensal de evento fora da lista de eventos dos 12 meses',
+  metas_sem_canal: 'aba(s) da planilha de metas sem a coluna Whitelabel — a meta vale para todos os canais',
+  veiculo_sem_categoria: 'veículo(s) com categoria fora da lista — contam como Não informada',
+  mes_sem_categoria: 'linha(s) do mensal com categoria fora da lista — contam como Não informada',
+  mes_status_fora: 'veículo(s)-mês do mensal com status fora do domínio conhecido — contam em Não vendidos, como "outros"'
+};
+return [{ json: { APP: APP.toString(), TEXTO_AVISO: TEXTO_AVISO } }];

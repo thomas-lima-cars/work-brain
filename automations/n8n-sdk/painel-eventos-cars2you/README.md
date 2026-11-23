@@ -9,6 +9,9 @@ Pedido do Thomas em **28/10/2026**. Nasceu do Painel de Eventos C6: mesmo jeito
 de empacotar consulta, mesma gaveta, mesma tabela ordenável. O recorte e a tela
 são outros.
 
+**Estado em 2026-11-19:** o **Mensal por evento** (seção de 19/11, abaixo) está pronto **no local**, com 112
+provas, e **não foi ao n8n**: espera o ok do Thomas. A versão no ar segue a `01e3c4e9`.
+
 **Estado em 2026-11-17:** versão **`f5f2c1c8`** publicada (Mensal com os status do sistema; metas com uma aba por mês, só Leves e Pesados — ver as seções de 17/11), 13 nós; run manual **69721** ✅ (3 min 49 s). Planilha nova subida pelo Thomas em `Comitente - Metas/`. Antes, a `a3751072` (16/11).
 
 **Estado em 2026-11-06 (noite):** **no ar no n8n** — workflow
@@ -187,14 +190,16 @@ derruba o run.
 | `acessos` | 12 | (negociação, loja) com a máscara dos dias em que abriu o anúncio |
 | `logins` | 1 | (loja, canal) com a máscara dos dias com acesso ao canal |
 | `lojas` | 2 | nome, canal e **CNPJ** — o CNPJ vira responsável no nó e não chega ao HTML |
-| `mes_veic` | 12, **uma por mês** | o mês já agregado por (comitente, máscara de canais, categoria): veículos, novos, com acesso / oferta / venda acumulados no evento (e dos novos), **uma contagem por status do sistema** (`s1` a `s18` e `sx`, fora do domínio; 17/11), valor. Cada veículo num grupo só: a soma é a contagem distinta com qualquer filtro de canal ou comitente |
-| `mes_loj` | 12, uma por mês | lojas distintas que acessaram, ofertaram e compraram, por (canal, comitente) com o `ROLLUP`, mais um bloco por comitente sem canal: cada recorte da tela vem contado pronto |
-| `mes_eventos` | 1 | os eventos dos 12 meses: abre, fecha, canais e comitentes (82 KB) |
+| `mes_ev` | 12, **uma por mês** | **desde 19/11**, no lugar do `mes_veic`: por (evento, comitente, categoria), dois blocos — `o_` os veículos **do evento** e `d_` os de que o evento é o **dono** no mês (a negociação mais recente do veículo no mês). Em cada um: veículos, novos, com acesso / oferta / venda acumulados no evento (e dos novos), uma contagem por status do sistema (`s1` a `s18` e `sx`), valor. A soma do `d_` é a contagem distinta |
+| `mes_dia` | 12, uma por mês | **19/11**: o mesmo por dia do mês (`k` = dia − 1), com o dono do dia (o evento mais recente entre os ativos no dia) — o gráfico dia a dia |
+| `mes_lojd` | **36**, três por mês | **19/11**, no lugar do `mes_loj`: por evento, `"loja.acessou.ofertou.comprou"` com as máscaras dos dias do mês em base 36 (bit k = dia k + 1). A página junta as lojas de qualquer conjunto de eventos |
+| `mes_eventos` | **3** | os eventos dos 12 meses: **nome, status**, abre, fecha, canais e comitentes (~76 KB cada parte) |
 | `mes_dias_acesso` | 1 | dias com registro no `access_logs` por mês — o buraco de 06/02 a 11/03/2026 vira aviso |
 | `mes_comitentes` | 1 | os comitentes dos 12 meses |
 
-**70 chamadas, ~135–157 s no banco** (coletas de 06/11; eram 43 e ~50 s antes do
-mensal). Nenhuma passa de 18 s, abaixo dos 60 s do MCP. ⚠️ O `mes_loj` usa
+**111 chamadas desde 19/11** (eram 70; ~136 s no banco na coleta de 19/11, nenhuma acima de 6 s;
+o maior pacote novo tem 93 KB). Em 06/11 eram 70 e ~135–157 s, e 43 e ~50 s antes do
+mensal. Nenhuma passa de 18 s, abaixo dos 60 s do MCP. ⚠️ O `mes_loj` usa
 `GROUP BY ... WITH ROLLUP`: a conexão direta aceita, **o validador do MCP não
 foi testado** — se recusar, trocar por `UNION ALL` de três `GROUP BY`. A máscara de dias (bit k =
 k dias depois do piso) é o que deixa a página contar "no dia" com qualquer
@@ -267,6 +272,7 @@ node _divide.js                      # o Montar Painel em 3 nós para o n8n
 node prova-local.js                  # 89 provas
 python _confere_banco.py 22          # o dia 22 da janela contra SQL escrito de novo (VPN)
 python _confere_mes.py 10            # o mês 10 (0 = o mais antigo) pelas linhas cruas (VPN)
+python _confere_mes.py 11 at         # só os eventos ativos (fin = finalizados), desde 19/11
 node monta_local.js                  # saida-local.html
 python build_wf.py                   # painel-eventos-cars2you.wf.ts
 ```
@@ -328,6 +334,39 @@ de loja.
 
 - 🔵 Os canais 48, 62 e 65 não tinham evento em 28/10: aparecem no filtro só
   pelo login.
+
+## 19/11 — o Mensal por evento
+
+Pedido do Thomas: "Mudanças na visão mensal do painel de eventos cars2you:
+adicione a tabela de eventos semelhante a visão diária; volte os eventos
+ativos; adicione filtros de whitelabel, evento, data inicio e fim do evento,
+Eventos Ativos vs total. Adicione uma meta ajustada por evento = meta do mês
+com compensação dos eventos finalizados; adicione uma visão diária dos
+gráficos de veículos ativos e lojistas limitado ao mês de referencia mas
+respeitando os demais filtros. Nas planilha de metas: remova as metas diárias
+e adicione uma coluna de whitelabel antes do id do comitente." Escolhas dele,
+na mesma conversa: a meta ajustada é **"quanto falta"**; a situação tem **três
+botões** (Total, Ativos, Finalizados); as datas são **dois filtros** (início e
+fim, cada um com De e Até); a meta é **por whitelabel** (o mesmo comitente pode
+ter meta diferente em cada canal). Vale por cima do que as seções de 06/11,
+17/11 e 18/11 dizem do Mensal e das metas.
+
+| | |
+|---|---|
+| **Eventos ativos de volta** | O recorte `FECHADO` de 18/11 saiu de todas as consultas. Finalizado = `status 0` **e** fim passado, decidido no Montar Painel com o "agora" da coleta, e virou o filtro **Eventos: Total · Ativos · Finalizados** (nasce em Total). Em nov/26 (coleta de 19/11 15h38): 4.550 veículos = 2.526 de eventos ativos + 2.024 de finalizados, e os 2.526 são os do cartão de hoje do Diário |
+| **O veículo e os filtros de evento** | Sem evento escolhido, cada veículo conta pelo evento **dono** dele no mês (a negociação mais recente) — canal, situação e datas escolhem os eventos, e o veículo entra se o dono passa. **Com um evento escolhido**, contam os veículos **do evento** (cada um pela negociação dele no evento) — a linha da tabela. O canal mudou de regra **(minha)**: antes o veículo entrava no canal se tinha estado nele no mês; agora, pelo canal do evento dono |
+| **Filtros na gaveta** | Whitelabel, Comitente, Categoria, **Mês de referência**, **Evento** (os do mês que passam nos outros filtros), **Eventos** (Total, Ativos, Finalizados), **Início do evento** De/Até e **Fim do evento** De/Até (campos de data, do primeiro dos 12 meses a hoje) |
+| **Tabela de eventos** | Abaixo dos cartões por comitente, **aberta**: um evento por linha, ativo em algum dia do mês de referência — nome, comitentes, início a fim, ativo/finalizado; Veículos, Ativos, Em análise, Vendidos, Não vendidos, Removidos; o termômetro do indicador do topo com o traço e o texto da **meta do mês**; e a **Meta ajustada**. Luz verde/vermelha pela meta, como no Diário. Clique filtra pelo evento, de novo solta. Ignora o próprio filtro de evento e segue os outros; ativos primeiro, depois do maior para o menor |
+| **Meta ajustada** ("quanto falta") | Por grupo — **os canais do evento, o comitente e a categoria**, o grão da planilha —, com os veículos do mês pelo dono: `(meta × veículos do mês − realizado nos finalizados) ÷ veículos dos ativos`, entre 0% e 100% (abaixo de 0, a meta está garantida; acima de 100%, não dá mais: fica 100% com ⚠ e a contagem no balão). A do evento é a média dos grupos dos veículos dele, pesada pelos veículos; no topo da tabela, a dos eventos ativos da lista. Evento finalizado não tem. Segue o indicador (com oferta ou vendidos); com acesso não tem meta. **Os filtros não mexem nela** (é do grupo inteiro) — só escolhem os eventos que a mostram. Prova: com a ajustada, realizado + ajustada × ativos = meta × todos, em cada grupo |
+| **Dias do mês** | Os dois gráficos ganham os botões **12 meses · Dias do mês**: os dias do mês de referência (até hoje no corrente), com todos os filtros. Veículo ativo no dia e o acumulado no evento até o dia, como no Diário. **Prova: em nov/26 os 19 dias batem com o Diário dia a dia** — sem filtro e com canal, comitente, categoria e evento, meta inclusive. Os **lojistas** são os dos eventos do mês: quem abriu no dia o anúncio de um evento que fechou no mês anterior conta no Diário e não aqui (01/11: 138 × 126) |
+| **Lojistas** | Do `mes_lojd`: as máscaras de cada evento juntadas por loja — seguem canal, evento, situação, datas e comitente (pelos eventos dele); não seguem a categoria. Mesmo recorte do `mes_loj` antigo (eventos ativos no mês, ação dentro do mês); a igualdade com ele não foi medida |
+| **A planilha** | Uma aba por mês, **só a Meta mensal**; linha 4: **Whitelabel** (`"7 - Marketplace"`, lista dos seis), ID comitente, Comitente, Leves, Pesados × 2. Uma linha por canal e comitente, **a média de cada linha só dos eventos daquele canal**; evento de dois canais (507 dos 2.166 dos 12 meses, quase todos 4 + 7) conta o veículo nos dois. Base pequena: comitente no canal → categoria no canal → categoria **(minha, a ordem)**. Inativo nos 3 últimos meses fechados sai por canal (C6 Bank - CSixer no 48, C6 Bank Lojista e Repasse Itaú no 7). Gerada em 19/11: 34 linhas de 24 comitentes, 49 metas; Leves 53,9% / 39,9%, Pesados 57,6% / 41,8% |
+| **A meta na tela** | O veículo leva a meta do canal do evento dele; evento de mais de um canal, a **média dos canais que têm meta** **(minha)**. O **Diário passou a usar a meta mensal** do mês de cada dia (a diária saiu). A planilha de 17/11 (sem a coluna) **ainda é lida**: vale para todos os canais e avisa — o painel não quebra se subir antes da planilha nova |
+| **Medido** | Os 12 meses do Mensal sem filtro batem, veículo a veículo, com o `gera_metas.py --confere` (dez/25: 2.199 / 1.118 / 852; out/26: 4.967 / 1.869 / 1.293), que refaz a conta das linhas cruas por outro caminho. `_confere_mes.py` (coleta de 19/11, 111 consultas em 168 s, nenhum pacote acima de 123 KB): out/26 e mar/26 exatos, nov/26 finalizados exato; nov/26 ativos com os mesmos veículos e eventos e alguns status andando (eventos abertos: 1.013 × 971 ativos minutos depois) |
+| **Tamanho** | HTML de 2,6 para **5,4 MB** — o grosso são os 139 mil pares evento × loja dos 12 meses. Montar Painel enxuto 56,5 KB (teto 56 KB da API: 57.344 bytes) depois de levar o dicionário dos avisos (`TEXTO_AVISO`) para a **Peças da Página** (`_divide.js`); Página 55,9 KB, Tema 54,6 KB. **Folga curta nos três** |
+| **Diário** | Não muda de tela. As partes de `negs` (14 → 16) e `veiculos` (7 → 8) subiram: com a base de hoje os pacotes passavam de 130 KB (140 e 132 KB) |
+| **Provas** | 112 (eram 104): as do Mensal e das metas refeitas no desenho novo, mais Total = Ativos + Finalizados, dias = Diário, evento escolhido = linha da tabela, meta ajustada refeita do cru, situação e datas, evento de dois canais, a planilha antiga lida para todos os canais |
+| **Envio** | `python monta_envio.py`: quatro `update_workflow` de um nó cada (Montar Consultas 21 KB, Peças do Tema 54 KB, Peças da Página 56 KB, Montar Painel 57 KB), sem mudar a estrutura. Antes de publicar, o Thomas sobe a planilha nova em `Comitente - Metas/`. **Não enviado** — espera o ok. Voltar atrás: `restore_workflow_version` para a `01e3c4e9` |
 
 ## 18/11 (tarde) — Valor vendido em cartão próprio no Mensal
 

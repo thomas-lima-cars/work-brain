@@ -103,51 +103,55 @@ const pctMeta = (x) => {
   return n >= 0 && n <= 1 ? n : null;
 };
 const txtM = (x) => String(x === null || x === undefined ? '' : x).trim();
+const canalDe = (x) => {
+  const t = txtM(x);
+  let d = '';
+  for (let i = 0; i < t.length && t[i] >= '0' && t[i] <= '9'; i++) d += t[i];
+  return d ? Number(d) : null;
+};
 const lerAba = (aba, linhas) => {
   const vazia = (x) => txtM(x) === '';
   const h = linhas.findIndex((r) => r.some((x) => txtM(x) === 'ID comitente'));
   const cab = h >= 0 ? linhas[h] : [];
   const cId = cab.findIndex((x) => txtM(x) === 'ID comitente');
+  const cWl = cab.findIndex((x) => txtM(x).toLowerCase() === 'whitelabel');
   const cols = [];
   let medida = '';
   let periodo = '';
-  for (let j = cId + 1; h > 1 && j < cab.length; j++) {
+  for (let j = cId + 1; h > 0 && j < cab.length; j++) {
     const p = txtM((linhas[h - 2] || [])[j]).toLowerCase();
     if (p) periodo = p;
     const m = txtM((linhas[h - 1] || [])[j]).toLowerCase();
     if (m) medida = m;
     const c = CAT_DE[txtM(cab[j]).toLowerCase()];
     const k = medida.indexOf('oferta') >= 0 ? 0 : medida.indexOf('vend') >= 0 ? 1 : -1;
-    const q = periodo.indexOf('mensal') >= 0 ? 'mes' : periodo.indexOf('diári') >= 0 || periodo.indexOf('diari') >= 0 ? 'dia' : '';
-    if (c && k >= 0 && q) cols.push([j, c, k, q]);
+    const diaria = periodo.indexOf('diári') >= 0 || periodo.indexOf('diari') >= 0;
+    if (c && k >= 0 && !diaria) cols.push([j, c, k]);
   }
-  const out = { mes: {}, dia: {} };
+  const out = { mes: {} };
   if (!cols.length) {
-    avisoMeta.push('a aba ' + aba + ' da planilha de metas veio fora do formato (sem a linha do ID comitente com Leves e Pesados, em cima % Com Oferta e % Vendido e, acima, Meta mensal e Meta diária): sem meta nesse mês');
+    avisoMeta.push('a aba ' + aba + ' da planilha de metas veio fora do formato (sem a linha do ID comitente com Leves e Pesados e, em cima, % Com Oferta e % Vendido): sem meta nesse mês');
     return null;
   }
-  ['mes', 'dia'].forEach((q) => {
-    if (!cols.some((x) => x[3] === q)) avisoMeta.push('a aba ' + aba + ' da planilha de metas não tem o bloco ' + (q === 'mes' ? 'Meta mensal' : 'Meta diária') + ': sem essa meta nesse mês');
-  });
+  if (cWl < 0) marca('metas_sem_canal');
   let ruins = 0;
   linhas.slice(h + 1).forEach((r) => {
     const id = num(r[cId]);
+    const wl = cWl < 0 ? 0 : canalDe(r[cWl]);
     const par = {};
     cols.forEach((x) => {
       if (vazia(r[x[0]])) return;
-      const kk = x[3] + '|' + x[1];
-      if (!par[kk]) par[kk] = [undefined, undefined];
-      par[kk][x[2]] = pctMeta(r[x[0]]);
+      if (!par[x[1]]) par[x[1]] = [undefined, undefined];
+      par[x[1]][x[2]] = pctMeta(r[x[0]]);
     });
-    Object.keys(par).forEach((kk) => {
-      const of = par[kk][0];
-      const ve = par[kk][1];
-      const q = kk.split('|');
-      if (id === null || of === null || of === undefined || ve === null || ve === undefined) { ruins++; return; }
-      out[q[0]][id + '|' + q[1]] = [of, ve];
+    Object.keys(par).forEach((cat) => {
+      const of = par[cat][0];
+      const ve = par[cat][1];
+      if (id === null || wl === null || of === null || of === undefined || ve === null || ve === undefined) { ruins++; return; }
+      out.mes[wl + '|' + id + '|' + cat] = [of, ve];
     });
   });
-  if (ruins) avisoMeta.push(ruins + ' meta(s) da aba ' + aba + ' da planilha sem o ID do comitente, ilegíveis ou só com uma das duas: ficam sem meta');
+  if (ruins) avisoMeta.push(ruins + ' meta(s) da aba ' + aba + ' da planilha sem o ID do comitente ou o whitelabel, ilegíveis ou só com uma das duas: ficam sem meta');
   return out;
 };
 const abasPedidas = lerNo('Abas das Metas').map((i) => txtM((i.json || {}).aba));
@@ -182,12 +186,12 @@ const reindexa = (m, idx) => {
   const o = {};
   Object.keys(m).forEach((k) => {
     const p = k.split('|');
-    const i = idx[Number(p[0])];
-    if (i !== undefined) o[i + '|' + p[1]] = m[k];
+    const i = idx[Number(p[1])];
+    if (i !== undefined) o[p[0] + '|' + i + '|' + p[2]] = m[k];
   });
   return o;
 };
-const metasPorMes = (q, idx) => ABA_DO_MES.map((a) => (a ? reindexa(metaDaAba[a][q], idx) : {}));
+const metasPorMes = (idx) => ABA_DO_MES.map((a) => (a ? reindexa(metaDaAba[a].mes, idx) : {}));
 const PISO_DIA = META.piso_dia;
 const utcDe = (s) => Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)));
 const P0 = utcDe(PISO_DIA);
@@ -297,31 +301,88 @@ const comDoMes = (id) => {
   return i;
 };
 const STATUS_MES = [1, 2, 3, 7, 8, 9, 10, 11, 13, 14, 15, 18];
-const mesGrupos = T.mes_veic.map((g) => {
-  let cat = String(g.cat || '');
-  if (CATS.indexOf(cat) < 0) { marca('mes_sem_categoria'); cat = 'N'; }
-  const st = STATUS_MES.map((s) => num(g['s' + s])).concat([num(g.sx)]);
-  const r = [num(g.m), comDoMes(g.c), num(g.wm), num(g.veic), num(g.novos), num(g.ac), num(g.of), num(g.ve),
-    num(g.ac_n), num(g.of_n), num(g.ve_n), st, Math.round(num(g.valor) || 0), cat];
-  const soma = st.reduce((t, x) => t + x, 0);
-  const vend = st[STATUS_MES.indexOf(2)] + st[STATUS_MES.indexOf(3)] + st[STATUS_MES.indexOf(7)];
-  if (soma !== r[3] || vend !== r[7] || r[6] < r[7] || r[6] > r[3]) {
-    throw new Error('mes_veic: no mes ' + MESES[r[0]] + ' os status nao fecham (veiculos ' + r[3] + ', soma dos status ' + soma +
-      ', vendidos ' + r[7] + ' x status de venda ' + vend + ', com oferta ' + r[6] + ', comitente ' + g.c + ')');
-  }
-  if (st[STATUS_MES.length]) conta.mes_status_fora = (conta.mes_status_fora || 0) + st[STATUS_MES.length];
-  if (!r[2]) marca('mes_sem_canal');
-  return r;
-});
-const mesLoj = T.mes_loj.map((r) => [num(r.m), num(r.wl), num(r.c) ? comDoMes(r.c) : -1, num(r.ac), num(r.of), num(r.co)]);
 const mesDe = (s) => MESES.indexOf(String(s || '').slice(0, 7));
-const mesEventos = T.mes_eventos.map((e) => {
+const evMes = T.mes_eventos.map((e) => {
   let a = mesDe(e.ini);
   let b = mesDe(e.fim);
   if (a < 0) a = String(e.ini) < MESES[0] ? 0 : MESES.length - 1;
   if (b < 0) b = String(e.fim) < MESES[0] ? 0 : MESES.length - 1;
+  const wm = num(e.wm) || 0;
+  if (!wm) marca('mes_sem_canal');
   const cs = String(e.cs || '').split(',').filter((x) => x !== '').map((x) => comDoMes(x)).filter((x) => x >= 0);
-  return [a, b, num(e.wm) || 0, cs];
+  return { id: num(e.id), nome: String(e.nome || '').trim() || ('evento ' + e.id), ini: String(e.ini || ''), fim: String(e.fim || ''),
+    a: a, b: b, wls: META.wls.filter((w, i) => ((wm >> i) & 1) === 1), cs: cs,
+    fin: num(e.st) === 0 && String(e.fim || '') < META.agora_br ? 1 : 0 };
+}).sort((x, y) => (x.fim < y.fim ? 1 : x.fim > y.fim ? -1 : y.id - x.id));
+const evMesIdx = {};
+evMes.forEach((e, i) => { evMesIdx[e.id] = i; });
+const evDoMes = (id, rotulo) => {
+  const i = evMesIdx[num(id)];
+  if (i === undefined) { marca(rotulo); return -1; }
+  return i;
+};
+const catDe = (x) => {
+  const c = String(x || '');
+  if (CATS.indexOf(c) < 0) { marca('mes_sem_categoria'); return 'N'; }
+  return c;
+};
+const POS_VENDA = [2, 3, 7].map((x) => STATUS_MES.indexOf(x));
+const blocoEv = (g, p, rot) => {
+  const st = STATUS_MES.map((x) => num(g[p + 's' + x])).concat([num(g[p + 'sx'])]);
+  const b = [num(g[p + 'veic']), num(g[p + 'novos']), num(g[p + 'ac']), num(g[p + 'of']), num(g[p + 've']),
+    num(g[p + 'ac_n']), num(g[p + 'of_n']), num(g[p + 've_n']), st, Math.round(num(g[p + 'valor']) || 0)];
+  const soma = st.reduce((t, x) => t + x, 0);
+  const vend = POS_VENDA.reduce((t, i) => t + st[i], 0);
+  if (soma !== b[0] || vend !== b[4] || b[3] < b[4] || b[3] > b[0] || b[1] > b[0] || b[2] > b[0]) {
+    throw new Error('mes_ev: no mes ' + MESES[num(g.m)] + ' os status nao fecham (' + rot + ': veiculos ' + b[0] + ', soma dos status ' + soma +
+      ', vendidos ' + b[4] + ' x status de venda ' + vend + ', com oferta ' + b[3] + ', evento ' + g.eid + ', comitente ' + g.c + ')');
+  }
+  return b;
+};
+const mesEv = [];
+T.mes_ev.forEach((g) => {
+  const e = evDoMes(g.eid, 'mes_ev_fora');
+  if (e < 0) return;
+  const o = blocoEv(g, 'o_', 'do evento');
+  const d = blocoEv(g, 'd_', 'do dono');
+  if (d[0] > o[0]) throw new Error('mes_ev: o evento ' + g.eid + ' e dono de mais veiculos do que tem (' + d[0] + ' x ' + o[0] + ')');
+  if (d[8][STATUS_MES.length]) conta.mes_status_fora = (conta.mes_status_fora || 0) + d[8][STATUS_MES.length];
+  mesEv.push([num(g.m), e, comDoMes(g.c), catDe(g.cat), o, d]);
+});
+const blocoDia = (g, p) => ['veic', 'novos', 'ac', 'of', 've', 'ac_n', 'of_n', 've_n'].map((k) => num(g[p + k]));
+const mesDia = [];
+T.mes_dia.forEach((g) => {
+  const e = evDoMes(g.eid, 'mes_ev_fora');
+  if (e < 0) return;
+  const o = blocoDia(g, 'o_');
+  const d = blocoDia(g, 'd_');
+  [o, d].forEach((b) => {
+    if (b[1] > b[0] || b[3] > b[0] || b[4] > b[3] || b[2] > b[0] || b[7] > b[6] || b[6] > b[1]) {
+      throw new Error('mes_dia: contas que nao fecham no mes ' + MESES[num(g.m)] + ', dia ' + (num(g.k) + 1) + ', evento ' + g.eid);
+    }
+  });
+  if (d[0] > o[0]) throw new Error('mes_dia: o evento ' + g.eid + ' e dono de mais veiculos do que tem no dia ' + (num(g.k) + 1));
+  mesDia.push([num(g.m), num(g.k), e, comDoMes(g.c), catDe(g.cat), o, d]);
+});
+const lojaMesIdx = {};
+let nLojasMes = 0;
+let paresLoj = 0;
+const mesLojd = MESES.map(() => []);
+T.mes_lojd.forEach((r) => {
+  const e = evDoMes(r.eid, 'mes_ev_fora');
+  if (e < 0) return;
+  let ls = r.ls;
+  if (typeof ls === 'string') ls = JSON.parse(ls);
+  const partes = (ls || []).map((x) => {
+    const q = String(x).split('.');
+    const id = Number(q[0]);
+    let li = lojaMesIdx[id];
+    if (li === undefined) { li = nLojasMes++; lojaMesIdx[id] = li; }
+    q[0] = li.toString(36);
+    return q.join('.');
+  });
+  paresLoj += partes.length;
+  mesLojd[num(r.m)].push([e, partes.join(',')]);
 });
 const diasAc = {};
 T.mes_dias_acesso.forEach((r) => { diasAc[String(r.mes)] = num(r.dias); });
@@ -336,27 +397,7 @@ const incompletos = [];
 mesDiasAcesso.forEach((x, m) => {
   if (x[0] < x[1]) incompletos.push(ABREV[Number(MESES[m].slice(5, 7)) - 1] + '/' + MESES[m].slice(2, 4) + ' (' + x[0] + ' de ' + x[1] + ' dias)');
 });
-const TEXTO_AVISO = {
-  evento_fim_antes: 'evento(s) com fim antes do início das ofertas',
-  veiculo_sem_estreia: 'veículo(s) sem data de estreia — nunca contam como novos',
-  neg_sem_evento: 'negociação(ões) fora dos eventos do recorte',
-  neg_sem_veiculo: 'negociação(ões) sem o veículo na consulta de veículos',
-  neg_sem_comitente: 'negociação(ões) de comitente fora da lista de comitentes',
-  oferta_sem_neg: 'oferta(s) de negociação fora do recorte',
-  oferta_sem_loja: 'oferta(s) de loja fora da tabela de lojas',
-  acesso_sem_neg: 'acesso(s) de negociação fora do recorte',
-  acesso_sem_loja: 'acesso(s) de loja fora da tabela de lojas',
-  venda_sem_neg: 'venda(s) de negociação fora do recorte',
-  venda_sem_loja: 'venda(s) de loja fora da tabela de lojas',
-  venda_sem_loja_compradora: 'venda(s) com a oferta vencedora sem loja — contam como venda do veículo, fora dos lojistas que compraram',
-  venda_fora_da_janela: 'venda(s) com a oferta vencedora fora dos 31 dias — não entram nos gráficos',
-  login_sem_loja: 'loja(s) com acesso ao canal fora da tabela de lojas',
-  mes_comitente_fora: 'linha(s) do mensal com comitente fora da lista de comitentes dos 12 meses',
-  mes_sem_canal: 'grupo(s) do mensal sem canal — não aparecem com filtro de canal',
-  veiculo_sem_categoria: 'veículo(s) com categoria fora da lista — contam como Não informada',
-  mes_sem_categoria: 'grupo(s) do mensal com categoria fora da lista — contam como Não informada',
-  mes_status_fora: 'veículo(s)-mês do mensal com status fora do domínio conhecido — contam em Não vendidos, como "outros"'
-};
+const TEXTO_AVISO = $('Peças da Página').first().json.TEXTO_AVISO;
 Object.keys(conta).forEach((k) => avisos.push(conta[k] + ' ' + (TEXTO_AVISO[k] || k)));
 if (incompletos.length) {
   avisos.push('mensal: o registro de acessos (access_logs) não cobre o mês inteiro em ' + incompletos.join(', ') +
@@ -383,9 +424,11 @@ const DADOS = {
   negs: negs, ofertas: ofertas, acessos: acessos, vendas: vendas, logins: logins,
   lojas: lojas.map((l) => l.linha),
   status_nome: STATUS_NOME, vitrine_c6: WL_VITRINE_C6,
-  mes: { meses: MESES, wls: META.wls, comitentes: comMes.map((c) => c.nome), status: STATUS_MES, grupos: mesGrupos, loj: mesLoj, eventos: mesEventos,
+  mes: { meses: MESES, ult: META.meses_ult, wls: META.wls, comitentes: comMes.map((c) => c.nome), status: STATUS_MES,
+    eventos: evMes.map((e) => [e.nome, e.ini, e.fim, e.a, e.b, e.wls, e.cs, e.fin]),
+    ev: mesEv, dia: mesDia, lojd: mesLojd, n_lojas: nLojasMes,
     dias_max_evento: META.dias_max_evento, dias_acesso: mesDiasAcesso },
-  metas: { dia: metasPorMes('dia', comIdx), mes: metasPorMes('mes', comMesIdx), abas: ABA_DO_MES }
+  metas: { dia: metasPorMes(comIdx), mes: metasPorMes(comMesIdx), abas: ABA_DO_MES }
 };
 function calcula(D, F) {
   F = F || {};
@@ -475,8 +518,15 @@ function calcula(D, F) {
     if (mesDoDia[d] === undefined) mesDoDia[d] = D.mes.meses.indexOf(new Date(P0M + d * 86400000).toISOString().slice(0, 7));
     return metaDia[mesDoDia[d]] || {};
   };
+  const metaVeic = (mp, wls, c, ct) => {
+    let n = 0;
+    let o = 0;
+    let v = 0;
+    wls.forEach((w) => { const x = mp[w + '|' + c + '|' + ct]; if (x) { n++; o += x[0]; v += x[1]; } });
+    return n ? [o / n, v / n] : (mp['0|' + c + '|' + ct] || null);
+  };
   const somaMeta = (g, i, v, nv, d) => {
-    const mm = metaNoDia(d)[D.negs[i][2] + '|' + D.veics[v][7]];
+    const mm = metaVeic(metaNoDia(d), D.eventos[D.negs[i][0]].wls, D.negs[i][2], D.veics[v][7]);
     if (!mm) return;
     g.mt++; g.mo += mm[0]; g.mv += mm[1];
     if (nv) { g.mt_n++; g.mo_n += mm[0]; g.mv_n += mm[1]; }
@@ -685,14 +735,20 @@ function calculaMes(D, F) {
   const vazio = (x) => x === undefined || x === null || x === '';
   const ref = vazio(F.mes) ? N - 1 : Number(F.mes);
   const wl = vazio(F.wl) ? 0 : Number(F.wl);
-  const bitWl = wl ? (1 << M.wls.indexOf(wl)) : 0;
   const comit = vazio(F.comit) ? -1 : Number(F.comit);
   const cat = vazio(F.cat) ? '' : String(F.cat);
+  const ev = vazio(F.ev) ? -1 : Number(F.ev);
+  const sit = vazio(F.sit) ? '' : String(F.sit);
+  const dt = (x) => (vazio(x) ? '' : String(x).slice(0, 10));
+  const iniDe = dt(F.ini_de);
+  const iniAte = dt(F.ini_ate);
+  const fimDe = dt(F.fim_de);
+  const fimAte = dt(F.fim_ate);
   const GRUPO_ST = { st_ativo: [1], an_comprador: [9], an_vendedor: [13], aguardando: [2, 3], vendido: [7],
     sem_ofertas: [11], rejeitados: [14, 15], venda_cancelada: [18], suspensos: [8], cancelados: [10] };
   const CAMPOS_ST = Object.keys(GRUPO_ST).concat(['outros', 'analise', 'vendidos', 'nao_vendidos', 'removidos']);
   const POS_ST = {};
-  Object.keys(GRUPO_ST).forEach((k) => { POS_ST[k] = GRUPO_ST[k].map((s) => M.status.indexOf(s)); });
+  Object.keys(GRUPO_ST).forEach((k) => { POS_ST[k] = GRUPO_ST[k].map((x) => M.status.indexOf(x)); });
   const zero = (m) => {
     const o = { m: m, rot: M.meses[m], veiculos: 0, ativos: 0, novos: 0, acesso: 0, oferta: 0, venda: 0,
       acesso_n: 0, oferta_n: 0, venda_n: 0, com_oferta: 0, valor: 0,
@@ -701,52 +757,119 @@ function calculaMes(D, F) {
     return o;
   };
   const metaMes = D.metas ? D.metas.mes : [];
+  const metaVeic = (mp, wls, c, ct) => {
+    if (!mp) return null;
+    let n = 0;
+    let o = 0;
+    let v = 0;
+    wls.forEach((w) => { const x = mp[w + '|' + c + '|' + ct]; if (x) { n++; o += x[0]; v += x[1]; } });
+    return n ? [o / n, v / n] : (mp['0|' + c + '|' + ct] || null);
+  };
+  const E = M.eventos;
+  if (!M._ix) {
+    const ix = { cats: E.map(() => ({})), loj: [] };
+    M.ev.forEach((r) => { ix.cats[r[1]][r[3]] = 1; });
+    ix.loj = M.lojd.map((lst) => lst.map((x) => {
+      const out = [];
+      String(x[1]).split(',').forEach((t) => {
+        if (!t) return;
+        const q = t.split('.');
+        out.push(parseInt(q[0], 36), parseInt(q[1] || '0', 36), parseInt(q[2] || '0', 36), parseInt(q[3] || '0', 36));
+      });
+      return [x[0], out];
+    }));
+    M._ix = ix;
+  }
+  const X = M._ix;
   const serie = () => M.meses.map((r, m) => zero(m));
-  const soma = (o, g) => {
-    o.veiculos += g[3]; o.ativos += g[3]; o.novos += g[4];
-    o.acesso += g[5]; o.oferta += g[6]; o.venda += g[7];
-    o.acesso_n += g[8]; o.oferta_n += g[9]; o.venda_n += g[10];
-    o.com_oferta += g[6];
-    const st = g[11];
-    Object.keys(POS_ST).forEach((k) => { POS_ST[k].forEach((p) => { o[k] += st[p]; }); });
-    const fora = st[M.status.length];
-    o.outros += fora;
+  const soma = (o, b, mm) => {
+    o.veiculos += b[0]; o.ativos += b[0]; o.novos += b[1];
+    o.acesso += b[2]; o.oferta += b[3]; o.venda += b[4];
+    o.acesso_n += b[5]; o.oferta_n += b[6]; o.venda_n += b[7];
+    o.com_oferta += b[3];
+    const st = b[8];
+    Object.keys(POS_ST).forEach((k) => { POS_ST[k].forEach((q) => { o[k] += st[q]; }); });
+    o.outros += st[M.status.length];
     o.analise = o.an_comprador + o.an_vendedor;
     o.vendidos = o.aguardando + o.vendido;
     o.nao_vendidos = o.sem_ofertas + o.rejeitados + o.venda_cancelada + o.outros;
     o.removidos = o.suspensos + o.cancelados;
-    o.valor += g[12];
-    const mm = (metaMes[g[0]] || {})[g[1] + '|' + g[13]];
+    o.valor += b[9];
     if (mm) {
-      o.mt += g[3]; o.mo += g[3] * mm[0]; o.mv += g[3] * mm[1];
-      o.mt_n += g[4]; o.mo_n += g[4] * mm[0]; o.mv_n += g[4] * mm[1];
+      o.mt += b[0]; o.mo += b[0] * mm[0]; o.mv += b[0] * mm[1];
+      o.mt_n += b[1]; o.mo_n += b[1] * mm[0]; o.mv_n += b[1] * mm[1];
     }
   };
+  const evBase = E.map((e) => {
+    if (wl && e[5].indexOf(wl) < 0) return false;
+    if (sit === 'at' && e[7]) return false;
+    if (sit === 'fin' && !e[7]) return false;
+    const di = e[1].slice(0, 10);
+    const df = e[2].slice(0, 10);
+    if ((iniDe && di < iniDe) || (iniAte && di > iniAte) || (fimDe && df < fimDe) || (fimAte && df > fimAte)) return false;
+    return true;
+  });
+  const evPassa = E.map((e, i) => evBase[i] && (ev < 0 || i === ev));
+  const evCatOk = (i) => cat === '' || X.cats[i][cat] === 1;
+  const evComOk = (i) => comit < 0 || E[i][6].indexOf(comit) >= 0;
+  const BL = ev >= 0 ? 4 : 5;
   const meses = serie();
   const porC = {};
   const comNoMes = meses.map(() => ({}));
-  M.grupos.forEach((g) => {
-    if (bitWl && !(g[2] & bitWl)) return;
-    if (cat && g[13] !== cat) return;
-    const c = g[1];
-    if (c >= 0) soma((porC[c] || (porC[c] = serie()))[g[0]], g);
+  M.ev.forEach((r) => {
+    if (!evPassa[r[1]] || (cat && r[3] !== cat)) return;
+    const b = r[BL];
+    if (!b[0]) return;
+    const m = r[0];
+    const c = r[2];
+    const mm = metaVeic(metaMes[m], E[r[1]][5], c, r[3]);
+    if (c >= 0) soma((porC[c] || (porC[c] = serie()))[m], b, mm);
     if (comit >= 0 && c !== comit) return;
-    soma(meses[g[0]], g);
-    if (c >= 0) comNoMes[g[0]][c] = 1;
+    soma(meses[m], b, mm);
+    if (c >= 0) comNoMes[m][c] = 1;
   });
   meses.forEach((o, m) => { o.comitentes = Object.keys(comNoMes[m]).length; });
-  M.eventos.forEach((e) => {
-    if (bitWl && !(e[2] & bitWl)) return;
-    for (let m = e[0]; m <= e[1]; m++) {
-      if (comit < 0 || e[3].indexOf(comit) >= 0) meses[m].eventos++;
-      e[3].forEach((c) => { if (porC[c]) porC[c][m].eventos++; });
+  E.forEach((e, i) => {
+    if (!evPassa[i] || !evCatOk(i)) return;
+    for (let m = e[3]; m <= e[4]; m++) {
+      if (evComOk(i)) meses[m].eventos++;
+      e[6].forEach((c) => { if (porC[c]) porC[c][m].eventos++; });
     }
   });
-  const lk = {};
-  M.loj.forEach((r) => { lk[r[0] + '|' + r[1] + '|' + r[2]] = r; });
+  const NL = M.n_lojas || 0;
+  const mAc = new Int32Array(NL);
+  const mOf = new Int32Array(NL);
+  const mCo = new Int32Array(NL);
+  const nDias = Number(String(M.ult[ref] || '').slice(8, 10)) || 0;
+  const lojistasDias = [];
+  for (let k = 0; k < nDias; k++) lojistasDias.push({ k: k, acessaram: 0, ofertaram: 0, compraram: 0 });
   meses.forEach((o, m) => {
-    const r = lk[m + '|' + wl + '|' + comit];
-    o.lojistas = { acessaram: r ? r[3] : 0, ofertaram: r ? r[4] : 0, compraram: r ? r[5] : 0 };
+    const tocadas = [];
+    X.loj[m].forEach((x) => {
+      const i = x[0];
+      if (!evPassa[i] || !evComOk(i)) return;
+      const a = x[1];
+      for (let j = 0; j < a.length; j += 4) {
+        const l = a[j];
+        if (!mAc[l] && !mOf[l] && !mCo[l]) tocadas.push(l);
+        mAc[l] |= a[j + 1]; mOf[l] |= a[j + 2]; mCo[l] |= a[j + 3];
+      }
+    });
+    const t = { acessaram: 0, ofertaram: 0, compraram: 0 };
+    tocadas.forEach((l) => {
+      if (mAc[l]) t.acessaram++;
+      if (mOf[l]) t.ofertaram++;
+      if (mCo[l]) t.compraram++;
+      if (m === ref) {
+        for (let k = 0; k < nDias; k++) {
+          if ((mAc[l] >>> k) & 1) lojistasDias[k].acessaram++;
+          if ((mOf[l] >>> k) & 1) lojistasDias[k].ofertaram++;
+          if ((mCo[l] >>> k) & 1) lojistasDias[k].compraram++;
+        }
+      }
+      mAc[l] = 0; mOf[l] = 0; mCo[l] = 0;
+    });
+    o.lojistas = t;
   });
   const HIST = 12;
   const porComit = Object.keys(porC).map(Number).filter((c) => porC[c][ref].veiculos > 0).map((c) => {
@@ -754,7 +877,81 @@ function calculaMes(D, F) {
     for (let j = HIST - 1; j >= 0; j--) hist.push(ref - j >= 0 ? porC[c][ref - j] : null);
     return Object.assign({ comit: c }, porC[c][ref], { hist: hist, dia: porC[c][ref], dia_ant: ref > 0 ? porC[c][ref - 1] : null });
   }).sort((a, b) => b.veiculos - a.veiculos || a.comit - b.comit);
-  return { ref: ref, meses: meses, kpi: meses[ref], ant: ref > 0 ? meses[ref - 1] : null, por_comit: porComit };
+  const dias = [];
+  for (let k = 0; k < nDias; k++) {
+    dias.push({ k: k, ativos: 0, novos: 0, acesso: 0, oferta: 0, venda: 0, acesso_n: 0, oferta_n: 0, venda_n: 0,
+      mt: 0, mo: 0, mv: 0, mt_n: 0, mo_n: 0, mv_n: 0 });
+  }
+  const BLD = ev >= 0 ? 5 : 6;
+  M.dia.forEach((r) => {
+    if (r[0] !== ref || !evPassa[r[2]] || (cat && r[4] !== cat) || (comit >= 0 && r[3] !== comit)) return;
+    const b = r[BLD];
+    const g = dias[r[1]];
+    if (!b[0] || !g) return;
+    g.ativos += b[0]; g.novos += b[1]; g.acesso += b[2]; g.oferta += b[3]; g.venda += b[4];
+    g.acesso_n += b[5]; g.oferta_n += b[6]; g.venda_n += b[7];
+    const mm = metaVeic(metaMes[ref], E[r[2]][5], r[3], r[4]);
+    if (mm) {
+      g.mt += b[0]; g.mo += b[0] * mm[0]; g.mv += b[0] * mm[1];
+      g.mt_n += b[1]; g.mo_n += b[1] * mm[0]; g.mv_n += b[1] * mm[1];
+    }
+  });
+  const aj = {};
+  M.ev.forEach((r) => {
+    if (r[0] !== ref) return;
+    const b = r[5];
+    if (!b[0]) return;
+    const k = E[r[1]][5].join(',') + '|' + r[2] + '|' + r[3];
+    const g = aj[k] || (aj[k] = { n: 0, at: 0, of: 0, ve: 0, mm: metaVeic(metaMes[ref], E[r[1]][5], r[2], r[3]) });
+    g.n += b[0];
+    if (E[r[1]][7]) { g.of += b[3]; g.ve += b[4]; } else g.at += b[0];
+  });
+  Object.keys(aj).forEach((k) => {
+    const g = aj[k];
+    const f = (q, real) => {
+      if (!g.mm || !g.at) return null;
+      const x = (g.mm[q] * g.n - real) / g.at;
+      return { x: Math.max(0, Math.min(1, x)), cru: x };
+    };
+    g.aj_of = f(0, g.of);
+    g.aj_ve = f(1, g.ve);
+  });
+  const eventos = [];
+  const ajTot = { of: [0, 0], ve: [0, 0], fora_of: 0, fora_ve: 0 };
+  E.forEach((e, i) => {
+    if (e[3] > ref || e[4] < ref || !evBase[i] || !evComOk(i) || !evCatOk(i)) return;
+    eventos.push(Object.assign(zero(ref), { ev: i, fin: e[7], aj_of: [0, 0], aj_ve: [0, 0], lim_of: 0, lim_ve: 0 }));
+  });
+  const linhaEv = {};
+  eventos.forEach((o, j) => { linhaEv[o.ev] = j; });
+  M.ev.forEach((r) => {
+    const j = linhaEv[r[1]];
+    if (r[0] !== ref || j === undefined || (cat && r[3] !== cat) || (comit >= 0 && r[2] !== comit)) return;
+    const o = eventos[j];
+    const b = r[4];
+    if (!b[0]) return;
+    soma(o, b, metaVeic(metaMes[ref], E[r[1]][5], r[2], r[3]));
+    if (o.fin) return;
+    const g = aj[E[r[1]][5].join(',') + '|' + r[2] + '|' + r[3]];
+    [['aj_of', 'of', 'lim_of'], ['aj_ve', 've', 'lim_ve']].forEach((q) => {
+      const a = g ? g[q[0]] : null;
+      if (!a) return;
+      o[q[0]][0] += a.x * b[0];
+      o[q[0]][1] += b[0];
+      if (a.cru > 1) o[q[2]] += b[0];
+      ajTot[q[1]][0] += a.x * b[0];
+      ajTot[q[1]][1] += b[0];
+      if (a.cru > 1) ajTot['fora_' + q[1]] += b[0];
+    });
+  });
+  eventos.forEach((o) => {
+    o.meta_aj = { oferta: o.aj_of[1] ? o.aj_of[0] / o.aj_of[1] : null, venda: o.aj_ve[1] ? o.aj_ve[0] / o.aj_ve[1] : null };
+  });
+  eventos.sort((a, b) => a.fin - b.fin || b.veiculos - a.veiculos || (E[a.ev][2] < E[b.ev][2] ? 1 : -1));
+  return { ref: ref, meses: meses, kpi: meses[ref], ant: ref > 0 ? meses[ref - 1] : null, por_comit: porComit,
+    dias: dias, lojistas_dias: lojistasDias, eventos: eventos,
+    meta_aj: { oferta: ajTot.of[1] ? ajTot.of[0] / ajTot.of[1] : null, venda: ajTot.ve[1] ? ajTot.ve[0] / ajTot.ve[1] : null,
+      veic: { oferta: ajTot.of[1], venda: ajTot.ve[1] }, fora: { oferta: ajTot.fora_of, venda: ajTot.fora_ve } } };
 }
 const GLOSSARIO_TXT = PECAS.GLOSSARIO_TXT;
 const nomesCanais = DADOS.canais.map((c) => c[1] + ' (' + c[0] + ')').join(', ');
@@ -777,6 +974,8 @@ const seg = (id, rot, opcoes, ativo) => '<span class="seg" id="' + id + '" role=
   '</span>';
 const filtro = (id, rotulo) => '<div class="fg"><label for="' + id + '">' + rotulo + '</label>' +
   '<select class="ctrl" id="' + id + '"></select></div>';
+const data = (id, rotulo) => '<div class="fg"><label for="' + id + '">' + rotulo + '</label>' +
+  '<input class="ctrl" type="date" id="' + id + '"></div>';
 const dadosJs = JSON.stringify(DADOS).split('<').join(String.fromCharCode(92) + 'u003c');
 const logoJs = JSON.stringify(LOGO);
 const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta charset="utf-8">' +
@@ -811,9 +1010,14 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   filtro('f-m-wl', 'Whitelabel') +
   filtro('f-m-comit', 'Comitente') +
   filtro('f-m-cat', 'Categoria') +
-  filtro('f-m-mes', 'Mês dos cartões') +
-  '<p class="nota"><b>Whitelabel</b> e <b>comitente</b> recortam os veículos e as lojas. <b>Mês</b> escolhe o mês dos cartões; ' +
-  'os gráficos mostram sempre os 12 meses. No mensal não há filtro de evento, de responsável nem de data.</p>' +
+  filtro('f-m-mes', 'Mês de referência') +
+  filtro('f-m-ev', 'Evento') +
+  '<div class="fg"><span class="rot-fg">Eventos</span>' + seg('seg-sit', 'Situação dos eventos', [['', 'Total'], ['at', 'Ativos'], ['fin', 'Finalizados']], '') + '</div>' +
+  '<div class="fg2">' + data('f-m-ini-de', 'Início do evento: de') + data('f-m-ini-ate', 'até') + '</div>' +
+  '<div class="fg2">' + data('f-m-fim-de', 'Fim do evento: de') + data('f-m-fim-ate', 'até') + '</div>' +
+  '<p class="nota"><b>Whitelabel</b>, <b>situação</b> e as <b>datas</b> escolhem os eventos: cada veículo conta pelo evento mais recente dele no mês. ' +
+  '<b>Evento</b> mostra os veículos do evento escolhido. <b>Comitente</b> e <b>categoria</b> recortam os veículos. <b>Mês de referência</b> escolhe o mês dos cartões, ' +
+  'da tabela de eventos e dos gráficos dia a dia. Finalizado = o sistema encerrou o evento e o fim já passou.</p>' +
   '</div>' +
   '<div class="filtros"><div class="fg"><button class="ctrl" id="limpar" type="button">Limpar filtros</button></div></div>' +
   '</div></aside>' +
@@ -884,14 +1088,20 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<div class="barra-comit"><span class="rot-comit" id="comit-rot-m">Comitentes com evento no mês</span>' +
   '<span class="nota-comit" id="comit-nota-m"></span></div>' +
   '<div class="g-comit" id="g-comit-m"></div></section>' +
-  '<article class="cartao">' + topoCartao('grafico', 'Veículos ativos por mês', 'n-ativos-m') +
+  '<details class="cartao gloss lista-ev" id="dobra-ev-m" open><summary class="cartao-topo">' + chip('evento') + '<h2 id="ev-rot-m">Eventos no mês</h2>' +
+  '<span class="dir"><span class="tag tag-aj" id="aj-m" hidden></span><span class="dim clique">clique numa linha para filtrar</span><span class="tag" id="n-evlista-m">—</span>' +
+  '<span class="seta" aria-hidden="true">▾</span></span></summary>' +
+  '<div class="rolo-ev"><div class="lin lin-m cab" id="cab-ev-m"></div><div id="g-ev-m"></div></div></details>' +
+  '<article class="cartao">' + topoCartao('grafico', '<span id="tit-at-m">Veículos ativos por mês</span>', 'n-ativos-m',
+    seg('seg-vis-at', 'Escala do gráfico', [['mes', '12 meses'], ['dia', 'Dias do mês']], 'mes')) +
   '<div class="legenda"><span id="leg-a-m"><span class="amostra serie-b"></span>Já em evento antes</span>' +
-  '<span><span class="amostra serie-a"></span>Novos no mês</span>' +
+  '<span id="leg-b-m"><span class="amostra serie-a"></span>Novos no mês</span>' +
   '<span><span class="amostra traco linha-kpi"></span><span id="leg-linha-m">% com oferta</span> (eixo da direita)</span>' +
   '<span id="leg-meta-m" hidden><span class="amostra traco linha-meta"></span>Meta</span></div>' +
   '<div class="caixa-g" id="g-ativos-m" data-rot="Veículos ativos por mês, já em evento e novos, com o percentual do indicador escolhido"></div>' +
   '<p class="nota-ac" id="nota-ac-m" hidden></p></article>' +
-  '<article class="cartao">' + topoCartao('pessoa', 'Lojistas por mês', 'n-lojistas-m') +
+  '<article class="cartao">' + topoCartao('pessoa', '<span id="tit-lj-m">Lojistas por mês</span>', 'n-lojistas-m',
+    seg('seg-vis-lj', 'Escala do gráfico', [['mes', '12 meses'], ['dia', 'Dias do mês']], 'mes')) +
   '<div class="legenda">' +
   '<span><span class="amostra traco s-ac"></span>Acessaram</span>' +
   '<span><span class="amostra traco s-of"></span>Ofertaram</span>' +

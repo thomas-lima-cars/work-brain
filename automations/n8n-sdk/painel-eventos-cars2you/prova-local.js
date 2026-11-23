@@ -31,6 +31,7 @@ const cai = (fn, trecho) => {
   throw new Error('não caiu');
 };
 
+const quase = (a, b, o) => { if (a === null || b === null ? a !== b : Math.abs(a - b) > 1e-9) throw new Error(o + ': ' + a + ' ≠ ' + b); };
 const monta = (d, arq, semMetas) => roda(arq || 'montar-painel.js', nosLocais(d, semMetas))[0].json;
 const OUT = monta(dados);
 const html = OUT.html;
@@ -511,29 +512,47 @@ prova('mensal: 12 meses seguidos, terminando no mês de agora', () => {
     igual(MD.meses[m], prox, 'mês ' + m);
   }
 });
-prova('mensal: uma consulta por mês em mes_veic e mes_loj, com os limites do mês e o índice na 1ª coluna', () =>
-  ['mes_veic', 'mes_loj'].forEach((t) => {
-    igual(meta.partes[t], 12, t);
-    for (let p = 0; p < 12; p++) {
+prova('mensal: uma consulta por mês em mes_ev e mes_dia, três por mês em mes_lojd, com os limites do mês e o índice na 1ª coluna', () =>
+  [['mes_ev', 1], ['mes_dia', 1], ['mes_lojd', 3]].forEach((q) => {
+    const t = q[0];
+    igual(meta.partes[t], 12 * q[1], t);
+    for (let p = 0; p < 12 * q[1]; p++) {
       const it = itens.find((i) => i.json.queryName === t + '_p' + p);
       verdade(it, t + '_p' + p);
-      const ini0 = meta.meses[p] + '-01 00:00:00';
+      const m = Math.floor(p / q[1]);
+      const ini0 = meta.meses[m] + '-01 00:00:00';
       verdade(it.json.sql.indexOf("finish_date_event >= '" + ini0 + "'") >= 0, t + '_p' + p + ' sem o início do mês');
-      verdade(it.json.sql.indexOf('JSON_ARRAY(' + p + ', ') >= 0, t + '_p' + p + ' sem o índice do mês');
+      verdade(it.json.sql.indexOf('JSON_ARRAY(' + m + ', ') >= 0, t + '_p' + p + ' sem o índice do mês');
       igual(it.json.cols[0], 'm', t + ' 1ª coluna');
+      if (q[1] > 1) verdade(it.json.sql.indexOf('MOD(e.id, ' + q[1] + ') = ' + (p % q[1])) >= 0, t + '_p' + p + ' sem a parte');
     }
   }));
 prova('mensal: evento com mais de 31 dias de ofertas fica fora de toda consulta do mensal', () =>
-  itens.filter((i) => ['mes_veic', 'mes_loj', 'mes_eventos', 'mes_comitentes'].indexOf(i.json.tabela) >= 0).forEach((i) =>
+  itens.filter((i) => ['mes_ev', 'mes_dia', 'mes_lojd', 'mes_eventos', 'mes_comitentes'].indexOf(i.json.tabela) >= 0).forEach((i) =>
     verdade(i.json.sql.indexOf('DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31') >= 0, i.json.queryName)));
-/* só evento fechado no mensal (Thomas, 18/11): status 0 e o fim já passou,
-   em toda consulta do mensal; o diário segue com os abertos */
-prova('mensal: só evento fechado (status 0 e fim antes de agora) em toda consulta do mensal, e o diário não muda', () => {
-  const fechado = "e.status = 0 AND e.finish_date_event < '" + meta.agora_br + "'";
-  const mensal = itens.filter((i) => ['mes_veic', 'mes_loj', 'mes_eventos', 'mes_comitentes'].indexOf(i.json.tabela) >= 0);
-  igual(mensal.length, 26, 'consultas do mensal');
-  mensal.forEach((i) => verdade(i.json.sql.indexOf(fechado) >= 0, i.json.queryName));
-  itens.filter((i) => mensal.indexOf(i) < 0).forEach((i) => verdade(i.json.sql.indexOf('e.status = 0') < 0, i.json.queryName + ' (diário)'));
+/* o cru de uma tabela, juntando as partes */
+const cruDe = (t) => {
+  const out = [];
+  dados.consultas.forEach((q, i) => {
+    if (q.json.tabela === t) JSON.parse(dados.mcp[i].json.structuredContent.rows[0][1]).forEach((r) => out.push(r));
+  });
+  return out;
+};
+const CRU_EVT = cruDe('mes_eventos').sort((a, b) => (a[4] < b[4] ? 1 : a[4] > b[4] ? -1 : Number(b[0]) - Number(a[0])));
+/* os eventos ativos de volta (Thomas, 19/11): nenhuma consulta corta por
+   status do evento; a situação vem no mes_eventos e a página filtra */
+prova('mensal: eventos ativos de volta — nenhuma consulta corta pelo status do evento, e a situação vem no mes_eventos', () => {
+  itens.forEach((i) => verdade(i.json.sql.indexOf('e.status = 0') < 0, i.json.queryName));
+  verdade(itens.find((i) => i.json.tabela === 'mes_eventos').json.cols.indexOf('st') > 0, 'situação no mes_eventos');
+  const fins = MD.eventos.filter((e) => e[7]).length;
+  verdade(fins > 0 && fins < MD.eventos.length, 'ativos e finalizados na lista: ' + fins + ' de ' + MD.eventos.length);
+  /* finalizado = status 0 e o fim já passou, refeito do cru */
+  igual(CRU_EVT.length, MD.eventos.length, 'eventos');
+  MD.eventos.forEach((e, i) => {
+    const r = CRU_EVT[i];
+    igual(e[0], String(r[1]).trim(), 'o evento ' + i);
+    igual(e[7], Number(r[2]) === 0 && r[4] < meta.agora_br ? 1 : 0, 'situação de ' + e[0]);
+  });
 });
 /* os status do sistema no mensal (Thomas, 17/11): cinco grupos que não se
    cruzam e somam os veículos, cada um a soma das partes do pé do cartão */
@@ -553,30 +572,43 @@ prova('mensal: em todo mês os status somam, o gráfico é o cartão, e os novos
   verdade(g.acesso_n <= g.novos && g.oferta_n <= g.novos && g.venda_n <= g.novos, g.rot + ' novos');
   verdade(g.veiculos > 0 && g.eventos > 0, g.rot + ' vazio');
 }));
-prova('mensal: os veículos do mês são a soma do cru do mes_veic', () => {
+/* a posição de uma coluna na linha crua (a 1ª é o mês) */
+const colDe = (t, nome) => itens.find((i) => i.json.tabela === t).json.cols.indexOf(nome);
+const CRU_EV = cruDe('mes_ev');
+prova('mensal: os veículos do mês são a soma do cru do mes_ev, pelo dono', () => {
   const soma = MD.meses.map(() => 0);
-  dados.consultas.forEach((q, i) => {
-    if (q.json.tabela !== 'mes_veic') return;
-    JSON.parse(dados.mcp[i].json.structuredContent.rows[0][1]).forEach((r) => { soma[Number(r[0])] += Number(r[3]); });
-  });
+  CRU_EV.forEach((r) => { soma[Number(r[0])] += Number(r[colDe('mes_ev', 'd_veic')]); });
   M0.meses.forEach((g, m) => igual(g.veiculos, soma[m], g.rot));
 });
-prova('mensal: cada veículo num grupo só — os comitentes somam o total, e cada canal é a soma dos grupos dele', () => {
+prova('mensal: cada veículo num dono só — os comitentes somam o total, e cada canal é a soma dos eventos dele', () => {
   const porCom = MD.meses.map(() => 0);
   MD.comitentes.forEach((n, c) => CM({ comit: String(c) }).meses.forEach((g, m) => { porCom[m] += g.veiculos; }));
   const semCom = MD.meses.map(() => 0);
-  MD.grupos.forEach((g) => { if (g[1] < 0) semCom[g[0]] += g[3]; });
+  MD.ev.forEach((r) => { if (r[2] < 0) semCom[r[0]] += r[5][0]; });
   M0.meses.forEach((g, m) => igual(porCom[m] + semCom[m], g.veiculos, g.rot + ' comitentes'));
   D.canais.forEach((c) => {
-    const bit = 1 << MD.wls.indexOf(c[0]);
     CM({ wl: String(c[0]) }).meses.forEach((g, m) => {
-      const s = MD.grupos.filter((x) => x[0] === m && (x[2] & bit)).reduce((t, x) => t + x[3], 0);
+      const s = MD.ev.filter((x) => x[0] === m && MD.eventos[x[1]][5].indexOf(c[0]) >= 0).reduce((t, x) => t + x[5][0], 0);
       igual(g.veiculos, s, 'canal ' + c[0] + ' ' + g.rot);
     });
   });
+  /* o dono é um evento só: nenhum veículo do evento a mais que os dele */
+  MD.ev.forEach((r) => verdade(r[5][0] <= r[4][0], 'dono acima do evento'));
 });
-prova('mensal: o cartão do comitente é o mês com aquele comitente filtrado, em três meses e com canal', () =>
-  [{}, { mes: '10' }, { mes: '3', wl: '7' }].forEach((F) => {
+prova('mensal: Total = Ativos + Finalizados em todo mês (veículos, status, valor e lojistas cabem)', () => {
+  const at = CM({ sit: 'at' });
+  const fi = CM({ sit: 'fin' });
+  M0.meses.forEach((g, m) => {
+    ['veiculos', 'novos', 'acesso', 'oferta', 'venda', 'st_ativo', 'analise', 'vendidos', 'nao_vendidos', 'removidos', 'valor', 'eventos'].forEach((f) =>
+      igual(at.meses[m][f] + fi.meses[m][f], g[f], g.rot + ' ' + f));
+    ['acessaram', 'ofertaram', 'compraram'].forEach((f) => verdade(Math.max(at.meses[m].lojistas[f], fi.meses[m].lojistas[f]) <= g.lojistas[f] &&
+      g.lojistas[f] <= at.meses[m].lojistas[f] + fi.meses[m].lojistas[f], g.rot + ' lojistas ' + f));
+  });
+  /* hoje, os veículos dos eventos ativos do mês são os do cartão do Diário */
+  igual(at.kpi.veiculos, T0.kpi.veiculos, 'ativos do mês corrente = veículos dos eventos de hoje no Diário');
+});
+prova('mensal: o cartão do comitente é o mês com aquele comitente filtrado, em três meses, com canal e com situação', () =>
+  [{}, { mes: '10' }, { mes: '3', wl: '7' }, { sit: 'at' }].forEach((F) => {
     const r = CM(F);
     verdade(r.por_comit.length > 0, JSON.stringify(F));
     r.por_comit.forEach((c) => {
@@ -590,47 +622,88 @@ prova('mensal: o cartão do comitente é o mês com aquele comitente filtrado, e
       igual(c.dia_ant, r.ref > 0 ? c.hist[10] : null, 'o anterior');
     });
   }));
-prova('mensal: eventos do mês refeitos da lista de eventos', () => M0.meses.forEach((g, m) => {
-  igual(g.eventos, MD.eventos.filter((e) => e[0] <= m && m <= e[1]).length, g.rot);
-}));
-prova('mensal: lojistas de cada recorte são a linha pronta do banco', () => {
-  const linha = (m, wl, c) => MD.loj.find((r) => r[0] === m && r[1] === wl && r[2] === c);
-  M0.meses.forEach((g, m) => {
-    const r = linha(m, 0, -1);
-    verdade(r, 'sem a linha do total em ' + g.rot);
-    igual(g.lojistas.acessaram, r[3], g.rot);
-    igual(g.lojistas.compraram, r[5], g.rot);
+prova('mensal: eventos do mês refeitos da lista de eventos, com situação e datas', () => {
+  M0.meses.forEach((g, m) => igual(g.eventos, MD.eventos.filter((e) => e[3] <= m && m <= e[4]).length, g.rot));
+  const d0 = MD.meses[11] + '-05';
+  const d1 = MD.meses[11] + '-12';
+  [[{ ini_de: d0 }, (e) => e[1].slice(0, 10) >= d0], [{ ini_ate: d1 }, (e) => e[1].slice(0, 10) <= d1],
+    [{ fim_de: d0, fim_ate: d1 }, (e) => e[2].slice(0, 10) >= d0 && e[2].slice(0, 10) <= d1],
+    [{ sit: 'fin', ini_de: d0 }, (e) => e[7] && e[1].slice(0, 10) >= d0]].forEach((p) => {
+    const r = CM(p[0]);
+    r.meses.forEach((g, m) => igual(g.eventos, MD.eventos.filter((e) => e[3] <= m && m <= e[4] && p[1](e)).length, JSON.stringify(p[0]) + ' ' + g.rot));
+    /* e os veículos são os dos eventos que passam (pelo dono) */
+    igual(r.kpi.veiculos, MD.ev.filter((x) => x[0] === 11 && p[1](MD.eventos[x[1]])).reduce((t, x) => t + x[5][0], 0), JSON.stringify(p[0]) + ' veículos');
   });
-  CM({ wl: '7' }).meses.forEach((g, m) => igual(g.lojistas.ofertaram, (linha(m, 7, -1) || [0, 0, 0, 0, 0, 0])[4], 'canal 7 ' + g.rot));
-  const c0 = M0.por_comit[0].comit;
-  CM({ comit: String(c0) }).meses.forEach((g, m) => igual(g.lojistas.acessaram, (linha(m, 0, c0) || [0, 0, 0, 0])[3], 'comitente ' + g.rot));
 });
-/* a posição de uma coluna do mes_veic na linha crua (a 1ª é o mês) */
-const colMes = (nome) => itens.find((i) => i.json.tabela === 'mes_veic').json.cols.indexOf(nome);
+/* os lojistas: as lojas dos eventos que passam, juntadas — refeitas do cru
+   (o texto "loja.acessou.ofertou.comprou" de cada evento) */
+const CRU_LOJ = cruDe('mes_lojd');
+const lojasDe = (m, passa) => {
+  const t = { ac: {}, of: {}, co: {} };
+  CRU_LOJ.forEach((r) => {
+    if (Number(r[0]) !== m) return;
+    const e = evIdxM[r[1]];
+    if (!passa(e)) return;
+    r[2].forEach((s) => {
+      const q = String(s).split('.');
+      if (parseInt(q[1] || '0', 36)) t.ac[q[0]] = 1;
+      if (parseInt(q[2] || '0', 36)) t.of[q[0]] = 1;
+      if (parseInt(q[3] || '0', 36)) t.co[q[0]] = 1;
+    });
+  });
+  return [Object.keys(t.ac).length, Object.keys(t.of).length, Object.keys(t.co).length];
+};
+/* do id do evento (cru) para o índice da página: a ordem da página é o fim
+   mais recente primeiro, e o id maior no empate */
+const evIdxM = {};
+CRU_EVT.forEach((r, i) => { evIdxM[r[0]] = i; });
+prova('mensal: lojistas de cada recorte refeitos do cru — as lojas dos eventos que passam', () => {
+  M0.meses.forEach((g, m) => {
+    const x = lojasDe(m, () => true);
+    igual(g.lojistas.acessaram, x[0], g.rot + ' acessaram');
+    igual(g.lojistas.ofertaram, x[1], g.rot + ' ofertaram');
+    igual(g.lojistas.compraram, x[2], g.rot + ' compraram');
+  });
+  CM({ wl: '7' }).meses.forEach((g, m) => igual(g.lojistas.ofertaram, lojasDe(m, (e) => MD.eventos[e][5].indexOf(7) >= 0)[1], 'canal 7 ' + g.rot));
+  const c0 = M0.por_comit[0].comit;
+  CM({ comit: String(c0) }).meses.forEach((g, m) => igual(g.lojistas.acessaram, lojasDe(m, (e) => MD.eventos[e][6].indexOf(c0) >= 0)[0], 'comitente ' + g.rot));
+  CM({ sit: 'at' }).meses.forEach((g, m) => igual(g.lojistas.acessaram, lojasDe(m, (e) => !MD.eventos[e][7])[0], 'ativos ' + g.rot));
+});
 const mexeMes = (fn) => {
   const d = copia(dados);
-  const i = d.consultas.findIndex((x) => x.json.queryName === 'mes_veic_p5');
+  const i = d.consultas.findIndex((x) => x.json.queryName === 'mes_ev_p5');
   const sc = d.mcp[i].json.structuredContent;
   const li = JSON.parse(sc.rows[0][1]);
   fn(li);
   sc.rows[0][1] = JSON.stringify(li);
   return d;
 };
-prova('mensal: grupo cujos status não somam os veículos derruba o run', () => {
-  cai(() => monta(mexeMes((li) => { li[0][colMes('s1')] = Number(li[0][colMes('s1')]) + 1; })), 'status nao fecham');
-  /* vendidos do gráfico diferentes dos status 2, 3 e 7 também */
+const cm = (nome) => colDe('mes_ev', nome);
+prova('mensal: linha cujos status não somam os veículos derruba o run', () => {
+  cai(() => monta(mexeMes((li) => { li[0][cm('d_s1')] = Number(li[0][cm('d_s1')]) + 1; })), 'status nao fecham');
+  cai(() => monta(mexeMes((li) => { li[0][cm('o_s1')] = Number(li[0][cm('o_s1')]) + 1; })), 'status nao fecham');
+  /* vendidos diferentes dos status 2, 3 e 7 também */
   cai(() => monta(mexeMes((li) => {
-    const r = li.find((x) => Number(x[colMes('s11')]) > 0);
-    r[colMes('s11')] = Number(r[colMes('s11')]) - 1;
-    r[colMes('s7')] = Number(r[colMes('s7')]) + 1;
+    const r = li.find((x) => Number(x[cm('d_s11')]) > 0);
+    r[cm('d_s11')] = Number(r[cm('d_s11')]) - 1;
+    r[cm('d_s7')] = Number(r[cm('d_s7')]) + 1;
   })), 'status nao fecham');
+  /* e o dono com mais veículos que o evento */
+  cai(() => monta(mexeMes((li) => {
+    const r = li.find((x) => Number(x[cm('d_veic')]) === Number(x[cm('o_veic')]) && Number(x[cm('d_s11')]) > 0);
+    r[cm('d_veic')] = Number(r[cm('d_veic')]) + 1;
+    r[cm('d_s11')] = Number(r[cm('d_s11')]) + 1;
+    r[cm('o_veic')] = Number(r[cm('o_veic')]);
+  })), 'e dono de mais veiculos');
 });
 prova('mensal: status fora do domínio vira aviso e conta em Não vendidos, como outros', () => {
   let alvo;
   const d = mexeMes((li) => {
-    alvo = li.find((x) => Number(x[colMes('s11')]) > 0);
-    alvo[colMes('s11')] = Number(alvo[colMes('s11')]) - 1;
-    alvo[colMes('sx')] = Number(alvo[colMes('sx')]) + 1;
+    alvo = li.find((x) => Number(x[cm('d_s11')]) > 0 && Number(x[cm('o_s11')]) > 0);
+    ['d_', 'o_'].forEach((p) => {
+      alvo[cm(p + 's11')] = Number(alvo[cm(p + 's11')]) - 1;
+      alvo[cm(p + 'sx')] = Number(alvo[cm(p + 'sx')]) + 1;
+    });
   });
   const o = monta(d);
   verdade(o.resumo.avisos.some((a) => a.indexOf('1 veículo(s)-mês do mensal com status fora do domínio') === 0), 'sem o aviso');
@@ -640,20 +713,18 @@ prova('mensal: status fora do domínio vira aviso e conta em Não vendidos, como
   igual(g.nao_vendidos, g0.nao_vendidos, 'não vendidos');
   verdade(!R0.avisos.some((a) => a.indexOf('fora do domínio') >= 0), 'aviso sem motivo na coleta');
 });
-prova('mensal: os status do Montar Consultas são os do Montar Painel, uma coluna por status', () => {
-  const cols = itens.find((i) => i.json.tabela === 'mes_veic').json.cols;
+prova('mensal: os status do Montar Consultas são os do Montar Painel, uma coluna por status em cada bloco', () => {
+  const cols = itens.find((i) => i.json.tabela === 'mes_ev').json.cols;
   igual(JSON.stringify(MD.status), JSON.stringify([1, 2, 3, 7, 8, 9, 10, 11, 13, 14, 15, 18]), 'domínio');
-  MD.status.forEach((s) => verdade(cols.indexOf('s' + s) > 0, 'coluna s' + s));
-  verdade(cols.indexOf('sx') > 0, 'coluna sx');
-  ['so', 'co', 'vm', 'vd', 'rm'].forEach((c) => verdade(cols.indexOf(c) < 0, 'coluna do funil ' + c));
+  ['o_', 'd_'].forEach((p) => {
+    MD.status.forEach((s) => verdade(cols.indexOf(p + 's' + s) > 0, 'coluna ' + p + 's' + s));
+    verdade(cols.indexOf(p + 'sx') > 0, 'coluna ' + p + 'sx');
+  });
 });
-prova('mensal: cada status do mês é a soma do cru do mes_veic', () => {
+prova('mensal: cada status do mês é a soma do cru do mes_ev, pelo dono', () => {
   const soma = MD.meses.map(() => ({}));
-  dados.consultas.forEach((q, i) => {
-    if (q.json.tabela !== 'mes_veic') return;
-    JSON.parse(dados.mcp[i].json.structuredContent.rows[0][1]).forEach((r) => {
-      MD.status.concat(['x']).forEach((s) => { const k = 's' + s; soma[Number(r[0])][k] = (soma[Number(r[0])][k] || 0) + Number(r[colMes(k)]); });
-    });
+  CRU_EV.forEach((r) => {
+    MD.status.concat(['x']).forEach((s) => { const k = 's' + s; soma[Number(r[0])][k] = (soma[Number(r[0])][k] || 0) + Number(r[cm('d_' + k)]); });
   });
   M0.meses.forEach((g, m) => {
     const t = soma[m];
@@ -677,7 +748,6 @@ prova('mensal: os sete cartões do topo, na ordem, sem VMV atingido, sem Com ofe
   pos.forEach((p, j) => verdade(p > 0 && (j === 0 || p > pos[j - 1]), 'ordem em ' + ids[j]));
   verdade(html.indexOf('id="km-vm"') < 0, 'VMV atingido no mensal');
   verdade(html.indexOf('km-co') < 0, 'cartão Com oferta no mensal');
-  /* o valor saiu do pé do Vendidos para o cartão dele */
   verdade(html.indexOf('km-vd-rs') < 0, 'valor no pé do Vendidos');
   ['km-an-comp', 'km-an-vend', 'km-vd-ag', 'km-vd-vd', 'km-vr-pc', 'km-vr-dif', 'km-vr-ant', 'km-nv-sem', 'km-nv-rej', 'km-nv-vc', 'km-nv-out', 'km-rm-sus', 'km-rm-can']
     .forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
@@ -685,14 +755,14 @@ prova('mensal: os sete cartões do topo, na ordem, sem VMV atingido, sem Com ofe
 });
 prova('mensal: mês sem parte derruba o run', () => {
   const d = copia(dados);
-  const i = d.consultas.findIndex((x) => x.json.queryName === 'mes_loj_p7');
+  const i = d.consultas.findIndex((x) => x.json.queryName === 'mes_lojd_p7');
   d.consultas.splice(i, 1);
   d.mcp.splice(i, 1);
-  cai(() => monta(d), 'mes_loj chegou em');
+  cai(() => monta(d), 'mes_lojd chegou em');
 });
 prova('mensal: o mês com buraco no access_logs vira aviso, e mês completo não', () => {
   const inc = MD.dias_acesso.filter((x) => x[0] < x[1]);
-  verdade(inc.length > 0, 'a coleta de 06/11 tem fevereiro com 5 dias');
+  verdade(inc.length > 0, 'a coleta tem fevereiro com 5 dias');
   verdade(R0.avisos.some((a) => a.indexOf('access_logs') >= 0), 'sem aviso');
   const d = copia(dados);
   const mt = d.consultas[0].json.meta;
@@ -706,50 +776,178 @@ prova('mensal: o mês com buraco no access_logs vira aviso, e mês completo não
 prova('mensal: as abas, os blocos e os filtros dele na página', () => {
   verdade(html.indexOf('id="seg-aba"') > 0 && html.indexOf('data-v="mes"') > 0, 'abas');
   verdade(html.indexOf('<div id="v-mes" hidden>') > 0 && html.indexOf('<div class="filtros" id="fil-mes" hidden>') > 0, 'nasce no diário');
-  ['g-comit-m', 'g-ativos-m', 'g-lojistas-m', 'f-m-wl', 'f-m-comit', 'f-m-mes'].forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
+  ['g-comit-m', 'g-ev-m', 'cab-ev-m', 'aj-m', 'g-ativos-m', 'g-lojistas-m', 'seg-vis-at', 'seg-vis-lj', 'f-m-wl', 'f-m-comit', 'f-m-cat', 'f-m-mes', 'f-m-ev', 'seg-sit',
+    'f-m-ini-de', 'f-m-ini-ate', 'f-m-fim-de', 'f-m-fim-ate'].forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
+  /* a ordem: cartões por comitente, tabela de eventos, os dois gráficos */
+  const pos = ['g-comit-m', 'g-ev-m', 'g-ativos-m', 'g-lojistas-m'].map((id) => html.indexOf('id="' + id + '"'));
+  pos.forEach((p, j) => verdade(j === 0 || p > pos[j - 1], 'ordem em ' + j));
+  verdade(html.indexOf('<details class="cartao gloss lista-ev" id="dobra-ev-m" open>') > 0, 'a tabela do mês nasce aberta');
+  /* situação: Total, Ativos, Finalizados, nasce em Total */
+  verdade(html.indexOf('data-v="" aria-pressed="true">Total</button><button type="button" data-v="at" aria-pressed="false">Ativos</button>' +
+    '<button type="button" data-v="fin" aria-pressed="false">Finalizados</button>') > 0, 'botões da situação');
+  verdade(html.indexOf('type="date" id="f-m-ini-de"') > 0, 'datas como campo de data');
   verdade(html.indexOf('function calculaMes(') > 0, 'calculaMes no script');
-  verdade(D.glossario.some((g) => g[0] === 'Visão Mensal'), 'glossário');
+  ['Visão Mensal', 'Situação do evento', 'Início e fim do evento', 'Tabela de eventos do mês', 'Meta ajustada', 'Dias do mês'].forEach((t) =>
+    verdade(D.glossario.some((g) => g[0] === t), 'glossário: ' + t));
 });
 
-/* ── as metas (Thomas, 06/11; refeitas em 17/11) ─────────────────────────
+/* ── o Mensal por evento (19/11) ──────────────────────────────────────── */
+const P0M = Date.UTC(Number(D.piso_dia.slice(0, 4)), Number(D.piso_dia.slice(5, 7)) - 1, Number(D.piso_dia.slice(8, 10)));
+prova('mensal: os dias do mês corrente são os do Diário, dia a dia, sem filtro e com canal, comitente, categoria e evento', () => {
+  const evDia = (i) => {
+    /* o mesmo evento nas duas listas, pelo nome e o início */
+    const e = MD.eventos[i];
+    return D.eventos.findIndex((x) => x.nome === e[0] && x.ini === e[1]);
+  };
+  const evM = MD.eventos.findIndex((e, i) => e[3] <= 11 && e[4] >= 11 && !e[7] && evDia(i) >= 0);
+  const c0 = M0.por_comit[0].comit;
+  [[{}, {}], [{ wl: '43' }, { wl: '43' }], [{ cat: 'P' }, { cat: 'P' }],
+    [{ comit: String(D.comitentes.indexOf(MD.comitentes[c0])) }, { comit: String(c0) }],
+    [{ ev: String(evDia(evM)) }, { ev: String(evM) }]].forEach((p) => {
+    const R = C(p[0]);
+    const RM = CM(p[1]);
+    let n = 0;
+    R.dias.forEach((g) => {
+      const dt = new Date(P0M + g.d * 86400000);
+      if (dt.toISOString().slice(0, 7) !== MD.meses[11]) return;
+      const h = RM.dias[dt.getUTCDate() - 1];
+      n++;
+      ['ativos', 'novos', 'acesso', 'oferta', 'venda', 'acesso_n', 'oferta_n', 'venda_n', 'mt'].forEach((f) =>
+        igual(h[f], g[f], JSON.stringify(p[1]) + ' ' + dt.toISOString().slice(0, 10) + ' ' + f));
+      quase(h.mo, g.mo, JSON.stringify(p[1]) + ' meta');
+    });
+    igual(n, RM.dias.length, 'todos os dias do mês até hoje');
+  });
+});
+prova('mensal: os dias têm o tamanho do mês (até hoje no corrente), e cada um cabe no mês', () => [11, 10, 1].forEach((m) => {
+  const r = CM({ mes: String(m) });
+  const ult = MD.ult[m];
+  igual(r.dias.length, Number(ult.slice(8, 10)), MD.meses[m] + ' dias');
+  igual(r.lojistas_dias.length, r.dias.length, MD.meses[m] + ' dias dos lojistas');
+  r.dias.forEach((g) => verdade(g.ativos <= r.kpi.veiculos && g.novos <= g.ativos && g.venda <= g.oferta && g.oferta <= g.ativos, MD.meses[m] + ' dia ' + g.k));
+  r.lojistas_dias.forEach((g) => ['acessaram', 'ofertaram', 'compraram'].forEach((f) => verdade(g[f] <= r.kpi.lojistas[f], MD.meses[m] + ' lojistas ' + f)));
+  /* os novos dos dias somam os novos do mês (todo novo estreia num dia do mês) */
+  igual(r.dias.reduce((t, g) => t + g.novos, 0), r.kpi.novos, MD.meses[m] + ' novos');
+}));
+prova('mensal: as quatro categorias somam o total também dia a dia', () => {
+  const tot = CM({ mes: '10' }).dias;
+  const soma = tot.map(() => 0);
+  ['L', 'P', 'E', 'N'].forEach((k) => CM({ mes: '10', cat: k }).dias.forEach((g, j) => { soma[j] += g.ativos; }));
+  tot.forEach((g, j) => igual(soma[j], g.ativos, 'dia ' + (j + 1)));
+});
+prova('mensal: evento escolhido = a linha dele na tabela de eventos, e a tabela ignora o próprio filtro', () => {
+  const lista = M0.eventos;
+  verdade(lista.length > 50, 'poucos eventos na tabela');
+  lista.filter((x, j) => j % 17 === 0).forEach((c) => {
+    const r = CM({ ev: String(c.ev) });
+    ['veiculos', 'novos', 'acesso', 'oferta', 'venda', 'st_ativo', 'analise', 'vendidos', 'nao_vendidos', 'removidos', 'valor', 'mt'].forEach((f) =>
+      igual(r.kpi[f], c[f], MD.eventos[c.ev][0] + ' ' + f));
+    igual(r.eventos.length, lista.length, 'a tabela com o evento escolhido');
+    statusMes(c, MD.eventos[c.ev][0]);
+  });
+  /* só eventos ativos em algum dia do mês, e todos eles */
+  igual(lista.length, MD.eventos.filter((e) => e[3] <= 11 && 11 <= e[4]).length, 'eventos do mês');
+  /* o comitente estreita a tabela aos eventos dele */
+  const c0 = M0.por_comit[0].comit;
+  CM({ comit: String(c0) }).eventos.forEach((c) => verdade(MD.eventos[c.ev][6].indexOf(c0) >= 0, 'evento de outro comitente'));
+  /* ativos antes dos finalizados */
+  const pf = lista.findIndex((c) => c.fin);
+  verdade(pf < 0 || lista.slice(pf).every((c) => c.fin), 'ativos primeiro');
+});
+/* a meta ajustada refeita do cru: por grupo (canais do evento, comitente,
+   categoria) com os donos do mês; se cada ativo bater a ajustada, o grupo
+   fecha o mês na meta */
+const metaVeicP = (mp, wls, c, ct) => {
+  let n = 0;
+  let o = 0;
+  let v = 0;
+  wls.forEach((w) => { const x = (mp || {})[w + '|' + c + '|' + ct]; if (x) { n++; o += x[0]; v += x[1]; } });
+  return n ? [o / n, v / n] : ((mp || {})['0|' + c + '|' + ct] || null);
+};
+prova('mensal: meta ajustada refeita do cru — com ela os ativos fecham o mês na meta, e o finalizado não tem', () => [11, 10].forEach((m) => {
+  const r = CM({ mes: String(m) });
+  const G = {};
+  MD.ev.forEach((x) => {
+    if (x[0] !== m || !x[5][0]) return;
+    const e = MD.eventos[x[1]];
+    const k = e[5].join(',') + '|' + x[2] + '|' + x[3];
+    const g = G[k] || (G[k] = { n: 0, at: 0, of: 0, ve: 0, mm: metaVeicP(D.metas.mes[m], e[5], x[2], x[3]) });
+    g.n += x[5][0];
+    if (e[7]) { g.of += x[5][3]; g.ve += x[5][4]; } else g.at += x[5][0];
+  });
+  let comAj = 0;
+  r.eventos.forEach((c) => {
+    if (c.fin) { igual(c.meta_aj.oferta, null, 'finalizado com meta ajustada'); return; }
+    const s = { of: [0, 0], ve: [0, 0] };
+    MD.ev.forEach((x) => {
+      if (x[0] !== m || x[1] !== c.ev || !x[4][0]) return;
+      const e = MD.eventos[x[1]];
+      const g = G[e[5].join(',') + '|' + x[2] + '|' + x[3]];
+      if (!g || !g.mm || !g.at) return;
+      [['of', 0], ['ve', 1]].forEach((q) => {
+        const a = Math.max(0, Math.min(1, (g.mm[q[1]] * g.n - g[q[0]]) / g.at));
+        s[q[0]][0] += a * x[4][0];
+        s[q[0]][1] += x[4][0];
+      });
+    });
+    quase(c.meta_aj.oferta, s.of[1] ? s.of[0] / s.of[1] : null, MD.eventos[c.ev][0] + ' oferta');
+    quase(c.meta_aj.venda, s.ve[1] ? s.ve[0] / s.ve[1] : null, MD.eventos[c.ev][0] + ' venda');
+    if (c.meta_aj.oferta !== null) comAj++;
+  });
+  if (m === 11) verdade(comAj > 5, 'poucos eventos ativos com meta ajustada: ' + comAj);
+  /* a compensação fecha: realizado nos finalizados + ajustada × ativos = meta × todos, no grupo dentro de 0 e 100% */
+  Object.keys(G).forEach((k) => {
+    const g = G[k];
+    if (!g.mm || !g.at) return;
+    const x = (g.mm[0] * g.n - g.of) / g.at;
+    if (x > 0 && x < 1) quase(Math.round((g.of + x * g.at) * 1e6) / 1e6, Math.round(g.mm[0] * g.n * 1e6) / 1e6, k + ' fecha');
+  });
+  /* os filtros não mexem na ajustada do evento */
+  const c1 = r.eventos.find((c) => !c.fin && c.meta_aj.oferta !== null);
+  if (c1) quase(CM({ mes: String(m), sit: 'at', wl: String(MD.eventos[c1.ev][5][0]) }).eventos.find((c) => c.ev === c1.ev).meta_aj.oferta, c1.meta_aj.oferta, 'com filtros');
+}));
+
+/* ── as metas (Thomas, 06/11; refeitas em 17/11 e em 19/11) ──────────────
    A planilha metas-painel-eventos.xlsx, lida pelo le_metas.py como o n8n lê:
-   uma aba por mês ("2026-11"), com a meta mensal e a diária na mesma aba, só
-   Leves e Pesados. O painel usa a aba do mês de referência (no Diário, a do
-   mês de cada dia); mês sem aba usa a mais recente anterior. A meta de um
-   recorte é a média das metas dos veículos dele: cada veículo leva a do
-   comitente da negociação escolhida e da sua categoria */
+   uma aba por mês ("2026-11"), só a meta MENSAL (19/11: a diária saiu), uma
+   linha por whitelabel e comitente, só Leves e Pesados. O painel usa a aba
+   do mês de referência (no Diário, a do mês de cada dia); mês sem aba usa a
+   mais recente anterior. A meta de um recorte é a média das metas dos
+   veículos dele: cada veículo leva a do canal do evento, do comitente da
+   negociação escolhida e da sua categoria */
 const ML = JSON.parse(fs.readFileSync(path.join(AQUI, 'metas-local.json'), 'utf8'));
 const CAT_NOME = { L: 'Leves', P: 'Pesados' };
 const ORDEM = ['L', 'P'];
 /* as colunas da aba como o gera_metas.py a desenha, a partir de B (a área
-   usada): ID, Comitente, e [período, medida, categoria] de cada meta */
+   usada): Whitelabel, ID, Comitente, e [medida, categoria] de cada meta */
 const COLS_META = [];
-['mes', 'dia'].forEach((q) => [0, 1].forEach((k) => ORDEM.forEach((c) => COLS_META.push([q, k, c]))));
+[0, 1].forEach((k) => ORDEM.forEach((c) => COLS_META.push([k, c])));
+const NFIX = 3;
 /* as linhas de uma aba, pelo pairedItem, como o Montar Painel junta */
 const linhasDe = (aba, ml) => {
   const M = ml || ML;
   const k = M['Abas das Metas'].findIndex((i) => i.json.aba === aba);
   return M.Metas.filter((i) => i.pairedItem && i.pairedItem.item === k && Array.isArray(i.json.row)).map((i) => i.json.row);
 };
+const canalP = (x) => { const m = String(x || '').match(/^[0-9]+/); return m ? Number(m[0]) : null; };
 /* a aba lida aqui por POSIÇÃO FIXA (o painel procura as linhas; aqui a
    posição é a do desenho, para os dois se conferirem): a área começa em B2;
-   linha 2 = períodos; 3 = medidas; 4 = cabeçalho; dados da 5 */
+   linha 2 = Meta mensal; 3 = medidas; 4 = cabeçalho; dados da 5 */
 const tabela = (aba) => linhasDe(aba).slice(3).filter((r) => r.some((x) => x !== null)).map((r) => {
-  const o = { id: r[0], nome: r[1], mes: {}, dia: {} };
-  ['mes', 'dia'].forEach((q) => ORDEM.forEach((c) => {
-    const a = r[2 + COLS_META.findIndex((x) => x[0] === q && x[1] === 0 && x[2] === c)];
-    const b = r[2 + COLS_META.findIndex((x) => x[0] === q && x[1] === 1 && x[2] === c)];
-    if (a !== null || b !== null) o[q][c] = [a, b];
-  }));
+  const o = { wl: canalP(r[0]), id: r[1], nome: r[2], mes: {} };
+  ORDEM.forEach((c) => {
+    const a = r[NFIX + COLS_META.findIndex((x) => x[0] === 0 && x[1] === c)];
+    const b = r[NFIX + COLS_META.findIndex((x) => x[0] === 1 && x[1] === c)];
+    if (a !== null || b !== null) o.mes[c] = [a, b];
+  });
   return o;
 });
-/* da aba, pelo NOME do comitente (o índice da página não leva o id) */
-const daAba = (aba, q) => {
+/* da aba, pelo canal e o NOME do comitente (o índice da página não leva o id) */
+const daAba = (aba) => {
   const o = {};
-  tabela(aba).forEach((t) => Object.keys(t[q]).forEach((c) => { o[String(t.nome).trim() + '|' + CAT_NOME[c]] = t[q][c]; }));
+  tabela(aba).forEach((t) => Object.keys(t.mes).forEach((c) => { o[t.wl + '|' + String(t.nome).trim() + '|' + CAT_NOME[c]] = t.mes[c]; }));
   return o;
 };
-const quase = (a, b, o) => { if (a === null || b === null ? a !== b : Math.abs(a - b) > 1e-9) throw new Error(o + ': ' + a + ' ≠ ' + b); };
 /* o mês do dia d (índice em MD.meses), como o calcula faz */
 const P0P = Date.UTC(Number(D.piso_dia.slice(0, 4)), Number(D.piso_dia.slice(5, 7)) - 1, Number(D.piso_dia.slice(8, 10)));
 const mesDoDiaP = (d) => MD.meses.indexOf(new Date(P0P + d * 86400000).toISOString().slice(0, 7));
@@ -770,67 +968,73 @@ prova('metas: o nó Abas das Metas faz um item por mês do Mensal, com o arquivo
   igual(sem.length, 12, 'sem o arquivo, ainda 12 itens');
   verdade(sem.every((i) => !i.binary && i.json.sem_arquivo), 'sem o arquivo, marcados');
 });
-prova('metas: cada aba veio inteira para a página, no mês, no comitente e na categoria certos', () => {
+prova('metas: cada aba veio inteira para a página, no mês, no canal, no comitente e na categoria certos — e o Diário usa a mensal', () => {
   [['mes', MD.comitentes], ['dia', D.comitentes]].forEach((p) => MD.meses.forEach((aba, m) => {
-    const pl = daAba(aba, p[0]);
+    const pl = daAba(aba);
     const pg = D.metas[p[0]][m];
     Object.keys(pg).forEach((k) => {
       const c = k.split('|');
-      const x = pl[p[1][Number(c[0])] + '|' + CAT_NOME[c[1]]];
+      const x = pl[c[0] + '|' + p[1][Number(c[1])] + '|' + CAT_NOME[c[2]]];
       verdade(x, aba + ' ' + p[0] + ': ' + k + ' sem linha na aba');
       quase(pg[k][0], x[0], aba + ' ' + p[0] + ' ' + k + ' oferta');
       quase(pg[k][1], x[1], aba + ' ' + p[0] + ' ' + k + ' vendidos');
     });
     verdade(Object.keys(pg).length > 10, aba + ' ' + p[0] + ': poucas metas na página');
   }));
+  /* todo canal de meta é um dos seis */
+  D.metas.mes.forEach((mm) => Object.keys(mm).forEach((k) => verdade(meta.wls.indexOf(Number(k.split('|')[0])) >= 0, 'canal ' + k)));
 });
-prova('metas: o desenho — margem, períodos na linha 2, medidas na 3, cabeçalho na 4; só Leves e Pesados; sem teste; as duas de cada categoria juntas', () => {
-  const lin2 = [null, null];
-  const lin3 = [null, null];
+prova('metas: o desenho — margem, Meta mensal na linha 2, medidas na 3, cabeçalho na 4 com o Whitelabel antes do ID; só Leves e Pesados; sem teste; as duas de cada categoria juntas', () => {
+  const lin2 = [null, null, null];
+  const lin3 = [null, null, null];
   COLS_META.forEach((x, j) => {
-    const primeiraP = COLS_META.findIndex((y) => y[0] === x[0]) === j;
-    const primeiraM = COLS_META.findIndex((y) => y[0] === x[0] && y[1] === x[1]) === j;
-    lin2.push(primeiraP ? (x[0] === 'mes' ? 'Meta mensal' : 'Meta diária') : null);
-    lin3.push(primeiraM ? (x[1] === 0 ? '% Com Oferta' : '% Vendido') : null);
+    lin2.push(j === 0 ? 'Meta mensal' : null);
+    lin3.push(COLS_META.findIndex((y) => y[0] === x[0]) === j ? (x[0] === 0 ? '% Com Oferta' : '% Vendido') : null);
   });
-  const lin4 = ['ID comitente', 'Comitente'].concat(COLS_META.map((x) => CAT_NOME[x[2]]));
+  const lin4 = ['Whitelabel', 'ID comitente', 'Comitente'].concat(COLS_META.map((x) => CAT_NOME[x[1]]));
   MD.meses.forEach((aba) => {
     const L = linhasDe(aba);
     igual(JSON.stringify(L[0]), JSON.stringify(lin2), aba + ' linha 2');
     igual(JSON.stringify(L[1]), JSON.stringify(lin3), aba + ' linha 3');
     igual(JSON.stringify(L[2]), JSON.stringify(lin4), aba + ' linha 4');
-    L.forEach((r) => r.forEach((x) => verdade(['Equipamentos', 'Não informada', 'Motos'].indexOf(x) < 0, aba + ': coluna ' + x)));
+    L.forEach((r) => r.forEach((x) => verdade(['Equipamentos', 'Não informada', 'Motos', 'Meta diária'].indexOf(x) < 0, aba + ': ' + x)));
     const T = tabela(aba);
-    verdade(T.length > 10, aba + ': poucos comitentes');
+    verdade(T.length > 10, aba + ': poucas linhas');
+    const vistas = {};
     T.forEach((t) => {
-      const o = aba + ' ' + t.nome;
+      const o = aba + ' ' + t.wl + ' ' + t.nome;
+      verdade(meta.wls.indexOf(t.wl) >= 0, o + ': canal fora dos seis');
+      verdade(!vistas[t.wl + '|' + t.id], o + ': canal e comitente repetidos');
+      vistas[t.wl + '|' + t.id] = 1;
       verdade(String(t.nome).toLowerCase().indexOf('teste') < 0, o + ': comitente de teste');
-      verdade(Object.keys(t.mes).length + Object.keys(t.dia).length > 0, o + ': linha sem meta');
-      ['mes', 'dia'].forEach((q) => Object.keys(t[q]).forEach((c) => {
-        const a = t[q][c][0];
-        const b = t[q][c][1];
-        verdade(a !== null && b !== null, o + ' ' + q + ' ' + c + ': uma meta sem a outra');
-        verdade(a >= 0 && a <= 1 && b >= 0 && b <= 1, o + ' ' + q + ' ' + c + ': fora de 0 a 100%');
-      }));
+      verdade(Object.keys(t.mes).length > 0, o + ': linha sem meta');
+      Object.keys(t.mes).forEach((c) => {
+        const a = t.mes[c][0];
+        const b = t.mes[c][1];
+        verdade(a !== null && b !== null, o + ' ' + c + ': uma meta sem a outra');
+        verdade(a >= 0 && a <= 1 && b >= 0 && b <= 1, o + ' ' + c + ': fora de 0 a 100%');
+      });
     });
+    /* o mesmo comitente em mais de um canal (19/11: meta por canal) */
+    verdade(Object.keys(vistas).length > new Set(T.map((t) => t.id)).size, aba + ': nenhum comitente em dois canais');
   });
   /* todas as abas nascem com a mesma média (Thomas, 17/11) */
   MD.meses.forEach((aba) => igual(JSON.stringify(tabela(aba)), JSON.stringify(tabela(MD.meses[0])), aba + ' igual à primeira'));
 });
-prova('metas: a planilha travada — só as metas e as linhas novas destravadas, inserir linha e filtrar liberados, sem grade; metas pintadas, só o contorno e a divisa', () => {
+prova('metas: a planilha travada — só as metas e as linhas novas destravadas, inserir linha e filtrar liberados, sem grade; metas pintadas, só o contorno; o canal na lista dos seis', () => {
   const r = require('child_process').spawnSync('python', ['-c', [
     'import json, openpyxl',
     "wb = openpyxl.load_workbook('metas-painel-eventos.xlsx')",
     'o = {}',
     'for ws in wb:',
-    '    n = sum(1 for r in ws.iter_rows(min_row=5, min_col=2, max_col=2, values_only=True) if r[0] is not None)',
+    '    n = sum(1 for r in ws.iter_rows(min_row=5, min_col=3, max_col=3, values_only=True) if r[0] is not None)',
     "    o[ws.title] = dict(sheet=ws.protection.sheet, ins=ws.protection.insertRows, filtro=ws.protection.autoFilter, del_col=ws.protection.deleteColumns, grade=ws.sheet_view.showGridLines,",
-    "        id_trava=ws.cell(5, 2).protection.locked, meta_livre=not ws.cell(5, 4).protection.locked, cab_trava=ws.cell(4, 4).protection.locked,",
-    "        nova_livre=not ws.cell(5 + n, 2).protection.locked and not ws.cell(5 + n, 11).protection.locked, valid=len(ws.data_validations.dataValidation),",
-    "        pinta=[ws.cell(5, 4).fill.fgColor.rgb[-6:], ws.cell(5, 6).fill.fgColor.rgb[-6:], ws.cell(5 + n + 5, 8).fill.fgColor.rgb[-6:], ws.cell(5, 10).fill.fgColor.rgb[-6:]],",
-    "        internas=sum(1 for r in range(6, ws.max_row) for c in range(3, 12) for s in (ws.cell(r, c).border.left if c != 8 else None, ws.cell(r, c).border.top) if s is not None and s.style),",
-    "        divisa=(ws.cell(6, 8).border.left or 0) and ws.cell(6, 8).border.left.style,",
-    "        contorno=[(ws.cell(6, 2).border.left or 0) and ws.cell(6, 2).border.left.style, (ws.cell(6, 11).border.right or 0) and ws.cell(6, 11).border.right.style,",
+    "        id_trava=ws.cell(5, 3).protection.locked and ws.cell(5, 2).protection.locked, meta_livre=not ws.cell(5, 5).protection.locked, cab_trava=ws.cell(4, 5).protection.locked,",
+    "        nova_livre=not ws.cell(5 + n, 2).protection.locked and not ws.cell(5 + n, 8).protection.locked, valid=len(ws.data_validations.dataValidation),",
+    "        lista=[v.formula1 for v in ws.data_validations.dataValidation if v.type == 'list'],",
+    "        pinta=[ws.cell(5, 5).fill.fgColor.rgb[-6:], ws.cell(5, 7).fill.fgColor.rgb[-6:], ws.cell(5 + n + 5, 6).fill.fgColor.rgb[-6:], ws.cell(5, 8).fill.fgColor.rgb[-6:]],",
+    "        internas=sum(1 for r in range(6, ws.max_row) for c in range(3, 9) for s in (ws.cell(r, c).border.left, ws.cell(r, c).border.top) if s is not None and s.style),",
+    "        contorno=[(ws.cell(6, 2).border.left or 0) and ws.cell(6, 2).border.left.style, (ws.cell(6, 8).border.right or 0) and ws.cell(6, 8).border.right.style,",
     "                  (ws.cell(ws.max_row, 6).border.bottom or 0) and ws.cell(ws.max_row, 6).border.bottom.style])",
     'print(json.dumps(o))'].join(String.fromCharCode(10))], { cwd: AQUI, encoding: 'utf8' });
   const o = JSON.parse(r.stdout);
@@ -840,21 +1044,22 @@ prova('metas: a planilha travada — só as metas e as linhas novas destravadas,
     verdade(x.sheet && x.ins === false && x.filtro === false && x.del_col !== false, t + ': proteção ' + JSON.stringify(x));
     verdade(x.id_trava && x.meta_livre && x.cab_trava && x.nova_livre, t + ': o que trava ' + JSON.stringify(x));
     verdade(x.grade === false, t + ': linhas de grade');
-    igual(x.valid, 2, t + ': validação de meta e de ID');
+    igual(x.valid, 3, t + ': validação de meta, de ID e do canal');
+    igual(x.lista.length, 1, t + ': a lista dos canais');
+    meta.wls.forEach((w) => verdade(x.lista[0].indexOf(w + ' - ') >= 0, t + ': canal ' + w + ' fora da lista'));
     igual(JSON.stringify(x.pinta), JSON.stringify(['F1F8EC', 'EEF5FB', 'F1F8EC', 'EEF5FB']), t + ': metas pintadas (oferta verde, vendido azul, linhas novas também)');
     igual(x.internas, 0, t + ': linhas internas');
-    igual(x.divisa, 'thin', t + ': divisa entre o mensal e o diário');
     igual(JSON.stringify(x.contorno), JSON.stringify(['thin', 'thin', 'thin']), t + ': contorno');
   });
 });
 prova('metas: todo veículo tem categoria, das quatro (motos em Leves); só Leves e Pesados têm meta', () => {
   D.veics.forEach((v, i) => verdade(['L', 'P', 'E', 'N'].indexOf(v[7]) >= 0, 'veículo ' + i));
-  MD.grupos.forEach((g) => verdade(['L', 'P', 'E', 'N'].indexOf(g[13]) >= 0, 'grupo do mês'));
+  MD.ev.forEach((g) => verdade(['L', 'P', 'E', 'N'].indexOf(g[3]) >= 0, 'linha do mês'));
   ['mes', 'dia'].forEach((q) => D.metas[q].forEach((mm, m) => Object.keys(mm).forEach((k) =>
-    verdade(ORDEM.indexOf(k.split('|')[1]) >= 0, q + ' ' + MD.meses[m] + ': meta de ' + k))));
+    verdade(ORDEM.indexOf(k.split('|')[2]) >= 0, q + ' ' + MD.meses[m] + ': meta de ' + k))));
 });
 /* a meta do dia refeita sem o calcula: a mesma "última negociação" da prova
-   do acumulado, com a aba do mês do dia */
+   do acumulado, com a aba do mês do dia e o canal do evento */
 const metaDoDia = (d, comit) => {
   const ult = {};
   D.negs.forEach((n, i) => {
@@ -868,7 +1073,8 @@ const metaDoDia = (d, comit) => {
   Object.keys(ult).forEach((v) => {
     s.n++;
     const cat = D.veics[v][7];
-    const mm = tab[D.negs[ult[v]][2] + '|' + cat];
+    const n = D.negs[ult[v]];
+    const mm = metaVeicP(tab, D.eventos[n[0]].wls, n[2], cat);
     if (ORDEM.indexOf(cat) >= 0) s.lp++;
     if (mm) {
       s.mt++; s.mo += mm[0]; s.mv += mm[1];
@@ -877,7 +1083,7 @@ const metaDoDia = (d, comit) => {
   });
   return s;
 };
-prova('metas: a do gráfico em cada dia refeita do cru, sem o calcula, com a aba do mês do dia', () => [D.hoje, 22, 10, 0].forEach((d) => {
+prova('metas: a do gráfico em cada dia refeita do cru, sem o calcula, com a aba do mês do dia e o canal do evento', () => [D.hoje, 22, 10, 0].forEach((d) => {
   const s = metaDoDia(d);
   const g = T0.dias[d];
   igual(g.mt, s.mt, 'dia ' + d + ' veículos com meta');
@@ -898,22 +1104,29 @@ prova('metas: a da rosca de cada comitente é a do gráfico filtrado por ele', (
   quase(c.dia.mo, g.mo, D.comitentes[c.comit] + ' oferta');
   quase(c.dia.mv, g.mv, D.comitentes[c.comit] + ' vendidos');
 }));
-prova('metas: comitente sozinho tem a meta da planilha (média das categorias dele, pelos veículos)', () => T0.por_comit.forEach((c) => {
+prova('metas: comitente sozinho tem a meta da planilha (média das categorias e dos canais dele, pelos veículos)', () => T0.por_comit.forEach((c) => {
   const s = metaDoDia(D.hoje, c.comit);
   igual(c.dia.mt, s.mt, D.comitentes[c.comit]);
   quase(c.dia.mo, s.mo, D.comitentes[c.comit]);
 }));
-prova('metas: a do mês é a média das metas dos grupos com a aba do mês, pesada pelos veículos, refeita do cru', () => M0.meses.forEach((g, m) => {
+prova('metas: a do mês é a média das metas dos donos com a aba do mês e o canal do evento, pesada pelos veículos, refeita do cru', () => M0.meses.forEach((g, m) => {
   const s = { mt: 0, mo: 0, mv: 0 };
-  MD.grupos.forEach((r) => {
+  MD.ev.forEach((r) => {
     if (r[0] !== m) return;
-    const mm = D.metas.mes[m][r[1] + '|' + r[13]];
-    if (mm) { s.mt += r[3]; s.mo += r[3] * mm[0]; s.mv += r[3] * mm[1]; }
+    const mm = metaVeicP(D.metas.mes[m], MD.eventos[r[1]][5], r[2], r[3]);
+    if (mm) { s.mt += r[5][0]; s.mo += r[5][0] * mm[0]; s.mv += r[5][0] * mm[1]; }
   });
   igual(g.mt, s.mt, MD.meses[m] + ' veículos com meta');
   quase(g.mo, s.mo, MD.meses[m] + ' oferta');
   quase(g.mv, s.mv, MD.meses[m] + ' vendidos');
 }));
+prova('metas: evento de dois canais leva a média das metas dos dois', () => {
+  const r = MD.ev.find((x) => MD.eventos[x[1]][5].length > 1 && MD.eventos[x[1]][5].every((w) => D.metas.mes[x[0]][w + '|' + x[2] + '|' + x[3]]));
+  verdade(r, 'nenhum evento de dois canais com meta nos dois');
+  const ws = MD.eventos[r[1]][5];
+  const mm = metaVeicP(D.metas.mes[r[0]], ws, r[2], r[3]);
+  quase(mm[0], ws.reduce((t, w) => t + D.metas.mes[r[0]][w + '|' + r[2] + '|' + r[3]][0], 0) / ws.length, 'média dos canais');
+});
 prova('metas: no mês, o comitente é o total com ele filtrado', () => [10, 11].forEach((m) => CM({ mes: String(m) }).por_comit.forEach((c) => {
   const k = CM({ mes: String(m), comit: String(c.comit) }).kpi;
   igual(c.mt, k.mt, 'mês ' + m + ' ' + MD.comitentes[c.comit]);
@@ -942,20 +1155,21 @@ prova('metas: sem a planilha o painel sai, sem meta e com o aviso', () => {
 });
 prova('metas: a meta muda com o mês de referência — mudar uma aba muda só aquele mês, no Mensal e nos dias dele', () => {
   const L = linhasDe(PEN).map((r) => r.slice());
-  const j = L.findIndex((r, i) => i > 2 && r[2] !== null && r[4] !== null);
-  const nome = String(L[j][1]).trim();
-  L[j][2] = 0.5;   /* mensal, % com oferta, Leves */
-  L[j][6] = 0.4;   /* diária, % com oferta, Leves */
-  L[j][8] = 0.1;   /* diária, % vendido, Leves */
+  const j = L.findIndex((r, i) => i > 2 && r[3] !== null && r[5] !== null);
+  const nome = String(L[j][2]).trim();
+  const wl = canalP(L[j][0]);
+  L[j][3] = 0.5;   /* % com oferta, Leves */
+  L[j][5] = 0.1;   /* % vendido, Leves */
   const d = dadoPag(comMetas(trocaAba(PEN, L)).html);
-  const cm = MD.comitentes.indexOf(nome);
+  const cm2 = MD.comitentes.indexOf(nome);
   const cd = D.comitentes.indexOf(nome);
-  quase(d.metas.mes[10][cm + '|L'][0], 0.5, 'mensal no mês da aba');
-  quase(d.metas.mes[11][cm + '|L'][0], D.metas.mes[11][cm + '|L'][0], 'mensal no mês seguinte, sem mudar');
-  if (cd >= 0 && d.metas.dia[10][cd + '|L']) {
-    quase(d.metas.dia[10][cd + '|L'][0], 0.4, 'diária no mês da aba');
-    quase(d.metas.dia[10][cd + '|L'][1], 0.1, 'diária vendidos no mês da aba');
-    quase(d.metas.dia[11][cd + '|L'][0], D.metas.dia[11][cd + '|L'][0], 'diária no mês seguinte, sem mudar');
+  const k = (c) => wl + '|' + c + '|L';
+  quase(d.metas.mes[10][k(cm2)][0], 0.5, 'mensal no mês da aba');
+  quase(d.metas.mes[10][k(cm2)][1], 0.1, 'vendidos no mês da aba');
+  quase(d.metas.mes[11][k(cm2)][0], D.metas.mes[11][k(cm2)][0], 'mensal no mês seguinte, sem mudar');
+  if (cd >= 0) {
+    quase(d.metas.dia[10][k(cd)][0], 0.5, 'o Diário usa a mensal do mês do dia');
+    quase(d.metas.dia[11][k(cd)][0], D.metas.dia[11][k(cd)][0], 'diário no mês seguinte, sem mudar');
   }
 });
 prova('metas: mês sem aba usa a mais recente anterior e avisa; sem nenhuma anterior, fica sem meta', () => {
@@ -970,37 +1184,52 @@ prova('metas: mês sem aba usa a mais recente anterior e avisa; sem nenhuma ante
   igual(Object.keys(d0.metas.mes[0]).length, 0, 'sem meta no primeiro mês');
   verdade(o0.resumo.avisos.some((a) => a.indexOf('sem aba para ' + MD.meses[0]) >= 0), 'aviso do mês sem meta');
 });
-prova('metas: lê "25%", "25,5", 25 e 0,25; meta ilegível ou sozinha fica sem meta e avisa; aba fora do formato avisa', () => {
+prova('metas: lê "25%", "25,5", 25 e 0,25; meta ilegível, sozinha ou sem canal fica sem meta e avisa; aba fora do formato avisa', () => {
   const L = linhasDe(ULT).slice(0, 60).map((r) => r.slice());
-  /* linhas 0 a 2 são períodos, medidas e cabeçalho; os dados vêm da 3.
-     A coluna 2 é a do mensal, % com oferta, Leves */
-  const comLeves = L.slice(3).filter((r) => r[2] !== null && r[4] !== null);
+  /* linhas 0 a 2 são Meta mensal, medidas e cabeçalho; os dados vêm da 3.
+     A coluna 3 é % com oferta, Leves; a 5, % vendido, Leves */
+  const comLeves = L.slice(3).filter((r) => r[3] !== null && r[5] !== null);
   const valores = ['25%', '25,5', 25, 0.25, 'abc'];
-  comLeves.slice(0, 5).forEach((r, j) => { r[2] = valores[j]; });
-  comLeves[5][4] = null;
+  comLeves.slice(0, 5).forEach((r, j) => { r[3] = valores[j]; });
+  comLeves[5][5] = null;
+  comLeves[6][0] = 'sem canal';
   const o = comMetas(trocaAba(ULT, L));
   const d = dadoPag(o.html);
   const esperado = [0.25, 0.255, 0.25, 0.25];
   comLeves.slice(0, 4).forEach((r, j) => {
-    const c = d.mes.comitentes.indexOf(String(r[1]).trim());
-    if (c >= 0) quase(d.metas.mes[11][c + '|L'][0], esperado[j], 'linha ' + j);
+    const c = d.mes.comitentes.indexOf(String(r[2]).trim());
+    if (c >= 0) quase(d.metas.mes[11][canalP(r[0]) + '|' + c + '|L'][0], esperado[j], 'linha ' + j);
   });
-  verdade(o.resumo.avisos.some((a) => a.indexOf('2 meta(s) da aba ' + ULT) >= 0), 'aviso: a ilegível e a sozinha');
+  verdade(o.resumo.avisos.some((a) => a.indexOf('meta(s) da aba ' + ULT) >= 0 && Number(a.split(' ')[0]) >= 3), 'aviso: a ilegível, a sozinha e a sem canal');
   /* a margem a mais (área começando em A1) não muda nada: a leitura acha a linha */
   const deslocada = [[]].concat(linhasDe(ULT).map((r) => [null].concat(r)));
   const dm = dadoPag(comMetas(trocaAba(ULT, deslocada)).html);
   igual(JSON.stringify(dm.metas.mes[11]), JSON.stringify(D.metas.mes[11]), 'área deslocada, mensal');
-  igual(JSON.stringify(dm.metas.dia[11]), JSON.stringify(D.metas.dia[11]), 'área deslocada, diária');
-  /* sem a linha dos períodos: fora do formato, e o mês usa a aba anterior */
-  const semPeriodo = linhasDe(ULT).map((r, k) => (k === 0 ? [] : r));
-  const os = comMetas(trocaAba(ULT, semPeriodo));
-  verdade(os.resumo.avisos.some((a) => a.indexOf('a aba ' + ULT + ' da planilha de metas veio fora do formato') === 0), 'aviso sem a linha dos períodos');
+  igual(JSON.stringify(dm.metas.dia[11]), JSON.stringify(D.metas.dia[11]), 'área deslocada, diário');
+  /* sem a linha das medidas: fora do formato, e o mês usa a aba anterior */
+  const semMedida = linhasDe(ULT).map((r, k) => (k === 1 ? [] : r));
+  const os = comMetas(trocaAba(ULT, semMedida));
+  verdade(os.resumo.avisos.some((a) => a.indexOf('a aba ' + ULT + ' da planilha de metas veio fora do formato') === 0), 'aviso sem a linha das medidas');
   igual(dadoPag(os.html).metas.abas[11], PEN, 'aba fora do formato: usa a anterior');
-  /* só o bloco mensal: a diária do mês fica sem meta, e avisa */
-  const soMensal = linhasDe(ULT).map((r) => r.slice(0, 6));
-  const om = comMetas(trocaAba(ULT, soMensal));
-  verdade(om.resumo.avisos.some((a) => a.indexOf('não tem o bloco Meta diária') >= 0), 'aviso sem a diária');
-  igual(Object.keys(dadoPag(om.html).metas.dia[11]).length, 0, 'sem a diária no mês');
+});
+prova('metas: a planilha antiga (sem o Whitelabel, com a Meta diária) vale para todos os canais, sem a diária, e avisa', () => {
+  /* o desenho de 17/11: ID, Comitente, a mensal e a diária */
+  const L = linhasDe(ULT).map((r, k) => {
+    const x = r.slice(1);
+    if (k === 0) return x.concat(['Meta diária', null, null, null]);
+    if (k === 1) return x.concat(['% Com Oferta', null, '% Vendido', null]);
+    if (k === 2) return x.concat(['Leves', 'Pesados', 'Leves', 'Pesados']);
+    return x.concat(x[2] === null && x[3] === null ? [null, null, null, null] : [0.99, 0.99, 0.99, 0.99]);
+  });
+  const o = comMetas(trocaAba(ULT, L));
+  const d = dadoPag(o.html);
+  const ks = Object.keys(d.metas.mes[11]);
+  verdade(ks.length > 10 && ks.every((k) => k.split('|')[0] === '0'), 'canal 0 em toda meta');
+  verdade(ks.every((k) => d.metas.mes[11][k][0] !== 0.99), 'a diária ficou de fora');
+  verdade(o.resumo.avisos.some((a) => a.indexOf('sem a coluna Whitelabel') >= 0), 'aviso');
+  /* e o veículo de qualquer canal leva a meta do canal 0 */
+  const r = MD.ev.find((x) => x[0] === 11 && d.metas.mes[11]['0|' + x[2] + '|' + x[3]]);
+  verdade(r && metaVeicP(d.metas.mes[11], MD.eventos[r[1]][5], r[2], r[3]), 'meta do canal 0 alcança o veículo');
 });
 prova('metas: linha sem o pairedItem fica fora e avisa', () => {
   const ml = copia(ML);

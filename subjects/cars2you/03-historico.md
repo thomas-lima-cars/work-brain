@@ -348,3 +348,16 @@ precificar.
   para a Dealers e vendeu lá. HTML estático em `automations/estudo-republicacoes-dealers/` com filtros de
   categoria, ordem, comitente e período; sem as tabelas lado a lado e de status final, tabela de veículos
   enxuta (pedido da noite). Números em `context/banco-de-dados/projetos/republicacoes-dealers/indicadores.md`.
+
+## 2026-11-19
+- **Estudo de Republicações Dealers:** a tabela de veículos centraliza o conteúdo e quebra linha no comitente
+  e no modelo (o texto aparece inteiro); as tabelas Por ordem e Por comitente quebram o título da coluna quando
+  a tela não comporta (pedidos do Thomas). HTML regerado, não reenviado a ninguém.
+- **Painel de Eventos Cars2You, Mensal por evento** (pedido do Thomas): tabela de eventos do mês com **meta
+  ajustada** ("quanto falta": o que os ativos precisam fazer para o mês fechar na meta, compensando os
+  finalizados); **eventos ativos de volta**, com o filtro Total · Ativos · Finalizados; filtros de evento e de
+  datas de início e fim; gráficos de veículos e lojistas também nos **dias do mês** de referência. Planilha de
+  metas **só mensal e por whitelabel** (a diária saiu; o Diário usa a mensal). Consultas por evento (`mes_ev`,
+  `mes_dia`, `mes_lojd`), 111 no total, HTML de 5,4 MB, 112 provas, conferência contra o banco ok. **Pronto no
+  local e não enviado ao n8n**: em 23/11 o Thomas viu a tela e pediu para guardar e voltar depois. Detalhes no
+  README da pasta (seção de 19/11); números em `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`.

@@ -9,6 +9,14 @@ Pedido do Thomas (06/11): meta diaria e mensal do % de veiculos com oferta e
 do % vendidos, por comitente e categoria. A planilha nasce com a MEDIA dos 12
 meses fechados; quem quiser muda a meta, sobe no SharePoint, e o painel le.
 
+Refeita em 19/11 (Thomas): "remova as metas diarias e adicione uma coluna
+de whitelabel antes do id do comitente". So a meta MENSAL; uma linha por
+WHITELABEL e comitente, e a media de cada linha e so dos eventos daquele
+canal (Thomas, 19/11: o mesmo comitente pode ter meta diferente em cada
+whitelabel). Evento com mais de um canal (507 dos 2.166 dos 12 meses, quase
+todos 4 + 7) conta o veiculo em cada um deles. O Diario passou a usar a meta
+mensal do mes do dia.
+
 Refeita em 17/11 (Thomas): UMA ABA POR MES, de nome "AAAA-MM", para os 12
 meses do Mensal (o mes corrente e os 11 anteriores), com a meta mensal e a
 diaria na mesma aba; so Leves e Pesados; todas as abas nascem com a MESMA
@@ -16,33 +24,29 @@ media. O painel usa a aba do mes de referencia (no Diario, a do mes de cada
 dia); mes sem aba usa a mais recente anterior. Mes novo: copiar a ultima
 aba e renomear (Mover ou copiar), ou rodar isto de novo.
 
-As duas medias sao as do painel, refeitas aqui das linhas cruas (conexao
-direta, VPN):
+A media e a do painel, refeita aqui das linhas cruas (conexao direta, VPN):
 
   Mensal  o % do mes da aba Mensal: de cada veiculo ativo no mes, a negociacao
           mais recente (fim do evento, depois id); com oferta = teve lance ou
           vendeu; vendido = status 2, 3 ou 7. Media simples dos meses em que o
           grupo teve veiculo.
-  Diaria  o % do dia do Diario (o acumulado no evento): de cada veiculo ativo
-          no dia, a negociacao do evento mais recente ativo nele; com oferta =
-          lance ou venda ate o fim do dia; vendido = venda ate o fim do dia.
-          Media simples dos dias em que o grupo teve veiculo.
+  (a media diaria saiu em 19/11)
 
 A revisao (Thomas, 06/11, "Sim, revise"):
   - comitente de TESTE (nome com "teste") fica fora da planilha e das medias
     de categoria: os veiculos dele saem sem meta;
-  - grupo com BASE PEQUENA leva na Meta a media do COMITENTE (todas as
-    categorias dele somadas, mes a mes ou dia a dia), se a base dele for
-    suficiente; senao, a da CATEGORIA (todos os comitentes que nao sao de
-    teste). Comitente antes de categoria: em "Nao informada" a media da
+  - grupo com BASE PEQUENA leva na Meta a media do COMITENTE no canal (todas
+    as categorias dele somadas, mes a mes), se a base dele for suficiente;
+    senao, a da CATEGORIA no canal; senao, a da categoria em todos os canais
+    (todos os comitentes que nao sao de teste; 19/11: o canal entrou). Comitente antes de categoria: em "Nao informada" a media da
     categoria e quase so a LM (14% com oferta no mes) e o Itau, com 57% nela,
     levaria 14%. A media do proprio grupo continua nas colunas de media, e a
     coluna "Origem da meta" diz de onde veio. Base pequena: no mensal, menos de
-    MIN_MESES meses com veiculo ou menos de MIN_VEIC_MES veiculos somados; no
-    diario, menos de MIN_DIAS dias ou menos de MIN_VEIC_DIA veiculos-dia. Com
+    MIN_MESES meses com veiculo ou menos de MIN_VEIC_MES veiculos somados. Com
     1 mes e 1 veiculo a media e 0% ou 100% -- nao e meta, e sorteio.
 
-O grupo e (comitente da negociacao escolhida, categoria do veiculo). Evento:
+O grupo e (canal do evento da negociacao escolhida, comitente dela, categoria
+do veiculo). Evento:
 os seis canais, com no maximo 31 dias de ofertas nos dois (deposito de
 anuncio, como o "Anuncios cancelados", nao e evento — o mesmo corte do
 Mensal; no Diario de hoje nao ha nenhum).
@@ -53,7 +57,8 @@ A categoria (medida em 06/11, categories + category_groups): Pesados = grupo
 informada. O mesmo CASE esta no montar-consultas.js (CATEGORIA).
 
 Comitente INATIVO fica fora da planilha (Thomas, 06/11): sem veiculo em
-evento nos ultimos 3 meses fechados. Ele continua nas medias de categoria,
+evento nos ultimos 3 meses fechados (desde 19/11, por canal: a linha do
+comitente num canal sai se ele nao teve veiculo nele nesses meses). Ele continua nas medias de categoria,
 que sao do comportamento da categoria nos 12 meses.
 """
 import argparse
@@ -78,7 +83,6 @@ CATEGORIA_SQL = ("CASE WHEN c.category_group_id = 2 OR v.category_id = 23 THEN '
 CATEGORIAS = {"L": "Leves", "P": "Pesados", "E": "Equipamentos", "N": "Não informada"}
 MESES_ATIVO = 3
 MIN_MESES, MIN_VEIC_MES = 3, 30
-MIN_DIAS, MIN_VEIC_DIA = 30, 100
 ORDEM_CAT = "LP"   # so Leves e Pesados tem meta (Thomas, 17/11)
 
 ap = argparse.ArgumentParser()
@@ -113,6 +117,13 @@ EV = ("SELECT e.id, DATE(e.start_date_offer), DATE(e.finish_date_event), e.finis
       " AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= 31"
       " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (%s))") % (FIM, INI, WL)
 eventos = {r[0]: r[1:] for r in um(EV)}
+# os canais de cada evento (so os seis): o veiculo conta em cada um (19/11)
+canais_ev = {}
+for e, w in um("SELECT ew.event_id, ew.whitelabel_id FROM event_whitelabels ew WHERE ew.whitelabel_id IN (%s)"
+               " AND ew.event_id IN (%s)" % (WL, ",".join(map(str, eventos)))):
+    canais_ev.setdefault(e, []).append(int(w))
+canais = dict(um("SELECT w.id, w.name FROM whitelabels w WHERE w.id IN (%s)" % WL))
+ROT_WL = {w: "%d - %s" % (w, str(canais.get(w) or "canal %d" % w).strip()) for w in map(int, WL.split(","))}
 lista = ",".join(map(str, eventos))
 print("%d eventos" % len(eventos))
 
@@ -157,29 +168,45 @@ def acumula(soma, grupo, veic, of, ve):
 
 
 def conta(lista, ok_of, ok_ve):
+    """(canal, comitente, categoria) -> [veiculos, com oferta, vendidos], e o
+    mesmo sem o canal (o veiculo uma vez so), para a referencia da categoria"""
     g = defaultdict(lambda: [0, 0, 0])
+    t = defaultdict(lambda: [0, 0, 0])
     for n in lista:
-        x = g[(n[3], n[4])]
-        x[0] += 1
-        x[1] += ok_of(n)
-        x[2] += ok_ve(n)
-    return g
+        o, v = ok_of(n), ok_ve(n)
+        for w in canais_ev.get(n[1], []):
+            x = g[(w, n[3], n[4])]
+            x[0] += 1
+            x[1] += o
+            x[2] += v
+        y = t[(n[3], n[4])]
+        y[0] += 1
+        y[1] += o
+        y[2] += v
+    return g, t
 
 
-def referencias(g, soma_cat, soma_com):
-    # as referencias do grupo pequeno: o comitente (as categorias dele que
-    # tem meta, Leves e Pesados desde 17/11) e a categoria (todos os
-    # comitentes, sem os de teste), somados no periodo
+def referencias(g, t, soma_cat, soma_wcat, soma_com):
+    # as referencias do grupo pequeno: o comitente no canal (as categorias
+    # dele que tem meta, Leves e Pesados desde 17/11), a categoria no canal e
+    # a categoria em todos os canais (sem os comitentes de teste), somados no periodo
     cat = defaultdict(lambda: [0, 0, 0])
+    wcat = defaultdict(lambda: [0, 0, 0])
     com = defaultdict(lambda: [0, 0, 0])
-    for (comit, c), x in g.items():
+    for (w, comit, c), x in g.items():
         for i in range(3):
             if c in ORDEM_CAT:
-                com[comit][i] += x[i]
+                com[(w, comit)][i] += x[i]
             if comit not in teste:
+                wcat[(w, c)][i] += x[i]
+    for (comit, c), x in t.items():
+        if comit not in teste:
+            for i in range(3):
                 cat[c][i] += x[i]
     for c, (v, o, s) in cat.items():
         acumula(soma_cat, c, v, o, s)
+    for c, (v, o, s) in wcat.items():
+        acumula(soma_wcat, c, v, o, s)
     for c, (v, o, s) in com.items():
         acumula(soma_com, c, v, o, s)
 
@@ -188,37 +215,20 @@ def referencias(g, soma_cat, soma_com):
 mensal = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
 mensal_cat = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
 mensal_com = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
+mensal_wcat = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
 ativos = set()
 for k, ini in enumerate(meses):
     fim = meses[k + 1] if k + 1 < 12 else FIM
     evs = [e for e, (d0, d1, f) in eventos.items() if d0 < fim and d1 >= ini]
-    g = conta(ultimas(evs), lambda n: n[5] in VENDA or n[6] is not None, lambda n: n[5] in VENDA)
+    g, tt = conta(ultimas(evs), lambda n: n[5] in VENDA or n[6] is not None, lambda n: n[5] in VENDA)
     for grupo, (v, o, s) in g.items():
         acumula(mensal, grupo, v, o, s)
-    referencias(g, mensal_cat, mensal_com)
+    referencias(g, tt, mensal_cat, mensal_wcat, mensal_com)
     if k >= 12 - MESES_ATIVO:
-        ativos.update(comit for comit, c in g)
+        ativos.update((w, comit) for w, comit, c in g)
     if args.confere:
-        t = [sum(x[i] for x in g.values()) for i in range(3)]
+        t = [sum(x[i] for x in tt.values()) for i in range(3)]
         print("  mes %s: %d veiculos, %d com oferta, %d vendidos" % (ini.strftime("%m/%Y"), t[0], t[1], t[2]))
-
-# ── diario: o acumulado no evento, dia a dia ───────────────────────────
-diaria = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
-diaria_cat = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
-diaria_com = defaultdict(lambda: {"n": 0, "veic": 0, "of": 0.0, "ve": 0.0})
-d = INI
-while d < FIM:
-    evs = [e for e, (d0, d1, f) in eventos.items() if d0 <= d <= d1]
-    vend = lambda n: n[5] in VENDA and n[7] is not None and n[7] <= d  # noqa: E731
-    g = conta(ultimas(evs), lambda n: vend(n) or (n[6] is not None and n[6] <= d), vend)
-    for grupo, (v, o, s) in g.items():
-        acumula(diaria, grupo, v, o, s)
-    referencias(g, diaria_cat, diaria_com)
-    if args.confere and d.day in (15, 29) and d.month == 10:
-        t = [sum(x[i] for x in g.values()) for i in range(3)]
-        print("  dia %s: %d ativos, %d com oferta, %d vendidos" % (d.strftime("%d/%m/%Y"), t[0], t[1], t[2]))
-    d += dt.timedelta(days=1)
-
 
 # ── a planilha ─────────────────────────────────────────────────────────
 from openpyxl import Workbook  # noqa: E402
@@ -241,7 +251,10 @@ from openpyxl.worksheet.datavalidation import DataValidation  # noqa: E402
 # motivo o n8n le a aba SEM cabecalho (linhas de celulas), e o Montar Painel
 # acha a linha do "ID comitente", a medida na linha de cima e o periodo na
 # de cima dela.
-PERIODOS = (("Meta mensal", "mes"), ("Meta diária", "dia"))
+# 19/11: so a meta mensal (a diaria saiu) e a coluna Whitelabel antes do ID
+# comitente, com "id - nome" do canal ("7 - Marketplace"): o painel le o
+# numero do comeco. A linha 2 segue com "Meta mensal" em cima das metas
+PERIODOS = (("Meta mensal", "mes"),)
 MEDIDAS = (("% Com Oferta", 0), ("% Vendido", 1))
 LIN_PERIODO, LIN_MEDIDA, LIN_CAB, COL0 = 2, 3, 4, 2      # linhas 2, 3 e 4, coluna B
 VERDE, AZUL, CINZA, GRAFITE = "E2F0D9", "DDEBF7", "F2F2F2", "D9D9D9"
@@ -263,15 +276,19 @@ def letra(c):
     return chr(64 + c)
 
 
+CAB_FIXO = ["Whitelabel", "ID comitente", "Comitente"]
+NF = len(CAB_FIXO)
+
+
 def escreve_aba(wb, titulo, linhas):
-    """linhas: [(id, nome, {"mes": {categoria: (oferta, vendidos)}, "dia": {...}})]"""
+    """linhas: [(canal, id, nome, {"mes": {categoria: (oferta, vendidos)}})]"""
     ws = wb.create_sheet(titulo)
     fino = Side(style="thin", color="A6A6A6")
     nc = len(ORDEM_CAT)
     bloco = len(MEDIDAS) * nc                     # colunas de um periodo
     cor = lambda k: VERDE if k == 0 else AZUL  # noqa: E731
     cor_dado = lambda k: VERDE_CLARO if k == 0 else AZUL_CLARO  # noqa: E731
-    c_meta = COL0 + 2                             # a primeira coluna de meta
+    c_meta = COL0 + NF                            # a primeira coluna de meta
     # linha 2: os periodos, mesclados sobre as suas colunas
     for p, (rot, _) in enumerate(PERIODOS):
         c0 = c_meta + p * bloco
@@ -295,35 +312,35 @@ def escreve_aba(wb, titulo, linhas):
             x.font = Font(bold=True)
             x.alignment = Alignment(horizontal="center", vertical="center")
     # linha 4: o cabecalho
-    cab = ["ID comitente", "Comitente"] + [CATEGORIAS[c] for _, _, c in COLUNAS]
+    cab = CAB_FIXO + [CATEGORIAS[c] for _, _, c in COLUNAS]
     for j, v in enumerate(cab):
         x = ws.cell(LIN_CAB, COL0 + j, v)
         x.font = Font(bold=True)
-        x.alignment = Alignment(horizontal="center" if j >= 2 else "left", vertical="center", wrap_text=True)
-        x.fill = PatternFill("solid", fgColor=CINZA if j < 2 else cor(COLUNAS[j - 2][1]))
+        x.alignment = Alignment(horizontal="center" if j >= NF else "left", vertical="center", wrap_text=True)
+        x.fill = PatternFill("solid", fgColor=CINZA if j < NF else cor(COLUNAS[j - NF][1]))
     # os dados, e as linhas vazias para comitente novo
     livre = Protection(locked=False)
     for i in range(len(linhas) + LINHAS_NOVAS):
         r = LIN_CAB + 1 + i
         nova = i >= len(linhas)
         if nova:
-            vals = [None] * (2 + len(COLUNAS))
+            vals = [None] * (NF + len(COLUNAS))
         else:
-            comit, nome, m = linhas[i]
-            vals = [comit, nome] + [m[q][c][k] if c in m[q] else None for q, k, c in COLUNAS]
+            w, comit, nome, m = linhas[i]
+            vals = [ROT_WL[w], comit, nome] + [m[q][c][k] if c in m[q] else None for q, k, c in COLUNAS]
         for j, v in enumerate(vals):
             x = ws.cell(r, COL0 + j, v)
-            if j >= 2:
+            if j >= NF:
                 x.number_format = "0.0%"
                 x.alignment = Alignment(horizontal="center")
-                x.fill = PatternFill("solid", fgColor=cor_dado(COLUNAS[j - 2][1]))
-            if j >= 2 or nova:
+                x.fill = PatternFill("solid", fgColor=cor_dado(COLUNAS[j - NF][1]))
+            if j >= NF or nova:
                 x.protection = livre
     fim = LIN_CAB + len(linhas) + LINHAS_NOVAS
-    # o contorno: ID e Comitente da linha 4 ao fim, as metas da linha 2 ao
-    # fim, e a divisa entre o mensal e o diario
-    c_ini, c_fim = COL0, COL0 + 1 + len(COLUNAS)
-    divisa = c_meta + bloco
+    # o contorno: Whitelabel, ID e Comitente da linha 4 ao fim, as metas da
+    # linha 2 ao fim (a divisa entre o mensal e o diario saiu com o diario)
+    c_ini, c_fim = COL0, COL0 + NF - 1 + len(COLUNAS)
+    divisa = None
     for r in range(LIN_PERIODO, fim + 1):
         for c in range(c_ini, c_fim + 1):
             if r < LIN_CAB and c < c_meta:
@@ -337,13 +354,18 @@ def escreve_aba(wb, titulo, linhas):
     pc.add("%s%d:%s%d" % (letra(c_meta), LIN_CAB + 1, letra(c_fim), fim))
     ident = DataValidation(type="whole", operator="greaterThan", formula1="0", allow_blank=True,
                            showErrorMessage=True, errorTitle="ID comitente", error="O ID do comitente é um número inteiro.")
-    ident.add("%s%d:%s%d" % (letra(COL0), LIN_CAB + 1, letra(COL0), fim))
+    ident.add("%s%d:%s%d" % (letra(COL0 + 1), LIN_CAB + 1, letra(COL0 + 1), fim))
+    # o canal: so os seis, na forma "id - nome"
+    canal = DataValidation(type="list", formula1='"' + ",".join(ROT_WL[w] for w in sorted(ROT_WL)) + '"', allow_blank=True,
+                           showErrorMessage=True, errorTitle="Whitelabel", error="Escolha um dos seis canais da lista.")
+    canal.add("%s%d:%s%d" % (letra(COL0), LIN_CAB + 1, letra(COL0), fim))
     ws.add_data_validation(pc)
     ws.add_data_validation(ident)
+    ws.add_data_validation(canal)
     # margens e larguras
     ws.column_dimensions["A"].width = 3
     ws.row_dimensions[1].height = 12
-    larg = [13, 38] + [12] * len(COLUNAS)
+    larg = [22, 13, 38] + [12] * len(COLUNAS)
     for j, w in enumerate(larg):
         ws.column_dimensions[letra(COL0 + j)].width = w
     ws.row_dimensions[LIN_CAB].height = 30
@@ -359,38 +381,43 @@ def escreve_aba(wb, titulo, linhas):
     ws.protection.selectUnlockedCells = False
 
 
-def metas_de(titulo, soma, soma_cat, soma_com, min_n, min_veic):
-    """{comitente: {categoria: (oferta, vendidos)}} de um periodo, com a revisao de 06/11"""
+def metas_de(titulo, soma, soma_cat, soma_wcat, soma_com, min_n, min_veic):
+    """{(canal, comitente): {categoria: (oferta, vendidos)}}, com a revisao de 06/11"""
     media = lambda s: (round(s["of"] / s["n"], 4), round(s["ve"] / s["n"], 4))  # noqa: E731
     pequena = lambda s: s["n"] < min_n or s["veic"] < min_veic  # noqa: E731
-    pequenas = {"comitente": 0, "categoria": 0}
+    pequenas = {"comitente": 0, "categoria no canal": 0, "categoria": 0}
     metas = defaultdict(dict)
-    for (comit, cat), s in soma.items():
-        if comit in teste or comit not in ativos or cat not in ORDEM_CAT:
+    for (w, comit, cat), s in soma.items():
+        if comit in teste or (w, comit) not in ativos or cat not in ORDEM_CAT:
             continue
-        # a meta revisada: a media do grupo; base pequena, a do comitente
-        # (as categorias dele com meta) e, se ele tambem tem pouca base, a da categoria
+        # a meta revisada: a media do grupo; base pequena, a do comitente no
+        # canal (as categorias dele com meta); depois a da categoria no canal;
+        # por ultimo a da categoria em todos os canais
         if not pequena(s):
-            metas[comit][cat] = media(s)
-        elif not pequena(soma_com[comit]):
+            metas[(w, comit)][cat] = media(s)
+        elif not pequena(soma_com[(w, comit)]):
             pequenas["comitente"] += 1
-            metas[comit][cat] = media(soma_com[comit])
+            metas[(w, comit)][cat] = media(soma_com[(w, comit)])
+        elif not pequena(soma_wcat[(w, cat)]):
+            pequenas["categoria no canal"] += 1
+            metas[(w, comit)][cat] = media(soma_wcat[(w, cat)])
         else:
             pequenas["categoria"] += 1
-            metas[comit][cat] = media(soma_cat[cat])
-    print("  %s: %d comitentes, %d metas; base pequena: %d com a meta do comitente, %d com a da categoria; categorias: %s" % (
-        titulo, len(metas), sum(len(m) for m in metas.values()), pequenas["comitente"], pequenas["categoria"],
+            metas[(w, comit)][cat] = media(soma_cat[cat])
+    print("  %s: %d linhas de canal e comitente, %d metas; base pequena: %d com a meta do comitente, %d com a da categoria no canal,"
+          " %d com a da categoria; categorias: %s" % (
+        titulo, len(metas), sum(len(m) for m in metas.values()), pequenas["comitente"], pequenas["categoria no canal"],
+        pequenas["categoria"],
         " · ".join("%s %.1f%% / %.1f%%" % (CATEGORIAS[c], 100 * media(soma_cat[c])[0], 100 * media(soma_cat[c])[1])
                    for c in ORDEM_CAT if c in soma_cat)))
     return metas
 
 
-fora = sorted({str(nomes.get(c) or c).strip() for c, cat in mensal if c not in ativos and c not in teste})
-print("inativos nos ultimos %d meses, fora: %s" % (MESES_ATIVO, ", ".join(fora) or "nenhum"))
-mm = metas_de("mensal", mensal, mensal_cat, mensal_com, MIN_MESES, MIN_VEIC_MES)
-md = metas_de("diaria", diaria, diaria_cat, diaria_com, MIN_DIAS, MIN_VEIC_DIA)
-comits = sorted(set(mm) | set(md), key=lambda c: str(nomes.get(c) or "").strip().lower())
-linhas = [(c, str(nomes.get(c) or "loja %s" % c).strip(), {"mes": mm.get(c, {}), "dia": md.get(c, {})}) for c in comits]
+fora = sorted({"%s (%d)" % (str(nomes.get(c) or c).strip(), w) for w, c, cat in mensal if (w, c) not in ativos and c not in teste})
+print("inativos no canal nos ultimos %d meses, fora: %s" % (MESES_ATIVO, ", ".join(fora) or "nenhum"))
+mm = metas_de("mensal", mensal, mensal_cat, mensal_wcat, mensal_com, MIN_MESES, MIN_VEIC_MES)
+chaves = sorted(mm, key=lambda k: (k[0], str(nomes.get(k[1]) or "").strip().lower()))
+linhas = [(w, c, str(nomes.get(c) or "loja %s" % c).strip(), {"mes": mm[(w, c)]}) for w, c in chaves]
 # as abas: os 12 meses do Mensal, o mes corrente (o --ate) e os 11 anteriores
 abas = [m.strftime("%Y-%m") for m in meses[1:]] + [fim_mes.strftime("%Y-%m")]
 wb = Workbook()
@@ -398,5 +425,5 @@ wb.remove(wb.active)
 for a in abas:
     escreve_aba(wb, a, linhas)
 wb.save(args.saida)
-print("✓ %s · %d abas (%s a %s) · %d comitentes (%d com meta mensal, %d com diaria)" % (
-    args.saida, len(abas), abas[0], abas[-1], len(comits), len(mm), len(md)))
+print("✓ %s · %d abas (%s a %s) · %d linhas de canal e comitente (%d comitentes)" % (
+    args.saida, len(abas), abas[0], abas[-1], len(linhas), len({c for w, c in chaves})))

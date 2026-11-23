@@ -32,12 +32,18 @@
 .leg .l1::before{ background:var(--acento-cheio) } .leg .l2::before{ background:var(--texto-2); opacity:.75 }
 .graf .b1{ fill:var(--acento-cheio) } .graf .b2{ fill:var(--texto-2); opacity:.75 }
 #tb-ord td.esq{ white-space:nowrap }
-/* tabela de veículos enxuta (pedido de 18/11): menos respiro, títulos quebram, textos longos cortam */
-#th-vei th, #tb-vei td{ padding:6px 6px; font-size:12px }
+/* tabela de veículos enxuta (pedido de 18/11): menos respiro, títulos quebram.
+   19/11: tudo centralizado e os textos longos quebram linha em vez de cortar, para o texto aparecer inteiro */
+#th-vei th, #tb-vei td{ padding:6px 6px; font-size:12px; text-align:center; vertical-align:middle }
 #th-vei tr.cols th{ white-space:normal; vertical-align:bottom }
 #th-vei button.ord{ white-space:normal; display:inline }
-#tb-vei td.corta{ max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-#tb-vei td.corta.larga{ max-width:170px }
+/* 19/11: as tabelas Por ordem e Por comitente quebram o título da coluna quando a tela não comporta a tabela inteira
+   (a tabela automática só quebra se faltar largura; em tela larga o título segue numa linha) */
+#th-ord th, #th-com tr.cols th{ white-space:normal; vertical-align:bottom; min-width:64px; line-height:1.25 }
+#th-ord th.esq, #th-com th.esq{ min-width:0 }
+#th-ord button.ord, #th-com button.ord{ white-space:normal; display:inline }
+#tb-vei td.corta{ min-width:110px; max-width:150px; white-space:normal; overflow-wrap:anywhere; line-height:1.25 }
+#tb-vei td.corta.larga{ min-width:150px; max-width:220px }
 #tb-vei td.quebra{ white-space:normal; min-width:72px; line-height:1.25 }
 .data{ padding:5px 6px; max-width:none; color-scheme:light dark }
 :root[data-tema="escuro"] .data{ color-scheme:dark }
@@ -211,7 +217,7 @@ button.ord:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
     </div>
     <div class="barra-ctrl"><input class="busca" id="busca" type="search" placeholder="Buscar modelo, comitente ou evento" aria-label="Buscar na tabela de veículos"></div>
     <div class="rolo rolo-v"><table><thead id="th-vei"></thead><tbody id="tb-vei"></tbody></table></div>
-    <p class="nota">Valores em R$ mil. C → D = Cars2You → Dealers; D → C = Dealers → Cars2You; Pub. = publicações em 2026. Passe o mouse no modelo para ver o nome inteiro, o comitente como está escrito em cada base e o último evento de cada lado. % FIPE = última oferta ÷ FIPE do anúncio da própria base (sem ela, a da outra base). Clique no título de uma coluna para ordenar.</p>
+    <p class="nota">Valores em R$ mil. C → D = Cars2You → Dealers; D → C = Dealers → Cars2You; Pub. = publicações em 2026. Passe o mouse no modelo para ver o comitente como está escrito em cada base e o último evento de cada lado. % FIPE = última oferta ÷ FIPE do anúncio da própria base (sem ela, a da outra base). Clique no título de uma coluna para ordenar.</p>
   </article>
 
   <details class="cartao dobra" id="metodo">
@@ -503,7 +509,7 @@ function tabComitente(S0) {
 const stHtml = s => (s.vend ? '<span class="st-v">' + esc(stNome(s.st)) + '</span>' : VIVO.has(s.st) ? esc(stNome(s.st)) : '<span class="fraco">' + esc(stNome(s.st)) + '</span>');
 const nomeModelo = l => l.modelo + (l.versao ? ' ' + l.versao : '');
 const tipModelo = l => nomeModelo(l) + '\nCars2You: ' + l.com_c + ' · último evento: ' + (l.c.evento || '—') + '\nDealers: ' + l.com_d + ' · último evento: ' + (l.d.evento || '—') + '\nCasado pelo ' + l.por;
-/* tabela de veículos enxuta: valores em R$ mil, títulos curtos, textos longos cortados (o nome inteiro fica na dica) */
+/* tabela de veículos enxuta: valores em R$ mil, títulos curtos, textos longos quebram linha (19/11; antes cortavam) */
 const mil = x => (x == null ? '—' : nf(x / 1000, 1));
 const ORD_CURTA = { DC: 'D → C', CD: 'C → D', MD: 'Mesmo dia' };
 const lado = (k, rot) => [
