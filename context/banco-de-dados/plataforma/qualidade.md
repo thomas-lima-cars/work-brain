@@ -84,6 +84,10 @@ Uma coluna morta numa base não é "efeito zero" — é **ausência de medida**.
 
 **Nunca `SELECT *`** em `vehicles` nem em `vehicle_extra_fields`.
 
+Exceção declarada: o **Estudo de Republicações Dealers** traz a `plate` dos carros
+casados para a tabela de veículos (pedido do Thomas, 2026-11-23). Ela só fica nos
+arquivos gerados, que estão no `.gitignore`. O chassi continua só embaralhado.
+
 ## Registros de outra natureza dentro da base de vendas
 
 🚨 **Chevrolet Agile (código FIPE 004362-1), Cars2You, medido em 15/09.**

@@ -101,6 +101,7 @@ automations/estudo-vendas-iga/estudo-vendas-iga.html
 automations/estudo-republicacoes-dealers/dados-*.json
 automations/estudo-republicacoes-dealers/resultados.json
 automations/estudo-republicacoes-dealers/estudo-republicacoes-dealers.html
+automations/estudo-republicacoes-dealers/rodadas.log
 
 # Laudos cautelares: PDFs de ~17 MB cada. As listas (.csv) tambem ficam fora:
 # trazem placa e o link do laudo de cada carro (regeraveis por baixa-laudos.py)

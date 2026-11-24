@@ -1,7 +1,13 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-23 (sessão aberta em 19/11).
+> **Última atualização:** 2026-11-24 (madrugada; sessão aberta em 19/11, trabalho de 23/11).
+> - **Estudo de Republicações Dealers agora atualiza sozinho, toda segunda 0h (23/11).** O n8n não alcança a
+>   Dealers, então o estudo **roda no PC** (tarefa do Windows; espera a VPN por até 12 h) e entrega pelo webhook
+>   **Receber Estudos** (`bbbITLpsU9wc9rAR`, publicado com ok), que grava em `Estudos/` no SharePoint (site N8N).
+>   1º envio ✅ (1.472 carros); **1ª rodada pela tarefa em 30/11**. No mesmo dia, a página ganhou placa,
+>   passagens com dica, Devolvido, Erro operacional, filtro nos cabeçalhos, tempo de venda com boxplot e
+>   Venda ÷ FIPE em média.
 > - **Painel de Eventos Cars2You, Mensal por evento (19/11) — pronto no LOCAL, não enviado.** Tabela de eventos
 >   com **meta ajustada**, eventos ativos de volta (Total · Ativos · Finalizados), filtros de evento e de datas
 >   de início e fim, gráficos nos dias do mês; planilha de metas só mensal e por whitelabel. 112 provas e
@@ -105,6 +111,8 @@
   ❓ **Escolhas minhas a confirmar** (README): ordem pela 1ª publicação de 2026, comitente unificado (revenda
   vira o dono da Dealers), contas de teste fora, FIPE da outra base como reserva, mesmo dia à parte.
   19/11: tabelas com quebra de linha (veículos centralizada; Por ordem e Por comitente quebram o título).
+  23/11: placa, passagens, Devolvido, Erro operacional, filtro nos cabeçalhos, boxplot; **semanal na segunda
+  0h** pelo PC + Receber Estudos, na pasta `Estudos/` do SharePoint (ver crons.md). ⚠️ placa visível na pasta.
 - **bancos (cars2you + dealers)** — 🔥 acesso direto, só leitura. **Depende de VPN.**
   🔴 **O `schema.md` documenta 149 tabelas e o banco tem 193.** Faltam 44 desde 09/09.
   ✅ **18/11: a Dealers ganhou um uso declarado** — o Estudo de Republicações cruza as duas bases.
@@ -151,6 +159,10 @@
 - **itau** — operação IGA, 8 workflows 🟩. Evento ~1x/semana, fecha 16h.
   Pendência antiga: readicionar `fernando.tuunelis` no e-mail quando o Gui aprovar.
 - **lm** — Lista LM + Proposta LM 🟩. ❓ Sigla "LM" ainda não decifrada.
+
+- **Estudo de Republicações Dealers, semanal** — tarefa do Windows no PC (segunda 0h, precisa de PC ligado,
+  login e VPN) → webhook Receber Estudos (`bbbITLpsU9wc9rAR`) → `Estudos/` no SharePoint. **Sem alerta**:
+  falha só no `rodadas.log`. Desde 23/11.
 
 ## 🧊 Frentes fora do radar
 - **outros** — coringa, sem movimento
@@ -207,6 +219,8 @@
   **Canal único de alerta de falha dos crons.**
 
 ## 📌 Cobranças minhas (preciso agir)
+- [ ] **Segunda 30/11:** conferir a 1ª rodada semanal do Estudo de Republicações (`rodadas.log` e a data
+      do arquivo em `Estudos/`). Ligar a VPN de manhã para ela sair
 - [ ] Republicar o **catálogo** (artifact 6PcahstRhTsxXVfUm4eXXZ): o `relatorios.json` foi corrigido
       em 04/11 (C6 base diário, e-mail e WhatsApp) e a página só foi regerada no local
 - [ ] 🔥 **Mandar a Projeção 2027 ao Tuunelis** (`automations/projecao-vendas-2027/projecao-vendas-2027.xlsx`)

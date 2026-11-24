@@ -361,3 +361,20 @@ precificar.
   `mes_dia`, `mes_lojd`), 111 no total, HTML de 5,4 MB, 112 provas, conferência contra o banco ok. **Pronto no
   local e não enviado ao n8n**: em 23/11 o Thomas viu a tela e pediu para guardar e voltar depois. Detalhes no
   README da pasta (seção de 19/11); números em `context/banco-de-dados/projetos/painel-eventos-cars2you/indicadores.md`.
+
+## 2026-11-23 (tarde e noite)
+
+- **Estudo de Republicações Dealers**, rodada de pedidos do Thomas: tabela de veículos virou resumo (Placa,
+  Comitente, Modelo, Passagens, Ano, Cat., 1ª publicação, Interv., Status, Vendido, Devolvido, Erro op.) com
+  **filtro em cada cabeçalho**; a dica (Modelo ou Passagens) é uma tabela com uma linha por passagem e os dias
+  publicados em cada banco; flags **Devolvido** (voltou à 1ª base) e **Erro operacional** (ativo nas duas ao
+  mesmo tempo, ou republicado com a outra base vendida ou em análise); publicações agendadas fora; tabela Por
+  ordem no formato da Por comitente; cartão de **Tempo de venda** e **boxplot** na dica dos cartões de prazo
+  (medianas); **Venda ÷ FIPE em média**. Placa no HTML: exceção declarada no `qualidade.md`.
+- **Atualização semanal do estudo**: o Thomas pediu n8n, segunda 0h, saída numa pasta de estudos no
+  SharePoint. O n8n Cloud **não alcança a Dealers** (fora da VPC; o MCP só tem a Cars2You), então o estudo
+  **roda no PC do Thomas** (tarefa do Windows, segunda 0h, espera a VPN por até 12 h) e entrega pelo webhook
+  **Receber Estudos** (`bbbITLpsU9wc9rAR`, projeto Cars2You, publicado com ok), que grava em
+  `Documentos Compartilhados/Estudos/` (site N8N). Primeiro envio em 23/11 ✅; a primeira rodada pela tarefa
+  é 30/11. Sem alerta de falha. Números em `context/banco-de-dados/projetos/republicacoes-dealers/indicadores.md`.
+

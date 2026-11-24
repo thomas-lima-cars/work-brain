@@ -20,9 +20,14 @@
 <style>/*__CSS__*/
 
 /* ── só o que este estudo tem a mais que o molde. Nenhuma cor solta: tudo é token. ── */
+/* 23/11: cinco cartões no topo (o tempo de venda entrou); quebra em 3, 2 e 1 como a .g4 do tema */
+.g4.g5{ grid-template-columns:repeat(5,minmax(0,1fr)) }
+@med(max-width:1300px){ .g4.g5{ grid-template-columns:repeat(3,minmax(0,1fr)) } }
+@med(max-width:1100px){ .g4.g5{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
+@med(max-width:620px){ .g4.g5{ grid-template-columns:1fr } }
 .g2e{ display:grid; gap:var(--gap); grid-template-columns:1fr 1fr }
 .g2e > .cartao{ min-width:0 }
-@media(max-width:900px){ .g2e{ grid-template-columns:1fr } }
+@med(max-width:900px){ .g2e{ grid-template-columns:1fr } }
 .secao{ margin:6px 2px -4px; font-size:12.5px; font-weight:650; letter-spacing:.06em;
         text-transform:uppercase; color:var(--texto-2) }
 .leg{ display:flex; flex-wrap:wrap; gap:4px 16px; margin:0 0 6px; font-size:12px; color:var(--texto-2) }
@@ -39,7 +44,7 @@
 #th-vei button.ord{ white-space:normal; display:inline }
 /* 19/11: as tabelas Por ordem e Por comitente quebram o título da coluna quando a tela não comporta a tabela inteira
    (a tabela automática só quebra se faltar largura; em tela larga o título segue numa linha) */
-#th-ord th, #th-com tr.cols th{ white-space:normal; vertical-align:bottom; min-width:64px; line-height:1.25 }
+#th-ord tr.cols th, #th-com tr.cols th{ white-space:normal; vertical-align:bottom; min-width:64px; line-height:1.25 }
 #th-ord th.esq, #th-com th.esq{ min-width:0 }
 #th-ord button.ord, #th-com button.ord{ white-space:normal; display:inline }
 #tb-vei td.corta{ min-width:110px; max-width:150px; white-space:normal; overflow-wrap:anywhere; line-height:1.25 }
@@ -76,7 +81,7 @@ td.esq, th.esq{ text-align:left }
 .dobra .corpo h3{ font-size:13px; color:var(--texto); margin:14px 0 4px }
 .dobra .corpo h3:first-child{ margin-top:0 }
 .dobra .corpo ul{ margin:4px 0; padding-left:18px }
-@media(max-width:620px){ .dobra .corpo{ padding-left:18px } }
+@med(max-width:620px){ .dobra .corpo{ padding-left:18px } }
 
 /* filtros: uma linha logo abaixo do cabeçalho (o mesmo lugar dos botões do Mega Evento Fenauto) */
 .filtros-linha{ display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; font-size:12.5px; color:var(--texto-2) }
@@ -93,6 +98,13 @@ td.esq, th.esq{ text-align:left }
 .rolo-v{ max-height:520px; overflow:auto; margin:0 -18px; padding:0 18px }
 .rolo-v thead th{ position:sticky; top:0; z-index:2; background:var(--superficie-2) }
 .rolo-v thead tr.grupo th{ top:0 } .rolo-v thead tr.cols th{ top:var(--th-h, 0px) }
+/* 23/11: linha de filtros embaixo dos títulos da tabela de veículos (presa ao rolar, logo abaixo dos títulos) */
+.rolo-v thead tr.filtros th{ top:var(--th-f, 0px); padding:4px 4px 6px; border-bottom:1px solid var(--borda-forte) }
+.fcab{ font:inherit; font-size:11px; color:var(--texto); background:var(--superficie); border:1px solid var(--borda);
+       border-radius:var(--r-p); padding:3px 4px; width:100%; min-width:58px; max-width:150px; box-sizing:border-box }
+input.fcab{ min-width:72px }
+.fcab.at{ border-color:var(--acento); background:var(--acento-veu); font-weight:600 }
+.fcab:focus-visible{ outline:2px solid var(--acento); outline-offset:1px }
 tr.grupo th{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--texto-2); border-bottom:0 }
 td.n, th.n{ text-align:right; white-space:nowrap }
 td.sep, th.sep{ border-left:1px solid var(--borda-forte) }
@@ -102,6 +114,58 @@ button.ord.at{ color:var(--texto) }
 button.ord:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
 .seta-ord{ font-size:9px; min-width:8px }
 .st-v{ color:var(--positivo); font-weight:650 }
+/* 23/11: placa, passagens (dica com cada ida e volta) e os marcadores Devolvido e Erro operacional */
+#tb-vei td.placa{ white-space:nowrap; font-variant-numeric:tabular-nums; letter-spacing:.02em }
+#tb-vei td.rota{ white-space:nowrap }
+/* gatilhos da dica: o modelo e as passagens (botões, para teclado e toque) */
+.pop-btn{ font:inherit; font-size:12px; color:inherit; background:none; border:0; padding:2px 0; cursor:pointer;
+          text-decoration:underline dotted; text-underline-offset:3px; text-align:inherit }
+.pop-btn:focus-visible{ outline:2px solid var(--acento); outline-offset:2px; border-radius:3px }
+.rota-btn{ white-space:nowrap }
+.modelo-btn{ white-space:normal; overflow-wrap:anywhere; line-height:1.25 }
+#tb-vei td .sub-cel{ display:block; font-size:11px; color:var(--texto-2) }
+/* a dica (23/11): o comparativo Cars2You × Dealers e as passagens, em tabelas; passa o mouse, foca ou clica (o clique fixa) */
+.pop{ position:fixed; z-index:50; max-width:calc(100vw - 24px); max-height:min(560px, 80vh); overflow:auto;
+      background:var(--superficie); border:1px solid var(--borda-forte); border-radius:var(--r-m);
+      box-shadow:var(--sombra); padding:10px 12px 8px; font-size:12px }
+.pop .pop-tit{ margin:0 0 2px; font-weight:650; font-size:12.5px; color:var(--texto) }
+.pop .pop-sub{ margin:0 0 8px; color:var(--texto-2); max-width:560px }
+.pop .pop-sec{ margin:12px 0 4px; font-size:11px; font-weight:650; letter-spacing:.05em; text-transform:uppercase; color:var(--texto-2) }
+.pop table{ font-size:12px; width:auto }
+.pop thead th{ background:var(--superficie); font-size:11px; color:var(--texto-2);
+               font-weight:600; text-align:left; padding:4px 8px; white-space:nowrap }
+.pop td{ padding:5px 8px; text-align:left; white-space:nowrap; vertical-align:top; border-top:1px solid var(--borda) }
+.pop td.n, .pop th.n{ text-align:right }
+.pop .det{ display:block; color:var(--texto-3); font-size:11px; white-space:normal; max-width:260px }
+/* tabela vertical das publicações: cabeçalho preso ao rolar, linha forte na troca de base */
+.pop table.pubs thead th{ position:sticky; top:-10px; z-index:1; border-bottom:1px solid var(--borda-forte) }
+.pop table.pubs tr.troca td{ border-top:2px solid var(--borda-forte) }
+.pop table.pubs td.base{ font-weight:650 }
+.pop table.pubs td.b0{ color:var(--acento) }
+.pop table.pubs td.st{ white-space:normal; min-width:150px; max-width:260px; line-height:1.3 }
+.pop table.pubs td.forte{ font-weight:650; color:var(--texto) }
+/* 23/11: boxplot na dica dos cartões de intervalo e de tempo de venda */
+.kpi-box{ cursor:pointer }
+.kpi-box:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
+.kpi-box .box-dica{ margin-left:auto; color:var(--texto-3); display:inline-flex }
+.kpi-box .box-dica svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round }
+.kpi-box:hover .box-dica{ color:var(--acento) }
+.pop svg.bx{ display:block; max-width:100%; height:auto; margin:4px 0 8px }
+.bx .bx-grade{ stroke:var(--borda); stroke-width:1 }
+.bx .bx-eixo{ font-size:10px; fill:var(--texto-3) }
+.bx .bx-rot{ font-size:11.5px; fill:var(--texto-2) }
+.bx .bx-big{ stroke:var(--texto-2); stroke-width:1.2 }
+.bx .bx-caixa{ fill:var(--acento-veu); stroke:var(--acento-cheio); stroke-width:1.2 }
+.bx .bx-med{ stroke:var(--texto); stroke-width:2.4 }
+.bx .bx-media{ fill:var(--atencao); stroke:var(--superficie); stroke-width:1 }
+.bx .bx-fora{ font-size:10.5px; fill:var(--texto-3) }
+.pop table.bx-tab td.forte{ font-weight:650; color:var(--texto) }
+.pop table.bx-tab td:first-child{ color:var(--texto-2) }
+.pop .pop-tv{ margin:-2px 0 8px; color:var(--texto-2) }
+.pop .pop-tv strong{ color:var(--texto); font-weight:650 }
+.pop .pop-nota{ margin:6px 0 0; font-size:11px; color:var(--texto-3); max-width:640px }
+.pop .pop-err{ margin:0; padding-left:18px; color:var(--texto); max-width:560px; line-height:1.45 }
+#tb-vei td.marca-cel .tag{ font-size:11px; padding:2px 7px; cursor:help }
 .fraco{ color:var(--texto-3) }
 </style>
 </head>
@@ -149,7 +213,7 @@ button.ord:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
     </span>
   </div>
 
-  <section class="g4" aria-label="Indicadores" id="kpis"></section>
+  <section class="g4 g5" aria-label="Indicadores" id="kpis"></section>
 
   <article class="cartao">
     <div class="cartao-topo">
@@ -194,10 +258,10 @@ button.ord:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
   <article class="cartao">
     <div class="cartao-topo">
       <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span>
-      <h2>Por ordem de publicação</h2><span class="dir"><span class="tag">1ª base → 2ª base</span></span>
+      <h2>Por ordem de publicação</h2><span class="dir"><span class="tag" id="n-ord">—</span></span>
     </div>
-    <div class="rolo"><table><thead><tr id="th-ord"></tr></thead><tbody id="tb-ord"></tbody></table></div>
-    <p class="nota" id="n-ord"></p>
+    <div class="rolo rolo-v"><table><thead id="th-ord"></thead><tbody id="tb-ord"></tbody></table></div>
+    <p class="nota">Ordem = em qual base o carro foi publicado primeiro em 2026. Esta tabela ignora o filtro de ordem e mostra as três. Venda ÷ FIPE em média e última oferta ÷ FIPE em mediana, só com valor entre 20% e 120% da FIPE. Clique no título de uma coluna para ordenar por ela.</p>
   </article>
 
   <article class="cartao">
@@ -215,9 +279,12 @@ button.ord:focus-visible{ outline:2px solid var(--acento); outline-offset:2px }
       <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6h-11z"/><circle cx="8" cy="19" r="1.6"/><circle cx="16" cy="19" r="1.6"/><path d="M6.5 11l1.2-3.5h8.6L17.5 11"/></svg></span>
       <h2>Veículos</h2><span class="dir"><span class="tag" id="n-vei">—</span></span>
     </div>
-    <div class="barra-ctrl"><input class="busca" id="busca" type="search" placeholder="Buscar modelo, comitente ou evento" aria-label="Buscar na tabela de veículos"></div>
+    <div class="barra-ctrl"><input class="busca" id="busca" type="search" placeholder="Buscar placa, modelo, comitente ou evento" aria-label="Buscar na tabela de veículos">
+      <span class="fraco">ou filtre pelos cabeçalhos</span>
+      <button class="lnk" type="button" id="f-vei-limpa" hidden>Limpar filtros da tabela</button>
+    </div>
     <div class="rolo rolo-v"><table><thead id="th-vei"></thead><tbody id="tb-vei"></tbody></table></div>
-    <p class="nota">Valores em R$ mil. C → D = Cars2You → Dealers; D → C = Dealers → Cars2You; Pub. = publicações em 2026. Passe o mouse no modelo para ver o comitente como está escrito em cada base e o último evento de cada lado. % FIPE = última oferta ÷ FIPE do anúncio da própria base (sem ela, a da outra base). Clique no título de uma coluna para ordenar.</p>
+    <p class="nota">Resumo por carro. C → D = Cars2You → Dealers; D → C = Dealers → Cars2You. Passe o mouse (ou clique, para fixar) no modelo ou em Passagens para ver, em ordem, cada passagem do carro pelos bancos (uma linha nova só quando foi transferido): início e fim, dias publicados, publicações, status, ofertas, venda e data da venda, FIPE. Vendido = em que base vendeu e o dia da oferta vencedora (nas duas, a venda mais recente). Em Devolvido e Erro op., o motivo. Clique no título de uma coluna para ordenar.</p>
   </article>
 
   <details class="cartao dobra" id="metodo">
@@ -255,6 +322,9 @@ const dt = s => s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(2, 4) :
 const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 const rotMes = m => MES[Number(m.slice(5, 7)) - 1] + '/' + m.slice(2, 4);
 const soma = (a, f) => a.reduce((t, x) => t + (f ? f(x) : x), 0);
+/* 23/11 (Thomas): a página mostra MEDIANA (houve um ensaio com média no mesmo dia; comparação em indicadores.md) */
+/* 23/11 (Thomas): Venda ÷ FIPE em MÉDIA (o resto segue em mediana); o corte de 20% a 120% vale nos dois */
+const media = a => { const v = a.filter(x => x != null); return v.length ? v.reduce((t, x) => t + x, 0) / v.length : null; };
 const med = a => { const v = a.filter(x => x != null).sort((x, y) => x - y); if (!v.length) return null; const k = v.length >> 1; return v.length % 2 ? v[k] : (v[k - 1] + v[k]) / 2; };
 const razao = (a, b) => (b ? a / b : null);
 const ST = DADOS.status;
@@ -274,7 +344,9 @@ const CARROS = DADOS.carros.map(l => {
     s.pctUlt = corte(razao(s.ult, s.fr)); s.pctMaior = corte(razao(s.maior, s.fr)); s.pctVenda = corte(razao(s.venda, s.fr));
   });
   o.c.pctMol = corte(razao(o.c.venda, o.c.molicar)); o.c.pctUltMol = corte(razao(o.c.ult, o.c.molicar));
-  o.busca = (o.modelo + ' ' + o.versao + ' ' + o.dono + ' ' + o.com_c + ' ' + o.com_d + ' ' + o.c.evento + ' ' + o.d.evento).toLowerCase();
+  o.erro = o.erro_sim || o.erro_rep ? 1 : 0;
+  const pl = [o.placa, o.placa_d].filter(Boolean).join(' ');
+  o.busca = (pl + ' ' + pl.replace(/-/g, '') + ' ' + o.modelo + ' ' + o.versao + ' ' + o.dono + ' ' + o.com_c + ' ' + o.com_d + ' ' + o.c.evento + ' ' + o.d.evento).toLowerCase();
   return o;
 });
 /* corte de outlier das médias (definicoes.md): fora de 0,20 a 1,20 da FIPE não entra */
@@ -325,25 +397,35 @@ const ICO = {
   carro:'<path d="M5 17h14l-1.5-6h-11z"/><circle cx="8" cy="19" r="1.6"/><circle cx="16" cy="19" r="1.6"/><path d="M6.5 11l1.2-3.5h8.6L17.5 11"/>',
   rel:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   vend:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9"/>',
-  pct:'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'
+  pct:'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  ampulheta:'<path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/>'
 };
+/* 23/11 (Thomas): tempo de venda = dia da venda − primeiro dia publicado NAQUELE banco (1ª publicação de 2026) */
+const tempoVenda = s => { if (!s.vend || !s.dv || !s.ini) return null; const d = diasEntre(s.ini, s.dv); return d >= 0 ? d : null; };
+const diasTxt = d => (d == null ? '—' : nf(d, Number.isInteger(d) ? 0 : 1) + (d === 1 ? ' dia' : ' dias'));
 function kpis(S) {
   const n = S.length, por = o => S.filter(c => c.ordem === o);
   const vc = S.filter(c => c.c.vend).length, vd = S.filter(c => c.d.vend).length, alg = S.filter(c => c.c.vend || c.d.vend).length;
   const K = [
     { ico: 'carro', rot: 'Carros nas duas bases', val: nf(n), delta: pc(razao(por('CD').length, n)) + ' começaram na Cars2You',
       pe: [['Cars2You → Dealers', nf(por('CD').length)], ['Dealers → Cars2You', nf(por('DC').length)]] },
-    { ico: 'rel', rot: 'Intervalo mediano', val: S.some(c => c.ordem !== 'MD') ? nf(med(S.filter(c => c.ordem !== 'MD').map(c => c.dias))) + ' dias' : '—',
+    { ico: 'rel', box: 'int', rot: 'Intervalo mediano', val: S.some(c => c.ordem !== 'MD') ? diasTxt(med(S.filter(c => c.ordem !== 'MD').map(c => c.dias))) : '—',
       delta: nf(S.filter(c => c.sobre).length) + ' ficaram nas duas ao mesmo tempo',
-      pe: [['Cars2You → Dealers', por('CD').length ? nf(med(por('CD').map(c => c.dias))) + ' dias' : '—'], ['Dealers → Cars2You', por('DC').length ? nf(med(por('DC').map(c => c.dias))) + ' dias' : '—']] },
+      pe: [['Cars2You → Dealers', por('CD').length ? diasTxt(med(por('CD').map(c => c.dias))) : '—'], ['Dealers → Cars2You', por('DC').length ? diasTxt(med(por('DC').map(c => c.dias))) : '—']] },
     { ico: 'vend', rot: 'Vendidos em alguma base', val: nf(alg), delta: pc(razao(alg, n)) + ' dos carros',
       pe: [['Na Dealers', nf(vd)], ['Na Cars2You', nf(vc)]] },
-    { ico: 'pct', rot: 'Venda ÷ FIPE, mediana', val: pc(med(S.flatMap(c => [c.c.pctVenda, c.d.pctVenda])), 1), delta: 'nas duas bases juntas',
-      pe: [['Dealers', pc(med(S.map(c => c.d.pctVenda)), 1)], ['Cars2You', pc(med(S.map(c => c.c.pctVenda)), 1)]] }
+    { ico: 'ampulheta', box: 'tv', rot: 'Tempo de venda, mediana', val: diasTxt(med(S.flatMap(c => [tempoVenda(c.c), tempoVenda(c.d)]))),
+      delta: 'da 1ª publicação no banco até a venda',
+      pe: [['Na Dealers', diasTxt(med(S.map(c => tempoVenda(c.d))))], ['Na Cars2You', diasTxt(med(S.map(c => tempoVenda(c.c))))]] },
+    { ico: 'pct', rot: 'Venda ÷ FIPE, média', val: pc(media(S.flatMap(c => [c.c.pctVenda, c.d.pctVenda])), 1), delta: 'nas duas bases juntas',
+      pe: [['Dealers', pc(media(S.map(c => c.d.pctVenda)), 1)], ['Cars2You', pc(media(S.map(c => c.c.pctVenda)), 1)]] }
   ];
+  /* 23/11 (Thomas): os cartões de intervalo e de tempo de venda abrem um boxplot da distribuição (mouse, foco ou clique) */
   $('#kpis').innerHTML = K.map(k =>
-    '<article class="cartao"><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICO[k.ico] +
-    '</svg></span><span class="kpi-rot">' + esc(k.rot) + '</span></div><p class="kpi-val num">' + esc(k.val) + '</p>' +
+    '<article class="cartao' + (k.box ? ' kpi-box' : '') + '"' + (k.box ? ' data-box="' + k.box + '" tabindex="0" aria-label="' + esc(k.rot) + ': ver a distribuição"' : '') +
+    '><div class="cartao-topo"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICO[k.ico] +
+    '</svg></span><span class="kpi-rot">' + esc(k.rot) + '</span>' + (k.box ? '<span class="dir box-dica" title="Ver a distribuição" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4M17 12h4M3 9v6M21 9v6"/><rect x="7" y="8" width="10" height="8" rx="1"/><path d="M11 8v8"/></svg></span>' : '') +
+    '</div><p class="kpi-val num">' + esc(k.val) + '</p>' +
     '<p class="kpi-delta neutro">' + esc(k.delta) + '</p>' +
     '<dl class="kpi-pe">' + k.pe.map(p => '<div><dt>' + esc(p[0]) + '</dt><dd class="num">' + esc(p[1]) + '</dd></div>').join('') + '</dl></article>').join('');
 }
@@ -352,10 +434,18 @@ function achados(S) {
   const out = [], n = S.length;
   if (!n) { $('#concl').innerHTML = '<li><div><strong>Nenhum carro neste filtro.</strong><span>Troque a categoria, a ordem, o comitente ou o período.</span></div></li>'; $('#concl-n').textContent = '0 achados'; return; }
   const cd = S.filter(c => c.ordem === 'CD'), dc = S.filter(c => c.ordem === 'DC');
-  const frase = (g, nome) => g.length ? nome + ': ' + nf(g.length) + ' carros, mediana de ' + nf(med(g.map(c => c.dias))) + ' dias até a segunda base' : null;
+  const frase = (g, nome) => g.length ? nome + ': ' + nf(g.length) + ' carros, mediana de ' + diasTxt(med(g.map(c => c.dias))) + ' até a segunda base' : null;
   out.push([nf(n) + ' carros foram publicados na Cars2You e na Dealers em 2026' + (periodoTodo() ? '.' : ', com a republicação de ' + dtBr(F.de) + ' a ' + dtBr(F.ate) + '.'),
     [frase(cd, 'Começaram na Cars2You'), frase(dc, 'começaram na Dealers'), S.filter(c => c.ordem === 'MD').length ? nf(S.filter(c => c.ordem === 'MD').length) + ' estrearam nas duas no mesmo dia' : null].filter(Boolean).join('; ') +
     '. ' + nf(S.filter(c => c.sobre).length) + ' ficaram publicados nas duas ao mesmo tempo em algum momento.']);
+  /* 23/11: idas e voltas, devolvidos e erro operacional */
+  const dev = S.filter(c => c.dev).length, er = S.filter(c => c.erro).length;
+  if (dev || er) {
+    out.push([nf(er) + ' carros (' + pc(er / n) + ') têm erro operacional, e ' + nf(dev) + ' (' + pc(dev / n) + ') voltaram à base de origem.',
+      nf(S.filter(c => c.erro_sim).length) + ' estiveram no ar nas duas bases ao mesmo tempo e ' + nf(S.filter(c => c.erro_rep).length) +
+      ' foram republicados quando a outra base estava vendida ou em análise. ' + nf(S.filter(c => c.pas.length > 3).length) +
+      ' carros trocaram de base três vezes ou mais. Filtre Devolvido ou Erro op. no cabeçalho da tabela de veículos para ver um a um.']);
+  }
   const ant = S.filter(c => c.ordem !== 'MD' && c.st_antes != null);
   if (ant.length) {
     const cnt = {}; ant.forEach(c => { cnt[c.st_antes] = (cnt[c.st_antes] || 0) + 1; });
@@ -375,10 +465,10 @@ function achados(S) {
       t.join('; ').replace(/^./, x => x.toUpperCase()) + '. ' + nf(S.filter(c => c.vendeu === 'ambos').length) + ' aparecem vendidos nas duas.']);
   }
   const par = S.filter(c => c.c.pctUlt != null && c.d.pctUlt != null);
-  const mvc = med(S.map(c => c.c.pctVenda)), mvd = med(S.map(c => c.d.pctVenda));
+  const mvc = media(S.map(c => c.c.pctVenda)), mvd = media(S.map(c => c.d.pctVenda));
   if (par.length >= 5 || mvc != null || mvd != null) {
     const dif = med(par.map(c => c.d.pctUlt - c.c.pctUlt));
-    out.push(['Preço: a venda saiu, na mediana, a ' + pc(mvd, 1) + ' da FIPE na Dealers e a ' + pc(mvc, 1) + ' na Cars2You.',
+    out.push(['Preço: a venda saiu, em média, a ' + pc(mvd, 1) + ' da FIPE na Dealers e a ' + pc(mvc, 1) + ' na Cars2You.',
       (par.length >= 5 ? 'Nos ' + nf(par.length) + ' carros com oferta nas duas bases, a última oferta da Dealers ficou ' + pp(dif) + ' sobre a FIPE em relação à da Cars2You (mediana da diferença carro a carro). ' : '') +
       'Vendas: ' + nf(S.filter(c => c.d.pctVenda != null).length) + ' na Dealers e ' + nf(S.filter(c => c.c.pctVenda != null).length) + ' na Cars2You com FIPE, dentro do corte de 20% a 120%.']);
   }
@@ -417,7 +507,7 @@ function barras(ul, itens, tot) {
 const FAIXAS = [['Mesmo dia', 0, 0], ['1 a 7 dias', 1, 7], ['8 a 15 dias', 8, 15], ['16 a 30 dias', 16, 30], ['31 a 60 dias', 31, 60], ['61 a 90 dias', 61, 90], ['Mais de 90 dias', 91, 1e9]];
 function intervalo(S) {
   barras($('#hb-int'), FAIXAS.map(([r, a, b]) => [r, S.filter(c => c.dias >= a && c.dias <= b).length]).filter(x => x[1]), S.length);
-  $('#n-int').textContent = S.length ? 'mediana ' + nf(med(S.map(c => c.dias))) + ' dias' : '—';
+  $('#n-int').textContent = S.length ? 'mediana ' + diasTxt(med(S.map(c => c.dias))) : '—';
 }
 function antes(S) {
   const g = S.filter(c => c.ordem !== 'MD'), cnt = {};
@@ -429,21 +519,30 @@ function antes(S) {
 /* ============================================================================
    TABELAS
    ========================================================================== */
+/* 23/11 (Thomas): Por ordem no mesmo formato do Por comitente — ordenável, colunas por base (Cars2You, Dealers)
+   em vez de 1ª/2ª, contagens em vez de %. Sem Cars2You → Dealers / Dealers → Cars2You, que aqui é a própria linha */
+const COLS_ORD = [
+  { k: 'nome', t: 'Ordem', esq: 1, v: l => l.nome },
+  { k: 'n', t: 'Carros', v: l => l.n, f: l => nf(l.n) },
+  { k: 'dias', t: 'Intervalo mediano', v: l => l.dias, f: l => diasTxt(l.dias) },
+  { k: 'vc', t: 'Vendidos na Cars2You', sep: 1, v: l => l.vc, f: l => nf(l.vc) },
+  { k: 'vd', t: 'Vendidos na Dealers', v: l => l.vd, f: l => nf(l.vd) },
+  { k: 'pvc', t: 'Venda ÷ FIPE (média), Cars2You', sep: 1, v: l => l.pvc, f: l => pc(l.pvc, 1) },
+  { k: 'pvd', t: 'Venda ÷ FIPE (média), Dealers', v: l => l.pvd, f: l => pc(l.pvd, 1) },
+  { k: 'puc', t: 'Última oferta ÷ FIPE, Cars2You', sep: 1, v: l => l.puc, f: l => pc(l.puc, 1) },
+  { k: 'pud', t: 'Última oferta ÷ FIPE, Dealers', v: l => l.pud, f: l => pc(l.pud, 1) }
+];
+const EST_ORD = { k: 'n', dir: -1 };
+ordenavel($('#th-ord'), EST_ORD, COLS_ORD);
 function tabOrdem(S) {
-  const cols = ['Ordem', 'Carros', 'Intervalo mediano', 'Nas duas ao mesmo tempo', 'Com oferta na 1ª', 'Vendidos na 1ª', 'Com oferta na 2ª', 'Vendidos na 2ª', 'Venda ÷ FIPE na 1ª', 'Venda ÷ FIPE na 2ª', 'Última oferta ÷ FIPE na 1ª', 'Última oferta ÷ FIPE na 2ª'];
-  $('#th-ord').innerHTML = cols.map((c, i) => '<th class="' + (i ? 'n' : 'esq') + '">' + esc(c) + '</th>').join('');
   const lin = ['CD', 'DC', 'MD'].map(o => {
-    const g = S.filter(c => c.ordem === o), n = g.length;
-    if (!n) return '';
-    const f = (fn) => pc(razao(g.filter(fn).length, n));
-    return '<tr><td class="esq">' + esc(NOME_ORD[o]) + '</td><td class="n num">' + nf(n) + '</td><td class="n num">' + nf(med(g.map(c => c.dias))) + ' dias</td>' +
-      '<td class="n num">' + f(c => c.sobre) + '</td><td class="n num">' + f(c => pri(c).of > 0) + '</td><td class="n num">' + f(c => pri(c).vend) + '</td>' +
-      '<td class="n num">' + f(c => seg(c).of > 0) + '</td><td class="n num">' + f(c => seg(c).vend) + '</td>' +
-      '<td class="n num">' + pc(med(g.map(c => pri(c).pctVenda)), 1) + '</td><td class="n num">' + pc(med(g.map(c => seg(c).pctVenda)), 1) + '</td>' +
-      '<td class="n num">' + pc(med(g.map(c => pri(c).pctUlt)), 1) + '</td><td class="n num">' + pc(med(g.map(c => seg(c).pctUlt)), 1) + '</td></tr>';
-  }).join('');
-  $('#tb-ord').innerHTML = lin || '<tr><td colspan="12" class="vazio">Sem carros neste filtro.</td></tr>';
-  $('#n-ord').textContent = '1ª = a base em que o carro foi publicado primeiro em 2026; 2ª = a outra. "Mesmo dia" usa a Cars2You como 1ª. Percentuais sobre os carros da linha; % sobre a FIPE em mediana, só com valor entre 20% e 120% da FIPE.';
+    const g = S.filter(c => c.ordem === o);
+    return { nome: NOME_ORD[o], n: g.length, dias: g.length ? med(g.map(c => c.dias)) : null,
+      vc: g.filter(c => c.c.vend).length, vd: g.filter(c => c.d.vend).length,
+      pvc: media(g.map(c => c.c.pctVenda)), pvd: media(g.map(c => c.d.pctVenda)), puc: med(g.map(c => c.c.pctUlt)), pud: med(g.map(c => c.d.pctUlt)) };
+  }).filter(l => l.n);
+  tabela($('#th-ord'), $('#tb-ord'), lin, COLS_ORD, EST_ORD, null, 'Sem carros neste filtro.');
+  $('#n-ord').textContent = nf(lin.length) + (lin.length === 1 ? ' ordem' : ' ordens');
 }
 
 /* tabela ordenável genérica: cols = [{k, t, v, f, n, esq, sep, g}] ; grupos opcionais no cabeçalho */
@@ -483,11 +582,11 @@ const COLS_COM = [
   { k: 'n', t: 'Carros', v: l => l.n, f: l => nf(l.n) },
   { k: 'cd', t: 'Cars2You → Dealers', v: l => l.cd, f: l => nf(l.cd) },
   { k: 'dc', t: 'Dealers → Cars2You', v: l => l.dc, f: l => nf(l.dc) },
-  { k: 'dias', t: 'Intervalo mediano', v: l => l.dias, f: l => (l.dias == null ? '—' : nf(l.dias) + ' dias') },
+  { k: 'dias', t: 'Intervalo mediano', v: l => l.dias, f: l => diasTxt(l.dias) },
   { k: 'vc', t: 'Vendidos na Cars2You', sep: 1, v: l => l.vc, f: l => nf(l.vc) },
   { k: 'vd', t: 'Vendidos na Dealers', v: l => l.vd, f: l => nf(l.vd) },
-  { k: 'pvc', t: 'Venda ÷ FIPE, Cars2You', sep: 1, v: l => l.pvc, f: l => pc(l.pvc, 1) },
-  { k: 'pvd', t: 'Venda ÷ FIPE, Dealers', v: l => l.pvd, f: l => pc(l.pvd, 1) },
+  { k: 'pvc', t: 'Venda ÷ FIPE (média), Cars2You', sep: 1, v: l => l.pvc, f: l => pc(l.pvc, 1) },
+  { k: 'pvd', t: 'Venda ÷ FIPE (média), Dealers', v: l => l.pvd, f: l => pc(l.pvd, 1) },
   { k: 'puc', t: 'Última oferta ÷ FIPE, Cars2You', sep: 1, v: l => l.puc, f: l => pc(l.puc, 1) },
   { k: 'pud', t: 'Última oferta ÷ FIPE, Dealers', v: l => l.pud, f: l => pc(l.pud, 1) }
 ];
@@ -500,7 +599,7 @@ function tabComitente(S0) {
     const nmd = g.filter(c => c.ordem !== 'MD');
     return { dono, n: g.length, cd: g.filter(c => c.ordem === 'CD').length, dc: g.filter(c => c.ordem === 'DC').length,
       dias: nmd.length ? med(nmd.map(c => c.dias)) : null, vc: g.filter(c => c.c.vend).length, vd: g.filter(c => c.d.vend).length,
-      pvc: med(g.map(c => c.c.pctVenda)), pvd: med(g.map(c => c.d.pctVenda)), puc: med(g.map(c => c.c.pctUlt)), pud: med(g.map(c => c.d.pctUlt)) };
+      pvc: media(g.map(c => c.c.pctVenda)), pvd: media(g.map(c => c.d.pctVenda)), puc: med(g.map(c => c.c.pctUlt)), pud: med(g.map(c => c.d.pctUlt)) };
   });
   tabela($('#th-com'), $('#tb-com'), lin, COLS_COM, EST_COM, null, 'Sem carros neste filtro.');
   $('#n-com').textContent = nf(lin.length) + ' comitentes';
@@ -508,38 +607,252 @@ function tabComitente(S0) {
 
 const stHtml = s => (s.vend ? '<span class="st-v">' + esc(stNome(s.st)) + '</span>' : VIVO.has(s.st) ? esc(stNome(s.st)) : '<span class="fraco">' + esc(stNome(s.st)) + '</span>');
 const nomeModelo = l => l.modelo + (l.versao ? ' ' + l.versao : '');
-const tipModelo = l => nomeModelo(l) + '\nCars2You: ' + l.com_c + ' · último evento: ' + (l.c.evento || '—') + '\nDealers: ' + l.com_d + ' · último evento: ' + (l.d.evento || '—') + '\nCasado pelo ' + l.por;
-/* tabela de veículos enxuta: valores em R$ mil, títulos curtos, textos longos quebram linha (19/11; antes cortavam) */
-const mil = x => (x == null ? '—' : nf(x / 1000, 1));
+/* 23/11 (Thomas): a tabela de veículos traz só o RESUMO do carro; o comparativo Cars2You × Dealers e as
+   passagens moram na dica (Modelo ou Passagens: passar o mouse, focar ou clicar, que fixa) */
 const ORD_CURTA = { DC: 'D → C', CD: 'C → D', MD: 'Mesmo dia' };
-const lado = (k, rot) => [
-  { k: k + 'ini', t: '1ª pub.', sep: 1, v: l => l[k].ini, f: l => dt(l[k].ini) },
-  { k: k + 'pub', t: 'Pub.', v: l => l[k].pub, f: l => nf(l[k].pub) },
-  { k: k + 'of', t: 'Ofertas', v: l => l[k].of, f: l => nf(l[k].of) },
-  { k: k + 'maior', t: 'Maior', v: l => l[k].maior, f: l => mil(l[k].maior) },
-  { k: k + 'ult', t: 'Última', v: l => l[k].ult, f: l => mil(l[k].ult) },
-  { k: k + 'pu', t: '% FIPE', v: l => (l[k].fr && l[k].ult ? l[k].ult / l[k].fr : null), f: l => (l[k].fr && l[k].ult ? pc(l[k].ult / l[k].fr) : '—') },
-  { k: k + 'st', t: 'Status', cl: 'quebra', v: l => stNome(l[k].st), html: 1, f: l => stHtml(l[k]) },
-  { k: k + 'venda', t: 'Venda', v: l => l[k].venda, f: l => mil(l[k].venda) },
-  { k: k + 'fipe', t: 'FIPE', v: l => l[k].fr, f: l => mil(l[k].fr) }
-];
+/* passagens = publicações seguidas na mesma base */
+const LETRA = ['C', 'D'], NOME_BASE = ['Cars2You', 'Dealers'];
+const DIA_MS = 864e5;
+const diasEntre = (a, b) => Math.round((Date.UTC(+b.slice(0, 4), +b.slice(5, 7) - 1, +b.slice(8, 10)) - Date.UTC(+a.slice(0, 4), +a.slice(5, 7) - 1, +a.slice(8, 10))) / DIA_MS);
+const rota = l => (l.pas.length <= 4 ? l.pas.map(p => LETRA[p[0]]).join(' → ')
+  : l.pas.slice(0, 3).map(p => LETRA[p[0]]).join(' → ') + ' → … (' + l.pas.length + ')');
+/* resumo da venda: em que base e quando (nas duas: a mais recente) */
+const diaVenda = l => [l.c.dv, l.d.dv].filter(Boolean).sort().pop() || null;
+const vendidoTxt = l => (l.vendeu === 'ambos' ? 'Nas duas' : l.vendeu === 'c' ? 'Cars2You' : l.vendeu === 'd' ? 'Dealers' : null);
+/* a dica (23/11, Thomas): uma linha por PASSAGEM — publicações seguidas no mesmo banco; linha nova só quando o
+   carro é transferido para o outro banco. Dias publicados = dias de calendário em que alguma publicação da
+   passagem estava no ar (do início ao fim, contando os dois; dias sobrepostos contam uma vez). */
+const EVENTOS = DADOS.eventos;
+const diaOff = n => (n == null ? null : new Date(Date.UTC(2026, 0, 1 + n)).toISOString().slice(0, 10));
+const mil = x => (x == null ? '—' : nf(x / 1000, 1));
+const pct0 = (a, b) => (a && b ? pc(a / b) : '—');
+const VENDA_ST = new Set([2, 3, 7]);
+const diasNoAr = pubs => {
+  const iv = pubs.map(p => [p[1], Math.max(p[1], p[2])]).sort((a, b) => a[0] - b[0]);
+  let tot = 0, ini = null, fim = null;
+  iv.forEach(([a, b]) => {
+    if (ini === null) { ini = a; fim = b; } else if (a <= fim + 1) { fim = Math.max(fim, b); } else { tot += fim - ini + 1; ini = a; fim = b; }
+  });
+  return ini === null ? 0 : tot + fim - ini + 1;
+};
+function passagensDe(P) {
+  const G = [];
+  P.forEach(p => { if (!G.length || G[G.length - 1].b !== p[0]) G.push({ b: p[0], pubs: [] }); G[G.length - 1].pubs.push(p); });
+  return G.map(g => {
+    const ps = g.pubs, ult = ps[ps.length - 1], comOf = ps.filter(p => p[5] > 0), vend = ps.filter(p => VENDA_ST.has(p[3]));
+    const cnt = {}; ps.forEach(p => { cnt[p[3]] = (cnt[p[3]] || 0) + 1; });
+    const uo = comOf.length ? comOf[comOf.length - 1] : null, v = vend.length ? vend[vend.length - 1] : null;
+    const fipe = [...ps].reverse().map(p => p[10]).find(x => x) || null;
+    return { b: g.b, n: ps.length, ini: ps[0][1], fim: Math.max(...ps.map(p => p[2])), dias: diasNoAr(ps), st: ult[3],
+      cnt: Object.entries(cnt).sort((a, b) => b[1] - a[1]), of: ps.reduce((t, p) => t + p[5], 0),
+      maior: comOf.length ? Math.max(...comOf.map(p => p[6] || 0)) || null : null, ult: uo ? uo[7] : null, fipe,
+      venda: v ? v[8] : null, dv: v ? v[9] : null, evUlt: EVENTOS[ult[4]] || '' };
+  });
+}
+function tabDica(l) {
+  const G = passagensDe(l.pubs), tot = [0, 0];
+  G.forEach(g => { tot[g.b] += g.dias; });
+  const lin = G.map((g, i) => {
+    const stTxt = VENDA_ST.has(g.st) ? '<span class="st-v">' + esc(stNome(g.st)) + '</span>' : VIVO.has(g.st) ? esc(stNome(g.st)) : '<span class="fraco">' + esc(stNome(g.st)) + '</span>';
+    return '<tr' + (i ? ' class="troca"' : '') + '><td class="n">' + (i + 1) + '</td><td class="base b' + g.b + '">' + NOME_BASE[g.b] + '</td>' +
+      '<td>' + dt(diaOff(g.ini)) + '</td><td>' + dt(diaOff(g.fim)) + '</td><td class="n forte">' + nf(g.dias) + '</td><td class="n">' + nf(g.n) + '</td>' +
+      '<td class="st">' + stTxt + (g.n > 1 ? '<span class="det">' + esc(g.cnt.map(([s, n]) => stNome(Number(s)) + ' ' + n).join(' · ')) + '</span>' : '') +
+      (g.evUlt ? '<span class="det">Último evento: ' + esc(g.evUlt) + '</span>' : '') + '</td>' +
+      '<td class="n">' + nf(g.of) + '</td><td class="n">' + mil(g.maior) + '</td><td class="n">' + mil(g.ult) + '</td><td class="n">' + pct0(g.ult, g.fipe) + '</td>' +
+      '<td class="n">' + mil(g.venda) + '</td><td>' + dt(diaOff(g.dv)) + '</td><td class="n">' + mil(g.fipe) + '</td></tr>';
+  }).join('');
+  return '<p class="pop-tit">' + esc((l.placa ? l.placa + ' · ' : '') + nomeModelo(l)) + '</p>' +
+    '<p class="pop-sub">' + esc([l.ano, l.cat, l.dono, NOME_ORD[l.ordem] + (l.ordem === 'MD' ? '' : ' em ' + nf(l.dias) + (l.dias === 1 ? ' dia' : ' dias')), 'casado pelo ' + l.por].filter(Boolean).join(' · ')) +
+    '<br>Cars2You: ' + esc(l.com_c || '—') + (l.placa_d ? ' (' + esc(l.placa) + ')' : '') + ' · Dealers: ' + esc(l.com_d || '—') + (l.placa_d ? ' (' + esc(l.placa_d) + ')' : '') + '</p>' +
+    '<p class="pop-sec">Dias publicados: Cars2You ' + nf(tot[0]) + ' · Dealers ' + nf(tot[1]) + ' · ' + G.length + (G.length === 1 ? ' passagem' : ' passagens') +
+    ', ' + (G.length - 1) + (G.length === 2 ? ' transferência' : ' transferências') + (l.dev ? ' · voltou à base de origem' : '') + '</p>' +
+    '<p class="pop-tv">Tempo de venda: ' + [['Cars2You', l.c], ['Dealers', l.d]].map(([nome, s]) => {
+      const d = tempoVenda(s);
+      return nome + ' <strong>' + (d == null ? (s.vend ? '—' : 'não vendeu') : esc(diasTxt(d))) + '</strong>' +
+        (d == null ? '' : ' <span class="fraco">(1ª publicação ' + dt(s.ini) + ' → venda ' + dt(s.dv) + ')</span>');
+    }).join(' · ') + '</p>' +
+    '<table class="pubs"><thead><tr><th class="n">#</th><th>Banco</th><th>Início</th><th>Fim</th><th class="n">Dias publicados</th><th class="n">Pub.</th><th>Status</th>' +
+    '<th class="n">Ofertas</th><th class="n">Maior</th><th class="n">Última</th><th class="n">% FIPE</th><th class="n">Venda</th><th>Data venda</th><th class="n">FIPE</th></tr></thead><tbody>' +
+    lin + '</tbody></table>' +
+    '<p class="pop-nota">Uma linha por passagem: as publicações seguidas no mesmo banco; linha nova só quando o carro foi transferido. Dias publicados = dias de calendário com alguma publicação no ar (início e fim contam; dias sobrepostos, uma vez). Status = o da última publicação, com a contagem embaixo. Valores em R$ mil; % FIPE = última oferta ÷ FIPE do anúncio.</p>' +
+    (l.erro ? '<p class="pop-sec">Erro operacional</p><ul class="pop-err">' + (l.erro_txt || []).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '');
+}
+const tipDev = l => (l.dev ? 'Voltou à ' + NOME_BASE[l.pas[0][0]] + ' depois de passar pela ' + NOME_BASE[1 - l.pas[0][0]] : '');
+const botao = (l, txt, cl, rot) => '<button type="button" class="pop-btn ' + cl + '" data-id="' + l.id + '" aria-label="' + esc(rot) + '">' + esc(txt) + '</button>';
+const ultPub = l => l.pubs[l.pubs.length - 1];
+const stCor = st => (VENDA_ST.has(st) ? '<span class="st-v">' + esc(stNome(st)) + '</span>' : VIVO.has(st) ? esc(stNome(st)) : '<span class="fraco">' + esc(stNome(st)) + '</span>');
 const COLS_VEI = [
-  { k: 'dono', t: 'Comitente', esq: 1, cl: 'corta', v: l => l.dono, tip: l => l.dono },
-  { k: 'modelo', t: 'Modelo', esq: 1, cl: 'corta larga', v: l => l.modelo, f: nomeModelo, tip: tipModelo },
+  { k: 'placa', t: 'Placa', cl: 'placa', v: l => l.placa, f: l => (l.placa || '—') + (l.placa_d ? ' *' : ''),
+    tip: l => (l.placa_d ? 'Cars2You: ' + l.placa + '\nDealers: ' + l.placa_d : '') },
+  { k: 'dono', t: 'Comitente', esq: 1, cl: 'corta', v: l => l.dono },
+  { k: 'modelo', t: 'Modelo', esq: 1, cl: 'corta larga', v: l => l.modelo, html: 1,
+    f: l => botao(l, nomeModelo(l), 'modelo-btn', 'Comparar Cars2You e Dealers: ' + nomeModelo(l)) },
+  /* 23/11 (Thomas): Passagens logo depois do modelo; a coluna Ordem saiu (a ordem segue no filtro, na dica e na 1ª publicação) */
+  { k: 'pas', t: 'Passagens', cl: 'rota', v: l => l.pas.length, html: 1, f: l => botao(l, rota(l), 'rota-btn', 'Ver as ' + l.pas.length + ' passagens') },
   { k: 'ano', t: 'Ano', v: l => l.ano, f: l => (l.ano || '—') },
   { k: 'cat', t: 'Cat.', esq: 1, v: l => l.cat },
-  { k: 'ordem', t: 'Ordem', esq: 1, v: l => NOME_ORD[l.ordem], f: l => ORD_CURTA[l.ordem], tip: l => NOME_ORD[l.ordem] },
-  { k: 'dias', t: 'Interv.', v: l => l.dias, f: l => nf(l.dias) + ' d' }
-].concat(lado('c'), lado('d'), [{ k: 'mol', t: 'Molicar', sep: 1, v: l => l.c.molicar, f: l => mil(l.c.molicar) }]);
-const GRUPOS_VEI = [['Carro', 6], ['Cars2You', 9, 1], ['Dealers', 9, 1], ['', 1, 1]];
+  /* 23/11 (Thomas): a 1ª publicação de 2026 do carro, no banco em que estreou (mesmo dia: as duas) */
+  { k: 'pri', t: '1ª publicação', v: l => pri(l).ini, f: l => dt(pri(l).ini),
+    tip: l => (l.ordem === 'MD' ? 'Nas duas no mesmo dia' : 'Na ' + (l.ordem === 'DC' ? 'Dealers' : 'Cars2You') + '; na ' + (l.ordem === 'DC' ? 'Cars2You' : 'Dealers') + ' em ' + dt(seg(l).ini)) },
+  { k: 'dias', t: 'Interv.', v: l => l.dias, f: l => nf(l.dias) + ' d' },
+  /* 23/11 (Thomas): status de hoje = o da publicação mais recente do carro, nas duas bases; o banco embaixo */
+  { k: 'status', t: 'Status', cl: 'quebra', v: l => stNome(ultPub(l)[3]), html: 1,
+    f: l => { const p = ultPub(l); return stCor(p[3]) + '<span class="sub-cel">' + NOME_BASE[p[0]] + '</span>'; },
+    tip: l => { const p = ultPub(l); return 'Publicação mais recente: ' + NOME_BASE[p[0]] + ', ' + (EVENTOS[p[4]] || 'sem evento') + ', de ' + dt(diaOff(p[1])) + ' a ' + dt(diaOff(p[2])); } },
+  { k: 'vend', t: 'Vendido', cl: 'quebra', v: l => diaVenda(l), html: 1,
+    f: l => (vendidoTxt(l) ? '<span class="st-v">' + esc(vendidoTxt(l)) + '</span><span class="sub-cel">' + dt(diaVenda(l)) + '</span>' : '<span class="fraco">—</span>') },
+  { k: 'dev', t: 'Devolvido', cl: 'marca-cel', v: l => l.dev, html: 1, f: l => (l.dev ? '<span class="tag atencao">Sim</span>' : '<span class="fraco">—</span>'), tip: tipDev },
+  { k: 'erro', t: 'Erro op.', cl: 'marca-cel', v: l => l.erro_sim * 2 + l.erro_rep, html: 1,
+    f: l => (l.erro ? '<span class="tag ruim">' + (l.erro_sim && l.erro_rep ? 'Os dois' : l.erro_sim ? 'Simultâneo' : 'Vendido / análise') + '</span>' : '<span class="fraco">—</span>'),
+    tip: l => (l.erro_txt || []).join('\n') }
+];
+const GRUPOS_VEI = null;
 const EST_VEI = { k: 'dias', dir: -1 };
 ordenavel($('#th-vei'), EST_VEI, COLS_VEI);
 let BUSCA = '';
 $('#busca').addEventListener('input', e => { BUSCA = e.target.value.trim().toLowerCase(); render(); });
+/* a dica (comparativo e passagens): aparece ao passar o mouse ou focar; o clique fixa (e serve no celular); Esc ou clique fora fecha */
+const POR_ID = new Map(CARROS.map(c => [c.id, c]));
+const POP = document.createElement('div');
+POP.className = 'pop'; POP.id = 'pop-rota'; POP.setAttribute('role', 'tooltip'); POP.hidden = true;
+document.body.appendChild(POP);
+let popFixo = null;
+/* boxplot (23/11): quartis por interpolação linear (a mediana bate com a do cartão), bigodes de Tukey
+   (até 1,5 × a distância entre os quartis), média em losango; o eixo vai até o maior bigode e os pontos além
+   dele são contados à direita, para a cauda longa não esmagar a caixa */
+let S_ATUAL = [];
+const quantil = (v, p) => { const pos = (v.length - 1) * p, i = Math.floor(pos); return v[i] + (v[Math.min(i + 1, v.length - 1)] - v[i]) * (pos - i); };
+function resumoDist(a) {
+  const v = a.filter(x => x != null).sort((x, y) => x - y);
+  if (!v.length) return null;
+  const q1 = quantil(v, .25), q2 = quantil(v, .5), q3 = quantil(v, .75), iqr = q3 - q1;
+  const bMin = v.find(x => x >= q1 - 1.5 * iqr), bMax = [...v].reverse().find(x => x <= q3 + 1.5 * iqr);
+  return { n: v.length, min: v[0], q1, q2, q3, max: v[v.length - 1], bMin, bMax, media: v.reduce((t, x) => t + x, 0) / v.length,
+    fora: v.filter(x => x > bMax).length, p90: quantil(v, .9) };
+}
+function tabBox(tipo) {
+  const S = S_ATUAL;
+  const G = tipo === 'int'
+    ? [['Todas', S.filter(c => c.ordem !== 'MD').map(c => c.dias)], ['Cars2You → Dealers', S.filter(c => c.ordem === 'CD').map(c => c.dias)], ['Dealers → Cars2You', S.filter(c => c.ordem === 'DC').map(c => c.dias)]]
+    : [['As duas', S.flatMap(c => [tempoVenda(c.c), tempoVenda(c.d)])], ['Dealers', S.map(c => tempoVenda(c.d))], ['Cars2You', S.map(c => tempoVenda(c.c))]];
+  const R = G.map(([nome, a]) => [nome, resumoDist(a)]).filter(g => g[1]);
+  const tit = tipo === 'int' ? 'Intervalo entre as bases' : 'Tempo de venda';
+  const sub = tipo === 'int' ? 'Dias entre a 1ª publicação de 2026 em cada base (sem os de mesmo dia).' : 'Dias da 1ª publicação de 2026 no banco até a venda nesse banco.';
+  if (!R.length) return '<p class="pop-tit">' + tit + '</p><p class="pop-sub">Sem carros neste filtro.</p>';
+  const W = 460, L = 132, Rr = 54, H0 = 18, RH = 34, H = H0 + RH * R.length + 22;
+  const mx = Math.max(1, ...R.map(g => g[1].bMax)) * 1.08, x = v => L + (W - L - Rr) * Math.min(v, mx) / mx;
+  const passo = [1, 2, 5, 10, 20, 30, 50, 100, 200].find(p => mx / p <= 6) || 500;
+  const p = [];
+  for (let t = 0; t <= mx; t += passo) p.push('<line class="bx-grade" x1="' + x(t) + '" y1="' + (H0 - 6) + '" x2="' + x(t) + '" y2="' + (H - 18) + '"/><text class="bx-eixo" x="' + x(t) + '" y="' + (H - 4) + '" text-anchor="middle">' + nf(t) + '</text>');
+  R.forEach(([nome, d], i) => {
+    const y = H0 + RH * i + RH / 2, bh = 14;
+    p.push('<text class="bx-rot" x="0" y="' + (y + 4) + '">' + esc(nome) + '</text>',
+      '<line class="bx-big" x1="' + x(d.bMin) + '" y1="' + y + '" x2="' + x(d.q1) + '" y2="' + y + '"/>',
+      '<line class="bx-big" x1="' + x(d.q3) + '" y1="' + y + '" x2="' + x(d.bMax) + '" y2="' + y + '"/>',
+      '<line class="bx-big" x1="' + x(d.bMin) + '" y1="' + (y - 5) + '" x2="' + x(d.bMin) + '" y2="' + (y + 5) + '"/>',
+      '<line class="bx-big" x1="' + x(d.bMax) + '" y1="' + (y - 5) + '" x2="' + x(d.bMax) + '" y2="' + (y + 5) + '"/>',
+      '<rect class="bx-caixa" x="' + x(d.q1) + '" y="' + (y - bh / 2) + '" width="' + Math.max(1, x(d.q3) - x(d.q1)) + '" height="' + bh + '" rx="2"/>',
+      '<line class="bx-med" x1="' + x(d.q2) + '" y1="' + (y - bh / 2) + '" x2="' + x(d.q2) + '" y2="' + (y + bh / 2) + '"/>',
+      (d.media <= mx ? '<path class="bx-media" d="M' + x(d.media) + ' ' + (y - 5) + 'l5 5-5 5-5-5z"/>' : ''),
+      (d.fora ? '<text class="bx-fora" x="' + (W - Rr + 6) + '" y="' + (y + 4) + '">+' + nf(d.fora) + ' →</text>' : ''));
+  });
+  const n1 = x => nf(x, Number.isInteger(x) ? 0 : 1);
+  const tab = '<table class="bx-tab"><thead><tr><th></th><th class="n">Carros</th><th class="n">Mín.</th><th class="n">1º quartil</th><th class="n">Mediana</th><th class="n">3º quartil</th><th class="n">90%</th><th class="n">Máx.</th><th class="n">Média</th></tr></thead><tbody>' +
+    R.map(([nome, d]) => '<tr><td>' + esc(nome) + '</td><td class="n">' + nf(d.n) + '</td><td class="n">' + n1(d.min) + '</td><td class="n">' + n1(d.q1) + '</td><td class="n forte">' + n1(d.q2) +
+      '</td><td class="n">' + n1(d.q3) + '</td><td class="n">' + n1(d.p90) + '</td><td class="n">' + n1(d.max) + '</td><td class="n">' + nf(d.media, 1) + '</td></tr>').join('') + '</tbody></table>';
+  return '<p class="pop-tit">' + tit + ': distribuição</p><p class="pop-sub">' + sub + ' Segue os filtros do topo.</p>' +
+    '<svg class="bx" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" role="img" aria-label="Boxplot de ' + tit.toLowerCase() + '">' + p.join('') + '</svg>' + tab +
+    '<p class="pop-nota">Caixa = do 1º ao 3º quartil (metade dos carros); traço = mediana; losango = média; bigodes até 1,5 × a altura da caixa. "+N →" = carros além do bigode, fora da escala. Valores em dias.</p>';
+}
+function mostraPop(b) {
+  POP.innerHTML = b.dataset.box ? tabBox(b.dataset.box) : tabDica(POR_ID.get(Number(b.dataset.id)));
+  POP.hidden = false;
+  b.setAttribute('aria-describedby', 'pop-rota');
+  const r = b.getBoundingClientRect(), w = POP.offsetWidth, h = POP.offsetHeight, m = 12;
+  let x = Math.min(Math.max(m, r.left), window.innerWidth - w - m);
+  let y = r.bottom + 6;
+  if (y + h > window.innerHeight - m) y = Math.max(m, r.top - h - 6);
+  POP.style.left = x + 'px'; POP.style.top = y + 'px';
+}
+function escondePop() { POP.hidden = true; popFixo = null; }
+/* os gatilhos: botões da tabela de veículos e os cartões com data-box */
+function ligaPop(raiz, sel) {
+  raiz.addEventListener('mouseover', e => { const b = e.target.closest(sel); if (b && !popFixo) mostraPop(b); });
+  raiz.addEventListener('mouseout', e => { const b = e.target.closest(sel); if (b && !popFixo && !b.contains(e.relatedTarget)) POP.hidden = true; });
+  raiz.addEventListener('focusin', e => { const b = e.target.closest(sel); if (b && !popFixo) mostraPop(b); });
+  raiz.addEventListener('focusout', e => { if (e.target.closest(sel) && !popFixo) POP.hidden = true; });
+  raiz.addEventListener('click', e => {
+    const b = e.target.closest(sel); if (!b) return;
+    if (popFixo === b) { escondePop(); return; }
+    mostraPop(b); popFixo = b;
+  });
+}
+const tbVei = $('#tb-vei');
+ligaPop(tbVei, '.pop-btn');
+ligaPop($('#kpis'), '[data-box]');
+document.addEventListener('click', e => { if (popFixo && !e.target.closest('.pop-btn, [data-box]') && !POP.contains(e.target)) escondePop(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') escondePop(); });
+/* rolar a página fecha; rolar dentro da própria dica, não */
+window.addEventListener('scroll', e => { if (!POP.hidden && !POP.contains(e.target)) escondePop(); }, true);
+/* 23/11 (Thomas): os cabeçalhos da tabela de veículos filtram. Uma linha de filtros embaixo dos títulos (o título
+   segue ordenando): texto em Placa e Modelo, lista nas outras colunas. Vale só para esta tabela, junto com a busca. */
+const erroTxt = c => (c.erro_sim && c.erro_rep ? 'Os dois' : c.erro_sim ? 'Simultâneo' : c.erro_rep ? 'Vendido / análise' : 'Sem erro');
+const faixaDias = d => (FAIXAS.find(f => d >= f[1] && d <= f[2]) || ['—'])[0];
+const FIL_VEI = {
+  placa: { txt: 1, val: c => ((c.placa || '') + ' ' + (c.placa_d || '')).replace(/-/g, '').toLowerCase() },
+  dono: { val: c => c.dono },
+  modelo: { txt: 1, val: c => nomeModelo(c).toLowerCase() },
+  pas: { val: c => (c.pas.length >= 5 ? '5 ou mais' : String(c.pas.length)) },
+  ano: { val: c => String(c.ano || '—'), ordem: (a, b) => b.localeCompare(a) },
+  cat: { val: c => c.cat },
+  pri: { val: c => pri(c).ini.slice(0, 7), rot: rotMes },
+  dias: { val: c => faixaDias(c.dias), ordem: (a, b) => FAIXAS.findIndex(f => f[0] === a) - FAIXAS.findIndex(f => f[0] === b) },
+  status: { val: c => stNome(ultPub(c)[3]) },
+  vend: { val: c => vendidoTxt(c) || 'Não vendeu' },
+  dev: { val: c => (c.dev ? 'Sim' : 'Não'), ordem: (a, b) => b.localeCompare(a) },
+  erro: { val: c => erroTxt(c) }
+};
+Object.entries(FIL_VEI).forEach(([k, f]) => {
+  if (f.txt) return;
+  const cnt = {};
+  CARROS.forEach(c => { const v = f.val(c); cnt[v] = (cnt[v] || 0) + 1; });
+  f.opts = Object.keys(cnt).sort(f.ordem || ((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true })));
+});
+const FV = {};
+const filtroAtivo = () => Object.values(FV).some(v => v);
+const passaFiltros = c => Object.entries(FV).every(([k, v]) => {
+  if (!v) return true;
+  const f = FIL_VEI[k];
+  return f.txt ? f.val(c).includes(v.replace(/-/g, '').toLowerCase()) : f.val(c) === v;
+});
+function linhaFiltros() {
+  return '<tr class="filtros">' + COLS_VEI.map(col => {
+    const f = FIL_VEI[col.k], rot = 'Filtrar ' + col.t;
+    if (!f) return '<th></th>';
+    const at = FV[col.k] ? ' at' : '';
+    if (f.txt) return '<th><input class="fcab' + at + '" type="search" data-f="' + col.k + '" value="' + esc(FV[col.k] || '') + '" placeholder="Filtrar" aria-label="' + esc(rot) + '"></th>';
+    return '<th><select class="fcab' + at + '" data-f="' + col.k + '" aria-label="' + esc(rot) + '"><option value="">Todos</option>' +
+      f.opts.map(o => '<option value="' + esc(o) + '"' + (FV[col.k] === o ? ' selected' : '') + '>' + esc(f.rot ? f.rot(o) : o) + '</option>').join('') + '</select></th>';
+  }).join('') + '</tr>';
+}
+const thVei = $('#th-vei');
+thVei.addEventListener('change', e => { const s = e.target.closest('select.fcab'); if (s) { FV[s.dataset.f] = s.value; render(); } });
+thVei.addEventListener('input', e => { const i = e.target.closest('input.fcab'); if (i) { FV[i.dataset.f] = i.value.trim(); render(); } });
+$('#f-vei-limpa').addEventListener('click', () => { Object.keys(FV).forEach(k => { FV[k] = ''; }); render(); });
 function tabVeiculos(S) {
-  const g = BUSCA ? S.filter(c => c.busca.includes(BUSCA)) : S;
-  tabela($('#th-vei'), $('#tb-vei'), g, COLS_VEI, EST_VEI, GRUPOS_VEI, 'Nenhum veículo neste filtro.');
-  $('#n-vei').textContent = nf(g.length) + ' carros';
+  /* o filtro de texto é redesenhado a cada tecla: guarda o foco e o cursor para devolver depois */
+  const ae = document.activeElement, foco = ae && ae.classList && ae.classList.contains('fcab') ? [ae.dataset.f, ae.selectionStart] : null;
+  const g = S.filter(c => (!BUSCA || c.busca.includes(BUSCA)) && passaFiltros(c));
+  tabela(thVei, $('#tb-vei'), g, COLS_VEI, EST_VEI, GRUPOS_VEI, 'Nenhum veículo neste filtro.');
+  thVei.insertAdjacentHTML('beforeend', linhaFiltros());
+  const hc = thVei.querySelector('tr.cols');
+  thVei.closest('.rolo-v').style.setProperty('--th-f', (hc ? hc.getBoundingClientRect().height : 0) + 'px');
+  if (foco) {
+    const el = thVei.querySelector('.fcab[data-f="' + foco[0] + '"]');
+    if (el) { el.focus(); if (el.tagName === 'INPUT' && foco[1] != null) el.setSelectionRange(foco[1], foco[1]); }
+  }
+  $('#f-vei-limpa').hidden = !filtroAtivo();
+  $('#n-vei').textContent = nf(g.length) + ' carros' + (filtroAtivo() || BUSCA ? ' de ' + nf(S.length) : '');
 }
 
 /* ============================================================================
@@ -547,6 +860,7 @@ function tabVeiculos(S) {
    ========================================================================== */
 function render() {
   const S = filtra(false), S0 = filtra(true);
+  S_ATUAL = S; escondePop();
   kpis(S);
   achados(S);
   porMes($('#g-mes'), S);

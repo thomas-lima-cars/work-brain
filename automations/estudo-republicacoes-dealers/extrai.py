@@ -18,6 +18,11 @@ sai do casamento.
 Passo 2, em cada base: TODA negociacao (qualquer data) dos veiculos casados, com ofertas,
 FIPE, Molicar, VMV, categoria e comitente. O recorte de 2026 e a ordem das publicacoes
 ficam na analise (analisa.py), que e onde as escolhas estao escritas.
+
+23/11, pedido do Thomas: a PLACA dos carros casados sai no passo 2 e vai para a tabela de
+veiculos (excecao declarada a regra de PII do qualidade.md; os tres arquivos gerados seguem
+fora do git). O chassi continua so embaralhado. Sai tambem o updated_at da negociacao: e a
+melhor hora que o banco tem para quando uma publicacao CANCELADA deixou de estar no ar.
 """
 import argparse
 import json
@@ -98,7 +103,9 @@ SELECT an.id AS neg, a.vehicle_id AS veic, a.id AS anuncio, an.status AS status,
        v.category_id AS cat_id, cat.name AS categoria, cat.category_group_id AS grupo_id, cg.name AS grupo,
        CONCAT(UPPER(TRIM(COALESCE(b.name, '(sem marca)'))), ' ', UPPER(TRIM(COALESCE(m.name, '(sem modelo)')))) AS modelo,
        ver.name AS versao, v.model_year AS ano_mod, NULLIF(v.km, 0) AS km,
-       IF(v.deleted_at IS NULL, 0, 1) AS veic_apagado
+       IF(v.deleted_at IS NULL, 0, 1) AS veic_apagado,
+       REGEXP_REPLACE(UPPER(TRIM(v.{pl})), '[^A-Z0-9]', '') AS placa,
+       DATE_FORMAT(an.updated_at, '%Y-%m-%d %H:%i') AS atualizado
   FROM advertisement_negotiations an
   INNER JOIN advertisements a ON a.id = an.advertisement_id
   INNER JOIN vehicles v ON v.id = a.vehicle_id
@@ -112,7 +119,7 @@ SELECT an.id AS neg, a.vehicle_id AS veic, a.id AS anuncio, an.status AS status,
   LEFT JOIN versions ver ON ver.id = v.version_id
  WHERE an.deleted_at IS NULL
    AND a.vehicle_id IN ({ids}){ex}
-""".format(ini=INICIO, ids=",".join(str(int(i)) for i in ids),
+""".format(ini=INICIO, pl=COL_PLACA, ids=",".join(str(int(i)) for i in ids),
            ex=("\n   AND COALESCE(an.event_id, 0) <> " + ex) if ex else "")
 
 
