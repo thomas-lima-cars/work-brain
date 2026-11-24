@@ -1,19 +1,22 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> ⚠️ **2 commits locais não enviados** desde 2026-11-24 (o push foi barrado pelo modo automático). Rodar `git push`.
-> **Última atualização:** 2026-11-24 (madrugada; sessão aberta em 19/11, trabalho de 23/11).
+> **Última atualização:** 2026-11-24 (tarde; sessão aberta em 19/11).
+> - **Painel de Eventos Cars2You, versão `279a3a1f` publicada (24/11).** O **Mensal por evento** foi ao ar, com
+>   mais o pedido de hoje: **Diário escondido** e, no topo, **Eventos: Ativos · Finalizados · Todos** (nasce em
+>   Ativos); **meta do evento** (o % que os ativos precisam para o mês fechar na meta, descontando os finalizados)
+>   na tabela de eventos e, com Ativos, nos cartões; **tabela de veículos do Mensal com Exportar CSV**; coluna Fim e
+>   ordenação por coluna. Planilha de metas nova (só mensal, por whitelabel) subida pelo Thomas. **Rodada 70725 ✅**
+>   conferida no navegador (números no `indicadores.md`). Voltar atrás: `01e3c4e9`.
+> - Estudo de Republicações (24/11): **analítico em Excel** (`monta-excel.py`, fora do git), conferido com o HTML.
+>
+> Em 23/11:
 > - **Estudo de Republicações Dealers agora atualiza sozinho, toda segunda 0h (23/11).** O n8n não alcança a
 >   Dealers, então o estudo **roda no PC** (tarefa do Windows; espera a VPN por até 12 h) e entrega pelo webhook
 >   **Receber Estudos** (`bbbITLpsU9wc9rAR`, publicado com ok), que grava em `Estudos/` no SharePoint (site N8N).
 >   1º envio ✅ (1.472 carros); **1ª rodada pela tarefa em 30/11**. No mesmo dia, a página ganhou placa,
 >   passagens com dica, Devolvido, Erro operacional, filtro nos cabeçalhos, tempo de venda com boxplot e
 >   Venda ÷ FIPE em média.
-> - **Painel de Eventos Cars2You, Mensal por evento (19/11) — pronto no LOCAL, não enviado.** Tabela de eventos
->   com **meta ajustada**, eventos ativos de volta (Total · Ativos · Finalizados), filtros de evento e de datas
->   de início e fim, gráficos nos dias do mês; planilha de metas só mensal e por whitelabel. 112 provas e
->   conferência pelo banco ok. Em 23/11 o Thomas viu a tela e pediu **"deixa guardado, vamos voltar nisso
->   mais tarde"**. A versão no ar segue a `01e3c4e9`.
 > - Estudo de Republicações (19/11): tabela de veículos centralizada e com quebra de linha; Por ordem e Por
 >   comitente quebram o título quando a tela não comporta.
 >
@@ -70,13 +73,17 @@
   constante `FECHADO` no Montar Consultas), sem o cartão Com oferta, e com o **Valor vendido** num cartão próprio
   (variação em % e diferença contra o mês anterior; o pé do Vendidos ficou com Aguardando, Vendido e Mês anterior).
   Sete cartões (`.g7`). 104 provas. Run 69842 (versão `27691b29`) com a tabela dos 12 meses no `indicadores.md`.
-  **19/11, Mensal por evento — NO LOCAL, NÃO ENVIADO** (README da pasta, seção de 19/11): consultas por evento
+  **19/11, Mensal por evento** (README da pasta, seção de 19/11): consultas por evento
   (`mes_ev`, `mes_dia`, `mes_lojd` no lugar de `mes_veic` e `mes_loj`; 111 consultas, ~170 s no banco), o recorte
   FECHADO saiu e virou o filtro Total · Ativos · Finalizados, filtros de evento e de datas, tabela de eventos com
   **meta ajustada** ("quanto falta"), gráficos de veículos e lojistas nos **dias do mês** (batem com o Diário dia a
   dia). Planilha `metas-painel-eventos.xlsx` nova: **só a mensal, uma linha por whitelabel e comitente**; o Diário
   usa a mensal; a planilha antiga ainda é lida (vale para todos os canais). HTML de 5,4 MB; os três nós do Montar
-  Painel com folga curta (56,5 / 55,9 / 54,6 KB, teto 56 KB). Envio pronto em `n8n/_envio/` (4 nós).
+  Painel com folga curta (56,5 / 55,9 / 54,6 KB, teto 56 KB).
+  **24/11, versão `279a3a1f` no ar** (run 70725 ✅): o Mensal por evento com o Diário escondido, Ativos ·
+  Finalizados · Todos no topo, **meta do evento** no lugar da meta ajustada, tabela de veículos do Mensal com
+  **Exportar CSV**, coluna Fim e ordenação. `_enxuga.js` tira a indentação: três nós bastam (56,9 / 54,7 / 55,6 KB).
+  116 provas.
 - **Rotina Fenauto** — 🧊 **DESLIGADA em 16/11** (Thomas: "cancele as próximas atualizações"). Wf
   **`9CNN9FjRohxaRUZq`**, pasta `automations/n8n-sdk/rotina-fenauto/`. Antes de desligar, os três painéis
   foram congelados em **09 a 13/11** (`JANELA_FIXA` no Montar Consultas: janela até 14/11 00:00 e "agora"
@@ -174,10 +181,6 @@
   ou aceitar o diário? E: falha do WhatsApp deve marcar o run como erro se o e-mail saiu?
 - 🔵 **Projeção 2027 — mesclas a validar com o Mattera:** "Multifrota - Netcarros" → "Outlet Netcarros"
   e os 5 "Dealers - Venda Direta - Ajuste <mês>" numa linha (aba De-para, oculta).
-- 🔵 **Painel de Eventos Cars2You, 19/11 — escolhas minhas no Mensal por evento** (README, seção de 19/11): sem
-  evento escolhido, o veículo conta pelo evento dono no mês (o whitelabel também, por ele); evento de dois canais
-  leva a média das metas; base pequena = comitente no canal → categoria no canal → categoria; lojistas só nos
-  eventos do mês (no começo do mês ficam abaixo do Diário).
 - 🔵 **Painel de Eventos Cars2You, 18/11 — Valor vendido:** o mês corrente (incompleto) compara com o mês
   anterior inteiro (nov/26 marca ▼ -66%), como os outros cartões. Trocar para o mesmo período do mês anterior?
   E, leitura minha do pedido: o "Mês anterior" (contagem) ficou no Vendidos, como nos outros status.
@@ -228,16 +231,12 @@
       — o prazo era sexta 30/10; confirmar se já foi
 - [ ] Projeção 2027: criar o **projeto no Claude** e compartilhar com Tuunelis e Mattera (pedido da reunião)
 - [ ] Projeção 2027: quando chegarem os fechamentos de out–dez/26, rodar `monta_projecao.py` de novo
-- [ ] 🔥 **Retomar o Mensal por evento** (Thomas, 23/11: "vamos voltar nisso mais tarde"): esconder a nota do
-      buraco no access_logs na escala de dias do mês; rever a tela com o Thomas; com o ok, `monta_envio.py` → 4
-      `update_workflow` → o Thomas sobe a planilha nova em `Comitente - Metas/` → `_confere_n8n.py` → publicar
-      (voltar atrás: `01e3c4e9`)
-- [ ] 🔥 **Painel de Eventos Cars2You:** abrir no SharePoint (versão `01e3c4e9`: Mensal só com eventos fechados e o
-      cartão Valor vendido) — o histórico do n8n só guarda erro — e mandar o link a quem vai usar
+- [ ] 🔥 **Painel de Eventos Cars2You:** abrir no SharePoint (versão `279a3a1f`, conferida pelo HTML da rodada 70725)
+      e mandar o link a quem vai usar
 - [ ] Painel de Eventos Cars2You, com VPN: qual evento de ago/26 saiu do Mensal com o filtro de fechado (184 → 183)
       e se há outros eventos antigos presos em `status = 1`
-- [ ] **Metas do Painel de Eventos Cars2You em dezembro:** criar a aba `2026-12` (copiar a de novembro e renomear; se o
-      Mensal por evento for ao ar antes, na planilha nova, com o whitelabel)
+- [ ] **Metas do Painel de Eventos Cars2You em dezembro:** criar a aba `2026-12` na planilha nova (só mensal, por
+      whitelabel; copiar a de novembro e renomear)
       ou rodar `gera_metas.py`; sem ela, dezembro usa a de novembro e avisa
 - [ ] **Fenauto:** abrir os três arquivos em `Fenauto_202611/` no SharePoint e ver a tela da semana fechada
       (rodada 69497, 16/11 15h16)
@@ -337,7 +336,7 @@
   **Feche a aba do workflow no editor antes**: em 12/11 um salvamento pelo editor desfez 7 nós enviados.
   Cada nó grande custa de 100 a 150 mil tokens; em 12/11 o limite de gasto da organização foi atingido no meio do envio.
 - 📦 **Painel de Eventos Cars2You: os 14 pacotes `negs` do Diário chegaram a 140 KB em 19/11** (e veículos a 132 KB).
-  No local as partes subiram para 16 e 8 (maior pacote 123 KB) — vai junto com o Mensal por evento. Antes, 131 KB, ~130 KB
+  As partes subiram para 16 e 8 (maior pacote 123 KB), no ar desde 24/11 (run 70725 passou). Antes, 131 KB, ~130 KB
   provados no MCP; o run 69721 passou. Se o MCP recusar, subir `partes` no Montar Consultas.
 - 🔎 **n8n que só guarda erro:** para ver avisos e números de um run bom, rodar manual (fica no histórico). E
   `update_workflow` grava no **rascunho** — a versão ativa segue até o `publish_workflow`.

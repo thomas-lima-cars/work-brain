@@ -34,7 +34,10 @@ function enxuga(fonte) {
     }
     saida += c;
   }
-  return saida.split('\n').map((l) => l.replace(/\s+$/, '')).filter((l) => l.trim() !== '').join('\n') + '\n';
+  /* a indentação também sai (24/11): são ~8 KB que só pesam na API, e os
+     nós estavam no teto. Sem crase nos nós (a prova da fonte garante), não
+     há texto que atravesse linha — o espaço do começo é sempre do código */
+  return saida.split('\n').map((l) => l.trim()).filter((l) => l !== '').join('\n') + '\n';
 }
 
 module.exports = { enxuga };

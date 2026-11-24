@@ -15,6 +15,7 @@ python automations/estudo-republicacoes-dealers/extrai.py --descobre   # colunas
 python automations/estudo-republicacoes-dealers/extrai.py              # dados-brutos.json (~10 s)
 python -I automations/estudo-republicacoes-dealers/analisa.py          # resultados.json (uma linha por carro)
 node automations/estudo-republicacoes-dealers/monta-estudo.js          # estudo-republicacoes-dealers.html (~620 KB)
+python automations/estudo-republicacoes-dealers/monta-excel.py         # estudo-republicacoes-dealers.xlsx, o analítico (~3,4 MB)
 ```
 
 Os três arquivos gerados ficam **fora do git** (`.gitignore`): têm nome de comitente,
@@ -118,6 +119,7 @@ então **o estudo roda no PC do Thomas e só a entrega passa pelo n8n**:
 | `analisa.py` | uma linha por carro, com os dois lados; todas as escolhas acima são constantes daqui |
 | `estudo.template.html` | a página; todo cálculo mora nela, refeito a cada filtro |
 | `monta-estudo.js` | compacta o JSON, embute `tema.css` e as logos da Cars2You, método e glossário |
+| `monta-excel.py` | o **analítico em Excel** (`estudo-republicacoes-dealers.xlsx`, fora do git): Resumo e Por comitente em fórmulas sobre a aba Veículos (um carro por linha, os dois lados), Passagens, Publicações e Método. Depois de gerar, abrir e salvar no Excel para gravar os valores |
 | `roda-semanal.ps1` | a rodada semanal: espera a VPN, roda os três passos e envia ao n8n |
 | `agenda-tarefa.ps1` | cria ou atualiza a tarefa do Windows de segunda 0h |
 
@@ -195,3 +197,4 @@ então **o estudo roda no PC do Thomas e só a entrega passa pelo n8n**:
   SharePoint (`Estudos/`). Como o n8n não alcança a Dealers, roda no PC (tarefa do Windows +
   `roda-semanal.ps1`) e entrega pelo workflow Receber Estudos (`bbbITLpsU9wc9rAR`). Primeiro
   envio em 23/11 (1.472 carros, 2,0 MB); próxima rodada 30/11 0h.
+- **2026-11-24** — pedido do Thomas: **analítico em Excel** (`monta-excel.py`), da coleta de 23/11 15h22: 1.472 carros, 3.428 passagens, 21.273 publicações. Resumo e Por comitente são fórmulas (medianas em fórmula de matriz) e conferem com o cálculo do HTML; recalculado pelo Excel, sem erro.

@@ -551,7 +551,9 @@ prova('mensal: eventos ativos de volta — nenhuma consulta corta pelo status do
   MD.eventos.forEach((e, i) => {
     const r = CRU_EVT[i];
     igual(e[0], String(r[1]).trim(), 'o evento ' + i);
-    igual(e[7], Number(r[2]) === 0 && r[4] < meta.agora_br ? 1 : 0, 'situação de ' + e[0]);
+    /* o "agora" da coleta, como a página: o meta.agora_br é o de hoje e
+       desanda quando um evento fecha depois da coleta (24/11, KOVI 20/11) */
+    igual(e[7], Number(r[2]) === 0 && r[4] < D.agora ? 1 : 0, 'situação de ' + e[0]);
   });
 });
 /* os status do sistema no mensal (Thomas, 17/11): cinco grupos que não se
@@ -773,22 +775,29 @@ prova('mensal: o mês com buraco no access_logs vira aviso, e mês completo não
   sc.rows[0][0] = 12;
   verdade(!monta(d).resumo.avisos.some((a) => a.indexOf('access_logs') >= 0), 'aviso com todo mês completo');
 });
-prova('mensal: as abas, os blocos e os filtros dele na página', () => {
-  verdade(html.indexOf('id="seg-aba"') > 0 && html.indexOf('data-v="mes"') > 0, 'abas');
-  verdade(html.indexOf('<div id="v-mes" hidden>') > 0 && html.indexOf('<div class="filtros" id="fil-mes" hidden>') > 0, 'nasce no diário');
+prova('mensal: o Diário escondido, a situação no topo e os blocos e filtros do Mensal na página', () => {
+  /* 24/11: sem as abas; o Diário segue no HTML, escondido, e a página nasce no Mensal */
+  verdade(html.indexOf('id="seg-aba"') < 0, 'as abas saíram');
+  verdade(html.indexOf('<div id="v-dia" hidden>') > 0 && html.indexOf('<div class="filtros" id="fil-dia" hidden>') > 0, 'Diário escondido');
+  verdade(html.indexOf('<div id="v-mes">') > 0 && html.indexOf('<div class="filtros" id="fil-mes">') > 0, 'nasce no Mensal');
   ['g-comit-m', 'g-ev-m', 'cab-ev-m', 'aj-m', 'g-ativos-m', 'g-lojistas-m', 'seg-vis-at', 'seg-vis-lj', 'f-m-wl', 'f-m-comit', 'f-m-cat', 'f-m-mes', 'f-m-ev', 'seg-sit',
-    'f-m-ini-de', 'f-m-ini-ate', 'f-m-fim-de', 'f-m-fim-ate'].forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
-  /* a ordem: cartões por comitente, tabela de eventos, os dois gráficos */
-  const pos = ['g-comit-m', 'g-ev-m', 'g-ativos-m', 'g-lojistas-m'].map((id) => html.indexOf('id="' + id + '"'));
+    'f-m-ini-de', 'f-m-ini-ate', 'f-m-fim-de', 'f-m-fim-ate', 'th-veic-m', 'tb-veic-m', 'busca-m', 'exporta-m', 'mais-veic-m'].forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
+  /* a ordem: cartões por comitente, tabela de eventos, os dois gráficos, a tabela de veículos */
+  const pos = ['g-comit-m', 'g-ev-m', 'g-ativos-m', 'g-lojistas-m', 'tb-veic-m'].map((id) => html.indexOf('id="' + id + '"'));
   pos.forEach((p, j) => verdade(j === 0 || p > pos[j - 1], 'ordem em ' + j));
   verdade(html.indexOf('<details class="cartao gloss lista-ev" id="dobra-ev-m" open>') > 0, 'a tabela do mês nasce aberta');
-  /* situação: Total, Ativos, Finalizados, nasce em Total */
-  verdade(html.indexOf('data-v="" aria-pressed="true">Total</button><button type="button" data-v="at" aria-pressed="false">Ativos</button>' +
-    '<button type="button" data-v="fin" aria-pressed="false">Finalizados</button>') > 0, 'botões da situação');
+  /* situação no topo, antes da gaveta: Ativos, Finalizados, Todos, nasce em Ativos */
+  const sit = html.indexOf('id="seg-sit"');
+  verdade(sit > 0 && sit < html.indexOf('</header>'), 'a situação no cabeçalho');
+  verdade(html.indexOf('data-v="at" aria-pressed="true">Ativos</button><button type="button" data-v="fin" aria-pressed="false">Finalizados</button>' +
+    '<button type="button" data-v="" aria-pressed="false">Todos</button>') > 0, 'botões da situação');
+  verdade(html.indexOf('>Total</button>') < 0, 'sem Total');
   verdade(html.indexOf('type="date" id="f-m-ini-de"') > 0, 'datas como campo de data');
-  verdade(html.indexOf('function calculaMes(') > 0, 'calculaMes no script');
-  ['Visão Mensal', 'Situação do evento', 'Início e fim do evento', 'Tabela de eventos do mês', 'Meta ajustada', 'Dias do mês'].forEach((t) =>
+  ['function calculaMes(', 'function evPassaF(', 'function calculaVeicMes('].forEach((f) => verdade(html.indexOf(f) > 0, f + ' no script'));
+  ['Visão Mensal', 'Situação do evento', 'Início e fim do evento', 'Tabela de eventos do mês', 'Meta do evento', 'Dias do mês', 'Tabela de veículos do mês'].forEach((t) =>
     verdade(D.glossario.some((g) => g[0] === t), 'glossário: ' + t));
+  verdade(!D.glossario.some((g) => g[0] === 'Meta ajustada' || g[0] === 'Responsável' || g[0] === 'Lista de eventos'), 'glossário sem a meta ajustada e sem os termos só do Diário');
+  verdade(D.glossario.every((g) => g[1].indexOf('{') < 0), 'marca sem trocar no glossário');
 });
 
 /* ── o Mensal por evento (19/11) ──────────────────────────────────────── */
@@ -854,7 +863,7 @@ prova('mensal: evento escolhido = a linha dele na tabela de eventos, e a tabela 
   const pf = lista.findIndex((c) => c.fin);
   verdade(pf < 0 || lista.slice(pf).every((c) => c.fin), 'ativos primeiro');
 });
-/* a meta ajustada refeita do cru: por grupo (canais do evento, comitente,
+/* a meta do evento refeita do cru: por grupo (canais do evento, comitente,
    categoria) com os donos do mês; se cada ativo bater a ajustada, o grupo
    fecha o mês na meta */
 const metaVeicP = (mp, wls, c, ct) => {
@@ -864,48 +873,117 @@ const metaVeicP = (mp, wls, c, ct) => {
   wls.forEach((w) => { const x = (mp || {})[w + '|' + c + '|' + ct]; if (x) { n++; o += x[0]; v += x[1]; } });
   return n ? [o / n, v / n] : ((mp || {})['0|' + c + '|' + ct] || null);
 };
-prova('mensal: meta ajustada refeita do cru — com ela os ativos fecham o mês na meta, e o finalizado não tem', () => [11, 10].forEach((m) => {
+/* 24/11 (de tarde): a META DO EVENTO — o que os ativos precisam fazer para
+   o mês fechar na meta, com o volume do mês e o realizado nos finalizados.
+   Substitui a "meta ajustada" (e a compensação só pelos que terminaram
+   antes de cada evento abrir, da manhã de 24/11) */
+const pesa = (a) => (a[1] ? a[0] / a[1] : null);
+prova('mensal: meta do evento refeita do cru — fecha a meta do mês, só nos ativos, nos cartões, nos comitentes e na tabela', () => [11, 10].forEach((m) => {
   const r = CM({ mes: String(m) });
+  const E = MD.eventos;
   const G = {};
   MD.ev.forEach((x) => {
     if (x[0] !== m || !x[5][0]) return;
-    const e = MD.eventos[x[1]];
+    const e = E[x[1]];
     const k = e[5].join(',') + '|' + x[2] + '|' + x[3];
     const g = G[k] || (G[k] = { n: 0, at: 0, of: 0, ve: 0, mm: metaVeicP(D.metas.mes[m], e[5], x[2], x[3]) });
     g.n += x[5][0];
     if (e[7]) { g.of += x[5][3]; g.ve += x[5][4]; } else g.at += x[5][0];
   });
-  let comAj = 0;
-  r.eventos.forEach((c) => {
-    if (c.fin) { igual(c.meta_aj.oferta, null, 'finalizado com meta ajustada'); return; }
-    const s = { of: [0, 0], ve: [0, 0] };
-    MD.ev.forEach((x) => {
-      if (x[0] !== m || x[1] !== c.ev || !x[4][0]) return;
-      const e = MD.eventos[x[1]];
-      const g = G[e[5].join(',') + '|' + x[2] + '|' + x[3]];
-      if (!g || !g.mm || !g.at) return;
-      [['of', 0], ['ve', 1]].forEach((q) => {
-        const a = Math.max(0, Math.min(1, (g.mm[q[1]] * g.n - g[q[0]]) / g.at));
-        s[q[0]][0] += a * x[4][0];
-        s[q[0]][1] += x[4][0];
-      });
-    });
-    quase(c.meta_aj.oferta, s.of[1] ? s.of[0] / s.of[1] : null, MD.eventos[c.ev][0] + ' oferta');
-    quase(c.meta_aj.venda, s.ve[1] ? s.ve[0] / s.ve[1] : null, MD.eventos[c.ev][0] + ' venda');
-    if (c.meta_aj.oferta !== null) comAj++;
-  });
-  if (m === 11) verdade(comAj > 5, 'poucos eventos ativos com meta ajustada: ' + comAj);
-  /* a compensação fecha: realizado nos finalizados + ajustada × ativos = meta × todos, no grupo dentro de 0 e 100% */
+  const val = (x, q) => {
+    const g = G[E[x[1]][5].join(',') + '|' + x[2] + '|' + x[3]];
+    if (!g || !g.mm || !g.at || E[x[1]][7]) return null;
+    return Math.max(0, Math.min(1, (g.mm[q] * g.n - (q ? g.ve : g.of)) / g.at));
+  };
+  /* a conta fecha: realizado nos finalizados + meta do evento × veículos dos ativos = meta do mês × veículos do mês */
+  let fecha = 0;
   Object.keys(G).forEach((k) => {
     const g = G[k];
     if (!g.mm || !g.at) return;
-    const x = (g.mm[0] * g.n - g.of) / g.at;
-    if (x > 0 && x < 1) quase(Math.round((g.of + x * g.at) * 1e6) / 1e6, Math.round(g.mm[0] * g.n * 1e6) / 1e6, k + ' fecha');
+    const cru = (g.mm[0] * g.n - g.of) / g.at;
+    if (cru > 0 && cru < 1) { quase(Math.round((g.of + cru * g.at) * 1e6) / 1e6, Math.round(g.mm[0] * g.n * 1e6) / 1e6, k + ' fecha'); fecha++; }
   });
-  /* os filtros não mexem na ajustada do evento */
-  const c1 = r.eventos.find((c) => !c.fin && c.meta_aj.oferta !== null);
-  if (c1) quase(CM({ mes: String(m), sit: 'at', wl: String(MD.eventos[c1.ev][5][0]) }).eventos.find((c) => c.ev === c1.ev).meta_aj.oferta, c1.meta_aj.oferta, 'com filtros');
+  /* os cartões e os comitentes: pelos donos dos ativos; a tabela: pelos veículos de cada evento */
+  const tot = [[0, 0], [0, 0]];
+  const porC = {};
+  const lista = [[0, 0], [0, 0]];
+  const noMes = {};
+  r.eventos.forEach((c) => { noMes[c.ev] = 1; });
+  MD.ev.forEach((x) => {
+    if (x[0] !== m) return;
+    [0, 1].forEach((q) => {
+      const v = val(x, q);
+      if (v === null) return;
+      if (x[5][0]) {
+        tot[q][0] += v * x[5][0]; tot[q][1] += x[5][0];
+        const pc = porC[x[2]] || (porC[x[2]] = [[0, 0], [0, 0]]);
+        pc[q][0] += v * x[5][0]; pc[q][1] += x[5][0];
+      }
+      if (noMes[x[1]] && x[4][0]) { lista[q][0] += v * x[4][0]; lista[q][1] += x[4][0]; }
+    });
+  });
+  quase(r.meta_ev.oferta, pesa(tot[0]), 'cartões oferta');
+  quase(r.meta_ev.venda, pesa(tot[1]), 'cartões venda');
+  quase(r.meta_ev_lista.oferta, pesa(lista[0]), 'etiqueta da tabela oferta');
+  r.por_comit.forEach((c) => quase(c.meta_ev.venda, porC[c.comit] ? pesa(porC[c.comit][1]) : null, MD.comitentes[c.comit]));
+  let com = 0;
+  r.eventos.forEach((c) => {
+    const s = [[0, 0], [0, 0]];
+    MD.ev.forEach((x) => {
+      if (x[0] !== m || x[1] !== c.ev || !x[4][0]) return;
+      [0, 1].forEach((q) => { const v = val(x, q); if (v !== null) { s[q][0] += v * x[4][0]; s[q][1] += x[4][0]; } });
+    });
+    quase(c.meta_ev.oferta, pesa(s[0]), E[c.ev][0] + ' oferta');
+    quase(c.meta_ev.venda, pesa(s[1]), E[c.ev][0] + ' venda');
+    if (c.fin) igual(c.meta_ev.oferta, null, E[c.ev][0] + ': finalizado sem meta do evento');
+    if (c.meta_ev.oferta !== null) com++;
+  });
+  if (m === 11) verdade(com > 5 && fecha > 3, 'poucos eventos com meta do evento: ' + com + ', grupos que fecham ' + fecha);
+  /* com Ativos, os cartões têm a mesma meta do evento (os finalizados não entram nela) */
+  quase(CM({ mes: String(m), sit: 'at' }).meta_ev.oferta, r.meta_ev.oferta, 'Ativos = Todos');
+  /* os filtros não mexem na do evento */
+  const c1 = r.eventos.find((c) => c.meta_ev.oferta !== null);
+  if (c1) quase(CM({ mes: String(m), sit: 'at', wl: String(E[c1.ev][5][0]) }).eventos.find((c) => c.ev === c1.ev).meta_ev.oferta, c1.meta_ev.oferta, 'com filtros');
 }));
+
+/* ── a tabela de veículos do Mensal (24/11): a do Diário com os filtros do
+   Mensal — os veículos dela são os do cartão do mês, recorte a recorte */
+const calculaVeicMes = new Function(html.slice(ini, html.indexOf('function APP(', ini)) + ' return calculaVeicMes;')();
+const VM = (F) => calculaVeicMes(D, F || {});
+prova('mensal: tabela de veículos do mês corrente = os veículos do cartão, em Todos, Ativos, Finalizados, canal, comitente, categoria e evento', () => {
+  const c0 = M0.por_comit[0].comit;
+  const ev = M0.eventos.find((c) => !c.fin && c.veiculos > 3);
+  const casos = [{}, { sit: 'at' }, { sit: 'fin' }, { wl: '43' }, { sit: 'at', wl: '7' }, { comit: String(c0) }, { cat: 'P' }, { sit: 'fin', cat: 'L' },
+    { ev: String(ev.ev) }, { fim_de: MD.meses[11] + '-10' }];
+  const difs = [];
+  casos.forEach((F) => {
+    const t = VM(F);
+    igual(t.parcial, false, 'o mês corrente cabe na janela');
+    const n = CM(F).kpi.veiculos;
+    if (t.linhas.length !== n) difs.push(JSON.stringify(F) + ': tabela ' + t.linhas.length + ', cartão ' + n);
+  });
+  verdade(!difs.length, difs.join(' · '));
+  /* cada veículo uma vez */
+  const vs = VM({}).linhas.map((x) => x.v);
+  igual(new Set(vs).size, vs.length, 'veículo repetido');
+});
+prova('mensal: tabela de veículos — o mês anterior só na parte da janela, os mais antigos vazios', () => {
+  const a = VM({ mes: '10' });
+  verdade(a.parcial && a.de === 0 && a.ate >= a.de && a.linhas.length > 0, 'outubro na parte da janela');
+  const v = VM({ mes: '8' });
+  verdade(v.de > v.ate && v.linhas.length === 0, 'agosto fora da janela');
+  /* evento fora da lista do Diário: tabela vazia, sem erro */
+  const fora = MD.eventos.findIndex((e, i) => D.ev_mes.indexOf(i) < 0 && e[4] === 11);
+  if (fora >= 0) igual(VM({ ev: String(fora) }).linhas.length, 0, 'evento fora da janela');
+});
+prova('mensal: os eventos e os comitentes do Diário casam com os do Mensal pelo nome', () => {
+  D.ev_mes.forEach((j, i) => { if (j >= 0) { igual(MD.eventos[j][0], D.eventos[i].nome, 'evento ' + i); igual(MD.eventos[j][1], D.eventos[i].ini, 'início ' + i); } });
+  D.com_mes.forEach((j, i) => { if (j >= 0) igual(MD.comitentes[j], D.comitentes[i], 'comitente ' + i); });
+  verdade(D.ev_mes.filter((j) => j >= 0).length > 0.9 * D.eventos.length, 'poucos eventos casados');
+});
+prova('página: o Exportar e a tabela do Mensal no script, sem barra invertida nem quebra de linha escrita', () => {
+  ['exporta-m', 'veiculos-', 'text/csv', 'fromCharCode(65279)'].forEach((t) => verdade(html.indexOf(t) > 0, t));
+});
 
 /* ── as metas (Thomas, 06/11; refeitas em 17/11 e em 19/11) ──────────────
    A planilha metas-painel-eventos.xlsx, lida pelo le_metas.py como o n8n lê:

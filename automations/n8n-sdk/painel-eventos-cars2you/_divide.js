@@ -42,14 +42,16 @@ const C = corta(NL + 'const CSS_PAINEL = [', NL + 'const chip = ');
 if (!(T[1] < A[0] && A[1] <= G[0] && G[1] < C[0])) throw new Error('as fatias fora da ordem esperada');
 const fatia = (x) => s.slice(x[0], x[1] + 1).replace(/^\n/, '');
 
-const tema = fatia(T) + fatia(C) + fatia(G) +
-  'return [{ json: { CSS_TEMA: CSS_TEMA, LOGO: LOGO, CSS_PAINEL: CSS_PAINEL, ICONE: ICONE, GLOSSARIO_TXT: GLOSSARIO_TXT } }];' + NL;
 /* os textos dos avisos (19/11): o Montar Painel passou dos 56 KB com o
-   Mensal por evento (58,3 KB), e a Página tinha folga — o dicionário vai
-   nela, como dado, e o Montar Painel lê pelo nome */
+   Mensal por evento (58,3 KB) — o dicionário vai como dado e o Montar
+   Painel lê pelo nome. Primeiro na Página; em 24/11 (a coluna Fim e a
+   ordenação da tabela de eventos) a Página passou do teto e ele foi para
+   a Peças do Tema */
 const AV = corta(NL + 'const TEXTO_AVISO = {', NL + 'Object.keys(conta).forEach(');
 const avisos = fatia(AV);
-const pagina = fatia(A) + avisos + 'return [{ json: { APP: APP.toString(), TEXTO_AVISO: TEXTO_AVISO } }];' + NL;
+const tema = fatia(T) + fatia(C) + fatia(G) + avisos +
+  'return [{ json: { CSS_TEMA: CSS_TEMA, LOGO: LOGO, CSS_PAINEL: CSS_PAINEL, ICONE: ICONE, GLOSSARIO_TXT: GLOSSARIO_TXT, TEXTO_AVISO: TEXTO_AVISO } }];' + NL;
+const pagina = fatia(A) + 'return [{ json: { APP: APP.toString() } }];' + NL;
 
 let painel = "const PECAS = $('Peças do Tema').first().json;" + NL +
   'const CSS_TEMA = PECAS.CSS_TEMA;' + NL + 'const LOGO = PECAS.LOGO;' + NL +
@@ -59,7 +61,7 @@ let painel = "const PECAS = $('Peças do Tema').first().json;" + NL +
   'const CSS_PAINEL = PECAS.CSS_PAINEL;' + NL + 'const ICONE = PECAS.ICONE;' + NL +
   s.slice(C[1] + 1);
 if (painel.split(avisos).length !== 2) throw new Error('esperado um TEXTO_AVISO no Montar Painel');
-painel = painel.replace(avisos, "const TEXTO_AVISO = $('Peças da Página').first().json.TEXTO_AVISO;" + NL);
+painel = painel.replace(avisos, 'const TEXTO_AVISO = PECAS.TEXTO_AVISO;' + NL);
 const USO = 'APP.toString()';
 if (painel.split(USO).length !== 2) throw new Error('esperado um ' + USO + ' no Montar Painel');
 painel = painel.replace(USO, "$('Peças da Página').first().json.APP");

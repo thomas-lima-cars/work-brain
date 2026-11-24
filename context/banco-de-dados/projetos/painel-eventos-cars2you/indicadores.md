@@ -416,3 +416,19 @@ metas; base pequena: 4 com a meta do comitente no canal, 20 com a da categoria
 no canal, 2 com a da categoria. Leves 53,9% / 39,9%, Pesados 57,6% / 41,8%
 (média dos 12 meses fechados, nov/25 a out/26). Fora por inatividade no canal:
 C6 Bank - CSixer (48), C6 Bank Lojista (7), Repasse Itaú (7).
+
+## Meta do evento e tabela de veículos do Mensal — 2026-11-24
+
+A "meta ajustada" da seção acima virou **meta do evento** em 24/11 (mesma conta
+de 19/11, por grupo: `(meta × veículos do mês − realizado nos finalizados) ÷
+veículos dos ativos`; README da pasta, seção de 24/11).
+
+**Coleta local de 19/11 15:38, planilha só mensal e por whitelabel:** cartão
+Vendidos com Ativos marca meta do evento 24,2% · do mês 21,8%. A tabela de
+veículos do Mensal tem os mesmos veículos do cartão: nov/26 com 4.550 em Todos,
+2.526 em Ativos e 2.024 em Finalizados.
+
+**Run 70725 (n8n, 2026-11-24 12:30, versão `279a3a1f`):** nov/26 com Ativos,
+13 eventos e 2.250 veículos (tabela = cartão); Vendidos com meta do evento
+20,5% contra 20,8% do mês; etiqueta "Meta do evento dos ativos" 31,5%. HTML
+de 5,3 MB.

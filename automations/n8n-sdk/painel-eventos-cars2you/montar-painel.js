@@ -754,6 +754,10 @@ const DADOS = {
   negs: negs, ofertas: ofertas, acessos: acessos, vendas: vendas, logins: logins,
   lojas: lojas.map((l) => l.linha),
   status_nome: STATUS_NOME, vitrine_c6: WL_VITRINE_C6,
+  /* o evento e o comitente do Diário na lista do Mensal, pelo id (-1 = fora
+     dela): a tabela de veículos do mês (24/11) */
+  ev_mes: eventos.map((e) => (evMesIdx[e.id] === undefined ? -1 : evMesIdx[e.id])),
+  com_mes: comitentes.map((c) => (comMesIdx[c.id] === undefined ? -1 : comMesIdx[c.id])),
   mes: { meses: MESES, ult: META.meses_ult, wls: META.wls, comitentes: comMes.map((c) => c.nome), status: STATUS_MES,
     eventos: evMes.map((e) => [e.nome, e.ini, e.fim, e.a, e.b, e.wls, e.cs, e.fin]),
     ev: mesEv, dia: mesDia, lojd: mesLojd, n_lojas: nLojasMes,
@@ -1204,18 +1208,12 @@ function calculaMes(D, F) {
   const N = M.meses.length;
   const vazio = (x) => x === undefined || x === null || x === '';
   const ref = vazio(F.mes) ? N - 1 : Number(F.mes);
-  const wl = vazio(F.wl) ? 0 : Number(F.wl);
   const comit = vazio(F.comit) ? -1 : Number(F.comit);
   /* categoria (06/11): recorta as linhas de veículos; os lojistas não a
      seguem (a página avisa) */
   const cat = vazio(F.cat) ? '' : String(F.cat);
   const ev = vazio(F.ev) ? -1 : Number(F.ev);
-  const sit = vazio(F.sit) ? '' : String(F.sit);
-  const dt = (x) => (vazio(x) ? '' : String(x).slice(0, 10));
-  const iniDe = dt(F.ini_de);
-  const iniAte = dt(F.ini_ate);
-  const fimDe = dt(F.fim_de);
-  const fimAte = dt(F.fim_ate);
+  /* canal, situação e datas: evPassaF (24/11) */
   /* os status do SISTEMA (Thomas, 17/11), da negociação mais recente do
      veículo no mês, em cinco grupos que não se cruzam e somam os veículos:
      Ativos (1); Em análise (9 do comprador, 13 do vendedor); Vendidos (2 e
@@ -1289,21 +1287,53 @@ function calculaMes(D, F) {
   };
   /* o evento passa nos filtros de evento (canal, situação, datas); o
      filtro de evento em si fica à parte, porque a tabela o ignora */
-  const evBase = E.map((e) => {
-    if (wl && e[5].indexOf(wl) < 0) return false;
-    if (sit === 'at' && e[7]) return false;
-    if (sit === 'fin' && !e[7]) return false;
-    const di = e[1].slice(0, 10);
-    const df = e[2].slice(0, 10);
-    if ((iniDe && di < iniDe) || (iniAte && di > iniAte) || (fimDe && df < fimDe) || (fimAte && df > fimAte)) return false;
-    return true;
-  });
+  const evBase = E.map((e) => evPassaF(e, F));
   const evPassa = E.map((e, i) => evBase[i] && (ev < 0 || i === ev));
   const evCatOk = (i) => cat === '' || X.cats[i][cat] === 1;
   const evComOk = (i) => comit < 0 || E[i][6].indexOf(comit) >= 0;
   /* com um evento escolhido valem os veículos DELE ("o", posição 4); sem,
      os de que cada evento é o dono ("d", posição 5), que somam sem repetir */
   const BL = ev >= 0 ? 4 : 5;
+
+  /* ── a META DO EVENTO (Thomas, 24/11: "o % que temos que atingir no
+     evento para atingir a meta mensal considerando o volume e as vendas dos
+     eventos finalizados"; era a "meta ajustada" de 19/11, e a regra de
+     24/11 — compensar só os que terminaram antes de cada evento abrir —
+     saiu). Por grupo — os canais do evento, o comitente e a categoria, o
+     grão da planilha —, com os veículos DO MÊS (cada um pelo evento dono
+     dele): o que os eventos ainda ativos precisam fazer para o mês fechar
+     na meta,
+         (meta × veículos do mês − realizado nos finalizados) ÷ veículos dos ativos,
+     limitada a 0% e 100% (abaixo de 0: a meta já está garantida; acima de
+     100%: não dá mais para chegar). É do grupo inteiro: os filtros não
+     mexem nela, só escolhem os veículos que a mostram. A de um recorte (o
+     evento, o comitente, os cartões) é a média dos grupos dos veículos
+     ativos dele, pesada pelos veículos. Só existe no mês corrente: num mês
+     fechado não há evento ativo */
+  const aj = {};
+  M.ev.forEach((r) => {
+    if (r[0] !== ref) return;
+    const b = r[5];
+    if (!b[0]) return;
+    const k = E[r[1]][5].join(',') + '|' + r[2] + '|' + r[3];
+    const g = aj[k] || (aj[k] = { n: 0, at: 0, of: 0, ve: 0, mm: metaVeic(metaMes[ref], E[r[1]][5], r[2], r[3]) });
+    g.n += b[0];
+    if (E[r[1]][7]) { g.of += b[3]; g.ve += b[4]; } else g.at += b[0];
+  });
+  const lim01 = (x) => ({ x: Math.max(0, Math.min(1, x)), cru: x });
+  Object.keys(aj).forEach((k) => {
+    const g = aj[k];
+    const f = (q, real) => (g.mm && g.at ? lim01((g.mm[q] * g.n - real) / g.at) : null);
+    g.aj_of = f(0, g.of);
+    g.aj_ve = f(1, g.ve);
+  });
+  const grupoDe = (r) => aj[E[r[1]][5].join(',') + '|' + r[2] + '|' + r[3]];
+  /* a soma pesada da meta do evento: [Σ oferta × veíc., Σ venda × veíc., veículos] */
+  const somaEv = (a, g, n) => { if (g && g.aj_of) { a[0] += g.aj_of.x * n; a[1] += g.aj_ve.x * n; a[2] += n; } };
+  const metaEv = (a) => ({ oferta: a[2] ? a[0] / a[2] : null, venda: a[2] ? a[1] / a[2] : null });
+  const evTot = [0, 0, 0];
+  const evC = {};
+
   const meses = serie();
   /* por comitente, sem o PRÓPRIO filtro de comitente (os cartões são o
      filtro, como no dia) */
@@ -1316,9 +1346,14 @@ function calculaMes(D, F) {
     const m = r[0];
     const c = r[2];
     const mm = metaVeic(metaMes[m], E[r[1]][5], c, r[3]);
-    if (c >= 0) soma((porC[c] || (porC[c] = serie()))[m], b, mm);
+    const g = m === ref && !E[r[1]][7] ? grupoDe(r) : null;
+    if (c >= 0) {
+      soma((porC[c] || (porC[c] = serie()))[m], b, mm);
+      somaEv(evC[c] || (evC[c] = [0, 0, 0]), g, b[0]);
+    }
     if (comit >= 0 && c !== comit) return;
     soma(meses[m], b, mm);
+    somaEv(evTot, g, b[0]);
     if (c >= 0) comNoMes[m][c] = 1;
   });
   meses.forEach((o, m) => { o.comitentes = Object.keys(comNoMes[m]).length; });
@@ -1373,7 +1408,7 @@ function calculaMes(D, F) {
   const porComit = Object.keys(porC).map(Number).filter((c) => porC[c][ref].veiculos > 0).map((c) => {
     const hist = [];
     for (let j = HIST - 1; j >= 0; j--) hist.push(ref - j >= 0 ? porC[c][ref - j] : null);
-    return Object.assign({ comit: c }, porC[c][ref], { hist: hist, dia: porC[c][ref], dia_ant: ref > 0 ? porC[c][ref - 1] : null });
+    return Object.assign({ comit: c }, porC[c][ref], { meta_ev: metaEv(evC[c] || [0, 0, 0]), hist: hist, dia: porC[c][ref], dia_ant: ref > 0 ? porC[c][ref - 1] : null });
   }).sort((a, b) => b.veiculos - a.veiculos || a.comit - b.comit);
 
   /* ── o mês de referência dia a dia (Thomas, 19/11: "uma visão diária dos
@@ -1401,46 +1436,18 @@ function calculaMes(D, F) {
     }
   });
 
-  /* ── a meta ajustada (Thomas, 19/11: "meta do mês com compensação dos
-     eventos finalizados"). Por grupo — os canais do evento, o comitente e a
-     categoria, o grão da planilha —, com os veículos DO MÊS (cada um pelo
-     evento dono dele): o que os eventos ainda ativos precisam fazer para o
-     mês fechar na meta,
-         (meta × veículos do mês − realizado nos finalizados) ÷ veículos dos ativos,
-     limitada a 0% e 100% (abaixo de 0: a meta já está garantida; acima de
-     100%: não dá mais para chegar). É do grupo inteiro: os filtros não
-     mexem nela, só escolhem os eventos que a mostram. A do evento é a média
-     dos grupos dos veículos dele, pesada pelos veículos */
-  const aj = {};
-  M.ev.forEach((r) => {
-    if (r[0] !== ref) return;
-    const b = r[5];
-    if (!b[0]) return;
-    const k = E[r[1]][5].join(',') + '|' + r[2] + '|' + r[3];
-    const g = aj[k] || (aj[k] = { n: 0, at: 0, of: 0, ve: 0, mm: metaVeic(metaMes[ref], E[r[1]][5], r[2], r[3]) });
-    g.n += b[0];
-    if (E[r[1]][7]) { g.of += b[3]; g.ve += b[4]; } else g.at += b[0];
-  });
-  Object.keys(aj).forEach((k) => {
-    const g = aj[k];
-    const f = (q, real) => {
-      if (!g.mm || !g.at) return null;
-      const x = (g.mm[q] * g.n - real) / g.at;
-      return { x: Math.max(0, Math.min(1, x)), cru: x };
-    };
-    g.aj_of = f(0, g.of);
-    g.aj_ve = f(1, g.ve);
-  });
-
   /* ── a tabela de eventos do mês (Thomas, 19/11: "semelhante à visão
      diária"): os eventos ativos em algum dia do mês de referência, com os
      veículos DELES. Ignora o PRÓPRIO filtro de evento (ela é o filtro) e
      segue os outros */
   const eventos = [];
-  const ajTot = { of: [0, 0], ve: [0, 0], fora_of: 0, fora_ve: 0 };
+  /* a etiqueta do topo da tabela: a meta do evento dos ativos da lista;
+     "fora" conta os veículos em grupos que já não chegam (limitada a 100%) */
+  const evLista = [0, 0, 0];
+  const fora = [0, 0];
   E.forEach((e, i) => {
     if (e[3] > ref || e[4] < ref || !evBase[i] || !evComOk(i) || !evCatOk(i)) return;
-    eventos.push(Object.assign(zero(ref), { ev: i, fin: e[7], aj_of: [0, 0], aj_ve: [0, 0], lim_of: 0, lim_ve: 0 }));
+    eventos.push(Object.assign(zero(ref), { ev: i, fin: e[7], me: [0, 0, 0], lim_of: 0, lim_ve: 0 }));
   });
   const linhaEv = {};
   eventos.forEach((o, j) => { linhaEv[o.ev] = j; });
@@ -1451,27 +1458,65 @@ function calculaMes(D, F) {
     const b = r[4];
     if (!b[0]) return;
     soma(o, b, metaVeic(metaMes[ref], E[r[1]][5], r[2], r[3]));
-    if (o.fin) return;
-    const g = aj[E[r[1]][5].join(',') + '|' + r[2] + '|' + r[3]];
-    [['aj_of', 'of', 'lim_of'], ['aj_ve', 've', 'lim_ve']].forEach((q) => {
-      const a = g ? g[q[0]] : null;
-      if (!a) return;
-      o[q[0]][0] += a.x * b[0];
-      o[q[0]][1] += b[0];
-      if (a.cru > 1) o[q[2]] += b[0];
-      ajTot[q[1]][0] += a.x * b[0];
-      ajTot[q[1]][1] += b[0];
-      if (a.cru > 1) ajTot['fora_' + q[1]] += b[0];
-    });
+    /* a coluna: a meta do evento, só nos ativos (o finalizado já está na conta) */
+    const g = o.fin ? null : grupoDe(r);
+    somaEv(o.me, g, b[0]);
+    somaEv(evLista, g, b[0]);
+    if (g && g.aj_of) {
+      if (g.aj_of.cru > 1) { o.lim_of += b[0]; fora[0] += b[0]; }
+      if (g.aj_ve.cru > 1) { o.lim_ve += b[0]; fora[1] += b[0]; }
+    }
   });
-  eventos.forEach((o) => {
-    o.meta_aj = { oferta: o.aj_of[1] ? o.aj_of[0] / o.aj_of[1] : null, venda: o.aj_ve[1] ? o.aj_ve[0] / o.aj_ve[1] : null };
-  });
+  eventos.forEach((o) => { o.meta_ev = metaEv(o.me); });
   eventos.sort((a, b) => a.fin - b.fin || b.veiculos - a.veiculos || (E[a.ev][2] < E[b.ev][2] ? 1 : -1));
   return { ref: ref, meses: meses, kpi: meses[ref], ant: ref > 0 ? meses[ref - 1] : null, por_comit: porComit,
-    dias: dias, lojistas_dias: lojistasDias, eventos: eventos,
-    meta_aj: { oferta: ajTot.of[1] ? ajTot.of[0] / ajTot.of[1] : null, venda: ajTot.ve[1] ? ajTot.ve[0] / ajTot.ve[1] : null,
-      veic: { oferta: ajTot.of[1], venda: ajTot.ve[1] }, fora: { oferta: ajTot.fora_of, venda: ajTot.fora_ve } } };
+    dias: dias, lojistas_dias: lojistasDias, eventos: eventos, meta_ev: metaEv(evTot),
+    meta_ev_lista: Object.assign(metaEv(evLista), { veic: evLista[2], fora: { oferta: fora[0], venda: fora[1] } }) };
+}
+
+/* o evento do Mensal passa em canal, situação e datas (19/11) — a mesma
+   regra no calculaMes, na tabela de veículos do mês e no filtro de evento
+   da página. "e" é uma linha de D.mes.eventos */
+function evPassaF(e, F) {
+  const v = (k) => (F[k] === undefined || F[k] === null ? '' : String(F[k]));
+  if (v('wl') && e[5].indexOf(Number(v('wl'))) < 0) return false;
+  if ((v('sit') === 'at' && e[7]) || (v('sit') === 'fin' && !e[7])) return false;
+  const di = e[1].slice(0, 10);
+  const df = e[2].slice(0, 10);
+  const d = (k) => v(k).slice(0, 10);
+  return !((d('ini_de') && di < d('ini_de')) || (d('ini_ate') && di > d('ini_ate')) || (d('fim_de') && df < d('fim_de')) || (d('fim_ate') && df > d('fim_ate')));
+}
+
+/* ══ a tabela de veículos do Mensal (Thomas, 24/11: "inclua a tabela de
+   veículos semelhante ao diário com opção de exportar") ════════════════
+   O Mensal só tem contagens; o veículo um a um está no dado do Diário, que
+   cobre os últimos 31 dias. A tabela é a do Diário (calcula) nos dias do
+   mês de referência que caem nessa janela, com os filtros do Mensal. Sem
+   evento escolhido, o veículo vem pela negociação mais recente no período
+   — o dono, a regra do Mensal — e entra se o evento dela passa em canal,
+   situação e datas; com um evento escolhido, os veículos dele. Comitente
+   pela negociação, categoria pelo veículo. O mês fora da janela sai vazio
+   ("de" > "ate"); o que começa antes dela, só a parte de dentro
+   ("parcial"). Os eventos e os comitentes das duas listas casam pelo id
+   (D.ev_mes, D.com_mes) */
+function calculaVeicMes(D, F) {
+  F = F || {};
+  const M = D.mes;
+  const vazio = (x) => x === undefined || x === null || x === '';
+  const ref = vazio(F.mes) ? M.meses.length - 1 : Number(F.mes);
+  const utc = (s, a, m, d) => Date.UTC(Number(s.slice(0, 4)) + a, Number(s.slice(5, 7)) - 1 + m, d);
+  const p0 = utc(D.piso_dia, 0, 0, Number(D.piso_dia.slice(8, 10)));
+  const d0 = Math.round((utc(M.meses[ref], 0, 0, 1) - p0) / 86400000);
+  const d1 = Math.round((utc(M.meses[ref], 0, 1, 0) - p0) / 86400000);
+  const o = { ref: ref, de: Math.max(0, d0), ate: Math.min(D.hoje, d1), parcial: d0 < 0, linhas: [] };
+  const evD = vazio(F.ev) ? -1 : D.ev_mes.indexOf(Number(F.ev));
+  if (o.de > o.ate || (!vazio(F.ev) && evD < 0)) return o;
+  const c = vazio(F.comit) ? -1 : Number(F.comit);
+  o.linhas = calcula(D, { de: o.de, ate: o.ate, ev: evD < 0 ? '' : evD }).veiculos.filter((x) => {
+    const e = M.eventos[D.ev_mes[x.ev]];
+    return !!e && (evD >= 0 || evPassaF(e, F)) && (c < 0 || D.com_mes[x.comit] === c) && (vazio(F.cat) || D.veics[x.v][7] === F.cat);
+  });
+  return o;
 }
 
 function APP(D, LOGO) {
@@ -1530,8 +1575,11 @@ function APP(D, LOGO) {
   /* a aba Mensal (06/11) tem os filtros dela: canal, comitente e mês */
   /* os filtros do Mensal (19/11: evento, situação e as datas de início e
      de fim do evento entraram) */
-  const FM = { wl: '', comit: '', cat: '', mes: '', ev: '', sit: '', ini_de: '', ini_ate: '', fim_de: '', fim_ate: '' };
-  const FILTROS_M = ['wl', 'comit', 'cat', 'mes', 'ev', 'sit', 'ini_de', 'ini_ate', 'fim_de', 'fim_ate'];
+  /* a situação (24/11) subiu para o topo, no lugar das abas Diário e
+     Mensal: Ativos, Finalizados ou Todos, nasce em Ativos. Não é filtro da
+     gaveta — não conta no número da aba nem sai no Limpar */
+  const FM = { wl: '', comit: '', cat: '', mes: '', ev: '', sit: 'at', ini_de: '', ini_ate: '', fim_de: '', fim_ate: '' };
+  const FILTROS_M = ['wl', 'comit', 'cat', 'mes', 'ev', 'ini_de', 'ini_ate', 'fim_de', 'fim_ate'];
   const DATAS_M = [['f-m-ini-de', 'ini_de'], ['f-m-ini-ate', 'ini_ate'], ['f-m-fim-de', 'fim_de'], ['f-m-fim-ate', 'fim_ate']];
   /* as categorias de cada evento do Mensal, para o filtro de evento */
   const EV_CATS_M = D.mes.eventos.map(() => ({}));
@@ -1549,14 +1597,15 @@ function APP(D, LOGO) {
      Clique no título ordena pela coluna; clique de novo inverte. Vazio vai
      sempre para o fim. São milhares de veículos: desenha os primeiros
      PASSO, e o botão embaixo traz mais. */
-  const ordem = { veic: { k: 'lances', dir: -1 } };
+  const ordem = { veic: { k: 'lances', dir: -1 }, 'veic-m': { k: 'lances', dir: -1 } };
   const TABELAS = {};
   function tabela(id, cols, linhas) {
     const lim = TABELAS[id] ? TABELAS[id].lim : PASSO;
     TABELAS[id] = { cols: cols, linhas: linhas, lim: lim };
     desenhaTabela(id);
   }
-  function desenhaTabela(id) {
+  /* as linhas na ordem da tabela: a página e o Exportar (24/11) */
+  function ordena(id) {
     const t = TABELAS[id];
     const o = ordem[id];
     const col = t.cols.find((c) => c.k === o.k) || t.cols[0];
@@ -1572,6 +1621,12 @@ function APP(D, LOGO) {
       if (typeof x === 'string') return o.dir * x.localeCompare(y);
       return o.dir * (x < y ? -1 : 1);
     });
+    return idx;
+  }
+  function desenhaTabela(id) {
+    const t = TABELAS[id];
+    const o = ordem[id];
+    const idx = ordena(id);
     $('#th-' + id).innerHTML = t.cols.map((c) => {
       const at = c.k === o.k;
       return '<th class="' + (c.n ? 'n' : '') + '"' + (at ? ' aria-sort="' + (o.dir > 0 ? 'ascending' : 'descending') + '"' : '') + '>' +
@@ -1589,7 +1644,7 @@ function APP(D, LOGO) {
     b.textContent = 'Mostrar mais ' + nf(Math.min(PASSO, resta)) + ' · ' + nf(vis.length) + ' de ' + nf(idx.length);
   }
   document.addEventListener('click', (ev) => {
-    const b = ev.target.closest('button.ord');
+    const b = ev.target.closest('button.ord[data-t]');
     if (!b) return;
     const id = b.getAttribute('data-t');
     const k = b.getAttribute('data-k');
@@ -1599,10 +1654,10 @@ function APP(D, LOGO) {
     else { ordem[id].k = k; ordem[id].dir = c.n ? -1 : 1; }
     desenhaTabela(id);
   });
-  $('#mais-veic').addEventListener('click', () => {
-    TABELAS.veic.lim += PASSO;
-    desenhaTabela('veic');
-  });
+  ['veic', 'veic-m'].forEach((id) => $('#mais-' + id).addEventListener('click', () => {
+    TABELAS[id].lim += PASSO;
+    desenhaTabela(id);
+  }));
 
   /* ── balão dos gráficos: um só para a página (regra 8b) ────────────── */
   const dica = $('#dica-g');
@@ -1904,14 +1959,16 @@ function APP(D, LOGO) {
     redesenhaIndicador();
   });
   let esperaBusca = null;
-  $('#busca').addEventListener('input', (ev) => {
+  let buscaM = '';
+  /* a busca das duas tabelas de veículos: a do Diário e a do Mensal (24/11) */
+  [['busca', 'veic'], ['busca-m', 'veic-m']].forEach((p) => $('#' + p[0]).addEventListener('input', (ev) => {
     clearTimeout(esperaBusca);
     esperaBusca = setTimeout(() => {
-      busca = ev.target.value.trim().toLowerCase();
-      if (TABELAS.veic) TABELAS.veic.lim = PASSO;
-      desenhaVeiculos();
+      const q = ev.target.value.trim().toLowerCase();
+      if (TABELAS[p[1]]) TABELAS[p[1]].lim = PASSO;
+      if (p[1] === 'veic') { busca = q; desenhaVeiculos(); } else { buscaM = q; desenhaVeicMes(); }
     }, 160);
-  });
+  }));
 
   let R = null;
   function desenhaAtivos() {
@@ -2099,12 +2156,15 @@ function APP(D, LOGO) {
   /* o cartão de um comitente, nas duas abas: "attr" é o atributo que o
      clique lê (data-c no dia, data-cm no mês), "rotLongo" o nome de cada
      ponto da área (dia ou mês) */
-  function cartaoComit(c, nome, sel, attr, rotLongo, stc) {
+  /* "me": a meta do evento do comitente (24/11), com Ativos no Mensal — o
+     título, o traço da rosca, a reta da área e a luz passam a ser dela */
+  function cartaoComit(c, nome, sel, attr, rotLongo, stc, me) {
       const ST = stc || STATUS_C;
       const marcado = sel === c.comit;
       const x = pctDe(c.dia);
-      const m = metaDe(c.dia);
-      const luz = luzMeta(c.dia);
+      const ev = me !== undefined;
+      const m = ev ? me : metaDe(c.dia);
+      const luz = !ev ? luzMeta(c.dia) : x === null || m === null ? '' : x >= m ? ' luz-sobe' : ' luz-desce';
       return '<button type="button" class="cartao comit' + luz + (sel !== null && !marcado ? ' apagado' : '') + '" ' + attr + '="' + c.comit + '"' +
         ' aria-pressed="' + marcado + '" aria-label="' + esc((marcado ? 'Tirar o filtro do comitente ' : 'Filtrar pelo comitente ') + nome) + '">' +
         '<span class="comit-topo"><span class="comit-nome">' + esc(nome) + '</span>' +
@@ -2115,7 +2175,7 @@ function APP(D, LOGO) {
         /* o indicador centralizado acima dos dois gráficos, sem os rótulos
            "hoje" e "7 dias" embaixo deles (Thomas, 03/11) */
         '<span class="comit-meio"><span class="comit-graf"><span class="comit-ind">' + esc(rotIndicador()) +
-          (m === null ? '' : ' · meta ' + pc(m)) + '</span><span class="comit-minis">' +
+          (m === null ? '' : (ev ? ' · meta do evento ' : ' · meta ') + pc(m)) + '</span><span class="comit-minis">' +
           '<span class="mini m-rosca">' + rosca(x, m) + '</span>' +
           '<span class="mini m-sem">' + areaSemana(c.hist, rotLongo, m) + '</span></span>' +
           '<span class="comit-num"><b class="num">' + nf(acertoDe(c.dia)) + ' de ' + nf(baseDe(c.dia)) +
@@ -2193,12 +2253,17 @@ function APP(D, LOGO) {
     render();
   });
 
+  const filtraBusca = (lst, q) => (q
+    ? lst.filter((r) => (r.nome + ' ' + D.eventos[r.ev].nome + ' ' + (r.comit >= 0 ? D.comitentes[r.comit] : '')).toLowerCase().indexOf(q) >= 0)
+    : lst);
+  const nVeic = (n) => nf(n) + (n === 1 ? ' veículo' : ' veículos');
   function desenhaVeiculos() {
-    const linhasV = busca
-      ? R.veiculos.filter((r) => (r.nome + ' ' + D.eventos[r.ev].nome + ' ' + (r.comit >= 0 ? D.comitentes[r.comit] : '')).toLowerCase().indexOf(busca) >= 0)
-      : R.veiculos;
-    $('#n-veic').textContent = nf(linhasV.length) + (linhasV.length === 1 ? ' veículo' : ' veículos');
-    tabela('veic', [
+    const linhasV = filtraBusca(R.veiculos, busca);
+    $('#n-veic').textContent = nVeic(linhasV.length);
+    tabela('veic', colsVeic(), linhasV);
+  }
+  /* as colunas das duas tabelas de veículos (24/11: a do Mensal é a mesma) */
+  const colsVeic = () => [
       { k: 'nome', t: 'Veículo', h: (r) => {
         const vv = D.veics[r.v];
         const lk = linkDe(r);
@@ -2222,18 +2287,68 @@ function APP(D, LOGO) {
       { k: 'pvmv', t: '% VMV', n: true, cls: 'c-vmv', h: (r) => (r.pvmv === null ? '<span class="dim">—</span>'
         : '<span class="vmv' + (r.pvmv >= 1 ? ' ok' : '') + '">' + trilho(r.pvmv) + '<span class="num">' + pc0(r.pvmv) + '</span></span>') },
       { k: 'status', t: 'Resultado', v: (r) => D.status_nome[r.status] || '', h: (r) => tagStatus(r.status) +
-        (r.comprador !== null ? '<span class="dim sub">' + esc(r.comprador >= 0 ? D.lojas[r.comprador][0] : 'comprador sem loja') +
+        (r.comprador !== null ? '<span class="dim sub">' + esc(compradorDe(r)) +
           ' · ' + rs(r.venda) + '</span>' : '') }
-    ], linhasV);
+  ];
+  const compradorDe = (r) => (r.comprador === null ? '' : r.comprador >= 0 ? D.lojas[r.comprador][0] : 'comprador sem loja');
+
+  /* ── a tabela de veículos do Mensal (Thomas, 24/11), a do Diário com os
+     filtros do Mensal (calculaVeicMes), e o Exportar: as linhas do recorte
+     inteiro — com a busca, na ordem da tabela, não só as já desenhadas —
+     num CSV para o Excel (separador ";", vírgula decimal, BOM do UTF-8) */
+  let RVM = null;
+  function desenhaVeicMes() {
+    const l = filtraBusca(RVM.linhas, buscaM);
+    $('#tit-veic-m').textContent = 'Veículos em ' + rotMesLongo(RM.ref);
+    $('#n-veic-m').textContent = nVeic(l.length);
+    const janela = 'o veículo um a um vem do dado dos últimos ' + (D.hoje + 1) + ' dias, desde ' + rotDia(0) + '/' + D.piso_dia.slice(0, 4);
+    const nota = RVM.de > RVM.ate ? 'Sem a tabela neste mês: ' + janela + '.' : RVM.parcial ? 'Só de ' + rotDia(RVM.de) + ' em diante: ' + janela + '.' : '';
+    $('#nota-veic-m').textContent = nota;
+    $('#nota-veic-m').hidden = !nota;
+    tabela('veic-m', colsVeic(), l);
   }
+  $('#exporta-m').addEventListener('click', () => {
+    const t = TABELAS['veic-m'];
+    if (!t) return;
+    const num = (x) => (x === null || x === undefined ? '' : String(Math.round(x)));
+    const dia = (d) => { const x = dataDia(d).toISOString(); return x.slice(8, 10) + '/' + x.slice(5, 7) + '/' + x.slice(0, 4); };
+    const cel = (x) => {
+      const s = x === null || x === undefined ? '' : String(x);
+      return s.indexOf('"') >= 0 || s.indexOf(';') >= 0 || s.indexOf(String.fromCharCode(10)) >= 0 ? '"' + s.split('"').join('""') + '"' : s;
+    };
+    const cab = ['Veículo', 'Ano', 'Km', 'Estreia', 'Evento', 'Fim do evento', 'Comitente', 'Eventos no mês', 'Acessos', 'Ofertas', 'Lojas que ofertaram',
+      'Maior oferta', 'FIPE', '% FIPE', 'VMV', '% VMV', 'Farol', 'Resultado', 'Comprador', 'Valor da venda', 'Link do anúncio'];
+    const linhasCsv = ordena('veic-m').map((p) => {
+      const r = p[0];
+      const vv = D.veics[r.v];
+      const e = D.eventos[r.ev];
+      return [r.nome, vv[3], num(vv[4]), r.estreia >= 0 ? dia(r.estreia) : 'antes de ' + dia(0), e.nome, dt(e.fim),
+        r.comit >= 0 ? D.comitentes[r.comit] : '', r.n_ev, r.acessos, r.lances, r.ofertantes, num(r.maior), num(r.fipe),
+        r.pfipe === null ? '' : pc(r.pfipe), num(r.vmv), r.pvmv === null ? '' : pc(r.pvmv), FAROL[r.farol],
+        D.status_nome[r.status] || '', compradorDe(r), num(r.venda), linkDe(r) || ''];
+    });
+    const txt = [cab].concat(linhasCsv).map((l) => l.map(cel).join(';')).join(String.fromCharCode(13, 10));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([String.fromCharCode(65279) + txt], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'veiculos-' + MESES_D[RM.ref] + '-' + { at: 'ativos', fin: 'finalizados', '': 'todos' }[FM.sit] + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  });
 
   /* a linha da meta no cartão e o traço dela no trilho */
-  function metaCartao(id, x, m, g) {
+  /* "me": a meta do evento (24/11), com Ativos no Mensal — o traço e a
+     comparação passam a ser dela, e a do mês fica ao lado */
+  function metaCartao(id, x, m, g, me) {
     const el = $('#' + id + '-meta');
-    el.hidden = m === null;
-    el.innerHTML = m === null ? '' : 'Meta <b class="num">' + pc(m) + '</b> · ' + contraMeta(x, m);
-    el.title = m === null ? '' : notaCobertura(g, true);
-    $('#' + id + '-bar').innerHTML = trilho(x, m);
+    const ev = me !== undefined && me !== null;
+    const alvo = ev ? me : m;
+    el.hidden = alvo === null;
+    el.innerHTML = alvo === null ? '' : (ev ? 'Meta do evento' : 'Meta') + ' <b class="num">' + pc(alvo) + '</b> · ' + contraMeta(x, alvo) +
+      (ev && m !== null ? ' · <span class="dim">do mês ' + pc(m) + '</span>' : '');
+    el.title = alvo === null ? '' : notaCobertura(g, true);
+    $('#' + id + '-bar').innerHTML = trilho(x, alvo);
   }
   function render() {
     contaFiltros();
@@ -2325,13 +2440,7 @@ function APP(D, LOGO) {
     alterna('seg-sit', FM.sit);
   }
   /* canal, situação e datas do evento — a mesma regra do calculaMes */
-  const evPassaFM = (e) => {
-    if (FM.wl && e[5].indexOf(Number(FM.wl)) < 0) return false;
-    if ((FM.sit === 'at' && e[7]) || (FM.sit === 'fin' && !e[7])) return false;
-    const di = e[1].slice(0, 10);
-    const df = e[2].slice(0, 10);
-    return !((FM.ini_de && di < FM.ini_de) || (FM.ini_ate && di > FM.ini_ate) || (FM.fim_de && df < FM.fim_de) || (FM.fim_ate && df > FM.fim_ate));
-  };
+  const evPassaFM = (e) => evPassaF(e, FM);
   /* as datas vão do primeiro dos 12 meses a hoje */
   DATAS_M.forEach((q) => { $('#' + q[0]).min = MESES_D[0] + '-01'; $('#' + q[0]).max = D.agora.slice(0, 10); });
   /* o dia do mês de referência: "05/11" e "qua 05/11" */
@@ -2380,10 +2489,13 @@ function APP(D, LOGO) {
     desenhaEventosMes();
     const sel = FM.comit === '' ? null : Number(FM.comit);
     $('#comit-rot-m').textContent = 'Comitentes com evento em ' + rotMesLongo(RM.ref) + ' · clique para filtrar';
-    $('#comit-nota-m').textContent = rotIndicador() + ': o mês na rosca, os 12 meses até ele na linha (meta tracejada), e a diferença para ' +
+    /* com Ativos (24/11), a meta dos cartões é a do evento */
+    const comEv = FM.sit === 'at';
+    $('#comit-nota-m').textContent = rotIndicador() + ': o mês na rosca, os 12 meses até ele na linha (meta ' + (comEv ? 'do evento ' : '') + 'tracejada), e a diferença para ' +
       (RM.ref > 0 ? rotMesLongo(RM.ref - 1) : 'o mês anterior') + ' · verde na meta ou acima, vermelho abaixo';
     $('#g-comit-m').innerHTML = RM.por_comit.length
-      ? RM.por_comit.map((c) => cartaoComit(c, D.mes.comitentes[c.comit], sel, 'data-cm', (g) => rotMesLongo(g.m), STATUS_C_MES)).join('')
+      ? RM.por_comit.map((c) => cartaoComit(c, D.mes.comitentes[c.comit], sel, 'data-cm', (g) => rotMesLongo(g.m), STATUS_C_MES,
+        comEv ? (CAMPO_META[kpi] ? c.meta_ev[kpi] : null) : undefined)).join('')
       : '<p class="dim">Nenhum comitente com evento neste mês.</p>';
   }
   function renderMes() {
@@ -2421,16 +2533,27 @@ function APP(D, LOGO) {
       ['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
     /* "outros" (status fora do domínio) só aparece quando existe */
     $('#km-nv-out').parentNode.hidden = !k.outros;
-    metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k);
+    metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k, FM.sit === 'at' ? RM.meta_ev.venda : null);
     desenhaMes();
-    /* a nota do buraco no access_logs, embaixo dos dois gráficos */
+    RVM = calculaVeicMes(D, FM);
+    if (TABELAS['veic-m']) TABELAS['veic-m'].lim = PASSO;
+    desenhaVeicMes();
+    /* a nota do buraco no access_logs, embaixo dos dois gráficos. Cada gráfico
+       tem a sua escala (24/11): nos 12 meses, os meses com buraco; nos dias do
+       mês, só se o próprio mês de referência tem buraco — em nov/26 a nota
+       aparecia nos dias sem ter o que avisar */
     const inc = MESES_D.map((r, m) => (acIncompleto(m) && m !== ULT_M ? rotMes(m) + ' (' + notaAc(m) + ')' : null)).filter((x) => x);
-    const txtInc = inc.length ? '⚠ O registro de acessos tem buraco em ' + inc.join(', ') + ': nesses meses, com acesso e lojistas que acessaram saem a menos.' : '';
-    $('#nota-ac-m').textContent = txtInc;
-    $('#nota-ac-m').hidden = !txtInc;
+    const txtIncMes = inc.length ? '⚠ O registro de acessos tem buraco em ' + inc.join(', ') + ': nesses meses, com acesso e lojistas que acessaram saem a menos.' : '';
+    const txtIncDia = acIncompleto(RM.ref) && RM.ref !== ULT_M
+      ? '⚠ O registro de acessos tem buraco em ' + rotMes(RM.ref) + ' (' + notaAc(RM.ref) + '): nos dias sem registro, com acesso e lojistas que acessaram saem a menos.' : '';
+    const txtInc = (dia) => (dia ? txtIncDia : txtIncMes);
+    const txtAt = txtInc(VIS_M.at === 'dia');
+    $('#nota-ac-m').textContent = txtAt;
+    $('#nota-ac-m').hidden = !txtAt;
+    const txtLj = txtInc(VIS_M.lj === 'dia');
     const txtCat = FM.cat ? 'Os lojistas não seguem o filtro de categoria: a loja age no evento, não na categoria do veículo.' : '';
-    $('#nota-ac-lm').textContent = [txtInc, txtCat].filter((x) => x).join(' ');
-    $('#nota-ac-lm').hidden = !txtInc && !txtCat;
+    $('#nota-ac-lm').textContent = [txtLj, txtCat].filter((x) => x).join(' ');
+    $('#nota-ac-lm').hidden = !txtLj && !txtCat;
     /* os lojistas: 12 meses ou os dias do mês de referência (19/11) */
     const ljDia = VIS_M.lj === 'dia';
     $('#tit-lj-m').textContent = ljDia ? 'Lojistas por dia em ' + rotMes(RM.ref) : 'Lojistas por mês';
@@ -2449,50 +2572,83 @@ function APP(D, LOGO) {
   /* a tabela de eventos do mês (Thomas, 19/11: "semelhante à visão
      diária"): uma linha por evento ativo em algum dia do mês de referência,
      com os veículos DELE, os status do sistema, o termômetro do indicador
-     com a meta do mês e a META AJUSTADA — o que o evento ainda ativo precisa
-     fazer para o mês fechar na meta, compensando os finalizados. Clique
+     com a meta do mês e a META AJUSTADA do evento — o que ele precisava
+     fazer para o mês fechar na meta, compensando os eventos que terminaram
+     antes dele abrir (24/11). Clique
      filtra pelo evento, como no Diário */
   const STATUS_EV_M = [['veiculos', 'Veículos'], ['st_ativo', 'Ativos'], ['analise', 'Em análise'], ['vendidos', 'Vendidos'],
     ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
   const dataCurta = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) : '—');
+  /* a ordenação por coluna (Thomas, 24/11): clique no título ordena,
+     clique de novo inverte; número começa do maior, texto e data do menor.
+     Vazio vai para o fim; o empate fica na ordem de sempre (ativos
+     primeiro, depois do maior para o menor), que é a de quando nada foi
+     clicado */
+  const ordEvM = { k: '', dir: 1 };
   function desenhaEventosMes() {
-    const lista = RM.eventos;
     const E = D.mes.eventos;
     const k = CAMPO_META[kpi] ? kpi : null;
+    const cols = [['nome', 'Evento'], ['fim', 'Fim']].concat(STATUS_EV_M.map((q) => [q[0], q[1], 1]),
+      [['ind', rotIndicador() + ' no mês · meta do mês'], ['aj', 'Meta do evento', 1]]);
+    const val = (c, q) => (q === 'nome' ? E[c.ev][0] : q === 'fim' ? E[c.ev][2] || null : q === 'ind' ? pctDe(c)
+      : q === 'aj' ? (k ? c.meta_ev[k] : null) : c[q]);
+    const o = ordEvM;
+    const lista = !o.k ? RM.eventos : RM.eventos.map((c, i) => [c, i]).sort((a, b) => {
+      const x = val(a[0], o.k);
+      const y = val(b[0], o.k);
+      if (x === null || y === null || x === y) return x === y ? a[1] - b[1] : x === null ? 1 : -1;
+      return o.dir * (typeof x === 'string' ? x.localeCompare(y, 'pt-BR') : x - y);
+    }).map((p) => p[0]);
     const sel = FM.ev === '' ? null : Number(FM.ev);
     $('#ev-rot-m').textContent = (FM.sit === 'at' ? 'Eventos ativos' : FM.sit === 'fin' ? 'Eventos finalizados' : 'Eventos') +
       ' em ' + rotMesLongo(RM.ref);
     $('#n-evlista-m').textContent = nf(lista.length) + (lista.length === 1 ? ' evento' : ' eventos');
-    const ma = k ? RM.meta_aj[k] : null;
+    const ML = RM.meta_ev_lista;
+    const ma = k ? ML[k] : null;
     const tagAj = $('#aj-m');
     tagAj.hidden = ma === null;
-    tagAj.textContent = ma === null ? '' : 'Meta ajustada dos ativos: ' + pc(ma);
+    tagAj.textContent = ma === null ? '' : 'Meta do evento dos ativos: ' + pc(ma);
     tagAj.title = ma === null ? '' : 'Média pesada pelos veículos dos eventos ativos da lista' +
-      (RM.meta_aj.fora[k] ? '; ' + nf(RM.meta_aj.fora[k]) + ' veículo(s) em grupos que não chegam mais à meta (limitada a 100%)' : '');
-    $('#cab-ev-m').innerHTML = '<span>Evento</span>' + STATUS_EV_M.map((q) => '<span class="n">' + q[1] + '</span>').join('') +
-      '<span>' + esc(rotIndicador() + ' no mês · meta do mês') + '</span><span class="n">Meta ajustada</span>';
+      (ML.fora[k] ? '; ' + nf(ML.fora[k]) + ' veículo(s) em grupos que não chegam mais à meta do mês (limitada a 100%)' : '');
+    $('#cab-ev-m').innerHTML = cols.map((q) => {
+      const at = q[0] === o.k;
+      return '<span' + (q[2] || q[0] === 'fim' ? ' class="n"' : '') + '><button type="button" class="ord' + (at ? ' at' : '') + '" data-ok="' + q[0] +
+        '" aria-label="Ordenar por ' + esc(q[1]) + '">' + esc(q[1]) + '<span class="seta-ord" aria-hidden="true">' + (at ? (o.dir > 0 ? '▲' : '▼') : '') + '</span></button></span>';
+    }).join('');
     $('#g-ev-m').innerHTML = lista.length ? lista.map((c) => {
       const e = E[c.ev];
       const marcado = sel === c.ev;
       const x = pctDe(c);
       const m = metaDe(c);
-      let aj = '<span class="dim">' + (c.fin ? 'finalizado' : '—') + '</span>';
-      if (!c.fin && k && c.meta_aj[k] !== null) {
+      let aj = '<span class="dim">—</span>';
+      if (k && c.meta_ev[k] !== null) {
         const lim = c[k === 'oferta' ? 'lim_of' : 'lim_ve'];
-        aj = '<b>' + pc(c.meta_aj[k]) + '</b>' + (lim ? ' <span class="aviso-txt" title="' + esc(nf(lim) + ' veículo(s) em grupos que não chegam mais à meta do mês: a meta ajustada deles ficou em 100%') + '">⚠</span>' : '');
+        /* verde quando o evento já está na meta do evento ou acima (24/11) */
+        aj = '<b class="' + (x === null ? '' : x >= c.meta_ev[k] ? 'sobe' : 'desce') + '">' + pc(c.meta_ev[k]) + '</b>' +
+          (lim ? ' <span class="aviso-txt" title="' + esc(nf(lim) + ' veículo(s) em grupos que, com os finalizados, já não chegam à meta do mês: a meta do evento deles ficou em 100%') + '">⚠</span>' : '');
       }
       return '<button type="button" class="lin lin-m' + luzMeta(c) + (marcado ? ' marcada' : '') + (sel !== null && !marcado ? ' apagado' : '') +
         '" data-em="' + c.ev + '" aria-pressed="' + marcado + '" aria-label="' + esc((marcado ? 'Tirar o filtro do evento ' : 'Filtrar pelo evento ') + e[0]) + '">' +
         '<span class="c-nome"><b title="' + esc(e[0]) + '">' + esc(e[0]) + '</b><span class="dim sub">' +
           esc(e[6].map((j) => D.mes.comitentes[j]).join(', ') + ' · ' + dataCurta(e[1]) + ' a ' + dataCurta(e[2]) + ' · ' + (e[7] ? 'finalizado' : 'ativo')) +
         '</span></span>' +
+        '<span class="n num" data-r="Fim">' + esc(dt(e[2])) + '</span>' +
         STATUS_EV_M.map((q) => '<span class="n num" data-r="' + q[1] + '">' + nf(c[q[0]]) + '</span>').join('') +
         '<span class="termo">' + trilho(x, m) + '<span class="pc num">' + (x === null ? '—' : pc(x)) + '</span>' +
           '<span class="de">' + (m === null ? '' : 'meta ' + pc(m)) + '</span></span>' +
-        '<span class="n num aj" data-r="Meta ajustada">' + aj + '</span>' +
+        '<span class="n num aj" data-r="Meta do evento">' + aj + '</span>' +
         '</button>';
-    }).join('') : '<p class="dim">Nenhum evento neste mês com estes filtros.</p>';
+    }).join('') : '<p class="dim">' + (FM.sit === 'at' && RM.ref !== ULT_M ? 'Nenhum evento ativo em ' + rotMesLongo(RM.ref) + ': evento ativo só no mês corrente.'
+      : 'Nenhum evento neste mês com estes filtros.') + '</p>';
   }
+  $('#cab-ev-m').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-ok]');
+    if (!b) return;
+    const q = b.getAttribute('data-ok');
+    if (ordEvM.k === q) ordEvM.dir = -ordEvM.dir;
+    else { ordEvM.k = q; ordEvM.dir = ['nome', 'fim'].indexOf(q) < 0 ? -1 : 1; }
+    desenhaEventosMes();
+  });
   $('#g-ev-m').addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-em]');
     if (!b) return;
@@ -2520,10 +2676,9 @@ function APP(D, LOGO) {
     $('#fil-mes').hidden = aba !== 'mes';
     if (aba === 'mes') renderMes(); else render();
   }
-  $('#seg-aba').addEventListener('click', (ev) => {
-    const b = ev.target.closest('button[data-v]');
-    if (b && b.getAttribute('data-v') !== aba) trocaAba(b.getAttribute('data-v'));
-  });
+  /* o Diário ficou escondido (Thomas, 24/11: "oculte a página diário"): as
+     abas saíram do topo, a página abre no Mensal e o Diário segue no código
+     — trocaAba('dia') o traz de volta */
   function redesenhaIndicador() {
     if (aba === 'mes') { desenhaMes(); return; }
     desenhaAtivos();
@@ -2602,7 +2757,7 @@ function APP(D, LOGO) {
   gaveta(false);
   montaFiltros();
   montaFiltrosMes();
-  render();
+  trocaAba('mes');
 }
 
 /* ── 9. glossário: só a regra vigente ────────────────────────────────── */
@@ -2611,7 +2766,7 @@ function APP(D, LOGO) {
    API; _divide.js). As marcas são trocadas logo abaixo */
 const GLOSSARIO_TXT = [
   ['Evento no painel', 'Evento que alveja algum dos canais {canais}, que já abriu as ofertas e termina a partir de {dias} dias atrás: os ativos e os encerrados recentes. Agendado, com as ofertas ainda fechadas, não entra.'],
-  ['Filtros', 'Na aba lateral. Canal, comitente, categoria e evento recortam os veículos, e tudo que nasce deles acompanha. Categoria: Leves (motos inclusive), Pesados, Equipamentos ou Não informada, a do cadastro do veículo; no Mensal, os lojistas não a seguem. Responsável recorta as lojas. Data escolhe os dias dos gráficos e da tabela, e o dia dos cartões.'],
+  ['Filtros', 'Na aba lateral. Whitelabel, comitente, categoria, mês de referência, evento e as datas de início e de fim do evento. Whitelabel e as datas, com a situação do topo, escolhem os eventos; comitente e categoria recortam os veículos; evento mostra os veículos do evento escolhido. Categoria: Leves (motos inclusive), Pesados, Equipamentos ou Não informada, a do cadastro do veículo; os lojistas não a seguem.'],
   ['Comitente', 'A loja que anuncia o veículo no evento — o banco, a locadora ou a frota que está vendendo.'],
   ['Responsável', 'O consultor comercial dono da loja na carteira comercial, pelo CNPJ. Recorta as lojas: acessos, ofertas e vendas de quem é da carteira dele. Os veículos não têm responsável, então os cartões e as barras de veículos ativos não mudam com ele. Não distribuído: loja fora da carteira.'],
   ['Data', 'De e Até escolhem os dias dos dois gráficos e da tabela de veículos. Os cartões mostram os eventos ativos no dia do Até — hoje, sem filtro.'],
@@ -2636,9 +2791,9 @@ const GLOSSARIO_TXT = [
   ['Evento e resultado', 'Na tabela, o evento mais recente do veículo no período e o status da negociação nele. Quando vendeu, a loja compradora e o valor.'],
   ['Farol', 'A bolinha antes do veículo. Vermelho: sem oferta. Amarelo: há oferta, mas nenhuma chegou ao VMV (ou o VMV não foi informado). Verde: alguma oferta alcançou o VMV.'],
   ['Link do anúncio', 'Abre o anúncio mais recente do veículo — na vitrine do C6 quando o evento é só dos canais do C6, no cars2you.com.br nos demais.'],
-  ['Visão Mensal', 'As abas Diário e Mensal, no canto do cabeçalho, trocam para os últimos 12 meses: o mês corrente, até hoje, e os 11 anteriores, com os eventos ativos e os finalizados (o filtro Eventos escolhe). Os cartões com os status do sistema, os cartões por comitente, a tabela de eventos do mês e os dois gráficos, em meses ou nos dias do mês de referência. Sem a tabela de veículos: num mês são milhares de carros.'],
+  ['Visão Mensal', 'O painel mostra os últimos 12 meses: o mês corrente, até hoje, e os 11 anteriores. Os cartões com os status do sistema, os cartões por comitente, a tabela de eventos do mês, os dois gráficos (em meses ou nos dias do mês de referência) e a tabela de veículos do mês. A visão diária ficou escondida em 24/11.'],
   ['Evento no mensal', 'O mesmo recorte de canais, ativo em algum dia do mês, aberto ou já finalizado. Evento com mais de {dias_max} dias de ofertas fica fora: é depósito de anúncios, não evento.'],
-  ['Situação do evento', 'No filtro Eventos do Mensal: Total, Ativos ou Finalizados. Finalizado: o sistema encerrou o evento e o horário de fim já passou — as duas coisas. Ativo: o resto (aberto, em prorrogação ou ainda não encerrado). Com Ativos, cada veículo conta se o evento mais recente dele no mês ainda está ativo.'],
+  ['Situação do evento', 'Os botões Eventos, no canto do topo: Ativos (o painel abre nele), Finalizados ou Todos. Finalizado: o sistema encerrou o evento e o horário de fim já passou — as duas coisas. Ativo: o resto (aberto, em prorrogação ou ainda não encerrado). Com Ativos, cada veículo conta se o evento mais recente dele no mês ainda está ativo, e a meta dos cartões passa a ser a meta do evento. Num mês fechado não há evento ativo.'],
   ['Início e fim do evento', 'Dois filtros de data no Mensal, cada um com De e Até: o dia em que o evento abriu as ofertas e o dia em que termina. Escolhem os eventos; o veículo conta pelo evento mais recente dele no mês.'],
   ['Veículo no mês', 'Veículo distinto com negociação num evento ativo no mês. Novo no mês: estreou no mês. O status é o da negociação no evento mais recente dele no mês — o dono dele no mês —; nos meses fechados, é o desfecho. O comitente é o dessa negociação. Com um evento escolhido, contam os veículos do evento, cada um pela negociação dele no evento.'],
   ['Status no mês', 'Os status do sistema, da negociação mais recente de cada veículo no mês. Os cinco grupos não se cruzam e somam os veículos do mês. Ativos: negociação ativa, ainda recebendo lance. Em análise: a oferta está na mesa, com o comprador ou com o vendedor. Vendidos: aguardando pagamento, aguardando confirmação de pagamento ou vendido. Não vendidos: o evento passou e não vendeu — sem ofertas, vendedor ou comprador rejeitou, ou a venda foi cancelada depois de fechada. Removidos: suspensos ou cancelados. Como só entram eventos fechados, quase todos os veículos já chegaram ao desfecho; Ativos e Em análise são os que o sistema ainda não encerrou.'],
@@ -2646,13 +2801,18 @@ const GLOSSARIO_TXT = [
   ['% no mês', 'Dos veículos ativos no mês, quantos já tiveram o anúncio aberto, receberam lance ou foram vendidos no evento — a negociação do evento mais recente dele no mês, como nos cartões. Vendidos é o mesmo número do cartão do mês.'],
   ['Cartões por comitente no mês', 'Como no diário, para o mês escolhido no filtro Mês: a rosca é o indicador no mês, a área mostra os 12 meses até ele e a diferença em p.p. é contra o mês anterior.'],
   ['Lojistas por mês', 'Lojas distintas que abriram anúncio, deram lance ou compraram nos eventos do recorte — no mês, ou em cada dia do mês de referência. Uma loja ativa no mês inteiro conta uma vez. Seguem canal, evento, situação, datas e comitente (pelos eventos do comitente); não seguem a categoria. Embaixo, os números do mês escolhido.'],
-  ['Tabela de eventos do mês', 'Abaixo dos cartões por comitente, uma linha por evento ativo em algum dia do mês de referência: os veículos do evento e os status do sistema, o termômetro do indicador do topo com a meta do mês, e a meta ajustada. Clicar numa linha filtra pelo evento; clicar de novo solta.'],
-  ['Meta ajustada', 'A meta do mês com a compensação dos eventos finalizados: o quanto os eventos ainda ativos precisam fazer para o mês fechar na meta. Por whitelabel, comitente e categoria, com os veículos do mês: (meta × veículos do mês − realizado nos finalizados) ÷ veículos dos ativos, entre 0% e 100% — 0% quando a meta já está garantida, 100% com aviso quando não dá mais para chegar. A do evento é a média dos grupos dos veículos dele; a do topo da tabela, a dos eventos ativos da lista. Evento finalizado não tem. Segue o indicador: com oferta ou vendidos.'],
-  ['Dias do mês', 'Os botões 12 meses e Dias do mês nos dois gráficos do Mensal: os dias do mês de referência (até hoje no mês corrente), com os mesmos filtros. Veículo ativo no dia e o percentual acumulado no evento até o dia, como no Diário. Os lojistas são os dos eventos do mês: quem abriu no dia o anúncio de um evento que fechou no mês anterior conta no Diário e não aqui.']
+  ['Tabela de eventos do mês', 'Abaixo dos cartões por comitente, uma linha por evento ativo em algum dia do mês de referência: o fim do evento, os veículos e os status do sistema, o termômetro do indicador do topo com a meta do mês, e a meta do evento — verde quando o evento já está nela ou acima, vermelha abaixo; no finalizado, traço. Clicar no título de uma coluna ordena por ela; de novo, inverte. Clicar numa linha filtra pelo evento; clicar de novo solta.'],
+  ['Meta do evento', 'O % que os eventos ativos precisam atingir para o mês fechar na meta, considerando o volume do mês e o que os eventos finalizados já fizeram: (meta do mês × veículos do mês − realizado nos finalizados) ÷ veículos dos eventos ativos, entre 0% e 100% — 0% quando a meta do mês já está garantida, 100% com aviso quando não dá mais para chegar. É calculada por whitelabel, comitente e categoria, com cada veículo pelo evento mais recente dele no mês; a de um evento, de um comitente ou dos cartões é a média dos grupos dos veículos ativos deles. Os filtros não a mudam. Conta só os veículos que já estão em eventos do mês: um evento que abre depois muda a meta dos ativos. Aparece na tabela de eventos e, com Ativos, nos cartões. Segue o indicador: com oferta ou vendidos.'],
+  ['Dias do mês', 'Os botões 12 meses e Dias do mês nos dois gráficos do Mensal: os dias do mês de referência (até hoje no mês corrente), com os mesmos filtros. Veículo ativo no dia e o percentual acumulado no evento até o dia, como no Diário. Os lojistas são os dos eventos do mês: quem abriu no dia o anúncio de um evento que fechou no mês anterior conta no Diário e não aqui.'],
+  ['Tabela de veículos do mês', 'No fim da página, um veículo por linha, como a tabela de veículos do Diário, com os mesmos filtros do painel: sem evento escolhido, cada veículo vem pelo evento mais recente dele no mês; com um evento, os veículos dele. O veículo um a um vem do dado dos últimos {dias_tab} dias: no mês corrente a tabela é inteira, no anterior só a parte dentro dessa janela, e nos mais antigos não há tabela. Exportar CSV baixa as linhas da tabela — todas, com a busca e na ordem escolhida — num arquivo que abre no Excel.']
 ];
 const nomesCanais = DADOS.canais.map((c) => c[1] + ' (' + c[0] + ')').join(', ');
-DADOS.glossario = GLOSSARIO_TXT.map((par) => par.map((t) => t.split('{canais}').join(nomesCanais)
-  .split('{dias_max}').join(String(META.dias_max_evento)).split('{dias}').join(String(META.dias))));
+/* com o Diário escondido (24/11), os termos só dele ficam fora da página
+   (seguem no texto, para a volta dele) */
+const SO_DIARIO = ['Responsável', 'Data', 'Eventos ativos', 'Status nos cartões', 'Lista de eventos', 'Com oferta', 'VMV atingido',
+  'Veículos ativos por dia', '% com acesso, com oferta, vendidos', 'Lojistas por dia'];
+DADOS.glossario = GLOSSARIO_TXT.filter((par) => SO_DIARIO.indexOf(par[0]) < 0).map((par) => par.map((t) => t.split('{canais}').join(nomesCanais)
+  .split('{dias_max}').join(String(META.dias_max_evento)).split('{dias_tab}').join(String(META.dias + 1)).split('{dias}').join(String(META.dias))));
 
 /* ── 10. o HTML ──────────────────────────────────────────────────────── */
 const CSS_PAINEL = [
@@ -2804,9 +2964,12 @@ const CSS_PAINEL = [
   '.lista-ev .clique{font-size:11.5px}',
   '.lista-ev > .rolo-ev{padding:0 18px 12px}',
   /* a tabela de eventos do Mensal (19/11): seis números, o termômetro e a meta ajustada */
-  '.lin.lin-m{grid-template-columns:minmax(190px,2.4fr) repeat(6,minmax(50px,.6fr)) minmax(216px,2.1fr) minmax(80px,.8fr)}',
+  '.lin.lin-m{grid-template-columns:minmax(180px,2.2fr) minmax(92px,.8fr) repeat(6,minmax(50px,.6fr)) minmax(200px,2fr) minmax(80px,.8fr)}',
+  '.lin.cab .n button.ord{flex-direction:row-reverse}.lin.cab button.ord{text-align:inherit}',
   '.lin-m .aj{white-space:nowrap}.lin-m .aj b{font-weight:700}',
   '.tag-aj{background:var(--acento-veu);color:var(--texto)}',
+  /* a situação no topo (24/11): no celular, sem o rótulo, para o título caber */
+  '@media(max-width:600px){.topo-acoes .rot-ind{display:none}}',
   '[data-tema="escuro"] input.ctrl[type="date"]{color-scheme:dark}',
   'input.ctrl[type="date"]{width:100%;min-width:0}',
   '@media (max-width:900px){.rolo-ev .cab{display:none}',
@@ -2952,10 +3115,11 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<span class="marca"><img class="logo logo-extensa" id="logo" src="" alt="Cars2You">' +
   '<img class="logo logo-curta" id="logo-curta" src="" alt="Cars2You"></span>' +
   '<div class="topo-tit"><h1>Painel de Eventos</h1></div>' +
-  /* as abas Diário e Mensal no canto do topo, onde ficava o tema; o ícone de
-     avisos saiu (Thomas, 06/11) — os avisos seguem no resumo do run */
-  '<div class="topo-acoes">' +
-  seg('seg-aba', 'Visão', [['dia', 'Diário'], ['mes', 'Mensal']], 'dia') +
+  /* 24/11 (Thomas: "substitua o filtro de navegação pela opção eventos
+     ativos, finalizados" e todos): no lugar das abas Diário e Mensal, que
+     saíram com o Diário escondido, a situação dos eventos */
+  '<div class="topo-acoes"><span class="grupo-ind"><span class="rot-ind">Eventos</span>' +
+  seg('seg-sit', 'Situação dos eventos', [['at', 'Ativos'], ['fin', 'Finalizados'], ['', 'Todos']], 'at') + '</span>' +
   '</div></div></header><div id="dica-g" hidden></div><div id="dica-lk" hidden></div>' +
   '<button id="aba" class="aba" type="button" aria-expanded="false" aria-controls="gaveta">' +
   '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONE.filtros + '</svg><span class="rot">Filtros</span>' +
@@ -2964,7 +3128,7 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<aside id="gaveta" class="gaveta" aria-label="Filtros"><div class="cartao">' +
   '<div class="cartao-topo">' + chip('filtros') + '<h2>Filtros</h2>' +
   '<button id="fecha" class="fechar" type="button" aria-label="Fechar filtros">×</button></div>' +
-  '<div class="filtros" id="fil-dia">' +
+  '<div class="filtros" id="fil-dia" hidden>' +
   /* a ordem do pedido (28/10): whitelabel, comitente, evento, responsável, data */
   filtro('f-wl', 'Whitelabel') +
   filtro('f-comit', 'Comitente') +
@@ -2977,19 +3141,18 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<b>Data</b> escolhe os dias dos gráficos e da tabela; os cartões mostram o dia do Até.</p>' +
   '</div>' +
   /* os filtros da aba Mensal (06/11) */
-  '<div class="filtros" id="fil-mes" hidden>' +
+  '<div class="filtros" id="fil-mes">' +
   filtro('f-m-wl', 'Whitelabel') +
   filtro('f-m-comit', 'Comitente') +
   filtro('f-m-cat', 'Categoria') +
   filtro('f-m-mes', 'Mês de referência') +
   filtro('f-m-ev', 'Evento') +
-  /* 19/11 (Thomas): "Eventos Ativos vs total" — Total, Ativos ou Finalizados */
-  '<div class="fg"><span class="rot-fg">Eventos</span>' + seg('seg-sit', 'Situação dos eventos', [['', 'Total'], ['at', 'Ativos'], ['fin', 'Finalizados']], '') + '</div>' +
+  /* a situação (Ativos, Finalizados, Todos) subiu para o topo em 24/11 */
   '<div class="fg2">' + data('f-m-ini-de', 'Início do evento: de') + data('f-m-ini-ate', 'até') + '</div>' +
   '<div class="fg2">' + data('f-m-fim-de', 'Fim do evento: de') + data('f-m-fim-ate', 'até') + '</div>' +
-  '<p class="nota"><b>Whitelabel</b>, <b>situação</b> e as <b>datas</b> escolhem os eventos: cada veículo conta pelo evento mais recente dele no mês. ' +
+  '<p class="nota"><b>Whitelabel</b> e as <b>datas</b>, com a situação escolhida no topo (Ativos, Finalizados ou Todos), escolhem os eventos: cada veículo conta pelo evento mais recente dele no mês. ' +
   '<b>Evento</b> mostra os veículos do evento escolhido. <b>Comitente</b> e <b>categoria</b> recortam os veículos. <b>Mês de referência</b> escolhe o mês dos cartões, ' +
-  'da tabela de eventos e dos gráficos dia a dia. Finalizado = o sistema encerrou o evento e o fim já passou.</p>' +
+  'das tabelas e dos gráficos dia a dia. Finalizado = o sistema encerrou o evento e o fim já passou.</p>' +
   '</div>' +
   '<div class="filtros"><div class="fg"><button class="ctrl" id="limpar" type="button">Limpar filtros</button></div></div>' +
   '</div></aside>' +
@@ -3006,7 +3169,7 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   seg('seg-modo', 'Veículos', [['todos', 'Todos'], ['novos', 'Novos']], 'todos') + '</span>' +
   '<span class="grupo-ind canto-tema">' +
   '<button class="ctrl so-icone" id="b-tema" type="button" aria-label="Mudar o tema"></button></span></div>' +
-  '<div id="v-dia">' +
+  '<div id="v-dia" hidden>' +
   '<section class="g4 g5" aria-label="Eventos ativos no dia">' +
   kpiCard('evento', 'Eventos ativos hoje', 'k-ev', '<div class="kpi-pc"><span class="txt" id="k-ev-dia">—</span></div>',
     [['Veículos', 'k-ev-veic'], ['Comitentes', 'k-ev-com']], 'k-ev-rot') +
@@ -3054,7 +3217,7 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<button class="ctrl mais" id="mais-veic" type="button" hidden></button></section>' +
   '</div>' +
   /* a aba Mensal (06/11): o mesmo desenho, em meses */
-  '<div id="v-mes" hidden>' +
+  '<div id="v-mes">' +
   /* os status do sistema (Thomas, 17/11): Ativos, Em análise, Vendidos,
      Não vendidos e Removidos somam os veículos do mês. O cartão Com oferta
      saiu (Thomas, 18/11); o indicador segue no gráfico e nos comitentes.
@@ -3102,13 +3265,20 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   '<span><span class="amostra traco s-co"></span>Compraram</span></div>' +
   '<div class="caixa-g" id="g-lojistas-m" data-rot="Lojas distintas por mês que acessaram, ofertaram e compraram"></div>' +
   '<div class="tot" id="tot-lojistas-m"></div><p class="nota-ac" id="nota-ac-lm" hidden></p></article>' +
+  /* a tabela de veículos do mês (Thomas, 24/11), como a do Diário, com o Exportar */
+  '<section class="cartao">' + topoCartao('lista', '<span id="tit-veic-m">Veículos</span>', 'n-veic-m',
+    '<input class="ctrl busca" id="busca-m" type="search" placeholder="Buscar veículo, evento ou comitente" aria-label="Buscar veículo, evento ou comitente">' +
+    '<button class="ctrl" id="exporta-m" type="button" title="Baixa as linhas da tabela (com a busca, na ordem dela) num CSV que abre no Excel">Exportar CSV</button>') +
+  '<p class="nota-ac" id="nota-veic-m" hidden></p>' +
+  '<div class="rolo alto"><table class="dens"><thead><tr id="th-veic-m"></tr></thead><tbody id="tb-veic-m"></tbody></table></div>' +
+  '<button class="ctrl mais" id="mais-veic-m" type="button" hidden></button></section>' +
   '</div>' +
   '<details class="cartao gloss" id="gloss"><summary class="cartao-topo">' + chip('gloss') + '<h2>Glossário</h2>' +
   '<span class="dir"><span class="tag" id="gloss-n">—</span><span class="seta" aria-hidden="true">▾</span></span>' +
   '</summary><dl id="gloss-lista"></dl></details>' +
   '<p class="rodape">Atualizado em <span id="gerado">—</span> · <span id="base"></span></p>' +
   '</main><script>' +
-  calcula.toString() + calculaMes.toString() + APP.toString() +
+  calcula.toString() + calculaMes.toString() + evPassaF.toString() + calculaVeicMes.toString() + APP.toString() +
   'APP(' + dadosJs + ',' + logoJs + ');' +
   '</script></body></html>';
 

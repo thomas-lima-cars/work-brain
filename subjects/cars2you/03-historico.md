@@ -378,3 +378,11 @@ precificar.
   `Documentos Compartilhados/Estudos/` (site N8N). Primeiro envio em 23/11 ✅; a primeira rodada pela tarefa
   é 30/11. Sem alerta de falha. Números em `context/banco-de-dados/projetos/republicacoes-dealers/indicadores.md`.
 
+
+### 2026-11-24 — Painel de Eventos Cars2You: Mensal por evento no ar
+- Retomado o Mensal por evento (guardado em 23/11) e publicado na versão **`279a3a1f`** do wf `cRChMwAnLYGRMesM`,
+  com o pedido de hoje: **Diário escondido**, **Eventos: Ativos · Finalizados · Todos** no topo (nasce em Ativos),
+  **meta do evento** (o % que os ativos precisam para o mês fechar na meta, descontando os finalizados; substituiu a
+  meta ajustada por evento da manhã), **tabela de veículos do Mensal com Exportar CSV**, coluna Fim e ordenação.
+- O Thomas confirmou as quatro escolhas "(minha)" de 19/11 e subiu a planilha de metas nova (só mensal, por
+  whitelabel) em `Comitente - Metas/`. Rodada 70725 ✅ (números no `indicadores.md` do projeto). Voltar atrás: `01e3c4e9`.
