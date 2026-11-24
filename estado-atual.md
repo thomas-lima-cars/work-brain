@@ -1,6 +1,7 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
+> ⚠️ **2 commits locais não enviados** desde 2026-11-24 (o push foi barrado pelo modo automático). Rodar `git push`.
 > **Última atualização:** 2026-11-24 (madrugada; sessão aberta em 19/11, trabalho de 23/11).
 > - **Estudo de Republicações Dealers agora atualiza sozinho, toda segunda 0h (23/11).** O n8n não alcança a
 >   Dealers, então o estudo **roda no PC** (tarefa do Windows; espera a VPN por até 12 h) e entrega pelo webhook
