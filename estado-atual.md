@@ -1,7 +1,15 @@
 # 📍 Estado Atual — Work Brain do Thomas
 
 > Painel vivo. Mantido pelo `/salve` no fim de cada sessão. Lido pelo `/cerebro` no boot.
-> **Última atualização:** 2026-11-24 (tarde; sessão aberta em 19/11).
+> **Última atualização:** 2026-11-25 (noite).
+> - **Painel de Eventos Cars2You, versão `7274585b` publicada (25/11):** a negociação removida (8, 10) saiu de todas
+>   as contas do Mensal; sem o cartão Removidos e sem as linhas Com oferta e Removidos nos cartões por comitente.
+>   **Metas mantidas** como estavam (Thomas). Rodada 71033 ✅. Voltar atrás: `279a3a1f`. A meta do evento foi
+>   explicada e conferida no Feirão VWFS de 26/11 (`indicadores.md`).
+> - **Radar: categoria é porta** (25/11) — categoria 0 zera a aderência; a 22 "Não informada" segue zerando (Thomas).
+>   Run 70911 ✅. O Radar **roda às 7h** (run 70877), o que o brain não sabia; a base dobrou: HTML de 11,9 MB.
+>
+> Em 24/11:
 > - **Painel de Eventos Cars2You, versão `279a3a1f` publicada (24/11).** O **Mensal por evento** foi ao ar, com
 >   mais o pedido de hoje: **Diário escondido** e, no topo, **Eventos: Ativos · Finalizados · Todos** (nasce em
 >   Ativos); **meta do evento** (o % que os ativos precisam para o mês fechar na meta, descontando os finalizados)
@@ -47,8 +55,11 @@
   `ult_acesso` sobre `access_logs` (3,3 mi linhas, sem índice), refeito nas 27 páginas.
   Direção do Thomas: **consultas diretas, processamento no n8n, nada de fundir consulta.**
   ✅ Carteira comercial ao vivo desde 21/09 (39 lojas sem responsável).
+  ✅ **25/11: categoria é porta** — categoria 0 zera aderência e score do par; a 22 "Não informada" segue zerando
+  (Thomas). Run manual **70911** ✅ (20 min): 2.322 veículos, 87.006 pares, **HTML de 11,9 MB**, **27 pares ≥ 70
+  cortados pelo teto** de 150. O Radar tem gatilho às **7h** (run 70877), então as mudanças de 22–23/10 já rodavam.
   ✅ **22–23/10: três mudanças no `Montar HTML`, transcritas e conferidas (4 nós idênticos),
-  commit `84545af`, run NÃO feito:** botão **Exportar analítico** (CSV nas duas tabelas,
+  commit `84545af`:** botão **Exportar analítico** (CSV nas duas tabelas,
   lojistas com e-mail e telefone); **publicação por score** (todos os pares ≥ 70, mínimo 30,
   teto 150 — substituiu o teto fixo de 30); **filtro de veículo** (evento, farol, busca) chega à
   tabela de lojas e ao KPI Lojas elegíveis (≥ 70 em algum veículo filtrado). Estimativa
@@ -84,6 +95,10 @@
   Finalizados · Todos no topo, **meta do evento** no lugar da meta ajustada, tabela de veículos do Mensal com
   **Exportar CSV**, coluna Fim e ordenação. `_enxuga.js` tira a indentação: três nós bastam (56,9 / 54,7 / 55,6 KB).
   116 provas.
+  **25/11, versão `7274585b` no ar** (run 71033 ✅): a **negociação** removida (8, 10) sai de todas as consultas do
+  Mensal (`NEG_DO_EVENTO`, inclusive dono e estreia); o veículo segue pelas outras negociações. Sem o cartão Removidos
+  (seis cartões, `.g6`), sem as linhas Com oferta e Removidos nos comitentes, sem a coluna Removidos. O Diário segue
+  com removidos. **Metas mantidas** com removidos na base (Thomas). 117 provas.
 - **Rotina Fenauto** — 🧊 **DESLIGADA em 16/11** (Thomas: "cancele as próximas atualizações"). Wf
   **`9CNN9FjRohxaRUZq`**, pasta `automations/n8n-sdk/rotina-fenauto/`. Antes de desligar, os três painéis
   foram congelados em **09 a 13/11** (`JANELA_FIXA` no Montar Consultas: janela até 14/11 00:00 e "agora"
@@ -176,6 +191,10 @@
 - **outros** — coringa, sem movimento
 
 ## 🔥 Decisões em aberto
+- 🔴 **Radar passou do tamanho (25/11):** HTML de 11,9 MB e 27 pares ≥ 70 cortados pelo teto de 150, com a base
+  dobrada (2.322 veículos). Subir o teto, baixar o mínimo de 30 por veículo ou aceitar?
+- 🔵 **Painel Cars2You, 25/11 — escolha minha:** removido sai pela negociação (o veículo segue pelas outras do mês),
+  não pelo veículo. E: com as metas mantidas, o realizado sem removidos fica até ~3 p.p. acima do que a meta mediria.
 - 🔴 **Tuunelis recebe o WhatsApp da Análise de Base C6 todo dia** — o comentário do nó diz que
   ele ficaria fora (o Caio aprovou semanal), mas a linha está ativa. Trocar o gatilho, tirar ele
   ou aceitar o diário? E: falha do WhatsApp deve marcar o run como erro se o e-mail saiu?
@@ -243,8 +262,7 @@
 - [ ] Fenauto 2027 (ou outra semana): `JANELA_FIXA`, `INICIO_CAMPANHA`, os grupos e `PASTA_RAIZ` no `_divide.js`
 - [ ] Estudo IGA: refazer a decomposição pedido × demanda (ficou com o número de 08/10) e mandar o
       HTML atualizado a quem usa
-- [ ] 🔥 **Rodar o Radar pela interface** com a versão nova (22–23/10) e conferir
-      `resumo.cortados_pelo_teto` = 0, `resumo.fora_do_piso` e o tamanho (~5,4 MB esperado)
+- [ ] Radar: conferir no n8n a configuração do **gatilho das 7h** (run 70877) — não estava no `crons.md`
 - [ ] **Carteira Comercial (`ksZI8cqSbexqLOre`) aparece `active: false` no n8n** (22/10) — o brain
       diz que roda às 6h. Conferir pela interface; sem ela o Radar usa carteira velha
 - [ ] Lista de compradores do **Premium BMW** incompleta em 5 de 8 veículos (30 lojas por carro no
@@ -272,6 +290,8 @@
       (`design/monta-kit.js`): ele ainda diz que o claro é o padrão
 - [ ] Conferir a transcrição do `tratar-carteira.js` contra o workflow Carteira
       Comercial — só os 4 nós do Radar têm essa prova
+- [ ] **Alterações de outra sessão fora do git** (deixadas fora do commit de 25/11): `context/banco-de-dados/README.md`,
+      `plataforma/acessos.md`, `banco-de-dados/dealersclub/` e `projetos/vendas-dealersclub/` — revisar e commitar
 - [ ] Destino do `WorkBrain.zip` (raiz, de 21/10) e do `context/banco-de-dados/dicionario_bradesco.zip`, soltos fora do git. Os `fenauto_*.html` dos três
       painéis (cópias do `saida-local`, nome real de loja) entraram no `.gitignore` em 09/11
 - [ ] Revisar e enviar o `email-precificacao.md` — destinatários em aberto

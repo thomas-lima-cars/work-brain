@@ -5,6 +5,40 @@
 > Cada número traz data e como foi medido. Significado das tabelas em
 > [`plataforma/dominios.md`](../../plataforma/dominios.md).
 
+## Mensal sem negociações removidas — coleta de 2026-11-25 ~16:45
+
+Coleta local (`coleta_local.py`, 111 consultas, 125 s no banco, nenhuma acima de 10 s) com a
+negociação suspensa (8) ou cancelada (10) fora de todas as consultas do mês. Os 11 meses
+fechados batem veículo a veículo com o `gera_metas.py --confere` (outro caminho, das linhas cruas):
+
+| mês | veículos | com oferta | vendidos |
+|---|---:|---:|---:|
+| dez/25 | 2.192 | 1.114 | 853 |
+| jan/26 | 2.031 | 1.456 | 1.067 |
+| fev/26 | 1.888 | 1.187 | 869 |
+| mar/26 | 2.072 | 1.115 | 845 |
+| abr/26 | 1.908 | 1.324 | 992 |
+| mai/26 | 2.197 | 1.204 | 905 |
+| jun/26 | 2.710 | 1.160 | 804 |
+| jul/26 | 3.273 | 1.424 | 1.050 |
+| ago/26 | 2.826 | 1.343 | 1.008 |
+| set/26 | 3.465 | 1.595 | 1.058 |
+| out/26 | 4.903 | 1.869 | 1.293 |
+| nov/26 (até 25/11) | 4.959 | 1.381 | 827 |
+
+**No ar:** versão `7274585b`, rodada manual **71033** (25/11 17:59–18:02, 2 min 46 s, sem erro): os
+11 meses fechados iguais à tabela acima, nov/26 com 4.959 / 1.384 / 836 (o banco andou desde a
+coleta), removidos 0 em todos os meses, sem aviso de metas.
+
+Out/26 tinha 4.967 veículos com os removidos (coleta de 19/11): 64 a menos. Hoje, nos eventos
+ativos: **2.193** veículos no Mensal contra **2.313** no Diário, que segue com os removidos
+(120 removidos no cartão do Diário).
+
+**Feirão de Leves Banco VWFS - 26/11/26** (coleta das 15:50, ainda com removidos; nenhum
+removido no grupo): grupo Marketplace × Banco Volkswagen × Leves, meta 73,78% com oferta; 9
+finalizados em novembro com 225 de 257 com oferta (87,5%), o ativo com 4 de 149; meta do
+evento = (0,7378 × 406 − 225) ÷ 149 = **50,0%**.
+
 ## O recorte de 30 dias nos seis canais — 2026-10-28
 
 Medido por conexão direta (`consulta.py --base cars2you`), eventos que alvejam

@@ -466,7 +466,7 @@ const evCatOk = (i) => cat === '' || X.evCats[i][cat] === 1;
 const evOk = D.eventos.map((e, i) => (!wl || e.wls.indexOf(wl) >= 0) && (ev < 0 || i === ev) &&
 (comit < 0 || e.comits.indexOf(comit) >= 0) && evCatOk(i));
 const lojaOk = D.lojas.map((l) => resp === '' || (resp === 'nd' ? l[2] < 0 : l[2] === Number(resp)));
-const nOk = (n) => evOk[n[0]] && (comit < 0 || n[2] === comit) && catOk(n);
+const nOk = (n) => evOk[n[0]] && (comit < 0 || n[2] === comit) && catOk(n) && !(F.sem_rem && (n[3] === 8 || n[3] === 10));
 const NV = D.veics.length;
 const NL = D.lojas.length;
 const zeros = (k) => { const a = []; for (let i = 0; i < k; i++) a.push(0); return a; };
@@ -962,7 +962,7 @@ const o = { ref: ref, de: Math.max(0, d0), ate: Math.min(D.hoje, d1), parcial: d
 const evD = vazio(F.ev) ? -1 : D.ev_mes.indexOf(Number(F.ev));
 if (o.de > o.ate || (!vazio(F.ev) && evD < 0)) return o;
 const c = vazio(F.comit) ? -1 : Number(F.comit);
-o.linhas = calcula(D, { de: o.de, ate: o.ate, ev: evD < 0 ? '' : evD }).veiculos.filter((x) => {
+o.linhas = calcula(D, { de: o.de, ate: o.ate, ev: evD < 0 ? '' : evD, sem_rem: true }).veiculos.filter((x) => {
 const e = M.eventos[D.ev_mes[x.ev]];
 return !!e && (evD >= 0 || evPassaF(e, F)) && (c < 0 || D.com_mes[x.comit] === c) && (vazio(F.cat) || D.veics[x.v][7] === F.cat);
 });
@@ -1084,7 +1084,7 @@ kpiCard('removido', 'Removidos', 'k-rm', meioPc('k-rm-pc', 'k-rm-bar'),
 '<button class="ctrl mais" id="mais-veic" type="button" hidden></button></section>' +
 '</div>' +
 '<div id="v-mes">' +
-'<section class="g4 g7" aria-label="Eventos e status no mês">' +
+'<section class="g4 g6" aria-label="Eventos e status no mês">' +
 kpiCard('evento', 'Eventos no mês', 'km-ev', '<div class="kpi-pc"><span class="txt" id="km-ev-mes">—</span></div>',
 [['Veículos', 'km-ev-veic'], ['Comitentes', 'km-ev-com']], 'km-ev-rot') +
 kpiCard('veiculo', 'Ativos', 'km-at', meioPc('km-at-pc', 'km-at-bar'), [['Mês anterior', 'km-at-ant']]) +
@@ -1097,8 +1097,6 @@ kpiCard('oferta', 'Valor vendido', 'km-vr', '<div class="kpi-pc"><span class="tx
 kpiCard('naovendido', 'Não vendidos', 'km-nv', meioPc('km-nv-pc', 'km-nv-bar'),
 [['Sem ofertas', 'km-nv-sem'], ['Rejeitados', 'km-nv-rej'], ['Venda cancelada', 'km-nv-vc'], ['Outros', 'km-nv-out'],
 ['Mês anterior', 'km-nv-ant']]) +
-kpiCard('removido', 'Removidos', 'km-rm', meioPc('km-rm-pc', 'km-rm-bar'),
-[['Suspensos', 'km-rm-sus'], ['Cancelados', 'km-rm-can'], ['Mês anterior', 'km-rm-ant']]) +
 '</section>' +
 '<section class="comitentes" aria-labelledby="comit-rot-m">' +
 '<div class="barra-comit"><span class="rot-comit" id="comit-rot-m">Comitentes com evento no mês</span>' +

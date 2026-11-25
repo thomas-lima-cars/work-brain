@@ -1016,6 +1016,47 @@ for (let i = 0, k = 0; i < P.length; i += 3, k++) if (P[i] === byNeg[2].i && D.l
 ok(D.det[detIdx[0]].preco === 33 && D.det[detIdx[0]].modelo === 0 && D.det[detIdx[0]].categoria === 100,
   'decomposicao do par: preco 33, modelo 0, categoria 100');
 
+/* ── categoria e porta de aderencia (pedido de 2026-11-25) ───────────────
+   Veiculo fora da categoria que a loja mais oferta: componente de categoria
+   0 -> aderencia do par inteiro 0, e o score tambem. O par continua
+   existindo, com a decomposicao mostrando o porque. Os dados de base nao
+   exercitam isso (todo veiculo e Automovel e toda loja tem moda Automovel),
+   entao o cenario troca a categoria do v0 e roda o no de novo. */
+function rodaCom(veic, categ) {
+  const resp2 = f2b.map((i) => i.json).map(function (p) {
+    if (p.queryName === 'q_veiculos') return resp(COLV, veic, p.pagina);
+    if (p.queryName === 'q_categoria') return resp(['shop_id', 'item_id', 'nome', 'n'], categ, p.pagina);
+    return respostaDe(p);
+  });
+  return rodaNo('montar-html.js', ctxDe({ 'Montar Fase 2': f2b, 'MCP Fase 2': resp2 }))[0].json.DADOS;
+}
+function paresNeg(d, neg) {
+  const vi = d.veiculos.findIndex((v) => v.neg_id === neg);
+  const r = [];
+  for (let i = 0, k = 0; i < d.pares.length; i += 3, k++) {
+    if (d.pares[i] === vi) r.push({ loja: d.lojas[d.pares[i + 1]].loja_id, s: d.pares[i + 2] / 10, det: d.det[k] });
+  }
+  return r;
+}
+const VEIC_MOTO = VEIC.map((r) => (r[0] === 1 ? r.slice(0, 11).concat([2, 'Moto'], r.slice(13)) : r));
+const dCat = rodaCom(VEIC_MOTO, CATEG);
+const pMoto = paresNeg(dCat, 1);
+ok(pMoto.length > 0 && pMoto.every((p) => p.s === 0 && p.det.categoria === 0),
+  'categoria divergente zera o par: v0 como Moto contra lojas de Automovel -> score 0 em ' +
+  pMoto.length + ' par(es) — ' + JSON.stringify(pMoto.map((p) => p.s)));
+const m11 = pMoto.find((p) => p.loja === 11);
+ok(m11 && m11.det.preco === 100 && m11.det.modelo === 100 && Object.keys(m11.det).length > 1,
+  'e a decomposicao continua la: contra a loja 11, preco e modelo seguem 100 — so a categoria zerou');
+const pBase = paresNeg(D, 2), pOutro = paresNeg(dCat, 2);
+ok(JSON.stringify(pBase.map((p) => p.s)) === JSON.stringify(pOutro.map((p) => p.s)),
+  'o v1, que segue Automovel, nao muda de score');
+/* loja SEM moda de categoria: o componente nao existe, entao a regra nao
+   se aplica -- falta de dado nao vira zero */
+const dSemCat = rodaCom(VEIC_MOTO, CATEG.filter((r) => r[0] !== 11));
+const p11 = paresNeg(dSemCat, 1).find((p) => p.loja === 11);
+ok(p11 && p11.s > 0 && p11.det.categoria === undefined,
+  'loja sem moda de categoria nao zera: v0 Moto x loja 11 sem categoria -> ' + (p11 ? p11.s : '?'));
+
 /* ═══ 5. O filtro cruzado ═══════════════════════════════════════════ */
 console.log('\n[5] Filtro cruzado — as duas direcoes usam os MESMOS pares');
 const porV = {}, porL = {};

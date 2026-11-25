@@ -824,7 +824,9 @@ function calcula(D, F) {
   const evOk = D.eventos.map((e, i) => (!wl || e.wls.indexOf(wl) >= 0) && (ev < 0 || i === ev) &&
     (comit < 0 || e.comits.indexOf(comit) >= 0) && evCatOk(i));
   const lojaOk = D.lojas.map((l) => resp === '' || (resp === 'nd' ? l[2] < 0 : l[2] === Number(resp)));
-  const nOk = (n) => evOk[n[0]] && (comit < 0 || n[2] === comit) && catOk(n);
+  /* F.sem_rem: a negociação removida (8, 10) não existe — a regra do Mensal
+     (25/11), usada pela tabela de veículos do mês; o Diário segue com ela */
+  const nOk = (n) => evOk[n[0]] && (comit < 0 || n[2] === comit) && catOk(n) && !(F.sem_rem && (n[3] === 8 || n[3] === 10));
 
   const NV = D.veics.length;
   const NL = D.lojas.length;
@@ -1512,7 +1514,9 @@ function calculaVeicMes(D, F) {
   const evD = vazio(F.ev) ? -1 : D.ev_mes.indexOf(Number(F.ev));
   if (o.de > o.ate || (!vazio(F.ev) && evD < 0)) return o;
   const c = vazio(F.comit) ? -1 : Number(F.comit);
-  o.linhas = calcula(D, { de: o.de, ate: o.ate, ev: evD < 0 ? '' : evD }).veiculos.filter((x) => {
+  /* sem_rem: a negociação removida não existe no Mensal (Thomas, 25/11); o
+     veículo vem pela mais recente das outras, como no cartão */
+  o.linhas = calcula(D, { de: o.de, ate: o.ate, ev: evD < 0 ? '' : evD, sem_rem: true }).veiculos.filter((x) => {
     const e = M.eventos[D.ev_mes[x.ev]];
     return !!e && (evD >= 0 || evPassaF(e, F)) && (c < 0 || D.com_mes[x.comit] === c) && (vazio(F.cat) || D.veics[x.v][7] === F.cat);
   });
@@ -2009,9 +2013,11 @@ function APP(D, LOGO) {
      apagados */
   const STATUS_C = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'],
     ['vmv', 'VMV atingido'], ['vendidos', 'Vendidos'], ['removidos', 'Removidos']];
-  /* no Mensal, os status do sistema (Thomas, 17/11), com Com oferta ao lado */
-  const STATUS_C_MES = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'], ['st_ativo', 'Ativos'],
-    ['analise', 'Em análise'], ['vendidos', 'Vendidos'], ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
+  /* no Mensal, os status do sistema (Thomas, 17/11). Com oferta e Removidos
+     saíram em 25/11 (Thomas): o removido não conta no Mensal, e a quantidade
+     com oferta já está na rosca ("44 de 1.800") */
+  const STATUS_C_MES = [['veiculos', 'Veículos'], ['st_ativo', 'Ativos'],
+    ['analise', 'Em análise'], ['vendidos', 'Vendidos'], ['nao_vendidos', 'Não vendidos']];
   /* o indicador do topo, e Todos/Novos: com Novos, a base são os veículos
      que estrearam no dia e o acerto é só deles (a mesma regra do gráfico) */
   const baseDe = (g) => (g ? (modo === 'novos' ? g.novos : g.ativos) : 0);
@@ -2509,7 +2515,7 @@ function APP(D, LOGO) {
     $('#km-ev-mes').textContent = rotMesLongo(RM.ref);
     $('#km-ev-veic').textContent = nf(k.veiculos);
     $('#km-ev-com').textContent = nf(k.comitentes);
-    [['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
+    [['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos']].forEach((s) => {
       $('#km-' + s[0]).textContent = nf(k[s[1]]);
       const x = sobre(k[s[1]]);
       $('#km-' + s[0] + '-pc').textContent = x === null ? '—' : pc(x) + ' dos veículos';
@@ -2529,8 +2535,7 @@ function APP(D, LOGO) {
     $('#km-vr-ant').textContent = a ? rs(a.valor) : '—';
     /* as partes de cada status, como no pé dos cartões do diário de 03/11 */
     [['an-comp', 'an_comprador'], ['an-vend', 'an_vendedor'], ['vd-ag', 'aguardando'], ['vd-vd', 'vendido'],
-      ['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros'],
-      ['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
+      ['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
     /* "outros" (status fora do domínio) só aparece quando existe */
     $('#km-nv-out').parentNode.hidden = !k.outros;
     metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k, FM.sit === 'at' ? RM.meta_ev.venda : null);
@@ -2577,7 +2582,7 @@ function APP(D, LOGO) {
      antes dele abrir (24/11). Clique
      filtra pelo evento, como no Diário */
   const STATUS_EV_M = [['veiculos', 'Veículos'], ['st_ativo', 'Ativos'], ['analise', 'Em análise'], ['vendidos', 'Vendidos'],
-    ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
+    ['nao_vendidos', 'Não vendidos']];
   const dataCurta = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) : '—');
   /* a ordenação por coluna (Thomas, 24/11): clique no título ordena,
      clique de novo inverte; número começa do maior, texto e data do menor.
@@ -2795,11 +2800,11 @@ const GLOSSARIO_TXT = [
   ['Evento no mensal', 'O mesmo recorte de canais, ativo em algum dia do mês, aberto ou já finalizado. Evento com mais de {dias_max} dias de ofertas fica fora: é depósito de anúncios, não evento.'],
   ['Situação do evento', 'Os botões Eventos, no canto do topo: Ativos (o painel abre nele), Finalizados ou Todos. Finalizado: o sistema encerrou o evento e o horário de fim já passou — as duas coisas. Ativo: o resto (aberto, em prorrogação ou ainda não encerrado). Com Ativos, cada veículo conta se o evento mais recente dele no mês ainda está ativo, e a meta dos cartões passa a ser a meta do evento. Num mês fechado não há evento ativo.'],
   ['Início e fim do evento', 'Dois filtros de data no Mensal, cada um com De e Até: o dia em que o evento abriu as ofertas e o dia em que termina. Escolhem os eventos; o veículo conta pelo evento mais recente dele no mês.'],
-  ['Veículo no mês', 'Veículo distinto com negociação num evento ativo no mês. Novo no mês: estreou no mês. O status é o da negociação no evento mais recente dele no mês — o dono dele no mês —; nos meses fechados, é o desfecho. O comitente é o dessa negociação. Com um evento escolhido, contam os veículos do evento, cada um pela negociação dele no evento.'],
-  ['Status no mês', 'Os status do sistema, da negociação mais recente de cada veículo no mês. Os cinco grupos não se cruzam e somam os veículos do mês. Ativos: negociação ativa, ainda recebendo lance. Em análise: a oferta está na mesa, com o comprador ou com o vendedor. Vendidos: aguardando pagamento, aguardando confirmação de pagamento ou vendido. Não vendidos: o evento passou e não vendeu — sem ofertas, vendedor ou comprador rejeitou, ou a venda foi cancelada depois de fechada. Removidos: suspensos ou cancelados. Como só entram eventos fechados, quase todos os veículos já chegaram ao desfecho; Ativos e Em análise são os que o sistema ainda não encerrou.'],
+  ['Veículo no mês', 'Veículo distinto com negociação num evento ativo no mês. Novo no mês: estreou no mês. O status é o da negociação no evento mais recente dele no mês — o dono dele no mês —; nos meses fechados, é o desfecho. Se essa negociação foi removida (suspensa ou cancelada), o veículo sai do mês. O comitente é o dessa negociação. Com um evento escolhido, contam os veículos do evento, cada um pela negociação dele no evento.'],
+  ['Status no mês', 'Os status do sistema, da negociação mais recente de cada veículo no mês. Os cinco grupos não se cruzam e somam os veículos do mês. Ativos: negociação ativa, ainda recebendo lance. Em análise: a oferta está na mesa, com o comprador ou com o vendedor. Vendidos: aguardando pagamento, aguardando confirmação de pagamento ou vendido. Não vendidos: o evento passou e não vendeu — sem ofertas, vendedor ou comprador rejeitou, ou a venda foi cancelada depois de fechada. Os removidos (suspensos ou cancelados) não entram no Mensal: não contam nos veículos, nos percentuais, nos gráficos, nos lojistas, nas tabelas nem nas metas.'],
   ['Valor vendido', 'No mensal, cartão próprio ao lado dos Vendidos: a soma das ofertas vencedoras dos veículos vendidos no mês. Embaixo, a variação em % e a diferença em reais contra o mês anterior, e o valor dele.'],
   ['% no mês', 'Dos veículos ativos no mês, quantos já tiveram o anúncio aberto, receberam lance ou foram vendidos no evento — a negociação do evento mais recente dele no mês, como nos cartões. Vendidos é o mesmo número do cartão do mês.'],
-  ['Cartões por comitente no mês', 'Como no diário, para o mês escolhido no filtro Mês: a rosca é o indicador no mês, a área mostra os 12 meses até ele e a diferença em p.p. é contra o mês anterior.'],
+  ['Cartões por comitente no mês', 'Como no diário, para o mês escolhido no filtro Mês: a rosca é o indicador no mês, a área mostra os 12 meses até ele e a diferença em p.p. é contra o mês anterior. À direita, os veículos e os status do sistema; a quantidade do indicador fica embaixo da rosca ("44 de 1.800").'],
   ['Lojistas por mês', 'Lojas distintas que abriram anúncio, deram lance ou compraram nos eventos do recorte — no mês, ou em cada dia do mês de referência. Uma loja ativa no mês inteiro conta uma vez. Seguem canal, evento, situação, datas e comitente (pelos eventos do comitente); não seguem a categoria. Embaixo, os números do mês escolhido.'],
   ['Tabela de eventos do mês', 'Abaixo dos cartões por comitente, uma linha por evento ativo em algum dia do mês de referência: o fim do evento, os veículos e os status do sistema, o termômetro do indicador do topo com a meta do mês, e a meta do evento — verde quando o evento já está nela ou acima, vermelha abaixo; no finalizado, traço. Clicar no título de uma coluna ordena por ela; de novo, inverte. Clicar numa linha filtra pelo evento; clicar de novo solta.'],
   ['Meta do evento', 'O % que os eventos ativos precisam atingir para o mês fechar na meta, considerando o volume do mês e o que os eventos finalizados já fizeram: (meta do mês × veículos do mês − realizado nos finalizados) ÷ veículos dos eventos ativos, entre 0% e 100% — 0% quando a meta do mês já está garantida, 100% com aviso quando não dá mais para chegar. É calculada por whitelabel, comitente e categoria, com cada veículo pelo evento mais recente dele no mês; a de um evento, de um comitente ou dos cartões é a média dos grupos dos veículos ativos deles. Os filtros não a mudam. Conta só os veículos que já estão em eventos do mês: um evento que abre depois muda a meta dos ativos. Aparece na tabela de eventos e, com Ativos, nos cartões. Segue o indicador: com oferta ou vendidos.'],
@@ -2853,15 +2858,15 @@ const CSS_PAINEL = [
   '@media (max-width:620px){.g4.g5{grid-template-columns:1fr}}',
   /* sete cartões no Mensal (18/11: sem o Com oferta, com o Valor vendido):
      7 na linha, depois 4 (4 + 3), 2 e 1 */
-  '.g4.g7{grid-template-columns:repeat(7,minmax(0,1fr))}',
-  '@media (max-width:1600px){.g4.g7{grid-template-columns:repeat(4,minmax(0,1fr))}}',
-  '@media (max-width:900px){.g4.g7{grid-template-columns:repeat(2,minmax(0,1fr))}}',
-  '@media (max-width:620px){.g4.g7{grid-template-columns:1fr}}',
+  '.g4.g6{grid-template-columns:repeat(6,minmax(0,1fr))}',
+  '@media (max-width:1600px){.g4.g6{grid-template-columns:repeat(3,minmax(0,1fr))}}',
+  '@media (max-width:900px){.g4.g6{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+  '@media (max-width:620px){.g4.g6{grid-template-columns:1fr}}',
   '.kpi-pe div[hidden]{display:none}',
   /* o pé dos sete cartões leva até quatro números: quebra linha em vez de
      cortar o rótulo, e o mês anterior fica numa linha própria embaixo */
-  '.g4.g7 .kpi-pe{flex-wrap:wrap;gap:6px 14px}',
-  '.g4.g7 .kpi-pe div:has(dd[id$="-ant"]){flex-basis:100%}',
+  '.g4.g6 .kpi-pe{flex-wrap:wrap;gap:6px 14px}',
+  '.g4.g6 .kpi-pe div:has(dd[id$="-ant"]){flex-basis:100%}',
   /* as abas Diário e Mensal levam o mesmo respiro da página entre os
      visuais (Thomas, 16/11): eram blocos, e os visuais saíam colados */
   '#v-dia,#v-mes{display:flex;flex-direction:column;gap:var(--gap)}',
@@ -3222,9 +3227,10 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
      Não vendidos e Removidos somam os veículos do mês. O cartão Com oferta
      saiu (Thomas, 18/11); o indicador segue no gráfico e nos comitentes.
      O valor das vendas saiu do pé do Vendidos para um cartão seu, com a
-     comparação com o mês anterior (Thomas, 18/11). Sete cartões: grade
-     própria (.g7) */
-  '<section class="g4 g7" aria-label="Eventos e status no mês">' +
+     comparação com o mês anterior (Thomas, 18/11). O Removidos saiu em
+     25/11 (Thomas): removido não conta no Mensal. Seis cartões: grade
+     própria (.g6), três por linha abaixo de 1.600 px */
+  '<section class="g4 g6" aria-label="Eventos e status no mês">' +
   kpiCard('evento', 'Eventos no mês', 'km-ev', '<div class="kpi-pc"><span class="txt" id="km-ev-mes">—</span></div>',
     [['Veículos', 'km-ev-veic'], ['Comitentes', 'km-ev-com']], 'km-ev-rot') +
   kpiCard('veiculo', 'Ativos', 'km-at', meioPc('km-at-pc', 'km-at-bar'), [['Mês anterior', 'km-at-ant']]) +
@@ -3237,8 +3243,6 @@ const html = '<!doctype html><html lang="pt-BR" data-tema="escuro"><head><meta c
   kpiCard('naovendido', 'Não vendidos', 'km-nv', meioPc('km-nv-pc', 'km-nv-bar'),
     [['Sem ofertas', 'km-nv-sem'], ['Rejeitados', 'km-nv-rej'], ['Venda cancelada', 'km-nv-vc'], ['Outros', 'km-nv-out'],
       ['Mês anterior', 'km-nv-ant']]) +
-  kpiCard('removido', 'Removidos', 'km-rm', meioPc('km-rm-pc', 'km-rm-bar'),
-    [['Suspensos', 'km-rm-sus'], ['Cancelados', 'km-rm-can'], ['Mês anterior', 'km-rm-ant']]) +
   '</section>' +
   '<section class="comitentes" aria-labelledby="comit-rot-m">' +
   '<div class="barra-comit"><span class="rot-comit" id="comit-rot-m">Comitentes com evento no mês</span>' +

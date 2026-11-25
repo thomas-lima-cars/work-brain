@@ -3,6 +3,41 @@
 > Cada número traz data e como foi medido. O significado das tabelas está em
 > [`plataforma/dominios.md`](../../plataforma/dominios.md).
 
+## Run 70911 — primeira execução com a categoria como porta (2026-11-25, 10:27)
+
+Execução manual, sucesso, **20min14s** (Montar HTML 10,1 s). Os quatro nós de código
+conferidos byte a byte com o local antes (`_confere_transcricao.py`, export
+`workflow-n8n-2026-11-25-1026.json`). Medido na saída do Montar HTML (DADOS), por script.
+
+| medida | valor |
+|---|---:|
+| veículos | **2.322** (30 eventos) |
+| lojas no universo / elegíveis | 1.486 / 874 |
+| pares publicados | **87.006** |
+| pares com score ≥ 70 | 48.247 |
+| pares abaixo do piso, não publicados (`fora_do_piso`) | 2.294.448 |
+| `cortados_pelo_teto` (≥ 70 derrubados pelo teto de 150) | **27** — deveria ser 0 |
+| cortados pela trava de grupo | 49.377 |
+| HTML | **11,9 MB** (11.870.705 bytes) — a estimativa de 22/10 era ~5,4 MB |
+| veículos sem nenhum par ≥ 70 | 302 |
+
+**A regra da categoria nos pares publicados:** **1.592 pares (1,8%)** com categoria 0, todos
+com score 0 (nenhum com score positivo: a regra pegou). Nenhum par sem o componente de
+categoria. É o piso do efeito: par zerado só sai no arquivo quando entra nos 30 mínimos do
+veículo; os demais caíram para `fora_do_piso`, que não guarda o score antigo.
+
+**9 veículos ficaram só com pares zerados**, todos da categoria **22 "Não informada"**
+(8 Amarok e 1 Fiorino, eventos 24515–24517). Nenhuma loja tem "Não informada" como
+moda, então o veículo zera contra todas.
+
+Categorias da base no run: Automóvel 1.642 · Utilitário 436 · Caminhão 179 · Reboque 42 ·
+Semirreboque 11 · Não informada 9 · Motocicleta 2 · Ônibus 1.
+
+### Antes de ir ao ar, no HTML do run 52810 (21/09, teto fixo de 30)
+
+Simulação sobre os pares publicados: dos **31.620**, **3.284 (10,4%)** tinham categoria 0
+e iriam a zero; só **84** deles passavam de 70. 10 veículos perderiam o único par ≥ 70.
+
 ## Run 53859 — primeira execução com as compras (2026-09-25, 10:36)
 
 Execução manual, sucesso, **16min48s**. Comparada com o run **53827** (cron das 07h do

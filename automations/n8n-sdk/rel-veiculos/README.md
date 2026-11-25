@@ -692,6 +692,20 @@ Cinco componentes, cada um com uma **aderência** (0..1) e um **peso** (0..1):
 score = Σ(peso × aderência) / Σ(peso) × confiança
 ```
 
+### 🚪 Categoria é porta de aderência (2026-11-25, pedido do Thomas)
+
+Se o componente de **categoria vale 0** (o veículo não é da categoria que a loja mais
+oferta), a **aderência do par é 0**, e o score também, por melhor que seja o resto. O par
+continua existindo e a decomposição mostra o porquê. Sem componente de categoria (loja sem
+moda, veículo sem categoria) a regra não se aplica: falta de dado não vira zero. A categoria
+**22 "Não informada" NÃO conta como falta de dado**: é uma categoria como as outras e zera
+contra toda loja que não a tenha como moda (decisão do Thomas, 25/11, depois de ver 9
+Amarok/Fiorino zerados no run 70911). Código em
+`pontua()`; quatro provas no `prova-local.js` (seção 4); frase no glossário.
+
+No ar desde o **run 70911** (25/11). Números (a simulação antes e o efeito no run) em
+[`indicadores.md`](../../../context/banco-de-dados/projetos/radar-de-estoque/indicadores.md).
+
 O peso sair do coeficiente de variação é o miolo do pedido: **loja de faixa apertada é
 previsível**, então acertar o número dela vale muito; loja que compra de tudo tem CV alto
 e o peso cai sozinho.

@@ -302,6 +302,22 @@ const EVENTO_MES = (m) =>
   " AND e.start_date_offer <= '" + AGORA_BR + "' AND DATEDIFF(e.finish_date_event, e.start_date_offer) <= " + DIAS_MAX_EVENTO +
   " AND EXISTS (SELECT 1 FROM event_whitelabels ew WHERE ew.event_id = e.id AND ew.whitelabel_id IN (" + LISTA_WL + "))";
 const VENDA_IN = STATUS_VENDA.join(',');
+/* REMOVIDOS FORA DO MENSAL (Thomas, 25/11: "retire os veículos removidos").
+   A NEGOCIAÇÃO suspensa (8) ou cancelada (10) não existe para o mês: sai
+   antes de tudo, em todas as consultas do mês (mes_ev, mes_dia, mes_lojd e
+   a escolha do dono). O veículo segue pelas outras negociações dele no mês;
+   só some se todas foram removidas. Cortar a negociação, e não o veículo
+   pela última dela, é o que mantém o mês, os dias, os eventos e as lojas
+   coerentes entre si: na 1ª versão (veículo fora quando a última do mês era
+   removida) os novos dos dias somavam 3.019 contra 2.613 do mês (nov/26,
+   coleta de 25/11). A estreia (NOVO e "est") também ignora a removida: com
+   ela, o veículo que estreou numa negociação removida era novo no mês e em
+   nenhum dia (jan/26: 1.691 no mês contra 1.690 nos dias). O Diário segue
+   contando as removidas */
+const STATUS_REMOVIDO = [8, 10];
+const NAO_REMOVIDO = (col) => col + " NOT IN (" + STATUS_REMOVIDO.join(',') + ")";
+/* a junção de evento com negociação, sem a removida */
+const NEG_DO_EVENTO = " INNER JOIN advertisement_negotiations an ON an.event_id = e.id AND an.deleted_at IS NULL AND " + NAO_REMOVIDO('an.status');
 /* o lance de loja (o mesmo filtro da tabela de ofertas do diário) */
 const LANCE = "o.deleted_at IS NULL AND o.buyer_shop_id IS NOT NULL";
 /* a negociação mais recente do veículo no mês (fim do evento, depois id):
@@ -316,12 +332,12 @@ const K1 = (m) => "DATEDIFF(LEAST(DATE(e.finish_date_event), '" + m.ult + "'), '
 /* a negociação leve: só o que decide o dono (do mês e do dia) */
 const NEG_LEVE = (m) => "SELECT an.id AS nid, an.event_id AS eid, a.vehicle_id AS v, e.finish_date_event AS fim," +
   " " + K0(m) + " AS k0, " + K1(m) + " AS k1" +
-  " FROM events e INNER JOIN advertisement_negotiations an ON an.event_id = e.id AND an.deleted_at IS NULL" +
+  " FROM events e" + NEG_DO_EVENTO +
   " INNER JOIN advertisements a ON a.id = an.advertisement_id WHERE" + EVENTO_MES(m);
 /* novo no mês = estreou no mês: nenhuma negociação num evento (de qualquer
    canal) que abriu antes do mês — a mesma "estreia" do diário */
 const NOVO = (m, col) => "NOT EXISTS (SELECT 1 FROM advertisements a2 INNER JOIN advertisement_negotiations an2 ON an2.advertisement_id = a2.id" +
-  " AND an2.deleted_at IS NULL INNER JOIN events e2 ON e2.id = an2.event_id AND e2.deleted_at IS NULL" +
+  " AND an2.deleted_at IS NULL" + " AND " + NAO_REMOVIDO('an2.status') + " INNER JOIN events e2 ON e2.id = an2.event_id AND e2.deleted_at IS NULL" +
   " WHERE a2.vehicle_id = " + col + " AND e2.start_date_offer < '" + m.ini + "')";
 /* os 31 dias do mês (k = 0 a 30), sem tabela de números no banco */
 const DIAS_MES = (() => {
@@ -363,7 +379,7 @@ const deMesEv = (m) => {
     " (SELECT o.price FROM offers o WHERE o.id = an.offer_actual_id AND an.status IN (" + VENDA_IN + ")) AS pv," +
     " EXISTS (SELECT 1 FROM access_logs al WHERE al.advertisement_id = an.advertisement_id AND al.event_id = e.id" +
     " AND al.shop_id IS NOT NULL) AS ac" +
-    " FROM events e INNER JOIN advertisement_negotiations an ON an.event_id = e.id AND an.deleted_at IS NULL" +
+    " FROM events e" + NEG_DO_EVENTO +
     " INNER JOIN advertisements a ON a.id = an.advertisement_id" +
     " INNER JOIN vehicles vc ON vc.id = a.vehicle_id LEFT JOIN categories cg ON cg.id = vc.category_id WHERE" + EVENTO_MES(m);
   const own = "SELECT n.eid, n.v, " + ULT_ID('n.c') + " AS c, " + ULT_ID('n.st') + " AS st, " + ULT_ID('n.tl') + " AS tl, " +
@@ -414,7 +430,7 @@ const deMesDia = (m) => {
     " AND al.shop_id IS NOT NULL)") + " AS fak," +
     " " + desde("(SELECT MIN(o.created_at) FROM offers o WHERE o.advs_negotiation_id = an.id AND " + LANCE + ")") + " AS flk," +
     " IF(an.status IN (" + VENDA_IN + "), " + desde("(SELECT o.created_at FROM offers o WHERE o.id = an.offer_actual_id)") + ", NULL) AS fvk" +
-    " FROM events e INNER JOIN advertisement_negotiations an ON an.event_id = e.id AND an.deleted_at IS NULL" +
+    " FROM events e" + NEG_DO_EVENTO +
     " INNER JOIN advertisements a ON a.id = an.advertisement_id" +
     " INNER JOIN vehicles vc ON vc.id = a.vehicle_id LEFT JOIN categories cg ON cg.id = vc.category_id WHERE" + EVENTO_MES(m);
   const own = "SELECT n.eid, n.v, " + ULT_ID('n.c') + " AS c, " + ULT_ID('n.fak') + " AS fak, " + ULT_ID('n.flk') + " AS flk, " +
@@ -422,7 +438,7 @@ const deMesDia = (m) => {
   const dono = "SELECT n.v, dd.k, SUBSTRING_INDEX(MAX(CONCAT(" + CHAVE + ", '|', n.eid)), '|', -1) AS de" +
     " FROM (" + NEG_LEVE(m) + ") n INNER JOIN " + DIAS_MES + " dd ON dd.k BETWEEN n.k0 AND n.k1 GROUP BY n.v, dd.k";
   const est = "SELECT x.v, DATEDIFF((SELECT MIN(e2.start_date_offer) FROM advertisements a2" +
-    " INNER JOIN advertisement_negotiations an2 ON an2.advertisement_id = a2.id AND an2.deleted_at IS NULL" +
+    " INNER JOIN advertisement_negotiations an2 ON an2.advertisement_id = a2.id AND an2.deleted_at IS NULL" + " AND " + NAO_REMOVIDO('an2.status') +
     " INNER JOIN events e2 ON e2.id = an2.event_id AND e2.deleted_at IS NULL WHERE a2.vehicle_id = x.v), '" + m.dia0 + "') AS ek" +
     " FROM (SELECT DISTINCT n.v FROM (" + NEG_LEVE(m) + ") n) x";
   return " FROM (SELECT dd.k, o.eid, o.c, o.cat, " + COLS_DIA.map((c) => c[1] + ' AS ' + c[0]).join(', ') +
@@ -442,7 +458,8 @@ const deMesLojd = (m, p) => {
   const noMes = (col) => col + " >= '" + m.ini + "' AND " + col + " < '" + m.fim + "'";
   const bitDia = (col) => "(1 << (DAY(" + col + ") - 1))";
   const evs = "SELECT e.id FROM events e WHERE" + EVENTO_MES(m) + " AND MOD(e.id, " + PARTES_LOJD + ") = " + p;
-  const base = " FROM (" + evs + ") ev INNER JOIN advertisement_negotiations an ON an.event_id = ev.id AND an.deleted_at IS NULL";
+  const base = " FROM (" + evs + ") ev INNER JOIN advertisement_negotiations an ON an.event_id = ev.id AND an.deleted_at IS NULL" +
+    " AND " + NAO_REMOVIDO('an.status');
   const acoes = "SELECT 1 AS t, al.shop_id AS l, ev.id AS eid, " + bitDia('al.created_at') + " AS b" + base +
     " INNER JOIN access_logs al ON al.advertisement_id = an.advertisement_id AND al.event_id = ev.id AND al.shop_id IS NOT NULL" +
     " AND " + noMes('al.created_at') +

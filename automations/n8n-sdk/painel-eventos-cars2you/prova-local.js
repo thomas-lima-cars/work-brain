@@ -607,7 +607,8 @@ prova('mensal: Total = Ativos + Finalizados em todo mês (veículos, status, val
       g.lojistas[f] <= at.meses[m].lojistas[f] + fi.meses[m].lojistas[f], g.rot + ' lojistas ' + f));
   });
   /* hoje, os veículos dos eventos ativos do mês são os do cartão do Diário */
-  igual(at.kpi.veiculos, T0.kpi.veiculos, 'ativos do mês corrente = veículos dos eventos de hoje no Diário');
+  /* o Diário com a regra do Mensal (25/11): a negociação removida não existe */
+  igual(at.kpi.veiculos, C({ sem_rem: true }).kpi.veiculos, 'ativos do mês corrente = veículos dos eventos de hoje no Diário sem removidas');
 });
 prova('mensal: o cartão do comitente é o mês com aquele comitente filtrado, em três meses, com canal e com situação', () =>
   [{}, { mes: '10' }, { mes: '3', wl: '7' }, { sit: 'at' }].forEach((F) => {
@@ -744,16 +745,29 @@ prova('mensal: cada status do mês é a soma do cru do mes_ev, pelo dono', () =>
     igual(g.outros, v('sx'), g.rot + ' outros');
   });
 });
-prova('mensal: os sete cartões do topo, na ordem, sem VMV atingido, sem Com oferta e com o Valor vendido (18/11)', () => {
-  const ids = ['km-ev', 'km-at', 'km-an', 'km-vd', 'km-vr', 'km-nv', 'km-rm'];
+prova('mensal: os seis cartões do topo, na ordem, sem VMV atingido, sem Com oferta, sem Removidos e com o Valor vendido (25/11)', () => {
+  const ids = ['km-ev', 'km-at', 'km-an', 'km-vd', 'km-vr', 'km-nv'];
   const pos = ids.map((id) => html.indexOf('id="' + id + '"'));
   pos.forEach((p, j) => verdade(p > 0 && (j === 0 || p > pos[j - 1]), 'ordem em ' + ids[j]));
   verdade(html.indexOf('id="km-vm"') < 0, 'VMV atingido no mensal');
   verdade(html.indexOf('km-co') < 0, 'cartão Com oferta no mensal');
+  verdade(html.indexOf('km-rm') < 0, 'cartão Removidos no mensal');
   verdade(html.indexOf('km-vd-rs') < 0, 'valor no pé do Vendidos');
-  ['km-an-comp', 'km-an-vend', 'km-vd-ag', 'km-vd-vd', 'km-vr-pc', 'km-vr-dif', 'km-vr-ant', 'km-nv-sem', 'km-nv-rej', 'km-nv-vc', 'km-nv-out', 'km-rm-sus', 'km-rm-can']
+  ['km-an-comp', 'km-an-vend', 'km-vd-ag', 'km-vd-vd', 'km-vr-pc', 'km-vr-dif', 'km-vr-ant', 'km-nv-sem', 'km-nv-rej', 'km-nv-vc', 'km-nv-out']
     .forEach((id) => verdade(html.indexOf('id="' + id + '"') > 0, id));
-  verdade(html.indexOf('class="g4 g7" aria-label="Eventos e status no mês"') > 0, 'grade de sete');
+  verdade(html.indexOf('class="g4 g6" aria-label="Eventos e status no mês"') > 0, 'grade de seis');
+});
+/* removidos fora do Mensal (Thomas, 25/11): o SQL das três consultas do mês
+   corta o 8 e o 10, e nenhum mês, comitente ou evento conta removido */
+prova('mensal: removidos fora — o SQL corta 8 e 10, e nenhum mês, comitente ou evento tem removido', () => {
+  ['mes_ev', 'mes_dia', 'mes_lojd'].forEach((t) => itens.filter((i) => i.json.tabela === t).forEach((i) =>
+    verdade(i.json.sql.indexOf('NOT IN (8,10)') > 0, i.json.queryName + ' sem o corte')));
+  M0.meses.forEach((g) => igual(g.removidos, 0, g.rot + ' removidos'));
+  [{ sit: 'at' }, { sit: 'fin' }, { mes: '10' }].forEach((F) => {
+    const r = CM(F);
+    r.por_comit.forEach((c) => igual(c.removidos, 0, JSON.stringify(F) + ' ' + MD.comitentes[c.comit]));
+    r.eventos.forEach((o) => igual(o.removidos, 0, JSON.stringify(F) + ' evento ' + MD.eventos[o.ev][0]));
+  });
 });
 prova('mensal: mês sem parte derruba o run', () => {
   const d = copia(dados);
@@ -813,7 +827,7 @@ prova('mensal: os dias do mês corrente são os do Diário, dia a dia, sem filtr
   [[{}, {}], [{ wl: '43' }, { wl: '43' }], [{ cat: 'P' }, { cat: 'P' }],
     [{ comit: String(D.comitentes.indexOf(MD.comitentes[c0])) }, { comit: String(c0) }],
     [{ ev: String(evDia(evM)) }, { ev: String(evM) }]].forEach((p) => {
-    const R = C(p[0]);
+    const R = C(Object.assign({ sem_rem: true }, p[0]));
     const RM = CM(p[1]);
     let n = 0;
     R.dias.forEach((g) => {
@@ -821,8 +835,15 @@ prova('mensal: os dias do mês corrente são os do Diário, dia a dia, sem filtr
       if (dt.toISOString().slice(0, 7) !== MD.meses[11]) return;
       const h = RM.dias[dt.getUTCDate() - 1];
       n++;
-      ['ativos', 'novos', 'acesso', 'oferta', 'venda', 'acesso_n', 'oferta_n', 'venda_n', 'mt'].forEach((f) =>
+      ['ativos', 'acesso', 'oferta', 'venda', 'mt'].forEach((f) =>
         igual(h[f], g[f], JSON.stringify(p[1]) + ' ' + dt.toISOString().slice(0, 10) + ' ' + f));
+      /* os novos (25/11): a estreia do Mensal ignora a negociação removida e
+         a do Diário não, então o veículo que estreou numa removida é novo no
+         Mensal no dia em que volta, e no Diário não é. O Mensal só pode ter A
+         MAIS, e pouco (1 em 180 em 24/11, coleta de 25/11) */
+      ['novos', 'acesso_n', 'oferta_n', 'venda_n'].forEach((f) =>
+        verdade(h[f] >= g[f] && h[f] - g[f] <= Math.max(2, 0.02 * g[f]),
+          JSON.stringify(p[1]) + ' ' + dt.toISOString().slice(0, 10) + ' ' + f + ': ' + h[f] + ' no Mensal, ' + g[f] + ' no Diário'));
       quase(h.mo, g.mo, JSON.stringify(p[1]) + ' meta');
     });
     igual(n, RM.dias.length, 'todos os dias do mês até hoje');
@@ -966,6 +987,8 @@ prova('mensal: tabela de veículos do mês corrente = os veículos do cartão, e
   /* cada veículo uma vez */
   const vs = VM({}).linhas.map((x) => x.v);
   igual(new Set(vs).size, vs.length, 'veículo repetido');
+  /* removido fora da tabela também (25/11) */
+  verdade(VM({}).linhas.every((x) => x.status !== 8 && x.status !== 10), 'removido na tabela de veículos');
 });
 prova('mensal: tabela de veículos — o mês anterior só na parte da janela, os mais antigos vazios', () => {
   const a = VM({ mes: '10' });

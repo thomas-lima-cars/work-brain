@@ -420,8 +420,8 @@ combo($('#g-ativos'), grupos);
 }
 const STATUS_C = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'],
 ['vmv', 'VMV atingido'], ['vendidos', 'Vendidos'], ['removidos', 'Removidos']];
-const STATUS_C_MES = [['veiculos', 'Veículos'], ['com_oferta', 'Com oferta'], ['st_ativo', 'Ativos'],
-['analise', 'Em análise'], ['vendidos', 'Vendidos'], ['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
+const STATUS_C_MES = [['veiculos', 'Veículos'], ['st_ativo', 'Ativos'],
+['analise', 'Em análise'], ['vendidos', 'Vendidos'], ['nao_vendidos', 'Não vendidos']];
 const baseDe = (g) => (g ? (modo === 'novos' ? g.novos : g.ativos) : 0);
 const acertoDe = (g) => (g ? (modo === 'novos' ? g[kpi + '_n'] : g[kpi]) : 0);
 const pctDe = (g) => (baseDe(g) ? acertoDe(g) / baseDe(g) : null);
@@ -828,7 +828,7 @@ $('#km-ev').textContent = nf(k.eventos);
 $('#km-ev-mes').textContent = rotMesLongo(RM.ref);
 $('#km-ev-veic').textContent = nf(k.veiculos);
 $('#km-ev-com').textContent = nf(k.comitentes);
-[['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos'], ['rm', 'removidos']].forEach((s) => {
+[['at', 'st_ativo'], ['an', 'analise'], ['vd', 'vendidos'], ['nv', 'nao_vendidos']].forEach((s) => {
 $('#km-' + s[0]).textContent = nf(k[s[1]]);
 const x = sobre(k[s[1]]);
 $('#km-' + s[0] + '-pc').textContent = x === null ? '—' : pc(x) + ' dos veículos';
@@ -844,8 +844,7 @@ pc(pv) + '</span> sobre ' + rotMes(RM.ref - 1);
 $('#km-vr-dif').textContent = dv === null ? '—' : (dv > 0 ? '+' : dv < 0 ? '−' : '') + rs(Math.abs(dv));
 $('#km-vr-ant').textContent = a ? rs(a.valor) : '—';
 [['an-comp', 'an_comprador'], ['an-vend', 'an_vendedor'], ['vd-ag', 'aguardando'], ['vd-vd', 'vendido'],
-['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros'],
-['rm-sus', 'suspensos'], ['rm-can', 'cancelados']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
+['nv-sem', 'sem_ofertas'], ['nv-rej', 'rejeitados'], ['nv-vc', 'venda_cancelada'], ['nv-out', 'outros']].forEach((s) => { $('#km-' + s[0]).textContent = nf(k[s[1]]); });
 $('#km-nv-out').parentNode.hidden = !k.outros;
 metaCartao('km-vd', sobre(k.vendidos), metaDe(k, 'venda', true), k, FM.sit === 'at' ? RM.meta_ev.venda : null);
 desenhaMes();
@@ -879,7 +878,7 @@ $('#tot-lojistas-m').innerHTML = [['Acessaram', 'acessaram'], ['Ofertaram', 'ofe
 .map((p) => '<span>' + p[0] + ' em ' + esc(rotMes(RM.ref)) + ' <b class="num">' + nf(k.lojistas[p[1]]) + '</b></span>').join('');
 }
 const STATUS_EV_M = [['veiculos', 'Veículos'], ['st_ativo', 'Ativos'], ['analise', 'Em análise'], ['vendidos', 'Vendidos'],
-['nao_vendidos', 'Não vendidos'], ['removidos', 'Removidos']];
+['nao_vendidos', 'Não vendidos']];
 const dataCurta = (s) => (s ? s.slice(8, 10) + '/' + s.slice(5, 7) : '—');
 const ordEvM = { k: '', dir: 1 };
 function desenhaEventosMes() {

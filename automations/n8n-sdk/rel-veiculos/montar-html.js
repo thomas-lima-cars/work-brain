@@ -849,6 +849,13 @@ function pontua(v, l) {
   if (somaP <= 0) return null;
   const det = {};
   for (let i = 0; i < comps.length; i++) det[comps[i].k] = Math.round(comps[i].a * 100);
+  /* CATEGORIA E PORTA DE ADERENCIA (pedido do Thomas, 2026-11-25): se o
+     componente de categoria vale 0 -- o veiculo nao e da categoria que a loja
+     mais oferta --, a aderencia do par inteiro e 0, e o score tambem. O par
+     continua existindo (a decomposicao mostra o porque); so nao pontua.
+     Sem componente de categoria (loja sem moda, veiculo sem categoria) a
+     regra nao se aplica: falta de dado nao vira zero. */
+  if (det.categoria === 0) return { score: 0, det: det };
   return { score: (somaPA / somaP) * l.confianca * 100, det: det };
 }
 
@@ -2744,6 +2751,7 @@ const html = [
   '<dd>Nos qualitativos, o peso é o <b>% de ofertas</b> da loja naquele item. Loja que concentra 70% dos lances num modelo faz esse indicador pesar mais do que uma que espalha.</dd>',
   '<dt>Aderência (o total)</dt>',
   '<dd><code>&Sigma;(peso &times; aderência) / &Sigma;(peso)</code>, de 0 a 100. É a média dos <b>oito</b> indicadores ponderada pelo quanto cada um informa sobre aquela loja.</dd>',
+  '<dd><b>Categoria é porta:</b> se o veículo não é da categoria que a loja mais oferta (indicador de categoria = 0), a aderência do par é <b>0</b>, e o score também, por melhor que seja o resto. Loja sem categoria no histórico não sofre a regra.</dd>',
   '<dd class="ex">Quantitativos: preço, idade, km e <b>deságio</b>. Qualitativos: modelo, categoria, <b>laudo</b> e <b>UF</b>. Indicador sem dado na loja simplesmente não entra na média — não entra como zero, que puxaria o resultado para baixo sem motivo.</dd>',
   '<dt>Fator de confiança</dt>',
   '<dd><code>min(1, veículos / ' + CONFIANCA_MIN + ')</code>. Loja com pouco histórico tem perfil pouco confiável, então o resultado dela é descontado &mdash; com menos de ' + CONFIANCA_MIN + ' veículos ela aparece marcada como <b>amostra baixa</b>.</dd>',

@@ -386,3 +386,11 @@ precificar.
   meta ajustada por evento da manhã), **tabela de veículos do Mensal com Exportar CSV**, coluna Fim e ordenação.
 - O Thomas confirmou as quatro escolhas "(minha)" de 19/11 e subiu a planilha de metas nova (só mensal, por
   whitelabel) em `Comitente - Metas/`. Rodada 70725 ✅ (números no `indicadores.md` do projeto). Voltar atrás: `01e3c4e9`.
+
+### 2026-11-25 — Radar com a categoria como porta; Painel de Eventos Cars2You sem removidos no Mensal
+- **Radar de Estoque:** categoria 0 zera a aderência e o score do par (pedido do Thomas); a categoria 22 "Não
+  informada" segue zerando (decisão dele). Run manual 70911 ✅ com os 4 nós conferidos byte a byte. O run mostrou a base
+  dobrada (2.322 veículos, HTML de 11,9 MB, 27 pares ≥ 70 cortados pelo teto). Números no `indicadores.md` do Radar.
+- **Painel de Eventos Cars2You:** a negociação removida (8, 10) saiu de todas as contas do Mensal; saíram o cartão
+  Removidos e as linhas Com oferta e Removidos dos cartões por comitente; metas mantidas como estavam (decisão dele).
+  Versão **`7274585b`** publicada, rodada 71033 ✅. Voltar atrás: `279a3a1f`.
